@@ -1,9 +1,11 @@
-import { Clock, Heart, Shield, Star, Users, Video } from "lucide-react";
+"use client";
+import { Clock, Heart, Video } from "lucide-react";
+import { useRouter } from "next/navigation";
+import React from "react";
 import ServiceBadge from "./ServiceBadge";
-import TrustIndicator from "./TrustIndicator";
-import { Button } from "./ui/button";
 
 const HeroContent: React.FC = () => {
+  const router = useRouter();
   return (
     <div className="space-y-6">
       <ServiceBadge
@@ -36,7 +38,10 @@ const HeroContent: React.FC = () => {
       </p>
 
       <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 pt-4">
-        <button className="book-consultation-button inline-flex items-center justify-center box-border outline-none border-none m-0 cursor-pointer select-none align-middle appearance-none no-underline font-roboto text-base leading-[1.75] tracking-[0.02857em] min-w-[64px] rounded-full px-9 py-4 font-bold normal-case relative overflow-hidden transition-all duration-400 ease-[cubic-bezier(0.4,0,0.2,1)] bg-gradient-to-r from-blue-500 via-purple-500 to-pink-400 text-white shadow-[0_8px_25px_rgba(59,130,246,0.4)] gap-x-2">
+        <button
+          onClick={() => router.push("/video-call")}
+          className="book-consultation-button inline-flex items-center justify-center box-border outline-none border-none m-0 cursor-pointer select-none align-middle appearance-none no-underline font-roboto text-base leading-[1.75] tracking-[0.02857em] min-w-[64px] rounded-full px-9 py-4 font-bold normal-case relative overflow-hidden transition-all duration-400 ease-[cubic-bezier(0.4,0,0.2,1)] bg-gradient-to-r from-blue-500 via-purple-500 to-pink-400 text-white shadow-[0_8px_25px_rgba(59,130,246,0.4)] gap-x-2"
+        >
           <Video /> <span className="mb-[2px]"> Book Consultation</span>
         </button>
 

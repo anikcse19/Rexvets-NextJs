@@ -9,8 +9,8 @@ export interface HeaderProps {
   navItems: NavItem[];
   actions?: React.ReactNode;
 }
-interface DropdownNavMenuProps {
-  label: string;
-  items: DropdownItem[];
-  className?: string;
-}
+// interface DropdownNavMenuProps {
+//   label: string;
+//   items: DropdownItem[];
+//   className?: string;
+// }

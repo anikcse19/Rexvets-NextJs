@@ -1,5 +1,4 @@
 import CEOSection from "./CEOSection";
-import Header from "./Header";
 import HeroContent from "./HeroContent";
 import { Button } from "./ui/button";
 import VideoPlayer from "./VideoPlayer";

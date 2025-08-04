@@ -6,7 +6,6 @@ import ReactPlayer from "react-player";
 const VideoPlayer = () => {
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(false);
-  const [volume, setVolume] = useState(1);
 
   const handlePlayPause = useCallback(() => {
     setPlaying((prev) => !prev);
@@ -27,7 +26,6 @@ const VideoPlayer = () => {
           }}
           playing={playing}
           muted={muted}
-          volume={volume}
           // controls={true}
           playIcon={<Play className="w-10 h-10 text-red-300" />}
           // pauseIcon={<Pause className="w-10 h-10 text-white" />}
