@@ -127,9 +127,9 @@ body {
   }
 }
 .root-body {
-  min-height: 100vh;
+  /* min-height: 100vh;
   position: relative;
-  overflow: hidden;
+  overflow: hidden; */
   background: linear-gradient(
     135deg,
     rgb(15, 12, 41) 0%,
@@ -140,8 +140,8 @@ body {
   );
 }
 .root-body::before {
-  content: "";
-  position: absolute;
+  /* content: "";
+  position: absolute; */
   inset: 0px;
   background: radial-gradient(
       circle at 20% 20%,
@@ -169,9 +169,9 @@ body {
       rgba(255, 255, 255, 0.05) 50%,
       transparent 100%
     );
-  animation: 8s ease-in-out 0s infinite normal none running animation-6qh1qy;
+  /* animation: 8s ease-in-out 0s infinite normal none running animation-6qh1qy; */
 }
-.root-body::after {
+.roofft-body::after {
   content: "";
   position: absolute;
   inset: 0;
