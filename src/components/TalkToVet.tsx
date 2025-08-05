@@ -1,7 +1,10 @@
+"use client";
 import { useRouter } from "next/navigation";
+import React from "react";
 
 const TalkToVetButton = () => {
   const navigate = useRouter();
+
   return (
     <div>
       <div
@@ -32,27 +35,48 @@ const TalkToVetButton = () => {
               "0 10px 25px rgba(34, 211, 238, 0.25)";
             e.currentTarget.style.transform = "scale(1.05)";
             e.currentTarget.style.borderColor = "rgba(34, 211, 238, 1)";
-            e.currentTarget.querySelector(".overlay").style.opacity = 1;
-            e.currentTarget.querySelector(".text").style.color = "white";
-            e.currentTarget.querySelector(".icon-wrapper").style.boxShadow =
-              "0 0 10px rgba(34, 211, 238, 0.5)";
+
+            const overlay = e.currentTarget.querySelector(
+              ".overlay"
+            ) as HTMLElement | null;
+            const text = e.currentTarget.querySelector(
+              ".text"
+            ) as HTMLElement | null;
+            const iconWrapper = e.currentTarget.querySelector(
+              ".icon-wrapper"
+            ) as HTMLElement | null;
+
+            if (overlay) overlay.style.opacity = "1";
+            if (text) text.style.color = "white";
+            if (iconWrapper)
+              iconWrapper.style.boxShadow = "0 0 10px rgba(34, 211, 238, 0.5)";
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.boxShadow =
               "0 10px 25px rgba(0, 255, 255, 0.1)";
             e.currentTarget.style.transform = "scale(1)";
             e.currentTarget.style.borderColor = "rgba(34, 211, 238, 0.5)";
-            e.currentTarget.querySelector(".overlay").style.opacity = 0;
-            e.currentTarget.querySelector(".text").style.color = "#ccfbf1";
-            e.currentTarget.querySelector(".icon-wrapper").style.boxShadow =
-              "none";
+
+            const overlay = e.currentTarget.querySelector(
+              ".overlay"
+            ) as HTMLElement | null;
+            const text = e.currentTarget.querySelector(
+              ".text"
+            ) as HTMLElement | null;
+            const iconWrapper = e.currentTarget.querySelector(
+              ".icon-wrapper"
+            ) as HTMLElement | null;
+
+            if (overlay) overlay.style.opacity = "0";
+            if (text) text.style.color = "#ccfbf1";
+            if (iconWrapper) iconWrapper.style.boxShadow = "none";
           }}
         >
           <div
             className="overlay"
             style={{
               position: "absolute",
-              inset: 0,
+              inset: "0",
               background:
                 "linear-gradient(to right, rgba(34, 211, 238, 0.2), rgba(96, 165, 250, 0.2))",
               borderRadius: "1rem",
@@ -73,9 +97,9 @@ const TalkToVetButton = () => {
             <div
               className="icon-wrapper"
               style={{
-                width: "40px", // ensure equal width and height
+                width: "40px",
                 height: "40px",
-                display: "flex", // center the icon
+                display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 backgroundColor: "rgba(34, 211, 238, 0.2)",
@@ -114,6 +138,7 @@ const TalkToVetButton = () => {
             >
               Talk to a Vet
             </span>
+
             <div
               style={{
                 width: "8px",

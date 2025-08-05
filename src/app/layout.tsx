@@ -75,12 +75,7 @@ export const metadata: Metadata = {
     index: true,
     follow: true,
   },
-  viewport: {
-    width: "device-width",
-    initialScale: 1,
-    maximumScale: 1,
-  },
-  themeColor: "#ffffff",
+
   openGraph: {
     title: "Rex Vet - Your Trusted Online Veterinary Service",
     description:
