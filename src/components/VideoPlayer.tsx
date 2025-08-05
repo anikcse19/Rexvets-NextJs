@@ -15,8 +15,8 @@ const VideoPlayer = () => {
   }, []);
 
   return (
-    <div className=" rounded-[20px] h-[500px] w-[100%] md:h-[620px] md:w-[550px] md:ml-auto flex items-center justify-center relative  overflow-hidden shadow-[0_20px_40px_rgba(0,0,0,0.3)] mb-6">
-      <div className=" relative h-[450px] w-[90%] md:w-[500px] md:h-[580px]  flex items-center justify-center">
+    <div className=" rounded-[20px] h-[500px] w-[100%] md:h-[620px] md:w-[550px] md:mx-auto xl:ml-auto flex items-center justify-center relative  overflow-hidden shadow-[0_20px_40px_rgba(0,0,0,0.3)] mb-6">
+      <div className=" relative h-[450px] w-[96%] md:w-[500px] md:h-[580px]  flex items-center justify-center">
         <ReactPlayer
           style={{
             width: "100%",
@@ -34,8 +34,9 @@ const VideoPlayer = () => {
           // muted={true}
           src="https://res.cloudinary.com/di6zff0rd/video/upload/v1753102241/RexVetsWeb_tb3zcq.mp4"
         />
-        <div className="absolute bottom-11 left-1/2 transform -translate-x-1/2 flex space-x-4 items-center justify-center">
-          <div className="flex justify-center items-center cursor-pointer">
+        <div className="absolute bottom-11 left-1/2 transform -translate-x-1/2 flex space-x-4 items-center justify-center z-50 pointer-events-auto">
+          {/* Play/Pause Button */}
+          <div className="flex justify-center items-center">
             <button
               onClick={handlePlayPause}
               className="p-2 h-[56px] w-[56px] cursor-pointer flex items-center justify-center bg-white backdrop-blur-sm rounded-full transition-transform duration-200 hover:scale-110"
@@ -49,6 +50,7 @@ const VideoPlayer = () => {
             </button>
           </div>
 
+          {/* Mute/Unmute Button */}
           <div className="flex justify-center items-center">
             <button
               onClick={handleMuteToggle}

@@ -1,16 +1,24 @@
 import React from "react";
 
-const CEOSection: React.FC = () => {
+interface IProps {
+  heading?: string;
+  name?: string;
+}
+
+const CEOSection: React.FC<IProps> = ({
+  heading = "Meet Our CEO",
+  name = "Dr. Tiffany Delacruz, DVM",
+}) => {
   return (
-    <div className=" w-fit flex flex-col items-center justify-center md:w-[550px] md:ml-auto rounded-lg p-6 text-white md:mb-8">
-      <h2 className="text-2xl mb-2 md:font-extrabold md:text-[40px] md:leading-[47px]">
-        Meet Our CEO
+    <div className="w-full flex flex-col items-center justify-center xl:w-[550px] md:ml-auto rounded-lg p-6 text-white md:mb-5">
+      <h2 className="text-5xl text-center md:text-start font-bold mb-2 md:font-extrabold md:text-[40px] md:leading-[47px]">
+        {heading}
       </h2>
-      <p className=" text-sm md:text-[20px] md:leading-[32px] mb-2 md:font-[600] text-[#7E9AFA] ">
-        Dr. Tiffany Delacruz, DVM
+      <p className="text-2xl text-center md:text-start font-bold md:text-[20px] md:leading-[32px] md:font-[600] text-[#7E9AFA]">
+        {name}
       </p>
     </div>
   );
 };
 
-export default CEOSection;
+export default React.memo(CEOSection);

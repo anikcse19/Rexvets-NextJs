@@ -1,14 +1,16 @@
-import React from "react";
+"use client";
+import React, { useState } from "react";
+import { BsChatLeftTextFill } from "react-icons/bs";
 import CEOSection from "../CEOSection";
 import FloatingElements from "../FloatingParticle";
-import { Button } from "../ui/button";
 import VideoPlayer from "../VideoPlayer";
 import styles from "./hero.section.module.css";
 import HeroContent from "./HeroContent";
 const HeroSection = () => {
+  const [isOpen, setIsOpen] = useState(false);
   return (
     <div className={styles.hero_container}>
-      <div className="min-h-screen  pt-12">
+      <div className="min-h-screen   mt-24  lg:mt-16">
         <FloatingElements />
         <main className="">
           <div className="max-w-[1536px] mx-auto">
@@ -17,8 +19,11 @@ const HeroSection = () => {
                 <HeroContent />
               </div>
 
-              <div className="w-full lg:w-1/2">
-                <CEOSection />
+              <div className="w-full lg:w-1/2 lg:mt-20">
+                <CEOSection
+                  heading="Meet Our CEO"
+                  name="Dr. Tiffany Delacruz, DVM"
+                />
                 <VideoPlayer />
               </div>
             </div>
@@ -26,12 +31,16 @@ const HeroSection = () => {
         </main>
 
         {/* Floating Chat Button */}
-        <div className="fixed bottom-6 right-6">
-          <Button className="bg-emerald-500 hover:bg-emerald-600 text-white rounded-full shadow-lg px-6 py-3">
-            Chat live with an agent now!
-          </Button>
-        </div>
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="fixed bottom-6 right-6 cursor-pointer z-50"
+        >
+          <div className=" bg-[#041E89] p-3 rounded-full shadow-lg cursor-pointer">
+            <BsChatLeftTextFill className="text-white text-xl" />
+          </div>
+        </button>
       </div>
+      {/* <HelpCenterModal isOpen={isOpen} setIsOpen={setIsOpen} /> */}
     </div>
   );
 };

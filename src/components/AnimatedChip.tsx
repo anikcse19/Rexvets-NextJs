@@ -16,7 +16,7 @@ const AnimatedChip: React.FC<AnimatedChipProps> = ({
   ...props
 }) => {
   return (
-    <div className="flex justify-center sm:justify-start">
+    <div className="flex justify-center lg:justify-start">
       <motion.div
         className=" bg-[rgba(255,255,255,0.15)] backdrop-blur-[20px] rounded-full text-white font-semibold text-[14px] px-[16px] py-[4px] border border-[rgba(255,255,255,0.2)] inline-flex items-center mb-4"
         initial={{ scale: 1 }}

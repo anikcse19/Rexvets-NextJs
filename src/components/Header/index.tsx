@@ -6,21 +6,16 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import {
-  Sheet,
-  SheetClose,
-  SheetContent,
-  SheetTrigger,
-} from "@/components/ui/sheet";
-import { Facebook, Instagram, MessageCircle, Music, Send } from "lucide-react";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { BsChatLeftTextFill } from "react-icons/bs";
 import { FaFacebookF, FaInstagram, FaTiktok } from "react-icons/fa";
 
 import { DialogTitle } from "@radix-ui/react-dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { AnimatePresence, motion } from "framer-motion";
-import { ChevronDown, Menu, User, X } from "lucide-react";
+import { ChevronDown, Menu, User } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import React, { useRef, useState } from "react";
 import TalkToVetButton from "../TalkToVet";
 import styles from "./Header.module.css";
@@ -66,22 +61,24 @@ const Header: React.FC = () => {
   };
 
   return (
-    <header className="bg-gradient-to-r from-[#1D1C37] to-[#0D3261] backdrop-blur-sm px-6 py-3 border-b border-slate-800/50 z-[9998] relative">
+    // Updated header classes for fixed positioning
+    <header className="fixed top-0  left-0 right-0 w-full bg-gradient-to-r from-[#1D1C37] to-[#0D3261] backdrop-blur-sm px-6 py-3 border-b border-slate-800/50 z-[9998]">
       <nav className="flex items-center justify-between mx-auto">
         {/* Logo */}
         <div className="flex items-center">
-          <Image
-            src="/images/LogoR-BwtRiloc.webp"
-            alt="Logo RexVets"
-            width={40}
-            height={40}
-            quality={100}
-          />
-          <h1 className={styles.main_logo}>exVets</h1>
+          <Link href="/">
+            <Image
+              src="/images/Logo (Gradient).svg"
+              alt="Logo RexVets"
+              width={120}
+              height={120}
+              quality={100}
+            />
+          </Link>
         </div>
 
         {/* Desktop Navigation */}
-        <div className="hidden md:flex items-center space-x-8 z-[9999]">
+        <div className="hidden lg:flex items-center space-x-8 z-[9999]">
           <a
             className="text-white hover:text-emerald-400 font-semibold transition-colors duration-300"
             href="#"
@@ -146,7 +143,7 @@ const Header: React.FC = () => {
               <Button
                 variant="ghost"
                 size="icon"
-                className="md:hidden text-white hover:text-emerald-400"
+                className="lg:hidden text-white hover:text-emerald-400"
               >
                 <Menu className="h-6 w-6" />
                 <span className="sr-only">Toggle menu</span>
@@ -161,23 +158,22 @@ const Header: React.FC = () => {
                 <DialogTitle>Main Menu</DialogTitle>
               </VisuallyHidden>
 
-              <div className=" bg-[#27305A]  p-6 pt-11   h-screen overflow-y-auto">
+              <div className="bg-[#27305A] p-6 pt-11 h-screen overflow-y-auto">
                 <div className="flex items-center">
                   <Image
-                    src="/images/LogoR-BwtRiloc.webp"
+                    src="/images/Logo (Gradient).svg"
                     alt="Logo RexVets"
-                    width={40}
-                    height={40}
+                    width={200}
+                    height={200}
                     quality={100}
                   />
-                  <h1 className={styles.main_logo}>exVets</h1>
                 </div>
                 <div className="flex flex-col gap-4">
-                  <div className=" mt-16">
+                  <div className="mt-16">
                     <div className="pb-3 border-b border-[#3D456B]">
                       <a
                         href="#"
-                        className="text-white hover:text-emerald-400 font-semibold text-lg "
+                        className="text-white hover:text-emerald-400 font-semibold text-lg"
                         onClick={() => setMobileMenuOpen(false)}
                       >
                         Home
@@ -186,7 +182,7 @@ const Header: React.FC = () => {
                     {Object.entries(menuItems).map(([label, items]) => (
                       <Collapsible key={label}>
                         <div className="py-4 border-b border-[#3D456B]">
-                          <CollapsibleTrigger className="flex items-center  text-white hover:text-emerald-400 font-semibold text-lg w-full">
+                          <CollapsibleTrigger className="flex items-center text-white hover:text-emerald-400 font-semibold text-lg w-full">
                             {label}
                             <ChevronDown className="w-4 h-4 ml-1" />
                           </CollapsibleTrigger>
@@ -226,7 +222,7 @@ const Header: React.FC = () => {
               </div>
             </SheetContent>
           </Sheet>
-          <div className="md:flex hidden items-center space-x-3">
+          <div className="lg:flex hidden items-center space-x-3">
             <button className={styles.user_icon_btn}>
               <div
                 style={{
@@ -248,11 +244,6 @@ const Header: React.FC = () => {
           </div>
         </div>
       </nav>
-      {/* <style jsx>{`
-        .sheet-close-white :where([data-state="open"] > button) {
-          color: white;
-        }
-      `}</style> */}
     </header>
   );
 };
