@@ -15,12 +15,12 @@ const VideoPlayer = () => {
   }, []);
 
   return (
-    <div className="rounded-[20px] h-[620px] w-[550px] ml-auto flex items-center justify-center relative  overflow-hidden shadow-[0_20px_40px_rgba(0,0,0,0.3)] mb-6">
-      <div className=" relative w-[503px] h-[600px]  flex items-center justify-center">
+    <div className=" rounded-[20px] h-[500px] w-[100%] md:h-[620px] md:w-[550px] md:ml-auto flex items-center justify-center relative  overflow-hidden shadow-[0_20px_40px_rgba(0,0,0,0.3)] mb-6">
+      <div className=" relative h-[450px] w-[90%] md:w-[500px] md:h-[580px]  flex items-center justify-center">
         <ReactPlayer
           style={{
             width: "100%",
-            height: 550,
+            height: "100%",
             borderRadius: 20,
             objectFit: "cover",
           }}

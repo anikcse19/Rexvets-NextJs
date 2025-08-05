@@ -2,7 +2,7 @@ import React from "react";
 
 const CEOSection: React.FC = () => {
   return (
-    <div className=" flex flex-col items-center justify-center w-[550px] ml-auto rounded-lg p-6 text-white mb-8">
+    <div className=" w-fit flex flex-col items-center justify-center md:w-[550px] md:ml-auto rounded-lg p-6 text-white md:mb-8">
       <h2 className="text-2xl mb-2 md:font-extrabold md:text-[40px] md:leading-[47px]">
         Meet Our CEO
       </h2>
