@@ -54,7 +54,6 @@ export interface IUser {
   specialization?: string; // For vets only
   available?: boolean; // Vet availability status
   consultationFee?: number; // For transparency
-
   // FCM tokens (to support web & mobile)
   fcmTokens: {
     web?: string;
