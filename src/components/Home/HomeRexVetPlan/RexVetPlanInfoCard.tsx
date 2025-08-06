@@ -7,7 +7,7 @@ import {
   IoSparkles,
   IoTimeOutline,
 } from "react-icons/io5";
-import { Badge } from "../ui/badge";
+import { Badge } from "../../ui/badge";
 interface IProps {
   sharedFeatures: string[];
 }

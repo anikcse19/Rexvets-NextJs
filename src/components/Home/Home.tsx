@@ -5,7 +5,8 @@ import AboutUsSection from "./AboutUsSection";
 import AwardsMarquee from "./AwardsMarquee";
 import FeaturesSection from "./FeaturesSection";
 import HeroSection from "./HeroSection";
-import RexVetPlan from "./RexVetPlan";
+import { RexVetPlan } from "./HomeRexVetPlan";
+import { SupportOurMission } from "./SupportOurMission";
 
 const Home = () => {
   return (
@@ -21,6 +22,7 @@ const Home = () => {
       />
       <FeaturesSection data={whyChooseFeaturesData} />
       <RexVetPlan />
+      <SupportOurMission />
     </div>
   );
 };

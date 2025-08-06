@@ -10,7 +10,7 @@ const CEOSection: React.FC<IProps> = ({
   name = "Dr. Tiffany Delacruz, DVM",
 }) => {
   return (
-    <div className="w-full flex flex-col items-center justify-center xl:w-[550px] md:ml-auto rounded-lg p-6 text-white md:mb-5">
+    <div className="w-full flex flex-col items-center  justify-center  md:ml-auto rounded-lg p-6 text-white md:mb-5">
       <h2 className="text-5xl text-center md:text-start font-bold mb-2 md:font-extrabold md:text-[40px] md:leading-[47px]">
         {heading}
       </h2>

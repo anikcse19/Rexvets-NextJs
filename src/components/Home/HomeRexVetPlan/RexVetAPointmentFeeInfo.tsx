@@ -2,7 +2,7 @@
 import { motion, Variants } from "framer-motion";
 import React from "react";
 import { IoCheckmarkCircle, IoFlashOutline } from "react-icons/io5";
-import { Button } from "../ui/button";
+import { Button } from "../../ui/button";
 
 interface IProps {
   perAppointmentFeatures: string[];
