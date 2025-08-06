@@ -1,4 +1,5 @@
 import { StaticImageData } from "next/image";
+import { IconType } from "react-icons/lib";
 
 export interface NavItem {
   label: string;
@@ -79,4 +80,12 @@ export interface IFeature {
 export interface IHomeAboutSectionFooter {
   title: string;
   tabs: string[];
+}
+export interface IHomeFeaturesSection {
+  id: number;
+  icon: IconType;
+  title: string;
+  description: string;
+  color: string;
+  gradient: string;
 }

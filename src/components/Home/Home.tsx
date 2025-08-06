@@ -1,7 +1,9 @@
-import { doubledBrands, features } from "@/lib";
+"use client";
+import { doubledBrands, features, whyChooseFeaturesData } from "@/lib";
 import React from "react";
 import AboutUsSection from "./AboutUsSection";
 import AwardsMarquee from "./AwardsMarquee";
+import FeaturesSection from "./FeaturesSection";
 import HeroSection from "./HeroSection";
 
 const Home = () => {
@@ -16,6 +18,7 @@ const Home = () => {
           tabs: ["Trusted", "Verified", "Available 24/7"],
         }}
       />
+      <FeaturesSection data={whyChooseFeaturesData} />
     </div>
   );
 };

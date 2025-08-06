@@ -205,3 +205,38 @@ body {
 .about-section-card:hover::before {
   opacity: 1;
 }
+/* Home Features Section */
+.home-features-card {
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  border-radius: 24px;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  transform: translateY(0) scale(1);
+}
+
+.home-features-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 4px;
+  width: 100%;
+  background: linear-gradient(90deg, #3b82f6, #8b5cf6, #06b6d4);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s ease;
+  z-index: 1;
+  border-top-left-radius: 24px;
+  border-top-right-radius: 24px;
+}
+
+.home-features-card:hover {
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  transform: translateY(-8px) scale(1.02);
+}
+
+.home-features-card:hover::before {
+  transform: scaleX(1);
+}

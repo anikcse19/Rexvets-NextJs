@@ -150,7 +150,7 @@ const AboutUsSection: React.FC<AboutUsSectionProps> = ({
 
         {/* Bottom CTA */}
         <div className="text-center mt-8 md:mt-12">
-          <p className="text-base md:text-lg text-[#475569] font-normal mb-2">
+          <p className="text-base md:text-lg text-[#475569] font-medium mb-2 font-garet">
             {title}
           </p>
           <div className="flex justify-center gap-2 flex-wrap">
