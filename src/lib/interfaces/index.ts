@@ -9,8 +9,55 @@ export interface HeaderProps {
   navItems: NavItem[];
   actions?: React.ReactNode;
 }
-// interface DropdownNavMenuProps {
-//   label: string;
-//   items: DropdownItem[];
-//   className?: string;
-// }
+export enum UserRole {
+  PetOwner = "petOwner",
+  Vet = "vet",
+  Admin = "admin",
+}
+export interface IPet {
+  name: string;
+  species: PetSpecies;
+  breed?: string;
+  age: number;
+  medicalHistory?: string[];
+}
+export enum PetSpecies {
+  Dog = "dog",
+  Cat = "cat",
+  Rabbit = "rabbit",
+  Bird = "bird",
+  Reptile = "reptile",
+  Fish = "fish",
+  Hamster = "hamster",
+  GuineaPig = "guineaPig",
+  Turtle = "turtle",
+  Ferret = "ferret",
+  Horse = "horse",
+  Other = "other",
+}
+
+export interface IUser {
+  _id: string;
+  name: string;
+  email: string;
+  phoneNumber?: string;
+  profileImage?: string;
+
+  // Authentication
+  password?: string; // Only on server-side or signup
+  isEmailVerified?: boolean;
+
+  // Role-based access
+  role: UserRole;
+
+  // pets?: IPet[];
+  specialization?: string; // For vets only
+  available?: boolean; // Vet availability status
+  consultationFee?: number; // For transparency
+
+  // FCM tokens (to support web & mobile)
+  fcmTokens: {
+    web?: string;
+    mobile?: string;
+  };
+}
