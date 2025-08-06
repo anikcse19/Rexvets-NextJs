@@ -1,19 +1,23 @@
 "use client";
 import { Pause, Play, Volume2, VolumeX } from "lucide-react";
-import React, { useCallback, useState } from "react";
+import React from "react";
 import ReactPlayer from "react-player";
 
-const VideoPlayer = () => {
-  const [playing, setPlaying] = useState(false);
-  const [muted, setMuted] = useState(false);
-
-  const handlePlayPause = useCallback(() => {
-    setPlaying((prev) => !prev);
-  }, []);
-  const handleMuteToggle = useCallback(() => {
-    setMuted((prev) => !prev);
-  }, []);
-
+interface IProps {
+  playing?: boolean;
+  muted?: boolean;
+  handlePlayPause: () => void;
+  handleMuteToggle: () => void;
+  containerStyle?: React.CSSProperties;
+  source: string;
+}
+const VideoPlayer: React.FC<IProps> = ({
+  playing,
+  muted,
+  handlePlayPause,
+  handleMuteToggle,
+  source = "https://res.cloudinary.com/di6zff0rd/video/upload/v1753102241/RexVetsWeb_tb3zcq.mp4",
+}) => {
   return (
     <div className=" rounded-[20px] h-[500px] w-[100%] md:h-[620px] md:w-[550px] md:mx-auto xl:ml-auto flex items-center justify-center relative  overflow-hidden shadow-[0_20px_40px_rgba(0,0,0,0.3)] mb-6">
       <div className=" relative h-[450px] w-[96%] md:w-[500px] md:h-[580px]  flex items-center justify-center">
@@ -32,7 +36,7 @@ const VideoPlayer = () => {
           // volumeIcon={<Volume2 className="w-10 h-10 text-white" />}
           // mutedIcon={<VolumeX className="w-10 h-10 text-white" />}
           // muted={true}
-          src="https://res.cloudinary.com/di6zff0rd/video/upload/v1753102241/RexVetsWeb_tb3zcq.mp4"
+          src={source}
         />
         <div className="absolute bottom-11 left-1/2 transform -translate-x-1/2 flex space-x-4 items-center justify-center z-50 pointer-events-auto">
           {/* Play/Pause Button */}

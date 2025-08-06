@@ -111,6 +111,16 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  --font-garet: var(--font-garet);
+  --font-sans: var(--font-garet), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-garet), ui-serif, Georgia, Cambria, "Times New Roman",
+    Times, serif;
+
+  /* breakpoint  */
+
+  --breakpoint-3xl: 100rem;
+
+  --max-width-3xl: 100rem;
 }
 body {
   font-family: Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto,
@@ -142,16 +152,6 @@ body {
   }
 }
 
-/* .roofft-body::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1000 1000'%3E%3Cdefs%3E%3CradialGradient id='a' cx='50%25' cy='50%25'%3E%3Cstop offset='0%25' stop-color='%23ffffff' stop-opacity='0.1'/%3E%3Cstop offset='100%25' stop-color='%23ffffff' stop-opacity='0'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='200' cy='200' r='100' fill='url(%23a)'/%3E%3Ccircle cx='800' cy='300' r='150' fill='url(%23a)'/%3E%3Ccircle cx='400' cy='700' r='120' fill='url(%23a)'/%3E%3Ccircle cx='600' cy='100' r='80' fill='url(%23a)'/%3E%3C/svg%3E");
-  background-size: cover;
-  opacity: 0.4;
-  z-index: -1;
-} */
-
 /* ====================hero content======================> */
 
 .book-consultation-button::before {
@@ -173,4 +173,35 @@ body {
 
 .book-consultation-button:hover::before {
   left: 100%;
+}
+/* ============ Home About Section =============== */
+.about-section-card {
+  position: relative;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border: 1px solid transparent;
+  border-radius: 32px;
+  overflow: hidden;
+}
+
+.about-section-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg, #3b82f6, #8b5cf6, #06b6d4);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 1;
+}
+
+.about-section-card:hover {
+  transform: translateY(-12px) scale(1.02);
+  box-shadow: 0 32px 64px rgba(148, 163, 184, 0.2);
+  border: 1px solid #e2e8f0;
+}
+
+.about-section-card:hover::before {
+  opacity: 1;
 }

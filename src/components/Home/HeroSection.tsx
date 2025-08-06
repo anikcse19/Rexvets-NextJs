@@ -1,13 +1,24 @@
 "use client";
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import { BsChatLeftTextFill } from "react-icons/bs";
 import CEOSection from "../CEOSection";
 import FloatingElements from "../FloatingParticle";
 import VideoPlayer from "../VideoPlayer";
 import styles from "./hero.section.module.css";
 import HeroContent from "./HeroContent";
+const videoSource =
+  "https://res.cloudinary.com/di6zff0rd/video/upload/v1753102241/RexVetsWeb_tb3zcq.mp4";
 const HeroSection = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [playing, setPlaying] = useState(false);
+  const [muted, setMuted] = useState(false);
+
+  const handlePlayPause = useCallback(() => {
+    setPlaying((prev) => !prev);
+  }, []);
+  const handleMuteToggle = useCallback(() => {
+    setMuted((prev) => !prev);
+  }, []);
   return (
     <div className={styles.hero_container}>
       <div className="min-h-screen   mt-24  lg:mt-16">
@@ -24,7 +35,13 @@ const HeroSection = () => {
                   heading="Meet Our CEO"
                   name="Dr. Tiffany Delacruz, DVM"
                 />
-                <VideoPlayer />
+                <VideoPlayer
+                  source={videoSource}
+                  playing={playing}
+                  muted={muted}
+                  handlePlayPause={handlePlayPause}
+                  handleMuteToggle={handleMuteToggle}
+                />
               </div>
             </div>
           </div>

@@ -1,3 +1,5 @@
+import { StaticImageData } from "next/image";
+
 export interface NavItem {
   label: string;
   href?: string;
@@ -59,4 +61,22 @@ export interface IUser {
     web?: string;
     mobile?: string;
   };
+}
+export interface IBrand {
+  imageUrl: StaticImageData;
+  name: string;
+  id: number;
+}
+export interface IFeature {
+  title: string;
+  description: string;
+  image: StaticImageData;
+  icon: string;
+  color: string;
+  chip: string;
+  number: string;
+}
+export interface IHomeAboutSectionFooter {
+  title: string;
+  tabs: string[];
 }
