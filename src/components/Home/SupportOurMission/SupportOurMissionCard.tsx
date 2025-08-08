@@ -87,7 +87,7 @@ const SupportOurMissionCard: React.FC<DonationCardProps> = ({ tier }) => {
           whileHover="hover"
           className="absolute -top-4 left-1/2 -translate-x-1/2 z-10"
         >
-          <Badge className="bg-white text-[#0E2148] border-2 border-[#002366] font-semibold text-sm px-3 shadow-lg">
+          <Badge className="bg-white text-[#0E2148] border-2 border-[#002366] font-semibold text-sm px-3 shadow-lg rounded-full">
             Most Popular
           </Badge>
         </motion.div>
@@ -159,7 +159,7 @@ const SupportOurMissionCard: React.FC<DonationCardProps> = ({ tier }) => {
                       : "border-[#0E2148] text-[#0E2148]"
                   } ${
                     tier.popular ? "bg-[#002366]/20" : "bg-transparent"
-                  } font-medium text-xs min-w-[70px] hover:bg-[#0E2148] hover:text-white hover:border-[#0E2148]`}
+                  } font-medium text-xs min-w-[70px]`}
                   onClick={() => {
                     navigate.push(
                       `/DonatePage2?amount=${amount}&badge=${tier.title}`
@@ -176,13 +176,15 @@ const SupportOurMissionCard: React.FC<DonationCardProps> = ({ tier }) => {
         {/* Main Donate Button */}
         <motion.div variants={buttonVariants} whileHover="hover">
           <Button
-            className={`w-full py-3 px-8 rounded-full ${
+            className={`w-full py-7 px-8 rounded-full ${
               tier.popular
                 ? "bg-white text-[#002366]"
                 : "bg-[#0E2148] text-white"
-            } font-semibold text-base shadow-[0_6px_20px_${
-              tier.color
-            }40] hover:shadow-[0_8px_25px_${tier.color}60]`}
+            } font-semibold text-base ${
+              tier.popular ? "hover:bg-white hover:text-[#002366]" : ""
+            } shadow-[0_6px_20px_${tier.color}40] ${
+              !tier.popular && `hover:shadow-[0_8px_25px_${tier.color}60]`
+            }`}
             onClick={() => navigate.push("/DonatePage1")}
           >
             💙 Donate Now

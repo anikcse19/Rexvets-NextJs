@@ -16,14 +16,11 @@ const SupportOurMissionHeader: React.FC<IProps> = ({ title, description }) => {
     >
       <div className="flex justify-center items-center mb-6">
         <IoPawOutline className="hidden md:block text-green-500 text-5xl mr-4" />
-        <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-blue-600 to-purple-600 leading-tight">
-          {/* Support Our Mission */}
+        <h2 className="text-4xl md:text-5xl font-garet lg:text-6xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-blue-600 to-purple-600 leading-tight">
           {title}
         </h2>
       </div>
-      <p className="text-base md:text-lg text-gray-600 max-w-xl mx-auto leading-relaxed">
-        {/* Make a monthly donation and earn your VIP badge. Your ongoing support
-        helps us provide veterinary care to pets in need. */}
+      <p className="text-base md:text-[20px] text-gray-600 max-w-xl mx-auto leading-relaxed font-garet font-medium">
         {description}
       </p>
     </motion.div>

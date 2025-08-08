@@ -34,7 +34,7 @@ const donationTiers = [
     amounts: [100, 250, 500],
     popular: true,
     icon: <IoStar className="text-white text-lg" />,
-    color: "#002366",
+    color: "#0E2148",
   },
   {
     id: "pet-care-hero",

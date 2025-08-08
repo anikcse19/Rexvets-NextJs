@@ -3,10 +3,12 @@ import { doubledBrands, features, whyChooseFeaturesData } from "@/lib";
 import React from "react";
 import AboutUsSection from "./AboutUsSection";
 import AwardsMarquee from "./AwardsMarquee";
+import { BlogPostSection } from "./BlogPostSection";
 import FeaturesSection from "./FeaturesSection";
 import HeroSection from "./HeroSection";
 import { RexVetPlan } from "./HomeRexVetPlan";
 import { SupportOurMission } from "./SupportOurMission";
+import { VirtualCareIntroSection } from "./VirtualCareIntroSection";
 
 const Home = () => {
   return (
@@ -23,6 +25,8 @@ const Home = () => {
       <FeaturesSection data={whyChooseFeaturesData} />
       <RexVetPlan />
       <SupportOurMission />
+      <VirtualCareIntroSection />
+      <BlogPostSection />
     </div>
   );
 };

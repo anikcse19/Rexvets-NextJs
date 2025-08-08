@@ -89,3 +89,11 @@ export interface IHomeFeaturesSection {
   color: string;
   gradient: string;
 }
+export interface IBlog {
+  id: number;
+  slug: string;
+  mainImage: string;
+  title: string;
+  date: string;
+  by: string;
+}
