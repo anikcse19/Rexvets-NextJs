@@ -1,6 +1,6 @@
 "use client";
 import { doubledBrands, features, whyChooseFeaturesData } from "@/lib";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Footer } from "../Footer";
 import AboutUsSection from "./AboutUsSection";
 import AwardsMarquee from "./AwardsMarquee";
@@ -20,7 +20,7 @@ const Home = () => {
       <AboutUsSection
         features={features}
         footer={{
-          title: "Join thousands of pet parents who trust Rexvets",
+          title: "Join thousands of pet parents who trust Rexvet",
           tabs: ["Trusted", "Verified", "Available 24/7"],
         }}
       />

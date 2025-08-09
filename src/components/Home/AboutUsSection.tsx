@@ -52,7 +52,7 @@ const AboutUsSection: React.FC<AboutUsSectionProps> = ({
               Only{" "}
             </span>
             <span className="relative text-3xl leading-tight lg:text-[72px] lg:leading-[79px] bg-clip-text text-transparent  bg-gradient-to-r from-[#0f172a] via-[#3b82f6] to-[#8b5cf6]">
-              Rexvets
+              Rexvet
               <span className=" absolute bottom-[-4px] md:bottom-[-6px] lg:bottom-[-8px] left-0 right-0 h-1 bg-gradient-to-r from-[#3b82f6] via-[#8b5cf6] to-[#06b6d4] rounded-sm opacity-30" />
             </span>{" "}
             <span className="text-3xl leading-tight lg:text-[72px] lg:leading-[79px]  lg:font-extrabold font-bold ml-1">

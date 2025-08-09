@@ -10,7 +10,7 @@ import TestimonialsSectionHeader from "./TestimonialsSectionHeader";
 
 const mockGoogleReviews = [
   {
-    name: "Amr Tahafffdgfdfd",
+    name: "Amr Taha",
     text: "I've used other online vet services but Rex Vets is by far the best. Their vet was super compassionate and took time to listen. I loved that they weren't trying to upsell me or rush things. My cat had a minor cold and after the advice we got from Rex Vets, he's doing much better. Highly recommend!",
     image:
       "https://ui-avatars.com/api/?name=Amr+Taha&background=4285f4&color=fff&size=150",
@@ -167,7 +167,6 @@ const TestimonialsSection: React.FC = () => {
         console.log("🚀 Fetching REAL Google reviews...");
         try {
           googleReviews = await getFilteredReviews(4);
-          // console.log("googleReviews", googleReviews);
           console.log(
             `🎉 Loaded ${googleReviews.length} Google reviews:`,
             googleReviews
