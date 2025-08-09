@@ -1,5 +1,5 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { ITestimonial } from "@/lib";
 import { getFilteredReviews } from "@/services/googleService";
 import { motion, Variants } from "framer-motion";
@@ -10,7 +10,7 @@ import TestimonialsSectionHeader from "./TestimonialsSectionHeader";
 
 const mockGoogleReviews = [
   {
-    name: "Amr Taha",
+    name: "Amr Tahafffdgfdfd",
     text: "I've used other online vet services but Rex Vets is by far the best. Their vet was super compassionate and took time to listen. I loved that they weren't trying to upsell me or rush things. My cat had a minor cold and after the advice we got from Rex Vets, he's doing much better. Highly recommend!",
     image:
       "https://ui-avatars.com/api/?name=Amr+Taha&background=4285f4&color=fff&size=150",
@@ -132,6 +132,7 @@ const TestimonialsSection: React.FC = () => {
     }
     return shuffled;
   }, []);
+
   // Mix Google and curated testimonials
   const mixTestimonials = useCallback(
     (googleReviews: ITestimonial[], curatedTestimonials: ITestimonial[]) => {
@@ -154,28 +155,25 @@ const TestimonialsSection: React.FC = () => {
     },
     [shuffleArray]
   );
+
   // Load testimonials
   useEffect(() => {
     const loadTestimonials = async () => {
       setLoading(true);
       setError(null);
       try {
-        let googleReviews: ITestimonial[] = [];
-        console.log("🔍 Google Reviews Setup:", {
-          apiKeyConfigured: !!process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY,
-          placeIdConfigured: !!process.env.NEXT_PUBLIC_GOOGLE_PLACE_ID,
-          environment:
-            typeof window !== "undefined" ? window.location.hostname : "server",
-        });
+        let googleReviews: any[] = [];
+
         console.log("🚀 Fetching REAL Google reviews...");
         try {
-          googleReviews = (await getFilteredReviews(4)) as any;
+          googleReviews = await getFilteredReviews(4);
+          // console.log("googleReviews", googleReviews);
           console.log(
             `🎉 Loaded ${googleReviews.length} Google reviews:`,
             googleReviews
           );
         } catch (googleError: any) {
-          console.warn(
+          console.error(
             "⚠️ Google Places API failed, using fallback:",
             googleError.message
           );
@@ -195,6 +193,7 @@ const TestimonialsSection: React.FC = () => {
         setLoading(false);
       }
     };
+
     loadTestimonials();
   }, [mixTestimonials]);
 

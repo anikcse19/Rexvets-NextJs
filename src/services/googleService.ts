@@ -42,6 +42,9 @@ const CACHE_DURATION =
 
 // --- Cache Helpers ---
 const isCacheValid = (): boolean => {
+  if (!checkWindow()) {
+    return false;
+  }
   const cached = localStorage.getItem(CACHE_KEY);
   if (!cached) return false;
   try {
@@ -54,6 +57,9 @@ const isCacheValid = (): boolean => {
 };
 
 const getCachedReviews = (): TransformedReview[] | null => {
+  if (!checkWindow()) {
+    return null;
+  }
   try {
     const cached = localStorage.getItem(CACHE_KEY);
     if (cached) {
@@ -68,6 +74,9 @@ const getCachedReviews = (): TransformedReview[] | null => {
 
 const cacheReviews = (reviews: TransformedReview[]): void => {
   try {
+    if (!checkWindow()) {
+      return;
+    }
     const cacheData = {
       timestamp: Date.now(),
       data: reviews,
@@ -84,9 +93,11 @@ const getDefaultAvatar = (name: string): string => {
     name
   )}&background=random&color=fff&size=150&font-size=0.4&length=2`;
 };
-
+export const checkWindow = () => {
+  return typeof window !== "undefined";
+};
 const formatReviewDate = (timestamp: number, relativeTime?: string): string => {
-  if (timestamp) {
+  if (timestamp && checkWindow()) {
     const date = new Date(timestamp * 1000);
     return date.toLocaleDateString("en-US", {
       year: "numeric",
@@ -231,11 +242,17 @@ export const getFilteredReviews = async (
 };
 
 export const clearCache = (): void => {
+  if (!checkWindow()) {
+    return;
+  }
   localStorage.removeItem(CACHE_KEY);
 };
 
-export const getCacheInfo = (): CacheInfo => {
+export const getCacheInfo = (): CacheInfo | undefined => {
   try {
+    if (!checkWindow()) {
+      return;
+    }
     const cached = localStorage.getItem(CACHE_KEY);
     if (cached) {
       const { timestamp } = JSON.parse(cached);

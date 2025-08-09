@@ -111,8 +111,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${garet.variable} antialiased`}>
+    <html lang="en" suppressHydrationWarning>
+      <body
+        className={`${garet.variable} antialiased`}
+        suppressHydrationWarning
+      >
         <Header />
         {children}
       </body>

@@ -1,6 +1,6 @@
 "use client";
 import { doubledBrands, features, whyChooseFeaturesData } from "@/lib";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Footer } from "../Footer";
 import AboutUsSection from "./AboutUsSection";
 import AwardsMarquee from "./AwardsMarquee";
