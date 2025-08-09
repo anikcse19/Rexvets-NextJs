@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -139,7 +140,7 @@ const FeaturesSection: React.FC<FeaturesSectionProps> = ({ data = [] }) => {
               className="relative rounded-2xl border-2 border-white/20 bg-white/10 backdrop-blur-xl shadow-[0_25px_80px_rgba(0,0,0,0.15)] w-full max-w-md"
             >
               <Image
-                src="/images/homePage/twoPuppy.webp"
+                src="/images/Homepage/twoPuppy.webp"
                 alt="Rex Vets Benefits"
                 width={500}
                 height={500}
