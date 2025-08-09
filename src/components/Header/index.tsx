@@ -65,7 +65,7 @@ const Header: React.FC = () => {
           </Link>
         </div>
 
-        {/* Desktop Navigation */}
+        {/* Desktop_Navigation */}
         <div className="hidden lg:flex items-center space-x-8 z-[9999]">
           <Link
             className="text-white  mx-[10px] hover:opacity-60 hover:text-emerald-400 font-bold transition-colors duration-300"
