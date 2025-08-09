@@ -29,7 +29,7 @@ const FooterSocialLinks: React.FC<IProps> = ({ socialLinks }) => {
                 boxShadow: "0 8px 25px rgba(251, 191, 36, 0.4)",
               }}
               transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
-              className="mr-2 mb-2 flex h-[52px] w-[52px] items-center justify-center rounded-lg border border-white/20 bg-white/10 text-white/90 backdrop-blur-md transition-colors hover:border-amber-400 hover:bg-amber-400 hover:text-gray-900"
+              className="mr-2 mb-2 flex h-[52px] w-[52px] items-center justify-center rounded-full border border-white/20 bg-white/10 text-white/90 backdrop-blur-md transition-colors hover:border-amber-400 hover:bg-amber-400 hover:text-gray-900"
             >
               <IconComponent size={22} />
             </motion.a>

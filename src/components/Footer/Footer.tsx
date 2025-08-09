@@ -142,78 +142,6 @@ Footer.displayName = "Footer";
 
 export default Footer;
 
-// const TrustBadges = () => (
-//   <div className="mt-8 flex flex-wrap gap-5">
-//     <motion.a
-//       href="https://app.candid.org/profile/16018857/rex-vets-inc-33-2469898"
-//       target="_blank"
-//       rel="noopener noreferrer"
-//       whileHover={{
-//         y: -4,
-//         scale: 1.02,
-//         boxShadow: "0 12px 40px rgba(0, 0, 0, 0.3)",
-//       }}
-//       transition={{ duration: 0.3 }}
-//     >
-//       <Card className="min-w-[160px] flex-1 cursor-pointer rounded-xl border-white/20 bg-white/10 p-5 text-center backdrop-blur-md transition-all hover:border-amber-400/50 hover:bg-white/15">
-//         <img
-//           src="https://widgets.guidestar.org/prod/v1/pdp/transparency-seal/16018857/svg"
-//           alt="Candid Transparency Seal"
-//           className="mx-auto mb-3 h-auto w-[90px]"
-//         />
-//         <p className="text-xs font-semibold text-white/90 md:text-sm">
-//           Transparency Verified
-//         </p>
-//       </Card>
-//     </motion.a>
-//     <motion.a
-//       href="https://greatnonprofits.org/org/rex-vets-inc"
-//       target="_blank"
-//       rel="noopener noreferrer"
-//       whileHover={{
-//         y: -4,
-//         scale: 1.02,
-//         boxShadow: "0 12px 40px rgba(0, 0, 0, 0.3)",
-//       }}
-//       transition={{ duration: 0.3 }}
-//     >
-//       <Card className="min-w-[160px] flex-1 cursor-pointer rounded-xl border-white/20 bg-white/10 p-5 text-center backdrop-blur-md transition-all hover:border-amber-400/50 hover:bg-white/15">
-//         <img
-//           src="//cdn.greatnonprofits.org//img/2025-top-rated-awards-badge-embed.png?id=997664264"
-//           alt="Rex Vets Inc. Nonprofit Overview and Reviews on GreatNonprofits"
-//           className="mx-auto mb-3 h-[90px] w-[90px] object-contain"
-//         />
-//         <p className="text-xs font-semibold text-white/90 md:text-sm">
-//           Top Rated 2025
-//         </p>
-//       </Card>
-//     </motion.a>
-//   </div>
-// );
-
-// const QuickLinks = ({ links }: { links: any[] }) => (
-//   <div>
-//     <SectionTitle>Quick Links</SectionTitle>
-//     <div className="flex flex-col space-y-1">
-//       {links.map((link, index) => (
-//         <motion.div
-//           key={index}
-//           whileHover={{ x: 4 }}
-//           transition={{ duration: 0.3 }}
-//         >
-//           <Link
-//             href={link.to}
-//             className="flex items-center gap-2.5 rounded-md py-2 text-sm text-white/80 no-underline transition-all hover:pl-3 hover:text-amber-400"
-//           >
-//             <ArrowRight size={16} />
-//             {link.text}
-//           </Link>
-//         </motion.div>
-//       ))}
-//     </div>
-//   </div>
-// );
-
 const LegalLinks = ({ links }: { links: any[] }) => (
   <div>
     <SectionTitle>Legal & Support</SectionTitle>
@@ -262,7 +190,7 @@ const BottomSection = () => (
     <p className="flex flex-wrap items-center justify-center gap-1 text-sm text-white/80 md:justify-end md:text-base [text-shadow:0_1px_2px_rgba(0,0,0,0.2)]">
       Made with
       <Heart size={16} fill="#fbbf24" color="#fbbf24" />
-      for ©2024 Rex Vets. All rights reserved.
+      for ©{new Date().getFullYear()} Rex Vets. All rights reserved.
     </p>
   </div>
 );

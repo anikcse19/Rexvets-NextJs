@@ -23,7 +23,7 @@ const FooterTrustBadgeCard: React.FC<IProps> = ({ title, sub_title }) => {
         }}
         transition={{ duration: 0.3 }}
       >
-        <Card className="min-w-[160px] flex-1 cursor-pointer rounded-xl border-white/20 bg-white/10 p-5 text-center backdrop-blur-md transition-all hover:border-amber-400/50 hover:bg-white/15">
+        <Card className="min-w-[280px] flex-1 cursor-pointer rounded-xl border-white/20 bg-white/10 p-5 text-center backdrop-blur-md transition-all hover:border-amber-400/50 hover:bg-white/15">
           <img
             src="https://widgets.guidestar.org/prod/v1/pdp/transparency-seal/16018857/svg"
             alt="Candid Transparency Seal"
@@ -45,7 +45,7 @@ const FooterTrustBadgeCard: React.FC<IProps> = ({ title, sub_title }) => {
         }}
         transition={{ duration: 0.3 }}
       >
-        <Card className="min-w-[160px] flex-1 cursor-pointer rounded-xl border-white/20 bg-white/10 p-5 text-center backdrop-blur-md transition-all hover:border-amber-400/50 hover:bg-white/15">
+        <Card className="min-w-[280px] flex-1 cursor-pointer rounded-xl border-white/20 bg-white/10 p-5 text-center backdrop-blur-md transition-all hover:border-amber-400/50 hover:bg-white/15">
           <img
             src="//cdn.greatnonprofits.org//img/2025-top-rated-awards-badge-embed.png?id=997664264"
             alt="Rex Vets Inc. Nonprofit Overview and Reviews on GreatNonprofits"

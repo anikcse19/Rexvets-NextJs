@@ -62,7 +62,7 @@ const Header: React.FC = () => {
 
   return (
     // Updated header classes for fixed positioning
-    <header className="fixed top-0  left-0 right-0 w-full bg-gradient-to-r from-[#1D1C37] to-[#0D3261] backdrop-blur-sm px-6 py-3 border-b border-slate-800/50 z-[9998]">
+    <header className="  left-0 right-0 w-full bg-gradient-to-r from-[#1D1C37] to-[#0D3261] backdrop-blur-sm px-6 py-3 border-b border-slate-800/50 z-[9998]">
       <nav className="flex items-center justify-between mx-auto">
         {/* Logo */}
         <div className="flex items-center">
