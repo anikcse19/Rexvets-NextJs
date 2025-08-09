@@ -27,7 +27,7 @@ const RexVetPlanInfoCard: React.FC<IProps> = ({ sharedFeatures }) => {
       <h2 className="text-2xl lg:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-indigo-600 mb-3 leading-tight">
         Choose the{" "}
         <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 via-purple-600 to-red-600 font-extrabold">
-          RexVets plan
+          RexVet Plan
         </span>{" "}
         that fits your lifestyle.
       </h2>

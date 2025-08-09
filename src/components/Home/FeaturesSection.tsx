@@ -1,4 +1,3 @@
-/* eslint-disable @next/next/no-img-element */
 "use client";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -76,7 +75,7 @@ const FeaturesSection: React.FC<FeaturesSectionProps> = ({ data = [] }) => {
           <div className="flex justify-center items-center mb-3">
             <MdPets className="hidden md:block text-[#4CAF50] text-3xl md:text-5xl mr-2" />
             <h2 className="text-3xl md:text-4xl lg:text-[64px] font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-blue-600 to-purple-600 mb-3 leading-tight">
-              Why Choose Rex Vets?
+              Why Choose Rex Vet?
             </h2>
           </div>
           <p className="text-base md:text-[21px] md:leading-[33px] font-garet text-[#546e7a] font-[500] max-w-2xl mx-auto leading-relaxed ">

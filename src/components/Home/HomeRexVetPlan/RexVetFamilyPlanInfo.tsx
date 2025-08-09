@@ -65,7 +65,7 @@ const RexVetFamilyPlanInfo: React.FC<IProps> = ({
       animate={
         hoveredCard === "family" ? "hover" : isSmallDevice ? "initial" : "tilt"
       }
-      className={`relative w-full lg:w-[85%] ${
+      className={`relative w-full lg:w-[85%] rounded-[24px] ${
         hoveredCard === "family" ? "z-[100]" : "z-[3]"
       } lg:absolute lg:bottom-20 lg:right-0`}
     >
@@ -92,7 +92,7 @@ const RexVetFamilyPlanInfo: React.FC<IProps> = ({
             </div>
             <div className="flex-1">
               <h3 className="text-xl font-bold text-gray-900">
-                RexVets Family Plan
+                RexVet Family Plan
               </h3>
               <p className="text-sm text-gray-600">
                 Complete peace of mind for all your pets

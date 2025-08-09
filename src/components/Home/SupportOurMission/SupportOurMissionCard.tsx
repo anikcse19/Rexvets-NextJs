@@ -162,7 +162,7 @@ const SupportOurMissionCard: React.FC<DonationCardProps> = ({ tier }) => {
                   } font-medium text-xs min-w-[70px]`}
                   onClick={() => {
                     navigate.push(
-                      `/DonatePage2?amount=${amount}&badge=${tier.title}`
+                      `/donate-page2?amount=${amount}&badge=${tier.title}`
                     );
                   }}
                 >
@@ -185,7 +185,7 @@ const SupportOurMissionCard: React.FC<DonationCardProps> = ({ tier }) => {
             } shadow-[0_6px_20px_${tier.color}40] ${
               !tier.popular && `hover:shadow-[0_8px_25px_${tier.color}60]`
             }`}
-            onClick={() => navigate.push("/DonatePage1")}
+            onClick={() => navigate.push("/donate-page1")}
           >
             💙 Donate Now
           </Button>

@@ -16,7 +16,7 @@ const ModernLogo: React.FC<IProps> = ({ logoImage }) => {
     >
       <Image
         src="/1_MediaAssets/Homepage/LogoR.webp"
-        alt="RexVets Logo"
+        alt="RexVetLogo"
         width={40}
         height={40}
         priority
