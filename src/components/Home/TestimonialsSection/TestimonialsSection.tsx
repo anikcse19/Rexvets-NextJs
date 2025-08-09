@@ -1,11 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
-import { Button } from "@/components/ui/button";
 import { ITestimonial } from "@/lib";
 import { getFilteredReviews } from "@/services/googleService";
 import { motion, Variants } from "framer-motion";
 import React, { useCallback, useEffect, useState } from "react";
-import { IoArrowBack, IoArrowForward } from "react-icons/io5";
+import { MdChevronLeft, MdChevronRight } from "react-icons/md";
 import TestimonialsSectionCard from "./TestimonialsSectionCard";
 import TestimonialsSectionHeader from "./TestimonialsSectionHeader";
 
@@ -123,6 +122,16 @@ const TestimonialsSection: React.FC = () => {
   };
 
   const cardsPerView = getCardsPerView();
+
+  // Shuffle array
+  const shuffleArray = useCallback((array: ITestimonial[]) => {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  }, []);
   // Mix Google and curated testimonials
   const mixTestimonials = useCallback(
     (googleReviews: ITestimonial[], curatedTestimonials: ITestimonial[]) => {
@@ -143,7 +152,7 @@ const TestimonialsSection: React.FC = () => {
       console.log("⚠️ No Google reviews, using curated only");
       return curatedTestimonials;
     },
-    []
+    [shuffleArray]
   );
   // Load testimonials
   useEffect(() => {
@@ -188,16 +197,6 @@ const TestimonialsSection: React.FC = () => {
     };
     loadTestimonials();
   }, [mixTestimonials]);
-
-  // Shuffle array
-  const shuffleArray = (array: ITestimonial[]) => {
-    const shuffled = [...array];
-    for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-    }
-    return shuffled;
-  };
 
   // Auto-slide
   useEffect(() => {
@@ -251,13 +250,18 @@ const TestimonialsSection: React.FC = () => {
   };
 
   return (
-    <div className="py-12 relative overflow-hidden bg-gradient-to-br from-blue-50 to-purple-50">
+    <div className="relative overflow-hidden bg-gradient-to-br from-blue-50 to-purple-50">
       {/* Decorative Elements */}
       <div className="absolute top-[10%] left-[5%] w-20 h-20 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 opacity-10 animate-bounce" />
       <div className="absolute bottom-[15%] right-[8%] w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-red-500 opacity-10 animate-bounce [animation-delay:1s]" />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <TestimonialsSectionHeader title="" description="" sub_title="" />
+      <div className="3xl:max-w-screen-3xl  py-8 mx-auto px-4 sm:px-6   lg:px-8 relative z-10">
+        <TestimonialsSectionHeader
+          title="Testimonials"
+          description=" Discover why thousands of pet owners trust our veterinary expertise for
+                their beloved companions"
+          sub_title="What Our Pet Parents Say"
+        />
 
         {/* Loading State */}
         {loading && (
@@ -287,45 +291,53 @@ const TestimonialsSection: React.FC = () => {
             </div>
 
             {/* Navigation Buttons */}
-            {allTestimonials.length > 0 && (
-              <div className="flex justify-center items-center gap-4 mb-4">
-                <motion.div variants={buttonVariants} whileHover="hover">
-                  <Button
-                    className="p-3 bg-white/90 backdrop-blur-xl border border-blue-100 shadow-[0_8px_32px_rgba(59,130,246,0.1)]"
-                    onClick={goToPrevious}
-                  >
-                    <IoArrowBack className="text-xl text-blue-600" />
-                  </Button>
-                </motion.div>
-                <motion.div variants={buttonVariants} whileHover="hover">
-                  <Button
-                    className="p-3 bg-white/90 backdrop-blur-xl border border-blue-100 shadow-[0_8px_32px_rgba(59,130,246,0.1)]"
-                    onClick={goToNext}
-                  >
-                    <IoArrowForward className="text-xl text-blue-600" />
-                  </Button>
-                </motion.div>
-              </div>
-            )}
+            <div className=" my-14">
+              {allTestimonials.length > 0 && (
+                <div className="flex justify-center items-center gap-4 mb-4">
+                  <motion.div variants={buttonVariants} whileHover="hover">
+                    <button
+                      className="h-[60px] w-[60px] items-center justify-center  flex flex-col rounded-full z-50 cursor-pointer hover:bg-[#1976D2] bg-white/90 backdrop-blur-xl border border-blue-100 shadow-[0_8px_32px_rgba(59,130,246,0.1)]"
+                      onClick={goToPrevious}
+                    >
+                      <MdChevronLeft
+                        size={40}
+                        className=" text-blue-600 hover:text-white"
+                      />
+                    </button>
+                  </motion.div>
+                  <motion.div variants={buttonVariants} whileHover="hover">
+                    <button
+                      className="h-[60px] w-[60px] rounded-full items-center justify-center  flex flex-col  z-50 cursor-pointer hover:bg-[#1976D2]  bg-white/90 backdrop-blur-xl border border-blue-100 shadow-[0_8px_32px_rgba(59,130,246,0.1)]"
+                      onClick={goToNext}
+                    >
+                      <MdChevronRight
+                        size={40}
+                        className=" text-blue-600 hover:text-white"
+                      />
+                    </button>
+                  </motion.div>
+                </div>
+              )}
 
-            {/* Pagination Dots */}
-            {allTestimonials.length > 0 && (
-              <div className="flex justify-center gap-2">
-                {allTestimonials.map((_, index) => (
-                  <motion.div
-                    key={index}
-                    variants={dotVariants}
-                    whileHover="hover"
-                    className={`h-3 rounded-full cursor-pointer ${
-                      index === currentIndex
-                        ? "w-8 bg-blue-500"
-                        : "w-3 bg-gray-300"
-                    }`}
-                    onClick={() => goToSlide(index)}
-                  />
-                ))}
-              </div>
-            )}
+              {/* Pagination Dots */}
+              {allTestimonials.length > 0 && (
+                <div className="flex justify-center gap-2">
+                  {allTestimonials.map((_, index) => (
+                    <motion.div
+                      key={index}
+                      variants={dotVariants}
+                      whileHover="hover"
+                      className={`h-3 rounded-full cursor-pointer ${
+                        index === currentIndex
+                          ? "w-8 bg-blue-500"
+                          : "w-3 bg-gray-300"
+                      }`}
+                      onClick={() => goToSlide(index)}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>

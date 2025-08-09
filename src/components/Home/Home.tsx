@@ -1,6 +1,7 @@
 "use client";
 import { doubledBrands, features, whyChooseFeaturesData } from "@/lib";
 import React from "react";
+import { Footer } from "../Footer";
 import AboutUsSection from "./AboutUsSection";
 import AwardsMarquee from "./AwardsMarquee";
 import { BlogPostSection } from "./BlogPostSection";
@@ -29,6 +30,7 @@ const Home = () => {
       <VirtualCareIntroSection />
       <BlogPostSection />
       <TestimonialsSection />
+      <Footer />
     </div>
   );
 };

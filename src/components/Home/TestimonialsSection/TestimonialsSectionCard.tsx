@@ -4,11 +4,8 @@ import { ITestimonial } from "@/lib";
 import { motion, Variants } from "framer-motion";
 import Image from "next/image";
 import React from "react";
-import {
-  IoCheckmarkCircleOutline,
-  IoCutOutline,
-  IoLogoGoogle,
-} from "react-icons/io5";
+import { IoCheckmarkCircleOutline, IoLogoGoogle } from "react-icons/io5";
+import { MdFormatQuote } from "react-icons/md";
 
 interface IProps {
   testimonial: ITestimonial;
@@ -77,7 +74,7 @@ const TestimonialsSectionCard: React.FC<IProps> = ({
         variants={quoteVariants}
         className="absolute top-5 right-5 w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center shadow-[0_8px_24px_rgba(59,130,246,0.3)]"
       >
-        <IoCutOutline className="text-white text-2xl" />
+        <MdFormatQuote className="text-white text-2xl" />
       </motion.div>
 
       {/* Card Content */}
@@ -120,7 +117,7 @@ const TestimonialsSectionCard: React.FC<IProps> = ({
         </div>
 
         {/* Testimonial Text */}
-        <p className="flex-1 text-base text-gray-600 italic text-justify leading-snug mb-4">
+        <p className="flex-1 text-base font-garet text-gray-600 italic text-justify leading-snug mb-4">
           {testimonial.text.length > 300
             ? `${testimonial.text.slice(0, 300)}...`
             : testimonial.text}

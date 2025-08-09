@@ -6,11 +6,15 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "lh3.googleusercontent.com",
+        hostname: "widgets.guidestar.org",
       },
       {
         protocol: "https",
-        hostname: "ui-avatars.com", // If you use fallback avatars too
+        hostname: "lh3.googleusercontent.com", // from earlier
+      },
+      {
+        protocol: "https",
+        hostname: "ui-avatars.com", // if you use it
       },
     ],
   },

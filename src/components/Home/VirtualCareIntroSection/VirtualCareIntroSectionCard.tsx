@@ -19,7 +19,6 @@ interface StepCardProps {
 const VirtualCareIntroSectionCard: React.FC<StepCardProps> = ({
   step,
   index,
-  isLast,
 }) => {
   // Framer Motion variants for card animations
   const cardVariants: Variants = {
@@ -62,7 +61,7 @@ const VirtualCareIntroSectionCard: React.FC<StepCardProps> = ({
             <div className="flex items-center mb-2">
               <step.icon
                 className="text-[24px] mr-3"
-                style={{ color: step.color }}
+                // style={{ color: step.color }}
               />
               <h3 className="text-lg md:text-xl font-bold text-gray-800">
                 {step.title}

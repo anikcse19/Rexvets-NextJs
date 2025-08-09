@@ -18,18 +18,17 @@ const TestimonialsSectionHeader: React.FC<IProps> = ({
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.8 }}
-      className="text-center mb-8"
+      className="text-center my-11"
     >
       <Badge className="mb-3 bg-white/80 backdrop-blur-md border-blue-200 text-blue-600 font-semibold">
         <IoCutOutline className="mr-1 text-blue-600" />
-        Testimonials
+        {title}
       </Badge>
       <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-blue-600 to-purple-600 mb-3 leading-tight">
-        What Our Pet Parents Say
+        {sub_title}
       </h2>
-      <p className="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-        Discover why thousands of pet owners trust our veterinary expertise for
-        their beloved companions
+      <p className="text-lg md:text-xl  font-garet text-gray-600 max-w-2xl mx-auto leading-relaxed mb-11">
+        {description}
       </p>
     </motion.div>
   );
