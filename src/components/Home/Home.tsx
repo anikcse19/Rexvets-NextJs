@@ -8,6 +8,7 @@ import FeaturesSection from "./FeaturesSection";
 import HeroSection from "./HeroSection";
 import { RexVetPlan } from "./HomeRexVetPlan";
 import { SupportOurMission } from "./SupportOurMission";
+import { TestimonialsSection } from "./TestimonialsSection";
 import { VirtualCareIntroSection } from "./VirtualCareIntroSection";
 
 const Home = () => {
@@ -27,6 +28,7 @@ const Home = () => {
       <SupportOurMission />
       <VirtualCareIntroSection />
       <BlogPostSection />
+      <TestimonialsSection />
     </div>
   );
 };

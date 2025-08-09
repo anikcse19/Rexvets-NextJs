@@ -97,3 +97,12 @@ export interface IBlog {
   date: string;
   by: string;
 }
+export interface ITestimonial {
+  name: string;
+  text: string;
+  image: string;
+  date: string;
+  rating: number;
+  source: "google" | "curated";
+  index: number;
+}
