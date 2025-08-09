@@ -10,6 +10,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { BsChatLeftTextFill } from "react-icons/bs";
 import { FaFacebookF, FaInstagram, FaTiktok } from "react-icons/fa";
 
+import { toSlug } from "@/lib/utils";
 import { DialogTitle } from "@radix-ui/react-dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { AnimatePresence, motion } from "framer-motion";
@@ -21,27 +22,9 @@ import TalkToVetButton from "../TalkToVet";
 import styles from "./Header.module.css";
 
 const menuItems = {
-  "For pet parents": [
-    "Book Consultation",
-    "Emergency Care",
-    "Pet Health Resources",
-    "Pricing & Plans",
-    "FAQ",
-  ],
-  "For vets & techs": [
-    "Join Our Team",
-    "Veterinarian Portal",
-    "Continuing Education",
-    "Resources & Tools",
-    "Support Center",
-  ],
-  About: [
-    "Our Mission",
-    "Our Team",
-    "Impact Stories",
-    "Partnerships",
-    "News & Press",
-  ],
+  "For pet parents": ["Donate", "What we treat", "Get a prescription"],
+  "For vets & techs": ["Become a Rex Vet", "Rex's Health Hub", "Support"],
+  About: ["Our Mission", "Our Team", "How it Works"],
 };
 
 const Header: React.FC = () => {
@@ -61,9 +44,14 @@ const Header: React.FC = () => {
   };
 
   return (
-    // Updated header classes for fixed positioning
-    <header className="  left-0 right-0 w-full bg-gradient-to-r from-[#1D1C37] to-[#0D3261] backdrop-blur-sm px-6 py-3 border-b border-slate-800/50 z-[9998]">
-      <nav className="flex items-center justify-between mx-auto">
+    <header
+      style={{
+        background:
+          "linear-gradient(135deg, #0f0c29 0%, #24243e 25%, #302b63 50%, #0f3460 75%, #002366 100%)",
+      }}
+      className=" relative h-auto py-1   w-full  backdrop-blur-sm px-3  border-b border-slate-800/50 z-[9998]"
+    >
+      <nav className="flex items-center justify-between  mx-auto">
         {/* Logo */}
         <div className="flex items-center">
           <Link href="/">
@@ -71,7 +59,7 @@ const Header: React.FC = () => {
               src="/images/Logo (Gradient).svg"
               alt="Logo RexVets"
               width={120}
-              height={120}
+              height={100}
               quality={100}
             />
           </Link>
@@ -79,12 +67,12 @@ const Header: React.FC = () => {
 
         {/* Desktop Navigation */}
         <div className="hidden lg:flex items-center space-x-8 z-[9999]">
-          <a
-            className="text-white hover:text-emerald-400 font-semibold transition-colors duration-300"
-            href="#"
+          <Link
+            className="text-white  mx-[10px] hover:opacity-60 hover:text-emerald-400 font-bold transition-colors duration-300"
+            href={"/"}
           >
             Home
-          </a>
+          </Link>
 
           {Object.entries(menuItems).map(([label, items]) => (
             <div
@@ -93,7 +81,7 @@ const Header: React.FC = () => {
               onMouseEnter={() => handleMouseEnter(label)}
               onMouseLeave={handleMouseLeave}
             >
-              <button className="flex items-center text-white hover:text-emerald-400 font-semibold transition-colors duration-300">
+              <button className="flex hover:opacity-60 mx-[10px] font-bold items-center hover:opacity-0.8  text-white hover:text-emerald-400 transition-colors duration-300">
                 {label}
                 <ChevronDown className="w-4 h-4 ml-1" />
               </button>
@@ -105,16 +93,16 @@ const Header: React.FC = () => {
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 20, scale: 0.95 }}
                     transition={{ duration: 0.3, ease: "easeOut" }}
-                    className="absolute top-full mt-2 w-56 max-h-80 overflow-y-auto bg-[#001a4d] rounded-md shadow-xl z-[10000] origin-top"
+                    className="absolute top-full mt-2 w-56 max-h-80 overflow-y-auto bg-[#002366]  shadow-xl z-[10000] origin-top"
                   >
                     {items.map((item) => (
-                      <a
+                      <Link
                         key={item}
-                        href="#"
-                        className="block px-4 py-2 text-white hover:text-emerald-400 hover:bg-[#002a66] text-sm transition-all duration-200"
+                        href={`/${toSlug(item)}`}
+                        className="block px-4 py-2 text-white font-garet hover:text-emerald-400 text-sm transition-all duration-200"
                       >
                         {item}
-                      </a>
+                      </Link>
                     ))}
                   </motion.div>
                 )}
@@ -122,18 +110,18 @@ const Header: React.FC = () => {
             </div>
           ))}
 
-          <a
-            className="text-white hover:text-emerald-400 font-semibold transition-colors duration-300"
-            href="#"
+          <Link
+            className="text-white hover:opacity-60 mx-[10px] font-bold hover:text-emerald-400 transition-colors duration-300"
+            href="/support"
           >
             Support
-          </a>
-          <a
-            className="text-white hover:text-emerald-400 font-semibold transition-colors duration-300"
-            href="#"
+          </Link>
+          <Link
+            className="text-white hover:opacity-60 mx-[10px] font-bold hover:text-emerald-400  transition-colors duration-300"
+            href="/donate"
           >
             Donate
-          </a>
+          </Link>
         </div>
 
         {/* Right Side (Hamburger for mobile, TalkToVetButton and User for desktop) */}

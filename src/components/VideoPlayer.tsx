@@ -1,6 +1,7 @@
 "use client";
-import { Pause, Play, Volume2, VolumeX } from "lucide-react";
+import { Play, Volume2, VolumeX } from "lucide-react";
 import React from "react";
+import { FaPause, FaPlay } from "react-icons/fa";
 import ReactPlayer from "react-player";
 
 interface IProps {
@@ -19,8 +20,8 @@ const VideoPlayer: React.FC<IProps> = ({
   source = "https://res.cloudinary.com/di6zff0rd/video/upload/v1753102241/RexVetsWeb_tb3zcq.mp4",
 }) => {
   return (
-    <div className=" rounded-[20px] h-[500px] w-[100%] md:h-[620px] md:w-[550px] md:mx-auto xl:ml-auto flex items-center justify-center relative  overflow-hidden shadow-[0_20px_40px_rgba(0,0,0,0.3)] mb-6">
-      <div className=" relative h-[450px] w-[96%] md:w-[500px] md:h-[580px]  flex items-center justify-center">
+    <div className=" rounded-[20px] h-[500px] w-[100%] md:h-[620px]  flex items-center justify-center  relative  overflow-hidden shadow-[0_20px_40px_rgba(0,0,0,0.3)] mb-6">
+      <div className=" relative h-[450px] w-[96%] md:w-[500px] md:h-[580px]  p-4 flex items-center justify-center">
         <ReactPlayer
           style={{
             width: "100%",
@@ -47,9 +48,9 @@ const VideoPlayer: React.FC<IProps> = ({
               aria-label={playing ? "Pause video" : "Play video"}
             >
               {playing ? (
-                <Pause className="w-6 h-6 text-[#002366]" />
+                <FaPause className="w-6 h-6 text-[#002366]" />
               ) : (
-                <Play className="w-6 h-6 text-[#002366]" />
+                <FaPlay className="w-6 h-6 text-[#002366]" />
               )}
             </button>
           </div>

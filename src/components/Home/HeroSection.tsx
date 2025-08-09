@@ -19,18 +19,19 @@ const HeroSection = () => {
   const handleMuteToggle = useCallback(() => {
     setMuted((prev) => !prev);
   }, []);
+
   return (
     <div className={styles.hero_container}>
-      <div className="min-h-screen   mt-24  lg:mt-16">
+      <div className="min-h-screen   mt-16">
         <FloatingElements />
         <main className="">
-          <div className="max-w-[1536px] mx-auto">
+          <div className="3xl:max-w-screen-3xl mx-auto">
             <div className="flex flex-col lg:flex-row gap-12 items-center">
-              <div className="w-full lg:w-1/2">
+              <div className="w-full">
                 <HeroContent />
               </div>
 
-              <div className="w-full lg:w-1/2 lg:mt-20">
+              <div className="w-full lg:w-1/2">
                 <CEOSection
                   heading="Meet Our CEO"
                   name="Dr. Tiffany Delacruz, DVM"

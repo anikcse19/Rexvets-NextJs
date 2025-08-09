@@ -15,7 +15,7 @@ const ModernLogo: React.FC<IProps> = ({ logoImage }) => {
       className="flex items-end ml-[10px] cursor-pointer"
     >
       <Image
-        src="/1_MediaAssets/Homepage/LogoR.webp"
+        src="/images/Logo (Gradient).svg"
         alt="RexVetLogo"
         width={40}
         height={40}

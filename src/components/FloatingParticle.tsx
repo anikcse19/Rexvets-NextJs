@@ -4,19 +4,19 @@ import { motion } from "framer-motion";
 import { Dog, HeartPulse, Hospital } from "lucide-react"; // Use Dog instead of Pets
 import React from "react";
 
-const MorphingShape = ({ style }: { style?: React.CSSProperties }) => (
-  <div
-    style={{
-      width: 100,
-      height: 100,
-      borderRadius: "50%",
-      background: "radial-gradient(circle, rgba(96,165,250,0.4), transparent)",
-      position: "absolute",
-      ...style,
-      animation: "morph 6s ease-in-out infinite",
-    }}
-  />
-);
+// const MorphingShape = ({ style }: { style?: React.CSSProperties }) => (
+//   <div
+//     style={{
+//       width: 100,
+//       height: 100,
+//       borderRadius: "50%",
+//       background: "radial-gradient(circle, rgba(96,165,250,0.4), transparent)",
+//       position: "absolute",
+//       ...style,
+//       animation: "morph 6s ease-in-out infinite",
+//     }}
+//   />
+// );
 
 const FloatingParticle = ({
   style,
@@ -54,32 +54,23 @@ const FloatingElements = () => {
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none  top-20">
       {/* Morphing Shapes */}
-      <MorphingShape style={{ top: "10%", left: "5%" }} />
-      <MorphingShape
-        style={{ bottom: "20%", right: "10%", animationDelay: "4s" }}
-      />
 
       {/* Floating Particles */}
       <FloatingParticle
-        style={{ top: "15%", left: "8%" }}
-        delay={0}
+        style={{ top: "13%", left: "6%" }}
+        delay={1}
         duration={6}
-        size={80}
+        size={70}
       />
-      <FloatingParticle
-        style={{ top: "60%", right: "12%" }}
-        delay={2}
-        duration={8}
-        size={60}
-      />
+
       <FloatingParticle
         style={{ bottom: "30%", left: "15%" }}
-        delay={4}
+        delay={1}
         duration={7}
         size={100}
       />
       <FloatingParticle
-        style={{ top: "40%", left: "70%" }}
+        style={{ top: "50%", left: "90%" }}
         delay={1}
         duration={9}
         size={70}
@@ -94,7 +85,7 @@ const FloatingElements = () => {
       {/* Animated Icons with Lucide React */}
       <motion.div
         className="absolute"
-        style={{ top: "20%", right: "20%" }}
+        style={{ top: "14%", right: "20%" }}
         animate={{ y: [0, -15, 0] }}
         transition={{ duration: 6, ease: "easeInOut", repeat: Infinity }}
       >
@@ -103,7 +94,7 @@ const FloatingElements = () => {
 
       <motion.div
         className="absolute"
-        style={{ bottom: "40%", left: "10%" }}
+        style={{ bottom: "50%", left: "10%" }}
         animate={{ y: [0, -15, 0] }}
         transition={{
           duration: 8,
