@@ -5,9 +5,5 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 export const toSlug = (input: string): string => {
-  return input
-    .toLowerCase()
-    .trim()
-    .split(/\s+/) // split by one or more spaces
-    .join("-");
+  return input.toLowerCase().trim().split(/\s+/).join("-");
 };
