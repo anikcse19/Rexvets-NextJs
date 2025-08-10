@@ -176,7 +176,7 @@ const SupportOurMissionCard: React.FC<DonationCardProps> = ({ tier }) => {
         {/* Main Donate Button */}
         <motion.div variants={buttonVariants} whileHover="hover">
           <Button
-            className={`w-full py-7 px-8 rounded-full ${
+            className={`w-full z-50 cursor-pointer py-7 px-8 rounded-full ${
               tier.popular
                 ? "bg-white text-[#002366]"
                 : "bg-[#0E2148] text-white"
@@ -185,7 +185,7 @@ const SupportOurMissionCard: React.FC<DonationCardProps> = ({ tier }) => {
             } shadow-[0_6px_20px_${tier.color}40] ${
               !tier.popular && `hover:shadow-[0_8px_25px_${tier.color}60]`
             }`}
-            onClick={() => navigate.push("/donate-page1")}
+            onClick={() => navigate.push("/donate")}
           >
             💙 Donate Now
           </Button>

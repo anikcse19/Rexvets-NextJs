@@ -1,6 +1,5 @@
 /* eslint-disable @next/next/no-img-element */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Card, CardContent } from "@/components/ui/card";
 import { motion } from "framer-motion";
 import {
   ArrowRight,
@@ -28,7 +27,7 @@ const Footer = React.memo(() => {
     () => [
       { to: "/", text: "Home" },
       { to: "/PetParents", text: "For pet parents" },
-      { to: "/VetsandTechs", text: "For vets & techs" },
+      { to: "/VetandTechs", text: "For Vet & techs" },
       { to: "/About", text: "About" },
       { to: "/Blogs", text: "Blogs" },
       { to: "/Support", text: "Support" },
@@ -51,7 +50,7 @@ const Footer = React.memo(() => {
   const socialLinks = useMemo(
     () => [
       {
-        href: "https://www.instagram.com/rexvets",
+        href: "https://www.instagram.com/rexVet",
         icon: Instagram,
         label: "Instagram",
       },
@@ -61,12 +60,12 @@ const Footer = React.memo(() => {
         label: "Facebook",
       },
       {
-        href: "https://www.tiktok.com/@rexvets",
+        href: "https://www.tiktok.com/@rexVet",
         icon: FaTiktok,
         label: "TikTok",
       },
       {
-        href: "mailto:support@rexvets.com",
+        href: "mailto:support@rexVet.com",
         icon: Mail,
         label: "Email",
       },
@@ -83,7 +82,7 @@ const Footer = React.memo(() => {
     document.body.appendChild(script);
 
     (window as any).gnp_request = {
-      slug: "rex-vets-inc",
+      slug: "rex-Vet-inc",
       "color-set": 1,
       campaign: 66,
     };
@@ -190,7 +189,7 @@ const BottomSection = () => (
     <p className="flex flex-wrap items-center justify-center gap-1 text-sm text-white/80 md:justify-end md:text-base [text-shadow:0_1px_2px_rgba(0,0,0,0.2)]">
       Made with
       <Heart size={16} fill="#fbbf24" color="#fbbf24" />
-      for ©{new Date().getFullYear()} Rex Vets. All rights reserved.
+      for ©{new Date().getFullYear()} Rex Vet. All rights reserved.
     </p>
   </div>
 );

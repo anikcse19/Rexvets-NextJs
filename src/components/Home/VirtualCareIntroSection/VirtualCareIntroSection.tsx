@@ -19,7 +19,7 @@ const steps = [
     number: "1",
     title: "Schedule an Affordable Consultation",
     description:
-      "Find top-rated vets near you and pick the best one for your needs.",
+      "Find top-rated Vet near you and pick the best one for your needs.",
     icon: IoCalendarOutline,
     color: "#3b82f6",
   },
@@ -44,7 +44,7 @@ const title: string = "Making a Difference";
 const sub_title: string = "One Virtual Visit";
 const post_title: string = "at a Time";
 const description: string =
-  "  As a nonprofit, Rex Vets is dedicated to expanding access to veterinary care by providing telehealth services to pets and families who need them most. With your support, we can help even more animals live healthier, happier lives.";
+  "  As a nonprofit, Rex Vet is dedicated to expanding access to veterinary care by providing telehealth services to pets and families who need them most. With your support, we can help even more animals live healthier, happier lives.";
 const VirtualCareIntroSection: React.FC = () => {
   const navigate = useRouter();
 

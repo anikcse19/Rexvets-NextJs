@@ -23,7 +23,7 @@ const ModernLogo: React.FC<IProps> = ({ logoImage }) => {
       />
 
       <h1 className="text-3xl font-bold mb-[-7px] self-end select-none text-transparent bg-gradient-to-r from-orange-400 via-gray-200 to-teal-400 bg-[length:400%_400%] bg-clip-text animate-gradient-x drop-shadow-[0_4px_8px_rgba(0,0,0,0.3)]">
-        exVets
+        exVet
       </h1>
     </div>
   );

@@ -26,17 +26,17 @@ const FooterContactCard: React.FC = () => {
             </div>
           </div>
           <p className="mb-4 text-sm leading-6 text-white/90">
-            Rex Vets is a registered 501(c)(3) non-profit organization dedicated
+            Rex Vet is a registered 501(c)(3) non-profit organization dedicated
             to providing affordable veterinary care through telehealth.
           </p>
           <motion.a
-            href="mailto:support@rexvets.com"
+            href="mailto:support@rexVet.com"
             whileHover={{ scale: 1.05 }}
             transition={{ duration: 0.3 }}
             className="inline-flex items-center gap-1 rounded-full border border-amber-400/30 bg-amber-400/20 px-3 py-1 text-sm font-medium text-amber-400 backdrop-blur-md transition-colors hover:bg-amber-400 hover:text-gray-900"
           >
             <Mail size={16} />
-            support@rexvets.com
+            support@rexVet.com
           </motion.a>
         </CardContent>
       </Card>

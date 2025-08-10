@@ -17,7 +17,7 @@ const VideoPlayer: React.FC<IProps> = ({
   muted,
   handlePlayPause,
   handleMuteToggle,
-  source = "https://res.cloudinary.com/di6zff0rd/video/upload/v1753102241/RexVetsWeb_tb3zcq.mp4",
+  source = "https://res.cloudinary.com/di6zff0rd/video/upload/v1753102241/RexVetWeb_tb3zcq.mp4",
 }) => {
   return (
     <div className=" rounded-[20px] h-[500px] w-[100%] md:h-[620px]  flex items-center justify-center  relative  overflow-hidden shadow-[0_20px_40px_rgba(0,0,0,0.3)] mb-6">

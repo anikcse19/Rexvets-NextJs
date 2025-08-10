@@ -79,7 +79,7 @@ const FeaturesSection: React.FC<FeaturesSectionProps> = ({ data = [] }) => {
             </h2>
           </div>
           <p className="text-base md:text-[21px] md:leading-[33px] font-garet text-[#546e7a] font-[500] max-w-2xl mx-auto leading-relaxed ">
-            Rex Vets is a 501(c)(3) non-profit organization committed to
+            Rex Vet is a 501(c)(3) non-profit organization committed to
             providing convenient, affordable, and compassionate veterinary care
             through telehealth. Our experienced veterinarians are here to help
             you and your pet—no travel required.
@@ -140,7 +140,7 @@ const FeaturesSection: React.FC<FeaturesSectionProps> = ({ data = [] }) => {
             >
               <Image
                 src="/images/Homepage/twoPuppy.webp"
-                alt="Rex Vets Benefits"
+                alt="Rex Vet Benefits"
                 width={500}
                 height={500}
                 className="w-full h-[300px] md:h-[500px] object-cover rounded-2xl brightness-110 contrast-110"

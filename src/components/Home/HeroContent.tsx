@@ -54,7 +54,7 @@ const HeroContent: React.FC = () => {
       </div>
 
       <p className="text-[17px] text-white md:text-[21px] md:leading-[33px] max-w-lg mb-6">
-        As a non-profit organization, Rex Vets provides affordable telehealth
+        As a non-profit organization, Rex Vet provides affordable telehealth
         consultations to ensure every pet gets the care they deserve from the
         comfort of home. Breaking barriers, building bonds.
       </p>

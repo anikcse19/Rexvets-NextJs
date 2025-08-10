@@ -25,7 +25,7 @@ const FooterBottomSection: React.FC = () => {
       <p className="text-white/80 text-base flex items-center gap-1 flex-wrap justify-center md:justify-end text-shadow-md">
         Made with
         <IoHeartOutline className="text-yellow-400 fill-yellow-400" />
-        for ©2024 Rex Vets. All rights reserved.
+        for ©2024 Rex Vet. All rights reserved.
       </p>
     </div>
   );

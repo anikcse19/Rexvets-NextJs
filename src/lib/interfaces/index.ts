@@ -54,7 +54,7 @@ export interface IUser {
   role: UserRole;
 
   // pets?: IPet[];
-  specialization?: string; // For vets only
+  specialization?: string; // For Vet only
   available?: boolean; // Vet availability status
   consultationFee?: number; // For transparency
   // FCM tokens (to support web & mobile)
@@ -105,4 +105,12 @@ export interface ITestimonial {
   rating: number;
   source: "google" | "curated";
   index: number;
+}
+export interface SignUpData {
+  name: string;
+  email: string;
+  phone: string;
+  state: string;
+  password: string;
+  confirmPassword: string;
 }

@@ -23,7 +23,7 @@ import styles from "./Header.module.css";
 
 const menuItems = {
   "For pet parents": ["Donate", "What we treat", "Get a prescription"],
-  "For vets & techs": ["Become a Rex Vet", "Rex's Health Hub", "Support"],
+  "For Vet & techs": ["Become a Rex Vet", "Rex's Health Hub", "Support"],
   About: ["Our Mission", "Our Team", "How it Works"],
 };
 
@@ -57,7 +57,7 @@ const Header: React.FC = () => {
           <Link href="/">
             <Image
               src="/images/Logo (Gradient).svg"
-              alt="Logo RexVets"
+              alt="Logo RexVet"
               width={120}
               height={100}
               quality={100}
@@ -93,13 +93,13 @@ const Header: React.FC = () => {
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 20, scale: 0.95 }}
                     transition={{ duration: 0.3, ease: "easeOut" }}
-                    className="absolute top-full mt-2 w-56 max-h-80 overflow-y-auto bg-[#002366]  shadow-xl z-[10000] origin-top"
+                    className="absolute top-full mt-2 w-56 py-3 max-h-80 overflow-y-auto bg-[#002366]  shadow-xl z-[10000] origin-top"
                   >
                     {items.map((item) => (
                       <Link
                         key={item}
                         href={`/${toSlug(item)}`}
-                        className="block px-4 py-2 text-white font-garet hover:text-emerald-400 text-sm transition-all duration-200"
+                        className="block px-4 py-2  text-white font-garet hover:text-emerald-400 hover:opacity-60 text-sm transition-all duration-200"
                       >
                         {item}
                       </Link>
@@ -150,7 +150,7 @@ const Header: React.FC = () => {
                 <div className="flex items-center">
                   <Image
                     src="/images/Logo (Gradient).svg"
-                    alt="Logo RexVets"
+                    alt="Logo RexVet"
                     width={200}
                     height={200}
                     quality={100}

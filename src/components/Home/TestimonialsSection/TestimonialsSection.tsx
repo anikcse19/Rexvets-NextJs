@@ -11,7 +11,7 @@ import TestimonialsSectionHeader from "./TestimonialsSectionHeader";
 const mockGoogleReviews = [
   {
     name: "Amr Taha",
-    text: "I've used other online vet services but Rex Vets is by far the best. Their vet was super compassionate and took time to listen. I loved that they weren't trying to upsell me or rush things. My cat had a minor cold and after the advice we got from Rex Vets, he's doing much better. Highly recommend!",
+    text: "I've used other online vet services but Rex Vet is by far the best. Their vet was super compassionate and took time to listen. I loved that they weren't trying to upsell me or rush things. My cat had a minor cold and after the advice we got from Rex Vet, he's doing much better. Highly recommend!",
     image:
       "https://ui-avatars.com/api/?name=Amr+Taha&background=4285f4&color=fff&size=150",
     date: "4 days ago",
@@ -20,7 +20,7 @@ const mockGoogleReviews = [
   },
   {
     name: "Maria Santos",
-    text: "Outstanding telehealth service! The vet was incredibly thorough and helped me understand my dog's allergies. The online prescription service saved me so much time. Rex Vets really cares about pets and their families.",
+    text: "Outstanding telehealth service! The vet was incredibly thorough and helped me understand my dog's allergies. The online prescription service saved me so much time. Rex Vet really cares about pets and their families.",
     image:
       "https://ui-avatars.com/api/?name=Maria+Santos&background=34a853&color=fff&size=150",
     date: "1 week ago",
@@ -29,7 +29,7 @@ const mockGoogleReviews = [
   },
   {
     name: "Dr. Michael Chen",
-    text: "As a physician myself, I appreciate the professionalism and expertise of Rex Vets. They provided excellent guidance for my senior cat's health issues. The convenience of telehealth for pets is a game-changer.",
+    text: "As a physician myself, I appreciate the professionalism and expertise of Rex Vet. They provided excellent guidance for my senior cat's health issues. The convenience of telehealth for pets is a game-changer.",
     image:
       "https://ui-avatars.com/api/?name=Michael+Chen&background=ea4335&color=fff&size=150",
     date: "2 weeks ago",
@@ -38,7 +38,7 @@ const mockGoogleReviews = [
   },
   {
     name: "Jennifer Walsh",
-    text: "Great experience with Rex Vets! The vet was patient with my anxious dog and gave practical advice that actually worked. The affordable pricing makes quality vet care accessible to everyone.",
+    text: "Great experience with Rex Vet! The vet was patient with my anxious dog and gave practical advice that actually worked. The affordable pricing makes quality vet care accessible to everyone.",
     image:
       "https://ui-avatars.com/api/?name=Jennifer+Walsh&background=fbbc04&color=fff&size=150",
     date: "3 weeks ago",

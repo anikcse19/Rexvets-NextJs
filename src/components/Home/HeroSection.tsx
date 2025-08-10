@@ -1,4 +1,5 @@
 "use client";
+import { motion } from "framer-motion";
 import React, { useCallback, useState } from "react";
 import { BsChatLeftTextFill } from "react-icons/bs";
 import CEOSection from "../CEOSection";
@@ -32,17 +33,23 @@ const HeroSection = () => {
               </div>
 
               <div className="w-full lg:w-1/2">
-                <CEOSection
-                  heading="Meet Our CEO"
-                  name="Dr. Tiffany Delacruz, DVM"
-                />
-                <VideoPlayer
-                  source={videoSource}
-                  playing={playing}
-                  muted={muted}
-                  handlePlayPause={handlePlayPause}
-                  handleMuteToggle={handleMuteToggle}
-                />
+                <motion.div
+                  initial={{ opacity: 0, x: 150 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.8, ease: "easeOut" }}
+                >
+                  <CEOSection
+                    heading="Meet Our CEO"
+                    name="Dr. Tiffany Delacruz, DVM"
+                  />
+                  <VideoPlayer
+                    source={videoSource}
+                    playing={playing}
+                    muted={muted}
+                    handlePlayPause={handlePlayPause}
+                    handleMuteToggle={handleMuteToggle}
+                  />
+                </motion.div>
               </div>
             </div>
           </div>

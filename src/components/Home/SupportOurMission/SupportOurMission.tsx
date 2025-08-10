@@ -17,7 +17,7 @@ const mockImages = {
 const donationTiers = [
   {
     id: "friend-of-rex",
-    title: "Friend of Rex Vets",
+    title: "Friend of Rex Vet",
     description:
       "Provide affordable telehealth consultations to pets in need with a monthly contribution.",
     image: mockImages.friendRex,
