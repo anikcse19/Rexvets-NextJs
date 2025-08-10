@@ -1,29 +1,31 @@
-import { motion, Variants } from "framer-motion";
+"use client";
+import { Variants, motion } from "framer-motion";
 import React from "react";
-const floatVariant: Variants = {
-  animate: {
-    y: [0, -20, 0],
-    rotate: [0, 2, 0],
-    transition: {
-      duration: 8,
-      ease: "easeInOut",
-      repeat: Infinity,
-    },
-  },
-};
 
-const pulseVariant: Variants = {
-  animate: {
-    scale: [1, 1.1, 1],
-    opacity: [0.7, 0.4, 0.7],
-    transition: {
-      duration: 4,
-      ease: "easeInOut",
-      repeat: Infinity,
-    },
-  },
-};
 const DonationBGAnimation = () => {
+  const floatVariant: Variants = {
+    animate: {
+      y: [0, -20, 0],
+      rotate: [0, 2, 0],
+      transition: {
+        duration: 8,
+        ease: "easeInOut",
+        repeat: Infinity,
+      },
+    },
+  };
+
+  const pulseVariant: Variants = {
+    animate: {
+      scale: [1, 1.1, 1],
+      opacity: [0.7, 0.4, 0.7],
+      transition: {
+        duration: 4,
+        ease: "easeInOut",
+        repeat: Infinity,
+      },
+    },
+  };
   return (
     <>
       <motion.div

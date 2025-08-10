@@ -185,7 +185,7 @@ const SupportOurMissionCard: React.FC<DonationCardProps> = ({ tier }) => {
             } shadow-[0_6px_20px_${tier.color}40] ${
               !tier.popular && `hover:shadow-[0_8px_25px_${tier.color}60]`
             }`}
-            onClick={() => navigate.push("/donate")}
+            onClick={() => navigate.push("/donation")}
           >
             💙 Donate Now
           </Button>

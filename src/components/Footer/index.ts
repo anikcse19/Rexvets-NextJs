@@ -1,3 +1,4 @@
+"use client";
 import Footer from "./Footer";
 import FooterBottomSection from "./FooterBottomSection";
 import FooterBrandSection from "./FooterBrandSection";
