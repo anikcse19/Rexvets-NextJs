@@ -81,7 +81,7 @@ const cacheReviews = (reviews: TransformedReview[]): void => {
       timestamp: Date.now(),
       data: reviews,
     };
-    // localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
+    localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
   } catch (error) {
     console.error("Error caching reviews:", error);
   }

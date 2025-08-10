@@ -1,5 +1,3 @@
-/* eslint-disable @next/next/no-img-element */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { motion } from "framer-motion";
 import {
   ArrowRight,
@@ -11,7 +9,6 @@ import {
   Mail,
   Shield,
 } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import React, { useEffect, useMemo } from "react";
 import { FaTiktok } from "react-icons/fa";
@@ -20,7 +17,22 @@ import FooterContactCard from "./FooterContactCard";
 import FooterQuickLinks from "./FooterQuickLinks";
 import FooterSocialLinks from "./FooterSocialLinks";
 import FooterTrustBadgeCard from "./FooterTrustBadgeCard";
-// import ModernLogo from "../components/ModernLogos";
+
+// Define the type for a link
+interface LinkType {
+  to: string;
+  text: string;
+}
+
+declare global {
+  interface Window {
+    gnp_request: {
+      slug: string;
+      "color-set": number;
+      campaign: number;
+    };
+  }
+}
 
 const Footer = React.memo(() => {
   const sitemapLinks = useMemo(
@@ -35,7 +47,7 @@ const Footer = React.memo(() => {
     []
   );
 
-  const usefulLinks = useMemo(
+  const usefulLinks: LinkType[] = useMemo(
     () => [
       { to: "/NonProfitPage", text: "Non Profit Status" },
       { to: "/SupportUs", text: "Support Us" },
@@ -81,7 +93,7 @@ const Footer = React.memo(() => {
     script.async = true;
     document.body.appendChild(script);
 
-    (window as any).gnp_request = {
+    window.gnp_request = {
       slug: "rex-Vet-inc",
       "color-set": 1,
       campaign: 66,
@@ -141,7 +153,7 @@ Footer.displayName = "Footer";
 
 export default Footer;
 
-const LegalLinks = ({ links }: { links: any[] }) => (
+const LegalLinks = ({ links }: { links: LinkType[] }) => (
   <div>
     <SectionTitle>Legal & Support</SectionTitle>
     <div className="flex flex-col space-y-1">
