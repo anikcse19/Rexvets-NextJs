@@ -3,11 +3,16 @@
 import { ITestimonial } from "@/lib";
 import { getFilteredReviews } from "@/services/googleService";
 import { motion, Variants } from "framer-motion";
+import dynamic from "next/dynamic";
 import React, { useCallback, useEffect, useState } from "react";
 import { MdChevronLeft, MdChevronRight } from "react-icons/md";
-import TestimonialsSectionCard from "./TestimonialsSectionCard";
-import TestimonialsSectionHeader from "./TestimonialsSectionHeader";
 
+const TestimonialsSectionCard = dynamic(
+  () => import("./TestimonialsSectionCard")
+);
+const TestimonialsSectionHeader = dynamic(
+  () => import("./TestimonialsSectionHeader")
+);
 const mockGoogleReviews = [
   {
     name: "Amr Taha",

@@ -1,12 +1,21 @@
 "use client";
 import { motion } from "framer-motion";
+import dynamic from "next/dynamic";
 import React, { useCallback, useState } from "react";
 import { BsChatLeftTextFill } from "react-icons/bs";
 import CEOSection from "../CEOSection";
-import FloatingElements from "../FloatingParticle";
-import VideoPlayer from "../VideoPlayer";
 import styles from "./hero.section.module.css";
-import HeroContent from "./HeroContent";
+const loadingPlaceholder = () => <p>Loading...</p>;
+
+const FloatingElements = dynamic(() => import("../FloatingParticle"), {
+  loading: loadingPlaceholder,
+});
+const HeroContent = dynamic(() => import("./HeroContent"), {
+  loading: loadingPlaceholder,
+});
+const VideoPlayer = dynamic(() => import("../VideoPlayer"), {
+  loading: loadingPlaceholder,
+});
 const videoSource =
   "https://res.cloudinary.com/di6zff0rd/video/upload/v1753102241/RexVetsWeb_tb3zcq.mp4";
 const HeroSection = () => {

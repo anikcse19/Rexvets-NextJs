@@ -2,11 +2,15 @@
 "use client";
 import { motion } from "framer-motion";
 import { Heart, Video } from "lucide-react";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import React from "react";
 import { LuClock } from "react-icons/lu";
 import { MdAutoAwesome } from "react-icons/md";
-import AnimatedChip from "../AnimatedChip";
+const loadingPlaceholder = () => <p>Loading...</p>;
+const AnimatedChip = dynamic(() => import("../AnimatedChip"), {
+  loading: loadingPlaceholder,
+});
 
 const HeroContent: React.FC = () => {
   const router = useRouter();
@@ -75,4 +79,4 @@ const HeroContent: React.FC = () => {
   );
 };
 
-export default HeroContent;
+export default React.memo(HeroContent);
