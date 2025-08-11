@@ -9,7 +9,7 @@
     "lint": "next lint",
     "build:analyze": "cross-env ANALYZE=true next build",
     "prepare": "husky",
-    "sync": "git pull origin develop && git push && pnpm install",
+    "sync": "git pull origin main && git push && pnpm install",
     "commit": "pnpm lint && git add . && git-cz && git push"
   },
   "dependencies": {
