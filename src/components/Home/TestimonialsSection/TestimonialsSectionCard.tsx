@@ -1,12 +1,11 @@
-/* eslint-disable @next/next/no-img-element */
 "use client";
 import { Badge } from "@/components/ui/badge";
 import { ITestimonial } from "@/lib";
 import { motion, Variants } from "framer-motion";
-import Image from "next/image";
 import React from "react";
 import { IoCheckmarkCircleOutline, IoLogoGoogle } from "react-icons/io5";
-import { MdArrowBackIos, MdFormatQuote } from "react-icons/md";
+import { MdFormatQuote } from "react-icons/md";
+import { useMediaQuery } from "react-responsive";
 
 interface IProps {
   testimonial: ITestimonial;
@@ -17,40 +16,47 @@ const TestimonialsSectionCard: React.FC<IProps> = ({
   testimonial,
   isMiddle = false,
 }) => {
+  // Detect md and above
+  const isMdUp = useMediaQuery({ minWidth: 768 });
+
   // Framer Motion variants for card animations
   const cardVariants: Variants = {
     initial: {
       y: 0,
-      scale: isMiddle ? 1.05 : 0.95,
-      opacity: isMiddle ? 1 : 0.85,
+      scale: isMdUp ? (isMiddle ? 1.05 : 0.95) : 1,
+      opacity: isMiddle && isMdUp ? 1 : 0.95,
       boxShadow: "0 8px 32px rgba(0,0,0,0.08)",
     },
-    hover: {
-      y: -12,
-      scale: isMiddle ? 1.07 : 1,
-      opacity: 1,
-      boxShadow: "0 25px 50px rgba(59,130,246,0.15)",
-      transition: { duration: 0.5, ease: [0.4, 0, 0.2, 1] },
-    },
+    hover: isMdUp
+      ? {
+          y: -12,
+          scale: isMiddle ? 1.07 : 1,
+          opacity: 1,
+          boxShadow: "0 25px 50px rgba(59,130,246,0.15)",
+          transition: { duration: 0.5, ease: [0.4, 0, 0.2, 1] },
+        }
+      : {},
   };
 
-  // Framer Motion variants for quote icon
   const quoteVariants: Variants = {
     initial: { rotate: 0, scale: 1 },
-    hover: {
-      rotate: 180,
-      scale: 1.2,
-      transition: { duration: 0.3, ease: "easeInOut" },
-    },
+    hover: isMdUp
+      ? {
+          rotate: 180,
+          scale: 1.2,
+          transition: { duration: 0.3, ease: "easeInOut" },
+        }
+      : {},
   };
 
-  // Framer Motion variants for avatar
   const avatarVariants: Variants = {
     initial: { y: 0 },
-    hover: {
-      y: [-10, 0, -10],
-      transition: { duration: 2, ease: "easeInOut", repeat: Infinity },
-    },
+    hover: isMdUp
+      ? {
+          y: [-10, 0, -10],
+          transition: { duration: 2, ease: "easeInOut", repeat: Infinity },
+        }
+      : {},
   };
 
   const handleCardClick = () => {
@@ -63,7 +69,7 @@ const TestimonialsSectionCard: React.FC<IProps> = ({
       initial="initial"
       whileHover="hover"
       className={`relative min-h-[400px] bg-white/80 backdrop-blur-xl border border-blue-100 rounded-xl cursor-pointer overflow-hidden ${
-        isMiddle ? "scale-105" : "scale-95"
+        isMdUp ? (isMiddle ? "scale-105" : "scale-95") : "scale-100"
       }`}
       onClick={handleCardClick}
     >

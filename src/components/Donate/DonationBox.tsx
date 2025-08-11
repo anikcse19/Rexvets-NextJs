@@ -1,5 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { CardElement, useElements, useStripe } from "@stripe/react-stripe-js";
-import { motion } from "framer-motion";
 import Image from "next/image";
 import { useState } from "react";
 
@@ -19,12 +19,6 @@ interface DonationComponentProps {
 export default function DonationComponent({
   onDonate,
 }: DonationComponentProps = {}) {
-  const stripe = useStripe();
-  const elements = useElements();
-  const [error, setError] = useState(null);
-  const [errorMessage, setErrorMessage] = useState("");
-  const [success, setSuccess] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [selectedAmount, setSelectedAmount] = useState<number>(35);
   const [customAmount, setCustomAmount] = useState<string>("");
   const [cardNumber, setCardNumber] = useState("");
@@ -58,31 +52,6 @@ export default function DonationComponent({
     const numbers = value.replace(/\D/g, "");
     const groups = numbers.match(/.{1,4}/g);
     return groups ? groups.join(" ") : "";
-  };
-
-  const handleCardNumberChange = (value: string) => {
-    const formatted = formatCardNumber(value);
-    if (formatted.replace(/\s/g, "").length <= 16) {
-      setCardNumber(formatted);
-    }
-  };
-
-  const handleExpiryChange = (value: string) => {
-    const numbers = value.replace(/\D/g, "");
-    if (numbers.length >= 2) {
-      const month = numbers.slice(0, 2);
-      const year = numbers.slice(2, 4);
-      setExpiryDate(`${month}/${year}`);
-    } else {
-      setExpiryDate(numbers);
-    }
-  };
-
-  const handleCvcChange = (value: string) => {
-    const numbers = value.replace(/\D/g, "");
-    if (numbers.length <= 3) {
-      setCvc(numbers);
-    }
   };
 
   const handleDonate = () => {
@@ -137,7 +106,7 @@ export default function DonationComponent({
               </div>
 
               {/* Amount Buttons */}
-              <div className="grid grid-cols-4 gap-4 mb-3">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-3">
                 {donationOptions.map((option) => (
                   <button
                     key={option.amount}

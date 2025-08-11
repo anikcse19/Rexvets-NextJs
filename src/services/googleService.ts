@@ -81,7 +81,7 @@ const cacheReviews = (reviews: TransformedReview[]): void => {
       timestamp: Date.now(),
       data: reviews,
     };
-    // localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
+    localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
   } catch (error) {
     console.error("Error caching reviews:", error);
   }
@@ -145,13 +145,14 @@ const isJsonResponse = (response: Response): boolean => {
 const makeApiRequest = async (): Promise<Response> => {
   const url = `${BASE_URL}/details/json?place_id=${PLACE_ID}&fields=reviews,rating,user_ratings_total&key=${API_KEY}`;
 
+  const proxies = [
+    `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+    // `https://thingproxy.freeboard.io/fetch/${url}`, // Removed broken proxy
+    `https://cors.bridged.cc/${url}`,
+    `https://corsproxy.io/?${encodeURIComponent(url)}`,
+  ];
+
   if (isLocalhost()) {
-    const proxies = [
-      `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
-      `https://thingproxy.freeboard.io/fetch/${url}`,
-      `https://cors.bridged.cc/${url}`,
-      `https://corsproxy.io/?${encodeURIComponent(url)}`,
-    ];
     for (const proxy of proxies) {
       try {
         const response = await fetch(proxy);
@@ -160,10 +161,16 @@ const makeApiRequest = async (): Promise<Response> => {
         // try next proxy
       }
     }
+    // Try direct fetch as last resort on localhost (may fail due to CORS)
+    try {
+      const directResponse = await fetch(url);
+      if (directResponse.ok) return directResponse;
+    } catch {}
+
     throw new Error("All CORS proxies failed");
   }
 
-  // Production: try Next.js API route
+  // Production: try Next.js API route first
   try {
     const localProxyUrl = `/api/google-reviews?place_id=${PLACE_ID}`;
     const response = await fetch(localProxyUrl);
@@ -171,15 +178,9 @@ const makeApiRequest = async (): Promise<Response> => {
       return response;
     }
   } catch {
-    // fallback
+    // fallback to proxies
   }
 
-  const proxies = [
-    `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
-    `https://thingproxy.freeboard.io/fetch/${url}`,
-    `https://cors.bridged.cc/${url}`,
-    `https://corsproxy.io/?${encodeURIComponent(url)}`,
-  ];
   for (const proxy of proxies) {
     try {
       const response = await fetch(proxy);
@@ -188,6 +189,12 @@ const makeApiRequest = async (): Promise<Response> => {
       // try next
     }
   }
+
+  // Try direct fetch as very last fallback (likely CORS blocked)
+  try {
+    const directResponse = await fetch(url);
+    if (directResponse.ok) return directResponse;
+  } catch {}
 
   throw new Error("All CORS proxies failed in production");
 };

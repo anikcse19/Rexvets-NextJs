@@ -2,7 +2,7 @@
 import { Play, Volume2, VolumeX } from "lucide-react";
 import React from "react";
 import { FaPause, FaPlay } from "react-icons/fa";
-import ReactPlayer from "react-player";
+// import ReactPlayer from "react-player";
 
 interface IProps {
   playing?: boolean;
@@ -22,22 +22,17 @@ const VideoPlayer: React.FC<IProps> = ({
   return (
     <div className=" rounded-[20px] h-[500px] w-[100%] md:h-[620px]  flex items-center justify-center  relative  overflow-hidden shadow-[0_20px_40px_rgba(0,0,0,0.3)] mb-6">
       <div className=" relative h-[450px] w-[96%] md:w-[500px] md:h-[580px]  p-4 flex items-center justify-center">
-        <ReactPlayer
+        <video
           style={{
             width: "100%",
             height: "100%",
             borderRadius: 20,
             objectFit: "cover",
           }}
-          playing={playing}
+          autoPlay={playing}
           muted={muted}
-          // controls={true}
-          playIcon={<Play className="w-10 h-10 text-red-300" />}
-          // pauseIcon={<Pause className="w-10 h-10 text-white" />}
-          // volumeIcon={<Volume2 className="w-10 h-10 text-white" />}
-          // mutedIcon={<VolumeX className="w-10 h-10 text-white" />}
-          // muted={true}
           src={source}
+          loop
         />
         <div className="absolute bottom-11 left-1/2 transform -translate-x-1/2 flex space-x-4 items-center justify-center z-50 pointer-events-auto">
           {/* Play/Pause Button */}

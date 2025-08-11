@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { SignUpData } from "@/lib";
 import { Eye, EyeOff } from "lucide-react";
 import React, { useState } from "react";

@@ -103,25 +103,33 @@ const testimonials = [
     source: "curated",
   },
 ];
-
+// https://github.com/jdrexxxx/Rexvets-nextjs.git (fetch)
 const TestimonialsSection: React.FC = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
   const [allTestimonials, setAllTestimonials] = useState<ITestimonial[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  //   const [googlePlacesService] = useState(() => new GooglePlacesService());
 
   // Responsive card count
   const getCardsPerView = () => {
-    if (typeof window === "undefined") return 3; // Default fallback for SSR
+    if (typeof window === "undefined") return 1; // Default to 1 for SSR to match mobile
     const width = window.innerWidth;
     if (width < 768) return 1; // Mobile
-    if (width < 1024) return 2; // Tablet
+    if (width < 1024) return 1; // Tablet
     return 3; // Desktop
   };
 
-  const cardsPerView = getCardsPerView();
+  const [cardsPerView, setCardsPerView] = useState(getCardsPerView());
+
+  // Update cardsPerView on window resize
+  useEffect(() => {
+    const handleResize = () => {
+      setCardsPerView(getCardsPerView());
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   // Shuffle array
   const shuffleArray = useCallback((array: ITestimonial[]) => {
@@ -163,7 +171,6 @@ const TestimonialsSection: React.FC = () => {
       setError(null);
       try {
         let googleReviews: any[] = [];
-
         console.log("🚀 Fetching REAL Google reviews...");
         try {
           googleReviews = await getFilteredReviews(4);
@@ -253,11 +260,10 @@ const TestimonialsSection: React.FC = () => {
       <div className="absolute top-[10%] left-[5%] w-20 h-20 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 opacity-10 animate-bounce" />
       <div className="absolute bottom-[15%] right-[8%] w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-red-500 opacity-10 animate-bounce [animation-delay:1s]" />
 
-      <div className="3xl:max-w-screen-3xl  py-8 mx-auto px-4 sm:px-6   lg:px-8 relative z-10">
+      <div className="3xl:max-w-screen-3xl py-8 mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <TestimonialsSectionHeader
           title="Testimonials"
-          description=" Discover why thousands of pet owners trust our veterinary expertise for
-                their beloved companions"
+          description="Discover why thousands of pet owners trust our veterinary expertise for their beloved companions"
           sub_title="What Our Pet Parents Say"
         />
 
@@ -278,39 +284,48 @@ const TestimonialsSection: React.FC = () => {
         {/* Testimonials Grid */}
         {!loading && allTestimonials.length > 0 && (
           <div className="mb-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+            <div
+              className={`grid gap-4 mb-6 ${
+                cardsPerView === 1
+                  ? "grid-cols-1"
+                  : cardsPerView === 2
+                  ? "grid-cols-1 md:grid-cols-2"
+                  : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
+              }`}
+            >
               {getVisibleTestimonials().map((testimonial, idx) => (
-                <TestimonialsSectionCard
-                  key={`${testimonial.index}-${idx}`}
-                  testimonial={testimonial}
-                  isMiddle={idx === 1 && cardsPerView === 3}
-                />
+                <div key={`${testimonial.index}-${idx}`} className="w-full">
+                  <TestimonialsSectionCard
+                    testimonial={testimonial}
+                    isMiddle={idx === 1 && cardsPerView === 3}
+                  />
+                </div>
               ))}
             </div>
 
             {/* Navigation Buttons */}
-            <div className=" my-14">
+            <div className="my-14">
               {allTestimonials.length > 0 && (
                 <div className="flex justify-center items-center gap-4 mb-4">
                   <motion.div variants={buttonVariants} whileHover="hover">
                     <button
-                      className="h-[60px] w-[60px] items-center justify-center  flex flex-col rounded-full z-50 cursor-pointer hover:bg-[#1976D2] bg-white/90 backdrop-blur-xl border border-blue-100 shadow-[0_8px_32px_rgba(59,130,246,0.1)]"
+                      className="h-[60px] w-[60px] items-center justify-center flex flex-col rounded-full z-50 cursor-pointer hover:bg-[#1976D2] bg-white/90 backdrop-blur-xl border border-blue-100 shadow-[0_8px_32px_rgba(59,130,246,0.1)]"
                       onClick={goToPrevious}
                     >
                       <MdChevronLeft
                         size={40}
-                        className=" text-blue-600 hover:text-white"
+                        className="text-blue-600 hover:text-white"
                       />
                     </button>
                   </motion.div>
                   <motion.div variants={buttonVariants} whileHover="hover">
                     <button
-                      className="h-[60px] w-[60px] rounded-full items-center justify-center  flex flex-col  z-50 cursor-pointer hover:bg-[#1976D2]  bg-white/90 backdrop-blur-xl border border-blue-100 shadow-[0_8px_32px_rgba(59,130,246,0.1)]"
+                      className="h-[60px] w-[60px] rounded-full items-center justify-center flex flex-col z-50 cursor-pointer hover:bg-[#1976D2] bg-white/90 backdrop-blur-xl border border-blue-100 shadow-[0_8px_32px_rgba(59,130,246,0.1)]"
                       onClick={goToNext}
                     >
                       <MdChevronRight
                         size={40}
-                        className=" text-blue-600 hover:text-white"
+                        className="text-blue-600 hover:text-white"
                       />
                     </button>
                   </motion.div>
