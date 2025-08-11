@@ -20,6 +20,7 @@ import Link from "next/link";
 import React, { useRef, useState } from "react";
 import TalkToVetButton from "../TalkToVet";
 import styles from "./Header.module.css";
+import IconWrapper from "./IconWrapper";
 
 const menuItems = {
   "For pet parents": ["Donate", "What we treat", "Get a prescription"],
@@ -228,7 +229,9 @@ const Header: React.FC = () => {
                 <User color="black" size={20} />
               </div>
             </button>
-            <TalkToVetButton />
+            <div className="hidden xl:block">
+              <TalkToVetButton />
+            </div>
           </div>
         </div>
       </nav>
@@ -265,8 +268,3 @@ const HeaderSmallDeviceFooter = () => {
     </div>
   );
 };
-const IconWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <div className="bg-[#1BC5A3] hover:scale-110 transition-transform duration-300 p-3 rounded-full cursor-pointer shadow-md">
-    {children}
-  </div>
-);
