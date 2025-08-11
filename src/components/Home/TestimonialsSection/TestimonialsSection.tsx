@@ -116,7 +116,7 @@ const TestimonialsSection: React.FC = () => {
     if (typeof window === "undefined") return 1; // Default to 1 for SSR to match mobile
     const width = window.innerWidth;
     if (width < 768) return 1; // Mobile
-    if (width < 1024) return 2; // Tablet
+    if (width < 1024) return 1; // Tablet
     return 3; // Desktop
   };
 
