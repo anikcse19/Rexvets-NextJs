@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { motion, Variants } from "framer-motion";
 import Image, { StaticImageData } from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React from "react";
 
@@ -175,20 +176,21 @@ const SupportOurMissionCard: React.FC<DonationCardProps> = ({ tier }) => {
 
         {/* Main Donate Button */}
         <motion.div variants={buttonVariants} whileHover="hover">
-          <Button
-            className={`w-full z-50 cursor-pointer py-7 px-8 rounded-full ${
-              tier.popular
-                ? "bg-white text-[#002366]"
-                : "bg-[#0E2148] text-white"
-            } font-semibold text-base ${
-              tier.popular ? "hover:bg-white hover:text-[#002366]" : ""
-            } shadow-[0_6px_20px_${tier.color}40] ${
-              !tier.popular && `hover:shadow-[0_8px_25px_${tier.color}60]`
-            }`}
-            onClick={() => navigate.push("/donation")}
-          >
-            💙 Donate Now
-          </Button>
+          <Link href={"/donation"} passHref>
+            <Button
+              className={`w-full z-50 cursor-pointer py-7 px-8 rounded-full ${
+                tier.popular
+                  ? "bg-white text-[#002366]"
+                  : "bg-[#0E2148] text-white"
+              } font-semibold text-base ${
+                tier.popular ? "hover:bg-white hover:text-[#002366]" : ""
+              } shadow-[0_6px_20px_${tier.color}40] ${
+                !tier.popular && `hover:shadow-[0_8px_25px_${tier.color}60]`
+              }`}
+            >
+              💙 Donate Now
+            </Button>
+          </Link>
         </motion.div>
       </div>
     </motion.div>

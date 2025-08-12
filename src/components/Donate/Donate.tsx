@@ -37,8 +37,6 @@ const DonatePage: FC = () => {
       <DonateContributionsSection />
       <DonatePawsCauseSection />
       <DonateConnectSection />
-      {/* <ScrollToTop /> */}
-      {/* <OLD_DONATE /> */}
     </div>
   );
 };

@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 import dynamic from "next/dynamic";
 import React from "react";
 const Donation = dynamic(
-  () => import("@/components/Donate").then((mod) => mod.Donate),
+  () => import("@/components/Donate").then((mod) => mod.Donation),
   {
     loading: () => <p>Loading donation page...</p>,
   }
