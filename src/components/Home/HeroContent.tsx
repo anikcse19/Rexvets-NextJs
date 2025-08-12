@@ -35,11 +35,11 @@ const HeroContent: React.FC = () => {
         label="🏥 Non-Profit Veterinary Care"
       />
 
-      <div>
-        <h1 className="text-6xl md:text-[96px] md:leading-[106px] font-garet font-bold text-[#FFFFFF] mb-1 md:mb-4">
+      <div className="">
+        <h1 className="text-3xl   md:text-[96px] md:leading-[106px] font-garet font-bold text-[#FFFFFF] mb-1 md:mb-4">
           Low-Cost
         </h1>
-        <h1 className="text-6xl md:text-[96px] md:leading-[106px] w-full font-garet font-bold mb-2 md:mb-6">
+        <h1 className="text-3xl  md:text-[96px] md:leading-[106px] w-full font-garet font-bold mb-2 md:mb-6">
           <span className="bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
             Veterinary Care
           </span>
