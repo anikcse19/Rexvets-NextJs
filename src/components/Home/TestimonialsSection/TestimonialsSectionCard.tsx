@@ -2,6 +2,7 @@
 import { Badge } from "@/components/ui/badge";
 import { ITestimonial } from "@/lib";
 import { motion, Variants } from "framer-motion";
+import Image from "next/image";
 import React from "react";
 import { IoCheckmarkCircleOutline, IoLogoGoogle } from "react-icons/io5";
 import { MdFormatQuote } from "react-icons/md";
@@ -90,7 +91,7 @@ const TestimonialsSectionCard: React.FC<IProps> = ({
         <div className="flex items-center mb-4">
           <div className="relative">
             <motion.div variants={avatarVariants}>
-              <img
+              <Image
                 src={testimonial.image}
                 alt={testimonial.name}
                 width={64}

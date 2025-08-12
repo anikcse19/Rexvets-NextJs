@@ -54,4 +54,4 @@ const AnimatedChip: React.FC<AnimatedChipProps> = ({
   );
 };
 
-export default AnimatedChip;
+export default React.memo(AnimatedChip);

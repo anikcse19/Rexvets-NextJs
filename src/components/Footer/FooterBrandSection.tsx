@@ -10,9 +10,10 @@ const FooterBrandSection: React.FC = () => {
         <Image
           src="/images/Logo (Gradient).svg"
           alt="Logo RexVet"
-          width={120}
-          height={120}
+          width={150}
+          height={35}
           quality={100}
+          className="mb-2"
         />
       </Link>
       <p className="max-w-md text-base leading-7 text-white/90 [text-shadow:0_1px_2px_rgba(0,0,0,0.2)]">

@@ -1,5 +1,5 @@
 "use client";
-import { Play, Volume2, VolumeX } from "lucide-react";
+import { Volume2, VolumeX } from "lucide-react";
 import React from "react";
 import { FaPause, FaPlay } from "react-icons/fa";
 // import ReactPlayer from "react-player";
@@ -70,4 +70,4 @@ const VideoPlayer: React.FC<IProps> = ({
   );
 };
 
-export default VideoPlayer;
+export default React.memo(VideoPlayer);

@@ -1,3 +1,4 @@
+/* eslint-disable no-var */
 import mongoose from "mongoose";
 
 const MONGODB_URI = process.env.MONGODB_URI!;
@@ -19,10 +20,9 @@ declare global {
 
 const cached: MongooseCache = global.mongoose || { conn: null, promise: null };
 
-if (process.env.NODE_ENV === 'development') {
+if (process.env.NODE_ENV === "development") {
   global.mongoose = cached;
 }
-
 
 export async function connectToDatabase() {
   if (cached.conn) {

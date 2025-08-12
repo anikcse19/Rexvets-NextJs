@@ -3,11 +3,16 @@
 import { ITestimonial } from "@/lib";
 import { getFilteredReviews } from "@/services/googleService";
 import { motion, Variants } from "framer-motion";
+import dynamic from "next/dynamic";
 import React, { useCallback, useEffect, useState } from "react";
 import { MdChevronLeft, MdChevronRight } from "react-icons/md";
-import TestimonialsSectionCard from "./TestimonialsSectionCard";
-import TestimonialsSectionHeader from "./TestimonialsSectionHeader";
 
+const TestimonialsSectionCard = dynamic(
+  () => import("./TestimonialsSectionCard")
+);
+const TestimonialsSectionHeader = dynamic(
+  () => import("./TestimonialsSectionHeader")
+);
 const mockGoogleReviews = [
   {
     name: "Amr Taha",
@@ -113,7 +118,7 @@ const TestimonialsSection: React.FC = () => {
 
   // Responsive card count
   const getCardsPerView = () => {
-    if (typeof window === "undefined") return 1; // Default to 1 for SSR to match mobile
+    if (typeof window === "undefined") return 1; // Default to 1
     const width = window.innerWidth;
     if (width < 768) return 1; // Mobile
     if (width < 1024) return 1; // Tablet

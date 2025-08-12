@@ -1,7 +1,9 @@
+import withBundleAnalyzer from "@next/bundle-analyzer";
 import type { NextConfig } from "next";
 
+const isAnalyze = process.env.ANALYZE === "true";
+
 const nextConfig: NextConfig = {
-  /* config options here */
   images: {
     remotePatterns: [
       {
@@ -10,14 +12,16 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
-        hostname: "lh3.googleusercontent.com", // from earlier
+        hostname: "lh3.googleusercontent.com",
       },
       {
         protocol: "https",
-        hostname: "ui-avatars.com", // if you use it
+        hostname: "ui-avatars.com",
       },
     ],
   },
 };
 
-export default nextConfig;
+export default withBundleAnalyzer({
+  enabled: isAnalyze,
+})(nextConfig);

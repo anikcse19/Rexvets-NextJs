@@ -75,7 +75,6 @@ const BlogPostSectionCard: React.FC<BlogPostSectionCard> = ({
                 alt={blog.title}
                 width={400}
                 height={240}
-                objectFit="cover"
                 priority={index === 0}
                 className="w-full h-full object-cover rounded-t-lg"
               />

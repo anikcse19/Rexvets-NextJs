@@ -20,6 +20,7 @@ import Link from "next/link";
 import React, { useRef, useState } from "react";
 import TalkToVetButton from "../TalkToVet";
 import styles from "./Header.module.css";
+import IconWrapper from "./IconWrapper";
 
 const menuItems = {
   "For pet parents": ["Donate", "What we treat", "Get a prescription"],
@@ -54,7 +55,7 @@ const Header: React.FC = () => {
       <nav className="flex items-center justify-between  mx-auto">
         {/* Logo */}
         <div className="flex items-center">
-          <Link href="/">
+          <Link href="/" aria-label="Homepage">
             <Image
               src="/images/Logo (Gradient).svg"
               alt="Logo RexVet"
@@ -68,6 +69,7 @@ const Header: React.FC = () => {
         {/* Desktop_Navigation */}
         <div className="hidden lg:flex items-center space-x-8 z-[9999]">
           <Link
+            aria-label="Homepage"
             className="text-white  mx-[10px] hover:opacity-60 hover:text-emerald-400 font-bold transition-colors duration-300"
             href={"/"}
           >
@@ -81,7 +83,12 @@ const Header: React.FC = () => {
               onMouseEnter={() => handleMouseEnter(label)}
               onMouseLeave={handleMouseLeave}
             >
-              <button className="flex hover:opacity-60 mx-[10px] font-bold items-center hover:opacity-0.8  text-white hover:text-emerald-400 transition-colors duration-300">
+              <button
+                aria-haspopup="true"
+                aria-expanded={openMenu === label}
+                aria-controls={`${label}-menu`}
+                className="flex hover:opacity-60 mx-[10px] font-bold items-center hover:opacity-0.8  text-white hover:text-emerald-400 transition-colors duration-300"
+              >
                 {label}
                 <ChevronDown className="w-4 h-4 ml-1" />
               </button>
@@ -89,6 +96,9 @@ const Header: React.FC = () => {
               <AnimatePresence>
                 {openMenu === label && (
                   <motion.div
+                    id={`${label}-menu`}
+                    role="menu"
+                    aria-label={`${label} submenu`}
                     initial={{ opacity: 0, y: 20, scale: 0.95 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 20, scale: 0.95 }}
@@ -97,6 +107,7 @@ const Header: React.FC = () => {
                   >
                     {items.map((item) => (
                       <Link
+                        role="menuitem"
                         key={item}
                         href={`/${toSlug(item)}`}
                         className="block px-4 py-2  text-white font-garet hover:text-emerald-400 hover:opacity-60 text-sm transition-all duration-200"
@@ -159,13 +170,13 @@ const Header: React.FC = () => {
                 <div className="flex flex-col gap-4">
                   <div className="mt-16">
                     <div className="pb-3 border-b border-[#3D456B]">
-                      <a
-                        href="#"
+                      <Link
+                        href="/"
                         className="text-white hover:text-emerald-400 font-semibold text-lg"
                         onClick={() => setMobileMenuOpen(false)}
                       >
                         Home
-                      </a>
+                      </Link>
                     </div>
                     {Object.entries(menuItems).map(([label, items]) => (
                       <Collapsible key={label}>
@@ -189,20 +200,20 @@ const Header: React.FC = () => {
                         </CollapsibleContent>
                       </Collapsible>
                     ))}
-                    <a
-                      href="#"
+                    <Link
+                      href="/support"
                       className="text-white hover:text-emerald-400 font-semibold text-lg"
                       onClick={() => setMobileMenuOpen(false)}
                     >
                       Support
-                    </a>
-                    <a
-                      href="#"
+                    </Link>
+                    <Link
+                      href="/donate"
                       className="text-white hover:text-emerald-400 font-semibold text-lg"
                       onClick={() => setMobileMenuOpen(false)}
                     >
                       Donate
-                    </a>
+                    </Link>
                   </div>
                 </div>
                 {/* ================Footer================= */}
@@ -228,7 +239,9 @@ const Header: React.FC = () => {
                 <User color="black" size={20} />
               </div>
             </button>
-            <TalkToVetButton />
+            <div className="hidden xl:block">
+              <TalkToVetButton />
+            </div>
           </div>
         </div>
       </nav>
@@ -265,8 +278,3 @@ const HeaderSmallDeviceFooter = () => {
     </div>
   );
 };
-const IconWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <div className="bg-[#1BC5A3] hover:scale-110 transition-transform duration-300 p-3 rounded-full cursor-pointer shadow-md">
-    {children}
-  </div>
-);

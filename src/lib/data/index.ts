@@ -13,7 +13,12 @@ import marquee1 from "../../../public/images/Homepage/marquee1.webp";
 import marquee2 from "../../../public/images/Homepage/marquee2.webp";
 import marquee3 from "../../../public/images/Homepage/marquee3.webp";
 import marquee4 from "../../../public/images/Homepage/marquee4.webp";
-import { IBrand, IFeature, IHomeFeaturesSection } from "../interfaces";
+import {
+  IBrand,
+  IFeature,
+  IHomeFeaturesSection,
+  ITreatmentCategory,
+} from "../interfaces";
 export const brands: IBrand[] = [
   { id: 2, name: "HUFFPOST", imageUrl: marquee4 },
   { id: 3, name: "TechCrunch", imageUrl: marquee3 },
@@ -485,6 +490,120 @@ export const BlogsData = [
         paragraph:
           "Rex Vet provides skilled veterinary care and medicines online and on demand. Join our pet care sessions, attend our events, and become a part of a community that values pet health. Visit rexVet.com today to guarantee your pets receive the greatest veterinarian care.[BR][BR]Staying proactive and knowledgeable on your pet's vaccination needs is an important step toward preserving their long-term health and happiness. Trust Rex Vet to be your partner in delivering excellent care for your beloved pets. ",
       },
+    ],
+  },
+];
+export const treatmentServices: ITreatmentCategory[] = [
+  {
+    id: 1,
+    title: "Allergies",
+    description:
+      "Comprehensive allergy treatment with immediate relief and long-term skin repair solutions.",
+    image: "/images/homePage/twoPuppy.webp",
+    color: "bg-blue-500",
+    symptoms: [
+      "Excessive itching",
+      "Skin infections",
+      "Ear problems",
+      "Digestive issues",
+    ],
+  },
+  {
+    id: 2,
+    title: "Anxiety",
+    description:
+      "Holistic anxiety treatment combining medication and behavior modification techniques.",
+    image: "/images/what-we-treat/anxiety.webp",
+    color: "bg-purple-500",
+    symptoms: [
+      "Trembling or shaking",
+      "Excessive barking",
+      "Destructive behavior",
+      "Hiding",
+    ],
+  },
+  {
+    id: 3,
+    title: "Arthritis & Joint Pain",
+    description:
+      "Advanced joint pain management to improve mobility and quality of life.",
+    image: "/images/what-we-treat/joint.webp",
+    color: "bg-[#27C08D]",
+    symptoms: [
+      "Difficulty getting up",
+      "Stiffness",
+      "Reluctance to move",
+      "Swollen joints",
+    ],
+  },
+  {
+    id: 4,
+    title: "Coughing",
+    description:
+      "Expert diagnosis and treatment for persistent coughs and respiratory issues.",
+    image: "/images/what-we-treat/cough.webp",
+    color: "bg-yellow-500",
+    symptoms: [
+      "Persistent cough",
+      "Breathing difficulty",
+      "Night coughing",
+      "Wheezing",
+    ],
+  },
+  {
+    id: 5,
+    title: "Diarrhea",
+    description:
+      "Comprehensive digestive health care addressing various causes of diarrhea.",
+    image: "/images/what-we-treat/dai.webp",
+    color: "bg-red-500",
+    symptoms: [
+      "Loose stools",
+      "Dehydration",
+      "Loss of appetite",
+      "Abdominal pain",
+    ],
+  },
+  {
+    id: 6,
+    title: "Diet & Nutrition",
+    description:
+      "Personalized nutrition plans to maintain optimal health and prevent obesity.",
+    image: "/images/what-we-treat/diet.webp",
+    color: "bg-cyan-500",
+    symptoms: [
+      "Weight gain",
+      "Low energy",
+      "Poor coat quality",
+      "Digestive issues",
+    ],
+  },
+  {
+    id: 7,
+    title: "Preventative Care",
+    description:
+      "Comprehensive wellness exams and preventive care for long-term health.",
+    image: "/images/what-we-treat/mission.webp",
+    color: "bg-lime-500",
+    symptoms: [
+      "Regular checkups",
+      "Vaccinations",
+      "Health monitoring",
+      "Early detection",
+    ],
+  },
+  {
+    id: 8,
+    title: "Urinary Health",
+    description:
+      "Expert care for urinary tract health and related complications.",
+    image: "/images/what-we-treat/health.webp",
+    color: "bg-pink-500",
+    symptoms: [
+      "Frequent urination",
+      "Blood in urine",
+      "Straining",
+      "Accidents",
     ],
   },
 ];

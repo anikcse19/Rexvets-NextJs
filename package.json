@@ -6,7 +6,11 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "build:analyze": "cross-env ANALYZE=true next build",
+    "prepare": "husky",
+    "sync": "git pull origin main && git push && pnpm install",
+    "commit": "pnpm lint && git add . && git-cz && git push"
   },
   "dependencies": {
     "@radix-ui/react-accordion": "^1.2.11",
@@ -20,12 +24,12 @@
     "@radix-ui/react-visually-hidden": "^1.2.3",
     "@stripe/react-stripe-js": "^3.9.0",
     "@stripe/stripe-js": "^7.8.0",
-    "agora-access-token": "^2.0.4",
     "agora-rtc-sdk-ng": "^4.24.0",
     "agora-token": "^2.0.5",
     "bcryptjs": "^3.0.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "firebase": "^12.1.0",
     "framer-motion": "^12.23.12",
     "lucide-react": "^0.536.0",
     "mongoose": "^8.17.0",
@@ -42,15 +46,24 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@next/bundle-analyzer": "^15.4.6",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "autoprefixer": "^10.4.21",
+    "commitizen": "^4.3.1",
+    "cz-conventional-changelog": "^3.3.0",
     "eslint": "^9",
     "eslint-config-next": "15.4.5",
+    "husky": "^9.1.7",
     "postcss": "^8.5.6",
     "tailwindcss": "^4.1.11",
     "typescript": "^5"
+  },
+  "config": {
+    "commitizen": {
+      "path": "cz-conventional-changelog"
+    }
   }
 }

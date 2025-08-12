@@ -1,3 +1,4 @@
+"use client";
 import { motion } from "framer-motion";
 import {
   ArrowRight,
@@ -86,7 +87,7 @@ const Footer = React.memo(() => {
   );
 
   useEffect(() => {
-    if (typeof window === "undefined") return; // ✅ Avoid SSR crash
+    if (typeof window === "undefined") return;
     const script = document.createElement("script");
     script.src = "https://greatnonprofits.org/js/api/badge_toprated.js";
     script.type = "text/javascript";
@@ -111,7 +112,7 @@ const Footer = React.memo(() => {
       className="relative overflow-hidden"
       style={{
         background:
-          "linear-gradient(135deg, #41496E 50%, #6B6086 50%, #4A5568 100%)",
+          "linear-gradient(135deg, rgb(16, 13, 42) 90%, rgb(107, 96, 134) 90%, rgb(65, 73, 110) 100%)",
       }}
     >
       <div

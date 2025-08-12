@@ -114,3 +114,12 @@ export interface SignUpData {
   password: string;
   confirmPassword: string;
 }
+
+export interface ITreatmentCategory {
+  title: string;
+  description: string;
+  image: string;
+  color: string;
+  symptoms: string[];
+  id: number;
+}

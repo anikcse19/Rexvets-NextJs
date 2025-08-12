@@ -1,13 +1,32 @@
 // app/donate/page.tsx
 "use client";
+import dynamic from "next/dynamic";
 import { FC } from "react";
-import { ScrollToTop } from "../shared";
-import DonateCauseSection from "./DonateCauseSection";
-import DonateConnectSection from "./DonateConnectSection";
-import DonateContributionsSection from "./DonateContributionsSection";
-import DonateHeroSection from "./DonateHeroSection";
-import DonatePawsCauseSection from "./DonatePawsCauseSection";
-import DonateStatsSection from "./DonateStatsSection";
+
+const DonateCauseSection = dynamic(() => import("./DonateCauseSection"), {
+  loading: () => <p>Loading...</p>,
+});
+const DonateConnectSection = dynamic(() => import("./DonateConnectSection"), {
+  loading: () => <p>Loading...</p>,
+});
+const DonateContributionsSection = dynamic(
+  () => import("./DonateContributionsSection"),
+  {
+    loading: () => <p>Loading...</p>,
+  }
+);
+const DonateHeroSection = dynamic(() => import("./DonateHeroSection"), {
+  loading: () => <p>Loading...</p>,
+});
+const DonatePawsCauseSection = dynamic(
+  () => import("./DonatePawsCauseSection"),
+  {
+    loading: () => <p>Loading...</p>,
+  }
+);
+const DonateStatsSection = dynamic(() => import("./DonateStatsSection"), {
+  loading: () => <p>Loading...</p>,
+});
 
 const DonatePage: FC = () => {
   return (
@@ -18,7 +37,7 @@ const DonatePage: FC = () => {
       <DonateContributionsSection />
       <DonatePawsCauseSection />
       <DonateConnectSection />
-      <ScrollToTop />
+      {/* <ScrollToTop /> */}
       {/* <OLD_DONATE /> */}
     </div>
   );
