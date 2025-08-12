@@ -1,17 +1,4 @@
-import dynamic from "next/dynamic";
-const loadingPlaceholder = () => <p>Loading...</p>;
-
-const Footer = dynamic(
-  () => import("@/components/Footer").then((mod) => mod.Footer),
-  { loading: loadingPlaceholder }
-);
-
-const Header = dynamic(
-  () => import("@/components/Header").then((mod) => mod.default),
-  { loading: loadingPlaceholder }
-);
-
-import { siteName, siteUrl } from "@/lib";
+import { sameAs, siteName, siteUrl } from "@/lib";
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
@@ -150,11 +137,7 @@ export default function RootLayout({
               url: siteUrl,
               logo: `${siteUrl}/images/Logo (Gradient).svg`,
               description,
-              sameAs: [
-                "https://facebook.com/RexVet",
-                "https://instagram.com/RexVet",
-                "https://twitter.com/RexVet",
-              ],
+              sameAs,
               contactPoint: {
                 "@type": "ContactPoint",
                 telephone: "+1-555-555-5555",
@@ -170,9 +153,7 @@ export default function RootLayout({
         className={`${garet.variable} antialiased`}
         suppressHydrationWarning
       >
-        <Header />
         {children}
-        <Footer />
       </body>
     </html>
   );

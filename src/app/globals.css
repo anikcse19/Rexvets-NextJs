@@ -339,3 +339,45 @@ body {
   );
   z-index: 1;
 }
+
+/* get-a-prescription */
+
+.get-a-prescription-hero {
+  background: linear-gradient(
+      135deg,
+      rgba(26, 35, 126, 0.8) 100%,
+      rgba(0, 0, 81, 0.6) 100%,
+      rgba(26, 35, 126, 0.4) 100%,
+      rgba(83, 75, 174, 0.4) 100%
+    ),
+    url("/images/get-a-prescription/prescription.webp"),
+    radial-gradient(
+      circle at 50% 40%,
+      rgba(255, 255, 255, 0.1) 0%,
+      transparent 20%
+    ),
+    radial-gradient(
+      circle at 90% 100%,
+      rgba(255, 255, 255, 0.08) 0%,
+      transparent 20%
+    );
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  min-height: calc(100vh - 59px);
+  display: flex;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.get-a-prescription-hero::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><defs><radialGradient id="a" cx="50%" cy="50%"><stop offset="0%" stop-color="%23ffffff" stop-opacity="0.05"/><stop offset="100%" stop-color="%23ffffff" stop-opacity="0"/></radialGradient></defs><circle cx="200" cy="200" r="80" fill="url(%23a)"/><circle cx="800" cy="300" r="120" fill="url(%23a)"/><circle cx="400" cy="700" r="100" fill="url(%23a)"/></svg>');
+  pointer-events: none;
+}

@@ -58,18 +58,20 @@ const WhatWeTreatServicesSection = () => {
             role="listitem"
           >
             <Card
-              className="h-full pt-0 pb-0 overflow-hidden rounded-3xl border border-gray-100 shadow-lg transition-all duration-400 hover:shadow-2xl"
+              className="h-full md:h-fit pt-0 pb-0 overflow-hidden rounded-3xl border border-gray-100 shadow-lg transition-all duration-400 hover:shadow-2xl"
               role="group"
               aria-label={`${service.title} card`}
             >
-              <Image
-                src={service.image}
-                alt={service.title}
-                width={400} // original image width or desired ratio width
-                height={200} // original image height or desired ratio height
-                layout="responsive"
-                className="object-cover"
-              />
+              <div style={{ width: "100%", height: 200, position: "relative" }}>
+                <Image
+                  src={service.image}
+                  alt={service.title}
+                  fill // use fill to fill the parent container
+                  style={{ objectFit: "cover" }}
+                  sizes="346px"
+                  priority={index === 0} // optionally prioritize first image
+                />
+              </div>
               <div className="p-[24px]">
                 <CardHeader className="p-0">
                   <div className="flex items-center justify-between">
