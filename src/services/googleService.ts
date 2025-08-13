@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-// services/googlePlaces.ts
 "use client";
 
 interface GoogleReview {
@@ -273,6 +271,9 @@ const makeApiRequest = async (): Promise<Response> => {
 };
 
 // --- Main API ---
+/**
+ *
+ */
 export const fetchReviews = async (): Promise<TransformedReview[]> => {
   if (isCacheValid()) {
     return getCachedReviews() ?? [];
@@ -309,6 +310,10 @@ export const fetchReviews = async (): Promise<TransformedReview[]> => {
   }
 };
 
+/**
+ *
+ * @param minRating
+ */
 export const getFilteredReviews = async (
   minRating = 4
 ): Promise<TransformedReview[]> => {
@@ -321,6 +326,9 @@ export const getFilteredReviews = async (
   }
 };
 
+/**
+ *
+ */
 export const clearCache = (): void => {
   if (!checkWindow()) {
     return;
@@ -328,6 +336,9 @@ export const clearCache = (): void => {
   localStorage.removeItem(CACHE_KEY);
 };
 
+/**
+ *
+ */
 export const getCacheInfo = (): CacheInfo | undefined => {
   try {
     if (!checkWindow()) {

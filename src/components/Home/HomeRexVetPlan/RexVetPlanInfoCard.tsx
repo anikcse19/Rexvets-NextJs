@@ -60,7 +60,7 @@ const RexVetPlanInfoCard: React.FC<IProps> = ({ sharedFeatures }) => {
           {sharedFeatures.map((text, index) => (
             <motion.div
               key={index}
-              className="flex items-start space-x-2 hover:translate-x-2"
+              className="flex items-start mt-5 space-x-2 hover:translate-x-2"
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.3, delay: 0.6 + index * 0.2 }}
@@ -68,7 +68,7 @@ const RexVetPlanInfoCard: React.FC<IProps> = ({ sharedFeatures }) => {
               <div className="w-6 h-6 bg-gradient-to-br from-green-500 to-cyan-500 rounded-full flex items-center justify-center mt-0.5">
                 <IoCheckmarkCircle className="text-white text-xs" />
               </div>
-              <p className="text-sm font-garet text-gray-600 leading-relaxed text-justify flex-1">
+              <p className=" text-base md:text-lg font-garet text-gray-600 leading-relaxed text-justify flex-1">
                 {text}
               </p>
             </motion.div>

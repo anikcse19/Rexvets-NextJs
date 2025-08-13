@@ -1,5 +1,4 @@
 "use client";
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useCallback, useEffect, useState } from "react";
 
 interface PushSubscriptionJSON {
@@ -10,6 +9,9 @@ interface PushSubscriptionJSON {
   };
 }
 
+/**
+ *
+ */
 const usePushNotification = () => {
   const [isSupported, setIsSupported] = useState(false);
   const [permission, setPermission] =
@@ -103,6 +105,10 @@ const usePushNotification = () => {
   );
 
   // Utility: Convert VAPID key from base64 string to Uint8Array
+  /**
+   *
+   * @param base64String
+   */
   const urlBase64ToUint8Array = (base64String: string) => {
     const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
     const base64 = (base64String + padding)

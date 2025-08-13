@@ -1,4 +1,3 @@
-/* eslint-disable no-var */
 import mongoose from "mongoose";
 
 const MONGODB_URI = process.env.MONGODB_URI!;
@@ -13,8 +12,6 @@ interface MongooseCache {
 }
 
 declare global {
-  // allow global `var` declarations
-  // eslint-disable-next-line no-var
   var mongoose: MongooseCache;
 }
 
@@ -24,6 +21,9 @@ if (process.env.NODE_ENV === "development") {
   global.mongoose = cached;
 }
 
+/**
+ *
+ */
 export async function connectToDatabase() {
   if (cached.conn) {
     return cached.conn;
