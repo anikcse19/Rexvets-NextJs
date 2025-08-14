@@ -82,7 +82,7 @@ export const metadata: Metadata = {
     siteName,
     images: [
       {
-        url: `${siteUrl}/images/Logo (Gradient).svg`,
+        url: `${siteUrl}/images/Logo.svg`,
         width: 1200,
         height: 630,
         alt: `${siteName} Logo`,
@@ -93,7 +93,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: `${siteName} - Your Trusted Online Veterinary Service`,
     description,
-    images: [`${siteUrl}/images/Logo (Gradient).svg`],
+    images: [`${siteUrl}/images/Logo.svg`],
     creator: "@RexVet", // Replace with  Twitter handle
   },
   icons: {
@@ -135,7 +135,7 @@ export default function RootLayout({
               "@type": "Organization",
               name: siteName,
               url: siteUrl,
-              logo: `${siteUrl}/images/Logo (Gradient).svg`,
+              logo: `${siteUrl}/images/Logo.svg`,
               description,
               sameAs,
               contactPoint: {

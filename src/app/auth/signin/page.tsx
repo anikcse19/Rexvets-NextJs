@@ -38,7 +38,7 @@ export default function SignInPage() {
       });
 
       if (result?.ok) {
-        window.location.href = "/dashboard";
+        window.location.href = "/dashboard/doctor/overview";
       } else {
         console.error("Sign in failed");
       }
