@@ -41,6 +41,9 @@ importers:
       '@stripe/stripe-js':
         specifier: ^7.8.0
         version: 7.8.0
+      agora-extension-virtual-background:
+        specifier: ^2.1.0
+        version: 2.1.0(agora-rtc-sdk-ng@4.24.0)
       agora-rtc-react:
         specifier: ^2.5.0
         version: 2.5.0(react@19.1.0)
@@ -2153,6 +2156,11 @@ packages:
   agent-base@7.1.4:
     resolution: {integrity: sha512-MnA+YT8fwfJPgBx3m60MNqakm30XOkyIoH1y6huTQvC0PwZG7ki8NacLBcrPbNoo8vEZy7Jpuk7+jMO+CUovTQ==}
     engines: {node: '>= 14'}
+
+  agora-extension-virtual-background@2.1.0:
+    resolution: {integrity: sha512-YCqC6FVZ5Dk9QIYgCl6SoM6HS/7EGeck434sYl1chbR3UnrdLE+vBDnaVJOVAjiZ9dPNcrGwfVhpZQQ8FV5Y6Q==}
+    peerDependencies:
+      agora-rtc-sdk-ng: '>=4.15.0'
 
   agora-rtc-react@2.5.0:
     resolution: {integrity: sha512-RftknP+s37tefplCHY4GrH0ABET0XUM1UfzrqcA/G+qJArF4evn44HlN67yaPRv2hsm3qmpjkZC35nJ3AESjlQ==}
@@ -7363,6 +7371,10 @@ snapshots:
   acorn@8.15.0: {}
 
   agent-base@7.1.4: {}
+
+  agora-extension-virtual-background@2.1.0(agora-rtc-sdk-ng@4.24.0):
+    dependencies:
+      agora-rtc-sdk-ng: 4.24.0
 
   agora-rtc-react@2.5.0(react@19.1.0):
     dependencies:

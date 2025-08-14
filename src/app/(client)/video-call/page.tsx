@@ -1,6 +1,6 @@
 "use client";
 
-import VideoCallInterface from "@/components/VideoCall/VideoCall";
+import VideoCallPreview from "@/components/VideoCall/VideoCallPreview";
 import { useSearchParams } from "next/navigation";
 import React, { useState } from "react";
 
@@ -14,12 +14,14 @@ export default function VideoCall() {
 
   return (
     <div className="min-h-screen ">
-      <VideoCallInterface
+      {/* <VideoCallInterface
         channel={CHANNEL}
         uid={uid}
         appId={APP_ID}
         isPublisher={isPublisher}
-      />
+      /> */}
+      {/* <VideoCallVersantParents mode="access" /> */}
+      <VideoCallPreview />
     </div>
   );
 }
