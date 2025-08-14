@@ -4,11 +4,11 @@ import reactHooks from "eslint-plugin-react-hooks";
 import { dirname } from "path";
 import { fileURLToPath } from "url";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+const filename = fileURLToPath(import.meta.url);
+const dirname = dirname(filename);
 
 const compat = new FlatCompat({
-  baseDirectory: __dirname,
+  baseDirectory: dirname,
 });
 
 const eslintConfig = [
@@ -23,8 +23,8 @@ const eslintConfig = [
 
   // JSDoc for .ts files excluding routes and models
   {
-    files: ["**/*.ts"],
-    ignores: ["**/*.d.ts", "**/*.tsx", "**/route.ts", "models/**"],
+    files: ["/*.ts"],
+    ignores: ["/.d.ts", "**/.tsx", "/route.ts", "models/"],
     plugins: { jsdoc },
     rules: {
       "jsdoc/require-jsdoc": [
@@ -52,7 +52,7 @@ const eslintConfig = [
 
   // React hooks rules for .tsx files
   {
-    files: ["**/*.tsx"],
+    files: ["*/.tsx"],
     plugins: { "react-hooks": reactHooks },
     rules: {
       "react-hooks/rules-of-hooks": "error",
