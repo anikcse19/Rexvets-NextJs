@@ -1,5 +1,5 @@
 "use client";
-import config from "@/config/env.config";
+import clientConfig from "@/config/client.config";
 import usePushNotification from "@/hooks/usePushNotification";
 import { doubledBrands, features, whyChooseFeaturesData } from "@/lib";
 import dynamic from "next/dynamic";
@@ -42,7 +42,7 @@ const VirtualCareIntroSection = dynamic(
     ),
   { loading: loadingPlaceholder }
 );
-const publicVapidKey = config.VAPID_PUBLIC_KEY!;
+const publicVapidKey = clientConfig.VAPID_PUBLIC_KEY!;
 const backendSaveUrl = "";
 const Home = () => {
   const { permission, subscription, requestPermission, subscribeToPush } =

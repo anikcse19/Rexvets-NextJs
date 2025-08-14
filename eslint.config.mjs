@@ -5,10 +5,10 @@ import { dirname } from "path";
 import { fileURLToPath } from "url";
 
 const filename = fileURLToPath(import.meta.url);
-const dirname = dirname(filename);
+const currentDir = dirname(filename);
 
 const compat = new FlatCompat({
-  baseDirectory: dirname,
+  baseDirectory: currentDir,
 });
 
 const eslintConfig = [

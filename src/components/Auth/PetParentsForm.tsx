@@ -34,7 +34,7 @@ const petParentSchema = z
   .object({
     name: z.string().min(2, "Name must be at least 2 characters"),
     email: z.string().email("Invalid email address"),
-    phone: z.string().min(10, "Phone number must be at least 10 digits"),
+    phone: z.string().regex(/^[\+]?[1-9][\d]{0,15}$/, "Please enter a valid phone number"),
     state: z.string().min(1, "Please select a state"),
     password: z.string().min(8, "Password must be at least 8 characters"),
     confirmPassword: z.string(),
@@ -62,15 +62,78 @@ export default function PetParentForm() {
     resolver: zodResolver(petParentSchema),
   });
 
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+
   const onSubmit = async (data: PetParentFormData) => {
     setIsLoading(true);
+    setError("");
+    setSuccess("");
+    
     try {
-      // Here you would typically make an API call to register the pet parent
-      console.log("Pet parent registration:", data);
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      const response = await fetch("/api/auth/register/pet-parent", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: data.name,
+          email: data.email,
+          password: data.password,
+          phoneNumber: data.phone,
+          state: data.state,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        // Handle different types of errors
+        if (result.details && Array.isArray(result.details)) {
+          // Handle validation errors with details
+          const errorMessages = result.details.map((detail: any) => detail.message).join(", ");
+          setError(errorMessages);
+        } else if (result.error) {
+          // Handle specific error messages from API
+          setError(result.error);
+        } else {
+          // Handle generic errors based on status code
+          switch (response.status) {
+            case 400:
+              setError("Invalid information provided. Please check your details and try again.");
+              break;
+            case 409:
+              setError("An account with this email already exists. Please use a different email or try signing in.");
+              break;
+            case 503:
+              setError("Service temporarily unavailable. Please try again in a few moments.");
+              break;
+            case 500:
+              setError("Server error. Please try again later.");
+              break;
+            default:
+              setError("Registration failed. Please try again.");
+          }
+        }
+        return;
+      }
+
+      setSuccess(result.message || "Registration successful!");
+      
+      // Redirect to sign in page after 3 seconds
+      setTimeout(() => {
+        window.location.href = "/auth/signin";
+      }, 3000);
+      
     } catch (error) {
       console.error("Registration error:", error);
+      
+      // Handle network errors
+      if (error instanceof TypeError && error.message.includes("fetch")) {
+        setError("Network error. Please check your internet connection and try again.");
+      } else {
+        setError("Registration failed. Please try again later.");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -162,6 +225,27 @@ export default function PetParentForm() {
               </span>
             </div>
           </div>
+
+          {/* Error and Success Messages */}
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="p-4 bg-red-500/10 border border-red-500/20 rounded-lg"
+            >
+              <p className="text-red-400 text-sm text-center">{error}</p>
+            </motion.div>
+          )}
+
+          {success && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="p-4 bg-green-500/10 border border-green-500/20 rounded-lg"
+            >
+              <p className="text-green-400 text-sm text-center">{success}</p>
+            </motion.div>
+          )}
 
           {/* Manual Registration Form */}
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
