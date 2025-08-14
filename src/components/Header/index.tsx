@@ -57,7 +57,7 @@ const Header: React.FC = () => {
         <div className="flex items-center">
           <Link href="/" aria-label="Homepage">
             <Image
-              src="/images/Logo (Gradient).svg"
+              src="/images/Logo.svg"
               alt="Logo RexVet"
               width={120}
               height={100}
@@ -167,7 +167,7 @@ const Header: React.FC = () => {
               <div className="bg-[#27305A] p-6 pt-11 h-screen overflow-y-auto">
                 <div className="flex items-center">
                   <Image
-                    src="/images/Logo (Gradient).svg"
+                    src="/images/Logo.svg"
                     alt="Logo RexVet"
                     width={200}
                     height={200}
