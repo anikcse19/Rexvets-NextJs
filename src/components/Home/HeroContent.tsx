@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import { motion } from "framer-motion";
 import { Heart, Video } from "lucide-react";
@@ -35,11 +34,11 @@ const HeroContent: React.FC = () => {
         label="🏥 Non-Profit Veterinary Care"
       />
 
-      <div>
-        <h1 className="text-6xl md:text-[96px] md:leading-[106px] font-garet font-bold text-[#FFFFFF] mb-1 md:mb-4">
+      <div className="">
+        <h1 className="text-3xl   md:text-[96px] md:leading-[106px] font-garet font-bold text-[#FFFFFF] mb-1 md:mb-4">
           Low-Cost
         </h1>
-        <h1 className="text-6xl md:text-[96px] md:leading-[106px] w-full font-garet font-bold mb-2 md:mb-6">
+        <h1 className="text-3xl  md:text-[96px] md:leading-[106px] w-full font-garet font-bold mb-2 md:mb-6">
           <span className="bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
             Veterinary Care
           </span>
@@ -65,7 +64,7 @@ const HeroContent: React.FC = () => {
 
       <div className="flex flex-col sm:flex-row flex-wrap gap-4 pt-4 justify-center items-center xl:justify-start xl:items-start">
         <button
-          onClick={() => router.push("/video-call")}
+          onClick={() => router.push(`/video-call?isPublisher=true`)}
           className=" z-50  inline-flex items-center justify-center box-border outline-none border-none m-0 cursor-pointer select-none align-middle appearance-none no-underline font-roboto text-base leading-[1.75] tracking-[0.02857em] min-w-[64px] rounded-full px-9 py-4 font-bold normal-case relative overflow-hidden transition-all duration-400 ease-[cubic-bezier(0.4,0,0.2,1)] bg-gradient-to-r from-blue-500 via-purple-500 to-pink-400 text-white shadow-[0_8px_25px_rgba(59,130,246,0.4)] gap-x-2"
         >
           <Video /> <span className="mb-[2px]">Book Consultation</span>

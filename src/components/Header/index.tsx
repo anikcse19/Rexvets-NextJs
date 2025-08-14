@@ -50,7 +50,7 @@ const Header: React.FC = () => {
         background:
           "linear-gradient(135deg, #0f0c29 0%, #24243e 25%, #302b63 50%, #0f3460 75%, #002366 100%)",
       }}
-      className=" relative h-auto py-1   w-full  backdrop-blur-sm px-3  border-b border-slate-800/50 z-[9998]"
+      className=" relative py-3 h-auto md:py-1   w-full  backdrop-blur-sm px-3  border-b border-slate-800/50 z-[9998]"
     >
       <nav className="flex items-center justify-between  mx-auto">
         {/* Logo */}
@@ -74,6 +74,13 @@ const Header: React.FC = () => {
             href={"/"}
           >
             Home
+          </Link>
+          <Link
+            aria-label="Homepage"
+            className="text-white  mx-[10px] hover:opacity-60 hover:text-emerald-400 font-bold transition-colors duration-300"
+            href={"/video-call?isPublisher=false"}
+          >
+            Join Video Call
           </Link>
 
           {Object.entries(menuItems).map(([label, items]) => (
@@ -178,6 +185,13 @@ const Header: React.FC = () => {
                         Home
                       </Link>
                     </div>
+                    <Link
+                      aria-label="Homepage"
+                      className="text-white  mx-[10px] hover:opacity-60 hover:text-emerald-400 font-bold transition-colors duration-300"
+                      href={"/video-call?isPublisher=false"}
+                    >
+                      Join Video Call
+                    </Link>
                     {Object.entries(menuItems).map(([label, items]) => (
                       <Collapsible key={label}>
                         <div className="py-4 border-b border-[#3D456B]">

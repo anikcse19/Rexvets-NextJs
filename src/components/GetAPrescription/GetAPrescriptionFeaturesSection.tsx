@@ -1,9 +1,8 @@
 "use client";
 import { motion, Variants } from "framer-motion";
-import React, { useMemo } from "react";
-import { FaMobileAlt } from "react-icons/fa";
-import { FaPills, FaTruck, FaUserCheck } from "react-icons/fa6";
+import React from "react";
 import { Card, CardContent } from "../ui/card";
+import { IPrescriptionFeature } from "./types.prescription";
 
 const fadeInUp: Variants = {
   hidden: { opacity: 0, y: 20 },
@@ -17,37 +16,41 @@ const staggerContainer = {
     transition: { staggerChildren: 0.2 },
   },
 };
-
-const GetAPrescriptionFeaturesSection = () => {
-  const features = useMemo(
-    () => [
-      {
-        icon: FaTruck,
-        title: "Free Shipping",
-        description: "Free standard shipping on orders over $49",
-        color: "bg-emerald-500",
-      },
-      {
-        icon: FaPills,
-        title: "Prescription Available",
-        description: "Prescriptions available in select states",
-        color: "bg-blue-500",
-      },
-      {
-        icon: FaMobileAlt,
-        title: "24/7 Availability",
-        description: "24/7 on-demand, online vet appointments",
-        color: "bg-purple-500",
-      },
-      {
-        icon: FaUserCheck,
-        title: "Licensed Veterinarians",
-        description: "Choose from thousands of licensed vets",
-        color: "bg-amber-500",
-      },
-    ],
-    []
-  );
+interface IProps {
+  features: IPrescriptionFeature[];
+}
+const GetAPrescriptionFeaturesSection: React.FC<IProps> = ({
+  features = [],
+}) => {
+  // const features = useMemo(
+  //   () => [
+  //     {
+  //       icon: FaTruck,
+  //       title: "Free Shipping",
+  //       description: "Free standard shipping on orders over $49",
+  //       color: "bg-emerald-500",
+  //     },
+  //     {
+  //       icon: FaPills,
+  //       title: "Prescription Available",
+  //       description: "Prescriptions available in select states",
+  //       color: "bg-blue-500",
+  //     },
+  //     {
+  //       icon: FaMobileAlt,
+  //       title: "24/7 Availability",
+  //       description: "24/7 on-demand, online vet appointments",
+  //       color: "bg-purple-500",
+  //     },
+  //     {
+  //       icon: FaUserCheck,
+  //       title: "Licensed Veterinarians",
+  //       description: "Choose from thousands of licensed vets",
+  //       color: "bg-amber-500",
+  //     },
+  //   ],
+  //   []
+  // );
 
   return (
     <motion.section
