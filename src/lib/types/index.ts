@@ -52,3 +52,36 @@ export interface RegistrationStep {
   title: string;
   description: string;
 }
+
+export interface MenuItems {
+  id: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  href?: string;
+  badge?: string | number;
+  external_href?: string;
+}
+
+export interface Appointment {
+  id: string;
+  petName: string;
+  petImage: string;
+  petType: string;
+  parentName: string;
+  parentImage: string;
+  appointmentDate: string;
+  appointmentTime: string;
+  timezone: string;
+  status:
+    | "confirmed"
+    | "completed"
+    | "cancelled"
+    | "pending"
+    | "in-progress"
+    | "no-show"
+    | "rescheduled";
+  bookingTime: string;
+  seenBefore: boolean;
+  service: string;
+  notes?: string;
+}

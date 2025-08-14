@@ -40,6 +40,7 @@ export default function SignInPage() {
       });
 
       if (result?.ok) {
+<<<<<<< HEAD
         window.location.href = "/dashboard";
               } else {
           // Handle different error cases
@@ -58,6 +59,12 @@ export default function SignInPage() {
           }
           console.error("Sign in failed:", result?.error);
         }
+=======
+        window.location.href = "/dashboard/doctor/overview";
+      } else {
+        console.error("Sign in failed");
+      }
+>>>>>>> efb9211d48155a44275938651a130a09c21b79f7
     } catch (error) {
       console.error("Sign in error:", error);
       setError("An unexpected error occurred. Please try again.");

@@ -6,6 +6,18 @@ import {
   MdSchool,
   MdSupport,
 } from "react-icons/md";
+import {
+  LayoutDashboard,
+  FileCheck2,
+  HandHeart,
+  Users,
+  Settings,
+  LogOut,
+  Calendar,
+  Activity,
+  HelpingHand,
+  HelpCircle,
+} from "lucide-react";
 import featureImage1 from "../../../public/images/Homepage/featureImage1-1.webp";
 import featureImage2 from "../../../public/images/Homepage/featureImage2-2.webp";
 import featureImage3 from "../../../public/images/Homepage/featureImage3-3.webp";
@@ -19,6 +31,10 @@ import {
   IHomeFeaturesSection,
   ITreatmentCategory,
 } from "../interfaces";
+import { MenuItems } from "../types";
+import { FaFilePrescription } from "react-icons/fa6";
+import { FaPrescription } from "react-icons/fa";
+
 export const brands: IBrand[] = [
   { id: 2, name: "HUFFPOST", imageUrl: marquee4 },
   { id: 3, name: "TechCrunch", imageUrl: marquee3 },
@@ -605,5 +621,219 @@ export const treatmentServices: ITreatmentCategory[] = [
       "Straining",
       "Accidents",
     ],
+  },
+];
+
+export const menuItems: MenuItems[] = [
+  {
+    id: "dashboard",
+    label: "Dashboard",
+    icon: LayoutDashboard,
+    href: "/dashboard/doctor/overview",
+  },
+  {
+    id: "appointments",
+    label: "Appointments",
+    icon: FileCheck2,
+    href: "/dashboard/doctor/appointments",
+  },
+
+  {
+    id: "rates-and-availability",
+    label: "Rates & Availability",
+    icon: Calendar,
+    href: "/dashboard/doctor/rates-and-availability",
+  },
+  {
+    id: "prescription",
+    label: "Prescription",
+    icon: FaPrescription,
+    href: "",
+    external_href: "https://practice.securevetsource.com/login",
+  },
+  {
+    id: "account",
+    label: "Account",
+    icon: Settings,
+    href: "/dashboard/doctor/account",
+  },
+  {
+    id: "help",
+    label: "Help",
+    icon: HelpCircle,
+    href: "/dashboard/doctor/help",
+  },
+];
+
+export const bottomMenuItems: MenuItems[] = [
+  {
+    id: "logout",
+    label: "Logout",
+    icon: LogOut,
+    href: "/logout",
+  },
+];
+
+// Mock data for the account page
+export const mockDoctorData = {
+  personalInfo: {
+    firstName: "Anik",
+    lastName: "Deb",
+    email: "anik@gmail.com",
+    phone: "+880 1234-567890",
+    dateOfBirth: "1985-03-15",
+    gender: "male" as const,
+    address: "123 Veterinary Street, Medical District",
+    city: "Dhaka",
+    state: "Dhaka Division",
+    zipCode: "1000",
+    country: "Bangladesh",
+    profileImage:
+      "https://images.pexels.com/photos/5327585/pexels-photo-5327585.jpeg?auto=compress&cs=tinysrgb&w=200&h=200&fit=crop&crop=face",
+  },
+
+  professionalInfo: {
+    licenseNumber: "VET-BD-2012-001234",
+    yearsOfExperience: 12,
+    education:
+      "DVM from Bangladesh Agricultural University, PhD in Veterinary Medicine from University of Dhaka",
+    certifications: [
+      "Board Certified Veterinary Surgeon",
+      "Advanced Animal Cardiology",
+      "Emergency Veterinary Medicine",
+      "Small Animal Internal Medicine",
+    ],
+    clinicName: "RexVet Animal Hospital",
+    clinicAddress: "456 Pet Care Avenue, Gulshan, Dhaka 1212",
+    emergencyContact: "+880 1987-654321",
+  },
+
+  areasOfInterest: {
+    specialties: [
+      "Small Animal Surgery",
+      "Emergency Medicine",
+      "Cardiology",
+      "Dermatology",
+      "Orthopedics",
+      "Oncology",
+      "Dental Care",
+      "Nutrition",
+    ],
+    interests: [
+      "Animal Behavior",
+      "Exotic Pet Medicine",
+      "Wildlife Conservation",
+      "Veterinary Research",
+    ],
+    researchAreas: [
+      "Canine Heart Disease",
+      "Feline Diabetes Management",
+      "Pain Management in Animals",
+    ],
+  },
+
+  speciesTreated: [
+    { name: "Dogs", experience: "expert" as const, yearsOfExperience: 12 },
+    { name: "Cats", experience: "expert" as const, yearsOfExperience: 12 },
+    { name: "Birds", experience: "advanced" as const, yearsOfExperience: 8 },
+    { name: "Rabbits", experience: "advanced" as const, yearsOfExperience: 7 },
+    {
+      name: "Hamsters",
+      experience: "intermediate" as const,
+      yearsOfExperience: 5,
+    },
+    {
+      name: "Guinea Pigs",
+      experience: "intermediate" as const,
+      yearsOfExperience: 5,
+    },
+    {
+      name: "Ferrets",
+      experience: "intermediate" as const,
+      yearsOfExperience: 4,
+    },
+    { name: "Reptiles", experience: "beginner" as const, yearsOfExperience: 2 },
+  ],
+
+  securitySettings: {
+    twoFactorEnabled: true,
+    emailNotifications: true,
+    smsNotifications: false,
+    lastPasswordChange: "2024-11-15",
+    loginSessions: [
+      {
+        device: "Chrome on Windows",
+        location: "Dhaka, Bangladesh",
+        lastActive: "2025-01-14 10:30 AM",
+      },
+      {
+        device: "Safari on iPhone",
+        location: "Dhaka, Bangladesh",
+        lastActive: "2025-01-13 08:45 PM",
+      },
+    ],
+  },
+};
+
+export const availableSpecialties = [
+  "Small Animal Surgery",
+  "Large Animal Surgery",
+  "Emergency Medicine",
+  "Cardiology",
+  "Dermatology",
+  "Orthopedics",
+  "Oncology",
+  "Dental Care",
+  "Nutrition",
+  "Radiology",
+  "Anesthesiology",
+  "Pathology",
+  "Behavioral Medicine",
+  "Exotic Animal Medicine",
+  "Wildlife Medicine",
+  "Laboratory Medicine",
+];
+
+export const availableSpecies = [
+  "Dogs",
+  "Cats",
+  "Birds",
+  "Rabbits",
+  "Hamsters",
+  "Guinea Pigs",
+  "Ferrets",
+  "Reptiles",
+  "Fish",
+  "Horses",
+  "Cattle",
+  "Sheep",
+  "Goats",
+  "Pigs",
+  "Chickens",
+  "Exotic Birds",
+  "Primates",
+  "Wildlife",
+];
+
+export const experienceLevels = [
+  {
+    value: "beginner",
+    label: "Beginner (0-2 years)",
+    color: "bg-yellow-100 text-yellow-700",
+  },
+  {
+    value: "intermediate",
+    label: "Intermediate (2-5 years)",
+    color: "bg-blue-100 text-blue-700",
+  },
+  {
+    value: "advanced",
+    label: "Advanced (5-10 years)",
+    color: "bg-purple-100 text-purple-700",
+  },
+  {
+    value: "expert",
+    label: "Expert (10+ years)",
+    color: "bg-green-100 text-green-700",
   },
 ];
