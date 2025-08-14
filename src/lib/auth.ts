@@ -1,10 +1,10 @@
 import NextAuth from "next-auth";
-import type { NextAuthConfig, User } from "next-auth";
+import type { NextAuthOptions, User } from "next-auth"; // ✅ Changed type name
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import bcrypt from "bcryptjs";
 
-export const authOptions: NextAuthConfig = {
+export const authOptions: NextAuthOptions = {
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
@@ -26,11 +26,10 @@ export const authOptions: NextAuthConfig = {
           return null;
         }
 
-        // This MUST always return a complete User object
         const user: User & { role: string } = {
-          id: "1", // guaranteed string
-          email, // guaranteed string
-          name: "User", // guaranteed string
+          id: "1",
+          email,
+          name: "User",
           role: "pet_parent",
         };
 
@@ -52,7 +51,7 @@ export const authOptions: NextAuthConfig = {
       if (token) {
         session.user = {
           ...session.user,
-          id: token.sub ?? "", // ensure string
+          id: token.sub ?? "",
           role: (token as any).role ?? "",
         };
       }
@@ -61,7 +60,6 @@ export const authOptions: NextAuthConfig = {
   },
   pages: {
     signIn: "/auth/signin",
-    // signUp: "/auth/signup",
   },
 };
 
