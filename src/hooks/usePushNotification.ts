@@ -10,7 +10,10 @@ interface PushSubscriptionJSON {
 }
 
 /**
- *
+ * The `usePushNotification` function in TypeScript manages push notification support, permission,
+ * subscription, and utility functions.
+ * @returns The `usePushNotification` custom hook is returning an object with the following properties
+ * and methods:
  */
 const usePushNotification = () => {
   const [isSupported, setIsSupported] = useState(false);

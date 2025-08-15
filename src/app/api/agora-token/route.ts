@@ -3,7 +3,7 @@ import { NextRequest } from "next/server";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
-
+  console.log("GET TOKEN");
   const channelName = searchParams.get("channelName")?.trim();
   const uid = Number(searchParams.get("uid") || 0);
   const isPublisher = searchParams.get("isPublisher") === "true";
@@ -18,6 +18,7 @@ export async function GET(req: NextRequest) {
   }
 
   if (isNaN(uid) || uid < 0 || uid > 4294967295) {
+    console.log("uid must be a valid number between 0 and 4294967295");
     return new Response(
       JSON.stringify({
         error: "uid must be a valid number between 0 and 4294967295",

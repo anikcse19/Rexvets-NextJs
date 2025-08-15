@@ -426,7 +426,11 @@ const VideoCallInterface: React.FC<VideoCallInterfaceProps> = ({
               <MicOff className="w-6 h-6 text-white" />
             )}
           </button>
-          <button onClick={switchCamera}>
+          <button
+            className="cursor-pointer z-50 bg-red-600"
+            disabled={callState !== "active" || !isVideoEnabled}
+            onClick={switchCamera}
+          >
             <MdOutlineCameraswitch className="w-6 h-6 text-white" />
           </button>
 
