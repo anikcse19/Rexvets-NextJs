@@ -168,7 +168,7 @@ const VideoCallPreview: React.FC = () => {
               }}
               onClick={() => router.push("/join-video-call")}
               // disabled={true}
-              className="w-full bg-gradient-to-r   text-white font-semibold py-4 px-6 rounded-xl mb-4"
+              className="w-full cursor-pointer bg-gradient-to-r   text-white font-semibold py-4 px-6 rounded-xl mb-4"
             >
               JOIN VIDEO CALL
             </button>
