@@ -62,6 +62,9 @@ importers:
       '@types/nodemailer':
         specifier: ^6.4.17
         version: 6.4.17
+      agora-extension-virtual-background:
+        specifier: ^2.1.0
+        version: 2.1.0(agora-rtc-sdk-ng@4.24.0)
       agora-rtc-react:
         specifier: ^2.5.0
         version: 2.5.0(react@19.1.0)
@@ -195,6 +198,9 @@ importers:
       eslint-plugin-react-hooks:
         specifier: ^5.2.0
         version: 5.2.0(eslint@9.33.0(jiti@2.5.1))
+      husky:
+        specifier: ^9.1.7
+        version: 9.1.7
       lint-staged:
         specifier: ^16.1.5
         version: 16.1.5
@@ -2298,6 +2304,11 @@ packages:
     resolution: {integrity: sha512-MnA+YT8fwfJPgBx3m60MNqakm30XOkyIoH1y6huTQvC0PwZG7ki8NacLBcrPbNoo8vEZy7Jpuk7+jMO+CUovTQ==}
     engines: {node: '>= 14'}
 
+  agora-extension-virtual-background@2.1.0:
+    resolution: {integrity: sha512-YCqC6FVZ5Dk9QIYgCl6SoM6HS/7EGeck434sYl1chbR3UnrdLE+vBDnaVJOVAjiZ9dPNcrGwfVhpZQQ8FV5Y6Q==}
+    peerDependencies:
+      agora-rtc-sdk-ng: '>=4.15.0'
+
   agora-rtc-react@2.5.0:
     resolution: {integrity: sha512-RftknP+s37tefplCHY4GrH0ABET0XUM1UfzrqcA/G+qJArF4evn44HlN67yaPRv2hsm3qmpjkZC35nJ3AESjlQ==}
     engines: {node: '>=10'}
@@ -3422,6 +3433,11 @@ packages:
   https-proxy-agent@7.0.6:
     resolution: {integrity: sha512-vK9P5/iUfdl95AI+JVyUuIcVtd4ofvtrOr3HNtM2yxC9bnMbEdp3x01OhQNnjb8IJYi38VlTE3mBXwcfvywuSw==}
     engines: {node: '>= 14'}
+
+  husky@9.1.7:
+    resolution: {integrity: sha512-5gs5ytaNjBrh5Ow3zrvdUUY+0VxIuWVL4i9irt6friV+BqdCfmV11CQTWMiBYWHbXhco+J1kHfTOUkePhCDvMA==}
+    engines: {node: '>=18'}
+    hasBin: true
 
   hyphenate-style-name@1.1.0:
     resolution: {integrity: sha512-WDC/ui2VVRrz3jOVi+XtjqkDjiVjTtFaAGiW37k6b+ohyQ5wYDOGkvCZa8+H0nx3gyvv0+BST9xuOgIyGQ00gw==}
@@ -7729,6 +7745,10 @@ snapshots:
 
   agent-base@7.1.4: {}
 
+  agora-extension-virtual-background@2.1.0(agora-rtc-sdk-ng@4.24.0):
+    dependencies:
+      agora-rtc-sdk-ng: 4.24.0
+
   agora-rtc-react@2.5.0(react@19.1.0):
     dependencies:
       react: 19.1.0
@@ -9086,6 +9106,8 @@ snapshots:
       debug: 4.4.1
     transitivePeerDependencies:
       - supports-color
+
+  husky@9.1.7: {}
 
   hyphenate-style-name@1.1.0: {}
 

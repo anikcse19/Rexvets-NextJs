@@ -3,7 +3,7 @@
 import { Footer } from "@/components/Footer";
 import Header from "@/components/Navbar";
 import { usePathname } from "next/navigation";
-import React, { ReactNode } from "react";
+import React, { ReactNode, useMemo } from "react";
 import { SessionProvider } from "next-auth/react";
 
 type Props = {
@@ -15,21 +15,26 @@ export default function LayoutController({
   children,
   hideOnRoutes = [],
 }: Props) {
-  const pathname = usePathname(); // e.g. "/login" or "/dashboard/settings"
+  const pathname = usePathname() || "/"; // fallback to "/" if null
 
-  // Remove leading slash
-  const route = pathname.startsWith("/") ? pathname.slice(1) : pathname;
+  // Normalize hideOnRoutes to lowercase for case-insensitive comparison
+  const hideRoutesLower = useMemo(
+    () => hideOnRoutes.map((r) => r.toLowerCase().trim()),
+    [hideOnRoutes]
+  );
 
-  // Get first segment of route (for nested routes)
-  const routeSegment = route.split("/")[0];
+  // Extract the first segment without query or trailing slash
+  const routeSegment = useMemo(() => {
+    const cleanPath = pathname.split("?")[0].replace(/^\/+|\/+$/g, ""); // remove leading/trailing slash
+    return cleanPath.split("/")[0].toLowerCase();
+  }, [pathname]);
 
-  // Check if routeSegment is in hideOnRoutes
-  const hideLayout = hideOnRoutes.indexOf(routeSegment) !== -1;
+  const hideLayout = hideRoutesLower.includes(routeSegment);
 
   return (
     <SessionProvider>
       {!hideLayout && <Header />}
-      <main className="overflow-x-hidden ">{children}</main>
+      <main className="overflow-x-hidden">{children}</main>
       {!hideLayout && <Footer />}
     </SessionProvider>
   );
