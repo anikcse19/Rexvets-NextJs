@@ -17,7 +17,7 @@ const rateLimitStore: RateLimitStore = {};
 
 export function createRateLimiter(config: RateLimitConfig) {
   return function rateLimit(request: NextRequest): { success: boolean; remaining: number; resetTime: number } {
-    const ip = request.ip || request.headers.get('x-forwarded-for') || 'unknown';
+    const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
     const key = `rate_limit:${ip}`;
     const now = Date.now();
     

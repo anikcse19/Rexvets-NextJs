@@ -7,8 +7,9 @@ import Link from "next/link";
 import { ArrowLeft, CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Suspense } from "react";
 
-export default function VerifyEmailPage() {
+function VerifyEmailContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const token = searchParams.get("token");
@@ -153,7 +154,7 @@ export default function VerifyEmailPage() {
                       whileTap={{ scale: 0.98 }}
                     >
                       <Link href="/auth/signin">
-                        <Button className="w-full h-14 text-base bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300">
+                        <Button className="w-full h-14 text-base bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300">
                           Sign In Now
                         </Button>
                       </Link>
@@ -166,9 +167,9 @@ export default function VerifyEmailPage() {
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                       >
-                        <Link href="/auth/signin">
-                          <Button className="w-full h-14 text-base bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300">
-                            Try Signing In
+                        <Link href="/auth/signup">
+                          <Button className="w-full h-14 text-base bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300">
+                            Create New Account
                           </Button>
                         </Link>
                       </motion.div>
@@ -177,12 +178,12 @@ export default function VerifyEmailPage() {
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                       >
-                        <Link href="/auth/signup">
+                        <Link href="/contact">
                           <Button
                             variant="outline"
                             className="w-full h-14 text-base bg-white/10 border-white/20 text-white hover:bg-white/20 backdrop-blur-sm"
                           >
-                            Create New Account
+                            Contact Support
                           </Button>
                         </Link>
                       </motion.div>
@@ -193,12 +194,12 @@ export default function VerifyEmailPage() {
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
-                    <Link href="/contact">
+                    <Link href="/">
                       <Button
                         variant="outline"
                         className="w-full h-14 text-base bg-white/10 border-white/20 text-white hover:bg-white/20 backdrop-blur-sm"
                       >
-                        Contact Support
+                        Back to Home
                       </Button>
                     </Link>
                   </motion.div>
@@ -247,5 +248,27 @@ export default function VerifyEmailPage() {
         }
       `}</style>
     </div>
+  );
+}
+
+function LoadingFallback() {
+  return (
+    <div
+      style={{
+        background:
+          "linear-gradient(135deg, #0f0c29 0%, #24243e 25%, #302b63 50%, #0f3460 75%, #002366 100%)",
+      }}
+      className="min-h-screen flex items-center justify-center"
+    >
+      <div className="text-white text-lg">Loading...</div>
+    </div>
+  );
+}
+
+export default function VerifyEmailPage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <VerifyEmailContent />
+    </Suspense>
   );
 }

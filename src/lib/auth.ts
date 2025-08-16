@@ -140,6 +140,7 @@ export const authOptions: NextAuthOptions = {
         token.role = user.role;
         token.id = user.id;
         token.emailVerified = Boolean(user.emailVerified);
+        token.image = user.image;
       }
 
       // Return previous token if the access token has not expired yet
@@ -152,6 +153,7 @@ export const authOptions: NextAuthOptions = {
           id: token.id as string,
           role: token.role as string,
           emailVerified: token.emailVerified as boolean,
+          image: token.image as string,
         };
       }
       return session;

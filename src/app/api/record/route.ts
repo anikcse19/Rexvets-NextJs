@@ -66,7 +66,7 @@ export async function GET(req: NextRequest) {
         );
       }
 
-      const acquireData = await acquireResponse.json();
+      const acquireData = await acquireResponse.json() as { resourceId: string };
       const { resourceId } = acquireData;
 
       // Step 2: Start the recording
@@ -122,7 +122,7 @@ export async function GET(req: NextRequest) {
         );
       }
 
-      const startData = await startResponse.json();
+      const startData = await startResponse.json() as { sid: string };
       const { sid } = startData; // Session ID
 
       return NextResponse.json({
@@ -167,7 +167,7 @@ export async function GET(req: NextRequest) {
         );
       }
 
-      const stopData = await stopResponse.json();
+      const stopData = await stopResponse.json() as { serverResponse: any };
       // The response will contain file information and status
       // You can process this data as needed.
       return NextResponse.json({

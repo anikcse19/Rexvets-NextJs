@@ -40,7 +40,7 @@ export default function SignInPage() {
       });
 
       if (result?.ok) {
-        window.location.href = "/dashboard";
+        window.location.href = "/";
               } else {
           // Handle different error cases
           if (result?.error === "CredentialsSignin") {
@@ -343,7 +343,7 @@ export default function SignInPage() {
                       href="/auth/signup"
                       className="text-cyan-400 hover:text-cyan-300 font-medium transition-colors duration-300 hover:underline"
                     >
-                      Create one now
+                      Create Account
                     </Link>
                   </p>
                 </motion.div>
@@ -359,7 +359,7 @@ export default function SignInPage() {
             className="text-center mt-8"
           >
             <p className="text-white/50 text-sm">
-              © 2025 RexVet. Professional Veterinary Care Platform.
+              ©2025 RexVet. Professional Veterinary Care Platform.
             </p>
           </motion.div>
         </div>

@@ -1,9 +1,10 @@
 "use client";
 
 import { Footer } from "@/components/Footer";
-import Header from "@/components/Header";
+import Header from "@/components/Navbar";
 import { usePathname } from "next/navigation";
 import React, { ReactNode } from "react";
+import { SessionProvider } from "next-auth/react";
 
 type Props = {
   children: ReactNode;
@@ -26,10 +27,10 @@ export default function LayoutController({
   const hideLayout = hideOnRoutes.indexOf(routeSegment) !== -1;
 
   return (
-    <>
+    <SessionProvider>
       {!hideLayout && <Header />}
       <main className="overflow-x-hidden ">{children}</main>
       {!hideLayout && <Footer />}
-    </>
+    </SessionProvider>
   );
 }

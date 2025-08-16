@@ -6,8 +6,9 @@ import Link from "next/link";
 import { ArrowLeft, AlertTriangle, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Suspense } from "react";
 
-export default function AuthErrorPage() {
+function AuthErrorContent() {
   const searchParams = useSearchParams();
   const error = searchParams.get("error");
 
@@ -199,5 +200,27 @@ export default function AuthErrorPage() {
         }
       `}</style>
     </div>
+  );
+}
+
+function LoadingFallback() {
+  return (
+    <div
+      style={{
+        background:
+          "linear-gradient(135deg, #0f0c29 0%, #24243e 25%, #302b63 50%, #0f3460 75%, #002366 100%)",
+      }}
+      className="min-h-screen flex items-center justify-center"
+    >
+      <div className="text-white text-lg">Loading...</div>
+    </div>
+  );
+}
+
+export default function AuthErrorPage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <AuthErrorContent />
+    </Suspense>
   );
 }

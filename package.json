@@ -8,7 +8,6 @@
     "start": "next start",
     "lint": "next lint",
     "build:analyze": "cross-env ANALYZE=true next build",
-    "prepare": "husky",
     "sync": "git pull origin main && git push && pnpm install",
     "commit": "pnpm lint && git add . && git-cz && git push"
   },
@@ -77,7 +76,6 @@
     "eslint-config-next": "15.4.5",
     "eslint-plugin-jsdoc": "^54.0.0",
     "eslint-plugin-react-hooks": "^5.2.0",
-    "husky": "^9.1.7",
     "lint-staged": "^16.1.5",
     "postcss": "^8.5.6",
     "tailwindcss": "^4.1.11",

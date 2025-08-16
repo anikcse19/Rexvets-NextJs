@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/mongoose";
 import UserModel from "@/models/User";
 import { z } from "zod";
-import { sendVerificationEmail } from "@/lib/email";
+import { sendEmailVerification } from "@/lib/email";
 import { registerRateLimiter } from "@/lib/rate-limit";
 
 // Registration validation schema
@@ -114,7 +114,7 @@ export async function POST(request: NextRequest) {
 
     // Send verification email (implement this function)
     try {
-      await sendVerificationEmail(user.email, verificationToken, user.name);
+      await sendEmailVerification(user.email, verificationToken, user.name);
     } catch (emailError) {
       console.error("Failed to send verification email:", emailError);
       // Don't fail registration if email fails, but log it

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/mongoose";
 import UserModel from "@/models/User";
-import { sendPasswordResetEmail } from "@/lib/email";
+import { sendPasswordReset } from "@/lib/email";
 import { z } from "zod";
 
 const forgotPasswordSchema = z.object({
@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
 
     // Send password reset email
     try {
-      await sendPasswordResetEmail(user.email, resetToken, user.name);
+      await sendPasswordReset(user.email, resetToken, user.name);
     } catch (emailError) {
       console.error("Failed to send password reset email:", emailError);
       return NextResponse.json(
