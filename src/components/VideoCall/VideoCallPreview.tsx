@@ -1,3 +1,4 @@
+"use client";
 import {
   Calendar,
   Clock,
@@ -8,110 +9,22 @@ import {
   VideoOff,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
+import Webcam from "react-webcam";
 
 const VideoCallPreview: React.FC = () => {
   const router = useRouter();
   const [isVideoEnabled, setIsVideoEnabled] = useState(false);
   const [isAudioEnabled, setIsAudioEnabled] = useState(true);
-  const [mediaStream, setMediaStream] = useState<MediaStream | null>(null);
-  const [isMediaReady, setIsMediaReady] = useState(false);
-  const [isCameraOn, setIsCameraOn] = useState(false);
 
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const webcamRef = useRef<Webcam>(null);
 
-  const cleanup = useCallback(() => {
-    if (mediaStream) {
-      mediaStream.getTracks().forEach((track) => track.stop());
-    }
-  }, [mediaStream]);
-  const initializeMedia = useCallback(async () => {
-    const hasPermission = await checkPermissions();
-    if (!hasPermission) {
-      alert("Camera and microphone permissions are required to join the call.");
-      return;
-    }
-
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: true,
-        audio: true,
-      });
-
-      setMediaStream(stream);
-      setIsMediaReady(true);
-
-      // Initially disable video track (camera off by default)
-      const videoTrack = stream.getVideoTracks()[0];
-      if (videoTrack) videoTrack.enabled = false;
-
-      // Set up video element
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        videoRef.current.muted = true;
-      }
-    } catch (error) {
-      console.error("Error accessing media devices:", error);
-      alert("Unable to access camera or microphone.");
-    }
-  }, []);
-  useEffect(() => {
-    initializeMedia();
-    return () => {
-      cleanup();
-    };
-  }, [initializeMedia, cleanup]);
-
-  // Check camera and microphone permissions
-  const checkPermissions = async () => {
-    try {
-      const cameraStatus = await navigator.permissions.query({
-        name: "camera" as PermissionName,
-      });
-      const micStatus = await navigator.permissions.query({
-        name: "microphone" as PermissionName,
-      });
-
-      return cameraStatus.state !== "denied" && micStatus.state !== "denied";
-    } catch (err) {
-      console.warn(
-        "Permissions API not supported, fallback to getUserMedia:",
-        err
-      );
-      return true;
-    }
+  const toggleVideo = () => {
+    setIsVideoEnabled((prev) => !prev);
   };
 
-  const toggleVideo = async () => {
-    if (!(await checkPermissions())) {
-      alert("Camera permission denied.");
-      return;
-    }
-
-    if (mediaStream) {
-      const videoTrack = mediaStream.getVideoTracks()[0];
-      if (videoTrack) {
-        const newVideoState = !isVideoEnabled;
-        videoTrack.enabled = newVideoState;
-        setIsVideoEnabled(newVideoState);
-      }
-    }
-  };
-
-  const toggleAudio = async () => {
-    if (!(await checkPermissions())) {
-      alert("Microphone permission denied.");
-      return;
-    }
-
-    if (mediaStream) {
-      const audioTrack = mediaStream.getAudioTracks()[0];
-      if (audioTrack) {
-        const newAudioState = !isAudioEnabled;
-        audioTrack.enabled = newAudioState;
-        setIsAudioEnabled(newAudioState);
-      }
-    }
+  const toggleAudio = () => {
+    setIsAudioEnabled((prev) => !prev);
   };
 
   return (
@@ -167,8 +80,7 @@ const VideoCallPreview: React.FC = () => {
                 padding: "16px",
               }}
               onClick={() => router.push("/join-video-call")}
-              // disabled={true}
-              className="w-full bg-gradient-to-r   text-white font-semibold py-4 px-6 rounded-xl mb-4"
+              className="w-full cursor-pointer bg-gradient-to-r text-white font-semibold py-4 px-6 rounded-xl mb-4"
             >
               JOIN VIDEO CALL
             </button>
@@ -182,14 +94,14 @@ const VideoCallPreview: React.FC = () => {
           {/* Right Side - Camera Preview */}
           <div className="flex flex-col justify-center h-[450px]">
             <div className="bg-black rounded-2xl overflow-hidden h-full w-full flex flex-col">
-              {!isCameraOn ? (
+              {!isVideoEnabled ? (
                 <div className="h-full w-full flex flex-col items-center justify-center">
                   <Video className="w-12 h-12 mb-3 text-white/50" />
                   <p className="text-white text-lg font-medium mb-4">
                     Camera is off
                   </p>
                   <button
-                    onClick={() => setIsCameraOn(true)}
+                    onClick={toggleVideo}
                     className="bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-2 rounded"
                   >
                     Turn on camera
@@ -197,15 +109,14 @@ const VideoCallPreview: React.FC = () => {
                 </div>
               ) : (
                 <div className="relative h-full w-full flex flex-col">
-                  <video
-                    ref={videoRef}
-                    autoPlay
-                    playsInline
-                    muted
-                    className={`h-full w-full object-cover ${
-                      !isVideoEnabled ? "hidden" : ""
-                    }`}
-                  />
+                  {isVideoEnabled && (
+                    <Webcam
+                      ref={webcamRef}
+                      audio={isAudioEnabled}
+                      mirrored
+                      className="h-full w-full object-cover"
+                    />
+                  )}
 
                   {!isVideoEnabled && (
                     <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50">
@@ -219,13 +130,10 @@ const VideoCallPreview: React.FC = () => {
                   <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex space-x-4">
                     <button
                       onClick={toggleAudio}
-                      disabled={!isMediaReady}
                       className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-200 ${
                         isAudioEnabled
                           ? "bg-gray-700/80 hover:bg-gray-600/80 backdrop-blur-sm"
                           : "bg-red-500 hover:bg-red-600"
-                      } ${
-                        !isMediaReady ? "opacity-50 cursor-not-allowed" : ""
                       }`}
                     >
                       {isAudioEnabled ? (
@@ -237,13 +145,10 @@ const VideoCallPreview: React.FC = () => {
 
                     <button
                       onClick={toggleVideo}
-                      disabled={!isMediaReady}
                       className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-200 ${
                         isVideoEnabled
                           ? "bg-gray-700/80 hover:bg-gray-600/80 backdrop-blur-sm"
                           : "bg-red-500 hover:bg-red-600"
-                      } ${
-                        !isMediaReady ? "opacity-50 cursor-not-allowed" : ""
                       }`}
                     >
                       {isVideoEnabled ? (
@@ -253,28 +158,10 @@ const VideoCallPreview: React.FC = () => {
                       )}
                     </button>
                   </div>
-
-                  {!isMediaReady && (
-                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                      <div className="text-white text-center">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-2"></div>
-                        <p className="text-sm">
-                          Loading camera and microphone...
-                        </p>
-                      </div>
-                    </div>
-                  )}
                 </div>
               )}
             </div>
           </div>
-        </div>
-      </div>
-
-      <div className="fixed bottom-4 right-6 text-white/50 text-xs">
-        <div className="text-right">
-          <p className="font-medium">Activate Windows</p>
-          <p>Go to Settings to activate Windows</p>
         </div>
       </div>
     </div>
