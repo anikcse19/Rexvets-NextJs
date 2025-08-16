@@ -25,10 +25,12 @@ export default function SignInPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setError(""); // Clear previous errors
 
     try {
       const result = await signIn("credentials", {
@@ -38,12 +40,27 @@ export default function SignInPage() {
       });
 
       if (result?.ok) {
-        window.location.href = "/dashboard/doctor/overview";
-      } else {
-        console.error("Sign in failed");
-      }
+        window.location.href = "/";
+              } else {
+          // Handle different error cases
+          if (result?.error === "CredentialsSignin") {
+            setError("Invalid email or password. Please try again.");
+          } else if (result?.error === "AccountLocked") {
+            setError("Account is temporarily locked due to too many failed attempts. Please try again later.");
+          } else if (result?.error === "AccountDeactivated") {
+            setError("Account is deactivated. Please contact support.");
+          } else if (result?.error === "EmailNotVerified") {
+            setError("Please verify your email address before signing in.");
+          } else if (result?.error?.includes("Database connection failed")) {
+            setError("Service temporarily unavailable. Please try again later.");
+          } else {
+            setError("Sign in failed. Please check your credentials and try again.");
+          }
+          console.error("Sign in failed:", result?.error);
+        }
     } catch (error) {
       console.error("Sign in error:", error);
+      setError("An unexpected error occurred. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -51,10 +68,12 @@ export default function SignInPage() {
 
   const handleGoogleSignIn = async () => {
     setGoogleLoading(true);
+    setError(""); // Clear previous errors
     try {
       await signIn("google", { callbackUrl: "/dashboard" });
     } catch (error) {
       console.error("Google sign in error:", error);
+      setError("Google sign-in failed. Please try again.");
     } finally {
       setGoogleLoading(false);
     }
@@ -277,6 +296,17 @@ export default function SignInPage() {
                     </div>
                   </motion.div>
 
+                  {/* Error Message */}
+                  {error && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg"
+                    >
+                      <p className="text-red-400 text-sm text-center">{error}</p>
+                    </motion.div>
+                  )}
+
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -313,7 +343,7 @@ export default function SignInPage() {
                       href="/auth/signup"
                       className="text-cyan-400 hover:text-cyan-300 font-medium transition-colors duration-300 hover:underline"
                     >
-                      Create one now
+                      Create Account
                     </Link>
                   </p>
                 </motion.div>
@@ -329,7 +359,7 @@ export default function SignInPage() {
             className="text-center mt-8"
           >
             <p className="text-white/50 text-sm">
-              © 2025 RexVet. Professional Veterinary Care Platform.
+              ©2025 RexVet. Professional Veterinary Care Platform.
             </p>
           </motion.div>
         </div>

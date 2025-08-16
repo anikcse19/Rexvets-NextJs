@@ -1,0 +1,17 @@
+# Service worker files
+public/sw.js
+public/workbox-*.js
+
+# Dashboard components (temporary)
+src/components/Dashboard/Doctor/Account/
+src/components/Dashboard/Doctor/Overview/
+src/components/Dashboard/Doctor/HelpPage.tsx
+src/components/Dashboard/Doctor/AppointmentsListPage.tsx
+src/components/Dashboard/Doctor/AppointmentCard.tsx
+src/components/Dashboard/Doctor/RatesAndAvailabilityPage.tsx
+
+# Shared layouts
+src/components/shared/Layouts/Topbar.tsx
+
+# Data files
+src/lib/data/index.ts

@@ -1,6 +1,8 @@
+import config from "@/config/env.config";
 import mongoose from "mongoose";
 
-const MONGODB_URI = process.env.MONGODB_URI!;
+
+const MONGODB_URI = config.MONGO_URI;
 
 if (!MONGODB_URI) {
   throw new Error("Please define the MONGODB_URI environment variable");
@@ -17,7 +19,7 @@ declare global {
 
 const cached: MongooseCache = global.mongoose || { conn: null, promise: null };
 
-if (process.env.NODE_ENV === "development") {
+if (config.NODE_ENVIRONMENT === "development") {
   global.mongoose = cached;
 }
 
@@ -30,7 +32,7 @@ export async function connectToDatabase() {
   }
 
   if (!cached.promise) {
-    cached.promise = mongoose.connect(MONGODB_URI, {
+    cached.promise = mongoose.connect(config.MONGO_URI!, {
       bufferCommands: false,
     });
   }
