@@ -9,6 +9,7 @@ import {
   Timer,
   XCircle,
 } from "lucide-react";
+import Link from "next/link";
 import React from "react";
 
 interface AppointmentCardProps {
@@ -68,7 +69,10 @@ export default function AppointmentCard({ appointment }: AppointmentCardProps) {
       )}
 
       {/* Pet Info */}
-      <div className="flex items-center gap-5 cursor-pointer">
+      <Link
+        href="/dashboard/pet-parent/appointments/1"
+        className="flex items-center gap-5 cursor-pointer"
+      >
         <Avatar className="w-20 h-20 border-4 border-white shadow-md">
           <AvatarImage src={appointment.petImage} alt={appointment.petName} />
           <AvatarFallback className="bg-gradient-to-br from-blue-100 to-purple-100 text-blue-800 font-bold">
@@ -81,7 +85,7 @@ export default function AppointmentCard({ appointment }: AppointmentCardProps) {
           </h3>
           <p className="text-sm text-gray-500">{appointment.petType}</p>
         </div>
-      </div>
+      </Link>
 
       {/* Divider */}
       <div className="my-5 h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />

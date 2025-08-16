@@ -1,10 +1,10 @@
-import AppointmentsListPage from "@/components/Dashboard/Doctor/AppointmentsListPage";
+import DoctorAppointmentsListPage from "@/components/Dashboard/Doctor/DoctorAppointmentsListPage";
 import React from "react";
 
 const page = () => {
   return (
     <div>
-      <AppointmentsListPage />
+      <DoctorAppointmentsListPage />
     </div>
   );
 };

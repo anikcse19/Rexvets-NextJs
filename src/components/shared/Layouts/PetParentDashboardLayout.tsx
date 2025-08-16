@@ -1,17 +1,17 @@
 "use client";
 
-import Sidebar from "@/components/shared/Layouts/DoctorDashboardSidebar";
 import Topbar from "@/components/shared/Layouts/Topbar";
 import React, { useState } from "react";
+import Sidebar from "./PetParentDashboardSidebar";
 
 interface DoctorDashboardLayoutProps {
   children: React.ReactNode;
   title?: string;
 }
 
-export default function DoctorDashboardLayout({
+export default function PetParentDashboardLayout({
   children,
-  title = "Doctor Dashboard",
+  title = "Parent Dashboard",
 }: DoctorDashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 

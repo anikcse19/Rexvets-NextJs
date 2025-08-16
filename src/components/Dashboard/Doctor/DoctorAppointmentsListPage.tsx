@@ -18,7 +18,7 @@ import {
   History,
   Search,
 } from "lucide-react";
-import AppointmentCard from "./AppointmentCard";
+import AppointmentCard from "./Appointments/AppointmentCard";
 import { Appointment } from "@/lib/types";
 import { Input } from "@/components/ui/input";
 
