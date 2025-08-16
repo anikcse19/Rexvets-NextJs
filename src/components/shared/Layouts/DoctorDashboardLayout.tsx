@@ -1,3 +1,56 @@
+<<<<<<< HEAD
+"use client";
+
+import Sidebar from "@/components/shared/Layouts/DoctorDashboardSidebar";
+import Topbar from "@/components/shared/Layouts/Topbar";
+import React, { useState } from "react";
+
+interface DoctorDashboardLayoutProps {
+  children: React.ReactNode;
+  title?: string;
+}
+
+export default function DoctorDashboardLayout({
+  children,
+  title = "Doctor Dashboard",
+}: DoctorDashboardLayoutProps) {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  return (
+    <div className="flex h-screen bg-muted overflow-hidden">
+      {/* Mobile sidebar overlay */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* Sidebar */}
+      <div
+        className={`
+        fixed inset-y-0 left-0 z-50 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0
+        ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
+      `}
+      >
+        <Sidebar onClose={() => setSidebarOpen(false)} />
+      </div>
+
+      {/* Main content */}
+      <div className="flex flex-col flex-1 lg:ml-0">
+        <Topbar
+          title={title}
+          onMenuClick={() => setSidebarOpen(true)}
+          sidebarOpen={sidebarOpen}
+        />
+        <main className="flex-1 p-4 lg:p-6 overflow-y-auto bg-gray-50">
+          {children}
+        </main>
+      </div>
+    </div>
+  );
+}
+=======
 "use client";
 
 import Sidebar from "@/components/shared/Layouts/DoctorDashboardSidebar";
@@ -49,3 +102,4 @@ export default function DashboardLayout({
     </div>
   );
 }
+>>>>>>> f446536511e5e87aa6d87c35b697ad2f216306af
