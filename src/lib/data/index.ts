@@ -17,6 +17,7 @@ import {
   Activity,
   HelpingHand,
   HelpCircle,
+  Cat,
 } from "lucide-react";
 import featureImage1 from "../../../public/images/Homepage/featureImage1-1.webp";
 import featureImage2 from "../../../public/images/Homepage/featureImage2-2.webp";
@@ -624,7 +625,7 @@ export const treatmentServices: ITreatmentCategory[] = [
   },
 ];
 
-export const menuItems: MenuItems[] = [
+export const menuItemsDoctor: MenuItems[] = [
   {
     id: "dashboard",
     label: "Dashboard",
@@ -662,6 +663,39 @@ export const menuItems: MenuItems[] = [
     label: "Help",
     icon: HelpCircle,
     href: "/dashboard/doctor/help",
+  },
+];
+
+export const menuItemsPetParent: MenuItems[] = [
+  {
+    id: "dashboard",
+    label: "Dashboard",
+    icon: LayoutDashboard,
+    href: "/dashboard/pet-parent/overview",
+  },
+  {
+    id: "appointments",
+    label: "Appointments",
+    icon: FileCheck2,
+    href: "/dashboard/pet-parent/appointments",
+  },
+  {
+    id: "my-pets",
+    label: "My Pets",
+    icon: Cat,
+    href: "/dashboard/pet-parent/my-pets",
+  },
+  {
+    id: "account",
+    label: "Account",
+    icon: Settings,
+    href: "/dashboard/pet-parent/account",
+  },
+  {
+    id: "help",
+    label: "Help",
+    icon: HelpCircle,
+    href: "/dashboard/pet-parent/help",
   },
 ];
 
@@ -836,4 +870,129 @@ export const experienceLevels = [
     label: "Expert (10+ years)",
     color: "bg-green-100 text-green-700",
   },
+];
+
+export const speciesWithBreeds = {
+  dog: [
+    "Golden Retriever",
+    "Labrador Retriever",
+    "German Shepherd",
+    "Bulldog",
+    "Poodle",
+    "Beagle",
+    "Rottweiler",
+    "Yorkshire Terrier",
+    "Dachshund",
+    "Siberian Husky",
+    "Boxer",
+    "Border Collie",
+    "Chihuahua",
+    "Shih Tzu",
+    "Boston Terrier",
+    "Mixed Breed",
+  ],
+  cat: [
+    "Persian",
+    "Siamese",
+    "Maine Coon",
+    "British Shorthair",
+    "Ragdoll",
+    "Bengal",
+    "Abyssinian",
+    "Russian Blue",
+    "Scottish Fold",
+    "Sphynx",
+    "American Shorthair",
+    "Birman",
+    "Oriental",
+    "Manx",
+    "Mixed Breed",
+  ],
+  bird: [
+    "Budgerigar",
+    "Cockatiel",
+    "Canary",
+    "Lovebird",
+    "Conure",
+    "African Grey",
+    "Macaw",
+    "Cockatoo",
+    "Finch",
+    "Parakeet",
+  ],
+  rabbit: [
+    "Holland Lop",
+    "Netherland Dwarf",
+    "Mini Rex",
+    "Lionhead",
+    "Flemish Giant",
+    "English Angora",
+    "Dutch",
+    "New Zealand",
+    "Californian",
+    "Mixed Breed",
+  ],
+  hamster: [
+    "Syrian",
+    "Dwarf Campbell",
+    "Dwarf Winter White",
+    "Roborovski",
+    "Chinese",
+  ],
+  "guinea-pig": [
+    "American",
+    "Peruvian",
+    "Abyssinian",
+    "Silkie",
+    "Texel",
+    "Skinny Pig",
+  ],
+  ferret: ["Domestic Ferret", "Angora Ferret", "European Polecat"],
+  reptile: [
+    "Bearded Dragon",
+    "Leopard Gecko",
+    "Ball Python",
+    "Corn Snake",
+    "Iguana",
+    "Turtle",
+    "Tortoise",
+    "Chameleon",
+    "Monitor Lizard",
+  ],
+  fish: [
+    "Goldfish",
+    "Betta",
+    "Guppy",
+    "Angelfish",
+    "Neon Tetra",
+    "Discus",
+    "Cichlid",
+    "Catfish",
+    "Koi",
+    "Molly",
+  ],
+  other: ["Other"],
+};
+
+export const colorOptions = [
+  "Black",
+  "White",
+  "Brown",
+  "Golden",
+  "Gray",
+  "Silver",
+  "Cream",
+  "Red",
+  "Blue",
+  "Chocolate",
+  "Tan",
+  "Brindle",
+  "Merle",
+  "Spotted",
+  "Striped",
+  "Calico",
+  "Tortoiseshell",
+  "Tabby",
+  "Solid",
+  "Mixed Colors",
 ];

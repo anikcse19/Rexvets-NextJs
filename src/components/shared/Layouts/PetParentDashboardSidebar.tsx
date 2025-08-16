@@ -8,7 +8,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { X } from "lucide-react";
-import { bottomMenuItems, menuItemsDoctor } from "@/lib";
+import { bottomMenuItems, menuItemsPetParent } from "@/lib";
 import { MenuItems } from "@/lib/types";
 
 interface SidebarProps {
@@ -47,7 +47,7 @@ export default function Sidebar({ onClose }: SidebarProps) {
 
       {/* Navigation Menu */}
       <nav className="flex-1 p-4 space-y-2 text-white overflow-y-auto flex flex-col gap-2">
-        {menuItemsDoctor.map((item) => (
+        {menuItemsPetParent.map((item) => (
           <MenuItem
             key={item.id}
             item={item}

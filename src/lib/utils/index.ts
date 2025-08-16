@@ -25,3 +25,25 @@ export function cn(...inputs: ClassValue[]) {
 export const toSlug = (input: string): string => {
   return input.toLowerCase().trim().split(/\s+/).join("-");
 };
+
+export const calculatePetAge = (dateOfBirth: string) => {
+  const today = new Date();
+  const birthDate = new Date(dateOfBirth);
+
+  let years = today.getFullYear() - birthDate.getFullYear();
+  let months = today.getMonth() - birthDate.getMonth();
+  let days = today.getDate() - birthDate.getDate();
+
+  if (days < 0) {
+    months--;
+    const lastMonth = new Date(today.getFullYear(), today.getMonth(), 0);
+    days += lastMonth.getDate();
+  }
+
+  if (months < 0) {
+    years--;
+    months += 12;
+  }
+
+  return { years, months, days };
+};
