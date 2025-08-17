@@ -255,13 +255,13 @@ export async function sendEmailVerification(email: string, token: string, name: 
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
       console.log('Email service not configured. Using development mode.');
       console.log(`Email verification would be sent to ${email} for ${name} with token: ${token}`);
-      const verificationUrl = `${process.env.NEXTAUTH_URL}/api/auth/verify-email?token=${token}`;
+      const verificationUrl = `${process.env.NEXTAUTH_URL}/auth/verify-email?token=${token}`;
       console.log(`Verification URL: ${verificationUrl}`);
       return;
     }
 
     const transporter = createTransporter();
-    const verificationUrl = `${process.env.NEXTAUTH_URL}/api/auth/verify-email?token=${token}`;
+    const verificationUrl = `${process.env.NEXTAUTH_URL}/auth/verify-email?token=${token}`;
     const htmlContent = createEmailVerificationTemplate(name, verificationUrl);
 
     const mailOptions = {

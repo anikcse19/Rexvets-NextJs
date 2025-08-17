@@ -6,8 +6,8 @@ export interface IPetParent extends Document {
   name: string;
   email: string;
   password?: string;
-  phoneNumber: string;
-  state: string;
+  phoneNumber?: string;
+  state?: string;
   city?: string;
   address?: string;
   zipCode?: string;
@@ -21,6 +21,20 @@ export interface IPetParent extends Document {
   loginAttempts: number;
   lockUntil?: Date;
   isActive: boolean;
+  
+  // Google OAuth fields
+  googleId?: string;
+  googleAccessToken?: string;
+  googleRefreshToken?: string;
+  googleExpiresAt?: number;
+  googleTokenType?: string;
+  googleScope?: string;
+  
+  // Additional profile fields
+  firstName?: string;
+  lastName?: string;
+  locale?: string;
+  
   pets: Array<{
     name: string;
     type: 'dog' | 'cat' | 'bird' | 'fish' | 'reptile' | 'other';
@@ -83,19 +97,28 @@ const petParentSchema = new Schema<IPetParent>({
   },
   password: {
     type: String,
-    required: [true, 'Password is required'],
+    required: function(this: any) {
+      // Password is required only if user is not signing up via Google OAuth
+      return !this.googleId;
+    },
     minlength: [8, 'Password must be at least 8 characters long'],
     select: false
   },
   phoneNumber: {
     type: String,
-    required: [true, 'Phone number is required'],
+    required: function(this: any) {
+      // Phone number is required only if user is not signing up via Google OAuth
+      return !this.googleId;
+    },
     trim: true,
     match: [/^[\+]?[1-9][\d]{0,15}$/, 'Please enter a valid phone number']
   },
   state: {
     type: String,
-    required: [true, 'State is required'],
+    required: function(this: any) {
+      // State is required only if user is not signing up via Google OAuth
+      return !this.googleId;
+    },
     trim: true
   },
   city: {
@@ -148,6 +171,45 @@ const petParentSchema = new Schema<IPetParent>({
     type: Boolean,
     default: true
   },
+  
+  // Google OAuth fields
+  googleId: {
+    type: String,
+    sparse: true,
+    index: true
+  },
+  googleAccessToken: {
+    type: String,
+    select: false
+  },
+  googleRefreshToken: {
+    type: String,
+    select: false
+  },
+  googleExpiresAt: {
+    type: Number
+  },
+  googleTokenType: {
+    type: String
+  },
+  googleScope: {
+    type: String
+  },
+  
+  // Additional profile fields
+  firstName: {
+    type: String,
+    trim: true
+  },
+  lastName: {
+    type: String,
+    trim: true
+  },
+  locale: {
+    type: String,
+    default: 'en'
+  },
+  
   pets: [{
     name: {
       type: String,
@@ -228,6 +290,7 @@ petParentSchema.index({ isActive: 1 });
 petParentSchema.index({ emailVerificationToken: 1 });
 petParentSchema.index({ passwordResetToken: 1 });
 petParentSchema.index({ state: 1 });
+petParentSchema.index({ googleId: 1 });
 
 // Virtual for checking if account is locked
 petParentSchema.virtual('isLocked').get(function() {
@@ -236,11 +299,12 @@ petParentSchema.virtual('isLocked').get(function() {
 
 // Pre-save middleware to hash password
 petParentSchema.pre('save', async function(next) {
-  if (!this.isModified('password')) return next();
+  // Skip password hashing if no password (Google OAuth users)
+  if (!this.password || !this.isModified('password')) return next();
 
   try {
     const salt = await bcrypt.genSalt(12);
-    this.password = await bcrypt.hash(this.password!, salt);
+    this.password = await bcrypt.hash(this.password, salt);
     next();
   } catch (error) {
     next(error as Error);
@@ -308,7 +372,7 @@ petParentSchema.methods.resetLoginAttempts = async function(): Promise<void> {
 
 // Static method to find user by email (including password for auth)
 petParentSchema.statics.findByEmailForAuth = function(email: string) {
-  return this.findOne({ email, isActive: true }).select('+password +emailVerificationToken +passwordResetToken');
+  return this.findOne({ email, isActive: true }).select('+password +emailVerificationToken +passwordResetToken +googleAccessToken +googleRefreshToken');
 };
 
 // Static method to find user by email verification token

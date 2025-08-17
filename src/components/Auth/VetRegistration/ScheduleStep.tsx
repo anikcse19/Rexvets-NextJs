@@ -20,14 +20,16 @@ interface ScheduleStepProps {
   onNext: (schedule: Schedule) => void;
   onBack: () => void;
   initialData?: Schedule;
+  errors?: Record<string, string>;
 }
 
 export default function ScheduleStep({
   onNext,
   onBack,
-  initialData,
+  initialData = {},
+  errors = {},
 }: ScheduleStepProps) {
-  const [schedule, setSchedule] = useState<Schedule>(initialData || {});
+  const [schedule, setSchedule] = useState<Schedule>(initialData);
 
   const addTimeSlot = (day: string) => {
     setSchedule((prev) => ({
@@ -60,7 +62,7 @@ export default function ScheduleStep({
 
   const validateSchedule = (): boolean => {
     const hasValidSlots = Object.values(schedule).some((daySlots) =>
-      daySlots.some(
+      Array.isArray(daySlots) && daySlots.some(
         (slot) =>
           slot.startTime && slot.endTime && slot.startTime < slot.endTime
       )
@@ -68,7 +70,8 @@ export default function ScheduleStep({
     return hasValidSlots;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
     if (validateSchedule()) {
       // Filter out empty time slots
       const cleanedSchedule = Object.keys(schedule).reduce((acc, day) => {
@@ -132,7 +135,7 @@ export default function ScheduleStep({
                       className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"
                     >
                       <div className="flex-1">
-                        <Label className="text-sm text-muted-foreground">
+                        <Label className="text-sm text-white">
                           From
                         </Label>
                         <Select
@@ -155,7 +158,7 @@ export default function ScheduleStep({
                       </div>
 
                       <div className="flex-1">
-                        <Label className="text-sm text-muted-foreground">
+                        <Label className="text-sm text-white">
                           To
                         </Label>
                         <Select

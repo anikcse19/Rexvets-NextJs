@@ -1,144 +1,100 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Upload,
-  Image as ImageIcon,
-  FileText,
-  Plus,
-  X,
-  User,
-  PenTool,
-} from "lucide-react";
-import { useDropzone } from "react-dropzone";
-import SignatureCanvas from "react-signature-canvas";
-import LoadingSpinner from "@/components/ui/loading-spinner";
-import { License } from "@/lib/types";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Plus, Trash2, User, FileText } from "lucide-react";
+import FileUpload from "@/components/shared/FileUpload";
 import { US_STATES } from "@/lib";
 
 interface ProfileStepProps {
-  onNext: (profileData: ProfileData) => void;
+  onNext: (profileData: any) => void;
   onBack: () => void;
+  isSubmitting?: boolean;
+  errors?: Record<string, string>;
+  initialData?: {
+    firstName?: string;
+    lastName?: string;
+  };
 }
 
-interface ProfileData {
-  profilePicture: File | null;
-  signature?: string;
-  signatureImage?: File | null;
-  cv: File | null;
-  licenses: License[];
+interface LicenseData {
+  licenseNumber: string;
+  deaNumber?: string;
+  state: string;
+  licenseFile: File | null;
 }
 
-export default function ProfileStep({ onNext, onBack }: ProfileStepProps) {
-  const [profilePicture, setProfilePicture] = useState<File | null>(null);
-  const [signatureText, setSignatureText] = useState("");
-  const [cv, setCv] = useState<File | null>(null);
-  const [licenses, setLicenses] = useState<License[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState("draw");
-
-  const signatureCanvasRef = useRef<SignatureCanvas>(null);
-
-  const {
-    getRootProps: getProfileRootProps,
-    getInputProps: getProfileInputProps,
-  } = useDropzone({
-    accept: { "image/*": [] },
-    maxFiles: 1,
-    onDrop: (acceptedFiles) => setProfilePicture(acceptedFiles[0] || null),
+export default function ProfileStep({
+  onNext,
+  onBack,
+  isSubmitting = false,
+  errors = {},
+  initialData = {},
+}: ProfileStepProps) {
+  const [profileData, setProfileData] = useState({
+    profilePicture: null as File | null,
+    signature: '',
+    signatureImage: null as File | null,
+    cv: null as File | null,
+    licenses: [] as LicenseData[],
   });
 
-  const { getRootProps: getCvRootProps, getInputProps: getCvInputProps } =
-    useDropzone({
-      accept: { "application/pdf": [] },
-      maxFiles: 1,
-      onDrop: (acceptedFiles) => setCv(acceptedFiles[0] || null),
-    });
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log('ProfileStep: Form submitted with data:', profileData);
+    onNext(profileData);
+  };
+
+  const handleFileChange = (files: File[], field: string) => {
+    setProfileData(prev => ({
+      ...prev,
+      [field]: files[0] || null
+    }));
+  };
 
   const addLicense = () => {
-    setLicenses([
-      ...licenses,
-      { licenseNumber: "", deaNumber: "", state: "", licenseFile: null },
-    ]);
+    setProfileData(prev => ({
+      ...prev,
+      licenses: [...prev.licenses, {
+        licenseNumber: '',
+        deaNumber: '',
+        state: '',
+        licenseFile: null,
+      }]
+    }));
   };
 
   const removeLicense = (index: number) => {
-    setLicenses(licenses.filter((_, i) => i !== index));
+    setProfileData(prev => ({
+      ...prev,
+      licenses: prev.licenses.filter((_, i) => i !== index)
+    }));
   };
 
-  const updateLicense = (index: number, field: keyof License, value: any) => {
-    setLicenses(
-      licenses.map((license, i) =>
+  const updateLicense = (index: number, field: keyof LicenseData, value: string | File | null) => {
+    setProfileData(prev => ({
+      ...prev,
+      licenses: prev.licenses.map((license, i) => 
         i === index ? { ...license, [field]: value } : license
       )
-    );
+    }));
   };
 
-  const clearSignature = () => {
-    signatureCanvasRef.current?.clear();
+  const handleLicenseFileChange = (files: File[], licenseIndex: number) => {
+    updateLicense(licenseIndex, 'licenseFile', files[0] || null);
   };
 
-  const getSignatureData = () => {
-    if (activeTab === "draw" && signatureCanvasRef.current) {
-      return signatureCanvasRef.current.toDataURL();
-    }
-    return signatureText;
-  };
-
-  const validateForm = () => {
-    const hasRequiredFiles = profilePicture && cv;
-    const hasValidLicenses =
-      licenses.length > 0 &&
-      licenses.every(
-        (license) =>
-          license.licenseNumber && license.state && license.licenseFile
-      );
-    const hasSignature =
-      activeTab === "draw"
-        ? !signatureCanvasRef.current?.isEmpty()
-        : signatureText.trim().length > 0;
-
-    return hasRequiredFiles && hasValidLicenses && hasSignature;
-  };
-
-  const handleSubmit = async () => {
-    if (!validateForm()) return;
-
-    setIsLoading(true);
-    try {
-      const signatureData = getSignatureData();
-      const profileData: ProfileData = {
-        profilePicture,
-        signature:
-          typeof signatureData === "string" ? signatureData : undefined,
-        signatureImage:
-          typeof signatureData !== "string" ? profilePicture : undefined,
-        cv,
-        licenses,
-      };
-
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      onNext(profileData);
-    } catch (error) {
-      console.error("Profile setup error:", error);
-    } finally {
-      setIsLoading(false);
-    }
+  // Create vet name for file prefixing
+  const getVetName = () => {
+    const firstName = initialData?.firstName || '';
+    const lastName = initialData?.lastName || '';
+    return `${firstName} ${lastName}`.trim();
   };
 
   return (
@@ -151,266 +107,207 @@ export default function ProfileStep({ onNext, onBack }: ProfileStepProps) {
         <CardHeader>
           <CardTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent flex items-center gap-2">
             <User className="w-6 h-6 text-blue-600" />
-            Complete Your Profile
+            Profile & Documents
           </CardTitle>
           <p className="text-muted-foreground">
-            Upload your professional documents and signature
+            Upload your documents and complete your profile
           </p>
         </CardHeader>
 
-        <CardContent className="space-y-8">
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-6">
+        
+        <div className="space-y-6">
           {/* Profile Picture */}
-          <div>
-            <Label className="text-base font-semibold flex items-center gap-2">
-              <ImageIcon className="w-5 h-5" />
-              Profile Picture *
-            </Label>
-            <div
-              {...getProfileRootProps()}
-              className="mt-2 border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition-colors cursor-pointer"
-            >
-              <input {...getProfileInputProps()} />
-              {profilePicture ? (
-                <div className="space-y-2">
-                  <img
-                    src={URL.createObjectURL(profilePicture)}
-                    alt="Profile"
-                    className="w-24 h-24 rounded-full object-cover mx-auto"
-                  />
-                  <p className="text-sm text-muted-foreground">
-                    {profilePicture.name}
-                  </p>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setProfilePicture(null)}
-                  >
-                    Remove
-                  </Button>
-                </div>
-              ) : (
-                <div>
-                  <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
-                  <p className="text-sm">
-                    Drop your profile picture here, or click to browse
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
+          <FileUpload
+            label="Profile Picture"
+            name="profilePicture"
+            accept="image/*"
+            maxSize={5 * 1024 * 1024} // 5MB
+            onFileChange={(files) => handleFileChange(files, 'profilePicture')}
+            onError={(error) => console.error('Profile picture error:', error)}
+            vetName={getVetName()}
+          />
 
           {/* Signature */}
-          <div>
-            <Label className="text-base font-semibold flex items-center gap-2">
-              <PenTool className="w-5 h-5" />
-              Signature *
-            </Label>
-            <Tabs
-              value={activeTab}
-              onValueChange={setActiveTab}
-              className="mt-2"
-            >
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="draw">Draw Signature</TabsTrigger>
-                <TabsTrigger value="type">Type Signature</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="draw" className="space-y-4">
-                <div className="border rounded-lg p-4 bg-white">
-                  <SignatureCanvas
-                    ref={signatureCanvasRef}
-                    canvasProps={{
-                      width: 400,
-                      height: 150,
-                      className:
-                        "signature-canvas border-2 border-dashed border-gray-200 rounded",
-                    }}
-                  />
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={clearSignature}
-                    className="mt-2"
-                  >
-                    Clear Signature
-                  </Button>
-                </div>
-              </TabsContent>
-
-              <TabsContent value="type" className="space-y-4">
-                <Textarea
-                  placeholder="Type your signature here..."
-                  value={signatureText}
-                  onChange={(e) => setSignatureText(e.target.value)}
-                  className="min-h-[150px] font-script text-2xl"
-                  style={{ fontFamily: "cursive" }}
-                />
-              </TabsContent>
-            </Tabs>
+          <div className="space-y-2">
+                         <Label htmlFor="signature" className="text-white">Digital Signature</Label>
+            <Textarea
+              id="signature"
+              value={profileData.signature}
+              onChange={(e) => setProfileData(prev => ({ ...prev, signature: e.target.value }))}
+              placeholder="Type your signature or upload an image"
+              rows={3}
+            />
+            {errors.signature && <p className="text-sm text-red-500">{errors.signature}</p>}
           </div>
 
-          {/* CV Upload */}
-          <div>
-            <Label className="text-base font-semibold flex items-center gap-2">
-              <FileText className="w-5 h-5" />
-              CV/Resume (PDF) *
-            </Label>
-            <div
-              {...getCvRootProps()}
-              className="mt-2 border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors cursor-pointer"
-            >
-              <input {...getCvInputProps()} />
-              {cv ? (
-                <div className="space-y-2">
-                  <FileText className="w-12 h-12 mx-auto text-blue-500" />
-                  <p className="text-sm font-medium">{cv.name}</p>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setCv(null)}
-                  >
-                    Remove
-                  </Button>
-                </div>
-              ) : (
-                <div>
-                  <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
-                  <p className="text-sm">
-                    Drop your CV here, or click to browse
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    PDF files only
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
+          {/* Signature Image */}
+          <FileUpload
+            label="Signature Image (Optional)"
+            name="signatureImage"
+            accept="image/*"
+            maxSize={2 * 1024 * 1024} // 2MB
+            onFileChange={(files) => handleFileChange(files, 'signatureImage')}
+            onError={(error) => console.error('Signature image error:', error)}
+            vetName={getVetName()}
+          />
 
-          {/* Licenses */}
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <Label className="text-base font-semibold">
-                Professional Licenses *
-              </Label>
-              <Button variant="outline" size="sm" onClick={addLicense}>
-                <Plus className="w-4 h-4 mr-1" />
+          {/* CV/Resume */}
+          <FileUpload
+            label="CV/Resume"
+            name="cv"
+            accept=".pdf,.doc,.docx"
+            maxSize={10 * 1024 * 1024} // 10MB
+            onFileChange={(files) => handleFileChange(files, 'cv')}
+            onError={(error) => console.error('CV error:', error)}
+            vetName={getVetName()}
+          />
+
+          {/* License Information */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+                             <Label className="text-base font-semibold text-white">License Information</Label>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={addLicense}
+                className="flex items-center gap-2"
+              >
+                <Plus className="w-4 h-4" />
                 Add License
               </Button>
             </div>
+            
+            {profileData.licenses.length === 0 ? (
+              <div className="p-4 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 text-center">
+                <p className="text-sm text-gray-500 mb-2">No licenses added yet</p>
+                <p className="text-xs text-gray-400">Click "Add License" to add your veterinary license information</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {profileData.licenses.map((license, index) => (
+                  <Card key={index} className="border-gray-200">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-lg">License #{index + 1}</CardTitle>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeLicense(index)}
+                          className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {/* License Number */}
+                        <div className="space-y-2">
+                                                     <Label htmlFor={`licenseNumber-${index}`} className="text-white">
+                             License Number *
+                           </Label>
+                          <Input
+                            id={`licenseNumber-${index}`}
+                            value={license.licenseNumber}
+                            onChange={(e) => updateLicense(index, 'licenseNumber', e.target.value)}
+                            placeholder="Enter license number"
+                            className={errors[`licenses.${index}.licenseNumber`] ? 'border-red-500' : ''}
+                          />
+                          {errors[`licenses.${index}.licenseNumber`] && (
+                            <p className="text-sm text-red-500">{errors[`licenses.${index}.licenseNumber`]}</p>
+                          )}
+                        </div>
 
-            {licenses.length === 0 && (
-              <p className="text-muted-foreground text-sm text-center py-8 border border-dashed rounded-lg">
-                No licenses added yet. Click &quot;Add License&quot; to get
-                started.
-              </p>
+                        {/* State */}
+                        <div className="space-y-2">
+                                                     <Label htmlFor={`state-${index}`} className="text-white">
+                             State *
+                           </Label>
+                          <Select
+                            value={license.state}
+                            onValueChange={(value) => updateLicense(index, 'state', value)}
+                          >
+                            <SelectTrigger className={errors[`licenses.${index}.state`] ? 'border-red-500' : ''}>
+                              <SelectValue placeholder="Select state" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {US_STATES.map((state) => (
+                                <SelectItem key={state.value} value={state.value}>
+                                  {state.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          {errors[`licenses.${index}.state`] && (
+                            <p className="text-sm text-red-500">{errors[`licenses.${index}.state`]}</p>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* DEA Number */}
+                      <div className="space-y-2">
+                                                 <Label htmlFor={`deaNumber-${index}`} className="text-white">
+                           DEA Number (Optional)
+                         </Label>
+                        <Input
+                          id={`deaNumber-${index}`}
+                          value={license.deaNumber || ''}
+                          onChange={(e) => updateLicense(index, 'deaNumber', e.target.value)}
+                          placeholder="Enter DEA number if applicable"
+                        />
+                      </div>
+
+                      {/* License File */}
+                      <div className="space-y-2">
+                                                 <Label className="text-white">License File *</Label>
+                        <FileUpload
+                          label=""
+                          name={`licenseFile-${index}`}
+                          accept=".pdf,.jpg,.jpeg,.png"
+                          maxSize={5 * 1024 * 1024} // 5MB
+                          onFileChange={(files) => handleLicenseFileChange(files, index)}
+                          onError={(error) => console.error(`License ${index + 1} file error:`, error)}
+                          preview={true}
+                          vetName={getVetName()}
+                        />
+                        {errors[`licenses.${index}.licenseFile`] && (
+                          <p className="text-sm text-red-500">{errors[`licenses.${index}.licenseFile`]}</p>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
             )}
 
-            <div className="space-y-4">
-              {licenses.map((license, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="border rounded-lg p-4 space-y-4 bg-gray-50"
-                >
-                  <div className="flex items-center justify-between">
-                    <h4 className="font-semibold">License #{index + 1}</h4>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removeLicense(index)}
-                      className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                    >
-                      <X className="w-4 h-4" />
-                    </Button>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label>License Number *</Label>
-                      <Input
-                        value={license.licenseNumber}
-                        onChange={(e) =>
-                          updateLicense(index, "licenseNumber", e.target.value)
-                        }
-                        placeholder="Enter license number"
-                      />
-                    </div>
-
-                    <div>
-                      <Label>DEA Number</Label>
-                      <Input
-                        value={license.deaNumber}
-                        onChange={(e) =>
-                          updateLicense(index, "deaNumber", e.target.value)
-                        }
-                        placeholder="Enter DEA number"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <Label>State of License *</Label>
-                    <Select
-                      value={license.state}
-                      onValueChange={(value) =>
-                        updateLicense(index, "state", value)
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select state" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {US_STATES.map((state) => (
-                          <SelectItem key={state.value} value={state.value}>
-                            {state.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <Label>License Document *</Label>
-                    <Input
-                      type="file"
-                      accept=".pdf,.jpg,.jpeg,.png"
-                      onChange={(e) =>
-                        updateLicense(
-                          index,
-                          "licenseFile",
-                          e.target.files?.[0] || null
-                        )
-                      }
-                      className="mt-1"
-                    />
-                  </div>
-                </motion.div>
-              ))}
-            </div>
+            {/* General license errors */}
+            {errors.licenses && (
+              <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-sm text-red-600">{errors.licenses}</p>
+              </div>
+            )}
           </div>
+        </div>
 
-          <div className="flex gap-4 pt-6">
-            <Button variant="outline" onClick={onBack} className="flex-1 h-12">
-              Back
-            </Button>
-            <Button
-              onClick={handleSubmit}
-              disabled={!validateForm() || isLoading}
-              className="flex-1 h-12 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700"
-            >
-              {isLoading ? (
-                <>
-                  <LoadingSpinner size="sm" className="mr-2" />
-                  Creating Account...
-                </>
-              ) : (
-                "Complete Registration"
-              )}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    </motion.div>
+        <div className="flex gap-4 pt-6">
+          <Button variant="outline" onClick={onBack} className="flex-1 h-12">
+            Back
+          </Button>
+          <Button 
+            type="submit" 
+            disabled={isSubmitting}
+            className="flex-1 h-12 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700"
+          >
+            {isSubmitting ? 'Submitting...' : 'Complete Registration'}
+          </Button>
+        </div>
+      </form>
+    </CardContent>
+  </Card>
+</motion.div>
   );
 }

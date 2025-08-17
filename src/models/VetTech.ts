@@ -55,6 +55,20 @@ export interface IVetTech extends Document {
   isApproved: boolean;
   approvalDate?: Date;
   approvedBy?: string;
+  
+  // Google OAuth fields
+  googleId?: string;
+  googleAccessToken?: string;
+  googleRefreshToken?: string;
+  googleExpiresAt?: number;
+  googleTokenType?: string;
+  googleScope?: string;
+  
+  // Additional profile fields
+  firstName?: string;
+  lastName?: string;
+  locale?: string;
+  
   fcmTokens: {
     web?: string;
     mobile?: string;
@@ -284,6 +298,45 @@ const vetTechSchema = new Schema<IVetTech>({
     type: String,
     trim: true
   },
+  
+  // Google OAuth fields
+  googleId: {
+    type: String,
+    sparse: true,
+    index: true
+  },
+  googleAccessToken: {
+    type: String,
+    select: false
+  },
+  googleRefreshToken: {
+    type: String,
+    select: false
+  },
+  googleExpiresAt: {
+    type: Number
+  },
+  googleTokenType: {
+    type: String
+  },
+  googleScope: {
+    type: String
+  },
+  
+  // Additional profile fields
+  firstName: {
+    type: String,
+    trim: true
+  },
+  lastName: {
+    type: String,
+    trim: true
+  },
+  locale: {
+    type: String,
+    default: 'en'
+  },
+  
   fcmTokens: {
     web: String,
     mobile: String
@@ -302,6 +355,7 @@ vetTechSchema.index({ isApproved: 1 });
 vetTechSchema.index({ specialization: 1 });
 vetTechSchema.index({ emailVerificationToken: 1 });
 vetTechSchema.index({ passwordResetToken: 1 });
+vetTechSchema.index({ googleId: 1 });
 
 // Virtual for checking if account is locked
 vetTechSchema.virtual('isLocked').get(function() {
@@ -382,7 +436,7 @@ vetTechSchema.methods.resetLoginAttempts = async function(): Promise<void> {
 
 // Static method to find user by email (including password for auth)
 vetTechSchema.statics.findByEmailForAuth = function(email: string) {
-  return this.findOne({ email, isActive: true }).select('+password +emailVerificationToken +passwordResetToken');
+  return this.findOne({ email, isActive: true }).select('+password +emailVerificationToken +passwordResetToken +googleAccessToken +googleRefreshToken');
 };
 
 // Static method to find user by email verification token

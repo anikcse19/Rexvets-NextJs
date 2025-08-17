@@ -50,15 +50,16 @@ const Home = () => {
   const handleRequestPermission = useCallback(() => {
     requestPermission();
   }, [requestPermission]);
-  useEffect(() => {
-    handleRequestPermission();
-  }, [handleRequestPermission]);
-  // Subscribe to push notifications once permission is granted
-  useEffect(() => {
-    if (permission === "granted" && !subscription) {
-      subscribeToPush(publicVapidKey, backendSaveUrl);
-    }
-  }, [permission, subscription, subscribeToPush]);
+  // Temporarily disabled automatic push notification registration to fix service worker conflicts
+  // useEffect(() => {
+  //   handleRequestPermission();
+  // }, [handleRequestPermission]);
+  // // Subscribe to push notifications once permission is granted
+  // useEffect(() => {
+  //   if (permission === "granted" && !subscription) {
+  //     subscribeToPush(publicVapidKey, backendSaveUrl);
+  //   }
+  // }, [permission, subscription, subscribeToPush]);
   return (
     <div>
       <HeroSection />

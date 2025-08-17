@@ -14,6 +14,15 @@ export interface IVeterinarian extends Document {
   consultationFee: number;
   available: boolean;
   profileImage?: string;
+  cv?: string;
+  signatureImage?: string;
+  signature?: string;
+  licenses?: Array<{
+    licenseNumber: string;
+    deaNumber?: string;
+    state: string;
+    licenseFile?: string;
+  }>;
   bio?: string;
   education: Array<{
     degree: string;
@@ -56,6 +65,20 @@ export interface IVeterinarian extends Document {
   isApproved: boolean;
   approvalDate?: Date;
   approvedBy?: string;
+  
+  // Google OAuth fields
+  googleId?: string;
+  googleAccessToken?: string;
+  googleRefreshToken?: string;
+  googleExpiresAt?: number;
+  googleTokenType?: string;
+  googleScope?: string;
+  
+  // Additional profile fields
+  firstName?: string;
+  lastName?: string;
+  locale?: string;
+  
   fcmTokens: {
     web?: string;
     mobile?: string;
@@ -139,6 +162,38 @@ const veterinarianSchema = new Schema<IVeterinarian>({
     type: String,
     trim: true
   },
+  cv: {
+    type: String,
+    trim: true
+  },
+  signatureImage: {
+    type: String,
+    trim: true
+  },
+  signature: {
+    type: String,
+    trim: true
+  },
+  licenses: [{
+    licenseNumber: {
+      type: String,
+      required: true,
+      trim: true
+    },
+    deaNumber: {
+      type: String,
+      trim: true
+    },
+    state: {
+      type: String,
+      required: true,
+      trim: true
+    },
+    licenseFile: {
+      type: String,
+      trim: true
+    }
+  }],
   bio: {
     type: String,
     trim: true,
@@ -294,6 +349,45 @@ const veterinarianSchema = new Schema<IVeterinarian>({
     type: String,
     trim: true
   },
+  
+  // Google OAuth fields
+  googleId: {
+    type: String,
+    sparse: true,
+    index: true
+  },
+  googleAccessToken: {
+    type: String,
+    select: false
+  },
+  googleRefreshToken: {
+    type: String,
+    select: false
+  },
+  googleExpiresAt: {
+    type: Number
+  },
+  googleTokenType: {
+    type: String
+  },
+  googleScope: {
+    type: String
+  },
+  
+  // Additional profile fields
+  firstName: {
+    type: String,
+    trim: true
+  },
+  lastName: {
+    type: String,
+    trim: true
+  },
+  locale: {
+    type: String,
+    default: 'en'
+  },
+  
   fcmTokens: {
     web: String,
     mobile: String
@@ -313,6 +407,7 @@ veterinarianSchema.index({ specialization: 1 });
 veterinarianSchema.index({ available: 1 });
 veterinarianSchema.index({ emailVerificationToken: 1 });
 veterinarianSchema.index({ passwordResetToken: 1 });
+veterinarianSchema.index({ googleId: 1 });
 
 // Virtual for checking if account is locked
 veterinarianSchema.virtual('isLocked').get(function() {
@@ -393,7 +488,7 @@ veterinarianSchema.methods.resetLoginAttempts = async function(): Promise<void> 
 
 // Static method to find user by email (including password for auth)
 veterinarianSchema.statics.findByEmailForAuth = function(email: string) {
-  return this.findOne({ email, isActive: true }).select('+password +emailVerificationToken +passwordResetToken');
+  return this.findOne({ email, isActive: true }).select('+password +emailVerificationToken +passwordResetToken +googleAccessToken +googleRefreshToken');
 };
 
 // Static method to find user by email verification token

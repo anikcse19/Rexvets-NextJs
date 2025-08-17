@@ -56,10 +56,8 @@ export default function SignInPage() {
           } else {
             setError("Sign in failed. Please check your credentials and try again.");
           }
-          console.error("Sign in failed:", result?.error);
         }
     } catch (error) {
-      console.error("Sign in error:", error);
       setError("An unexpected error occurred. Please try again.");
     } finally {
       setIsLoading(false);
@@ -70,9 +68,8 @@ export default function SignInPage() {
     setGoogleLoading(true);
     setError(""); // Clear previous errors
     try {
-      await signIn("google", { callbackUrl: "/dashboard" });
+      await signIn("google", { callbackUrl: "/" });
     } catch (error) {
-      console.error("Google sign in error:", error);
       setError("Google sign-in failed. Please try again.");
     } finally {
       setGoogleLoading(false);

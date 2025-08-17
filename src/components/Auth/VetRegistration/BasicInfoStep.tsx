@@ -1,9 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,54 +14,46 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { User, Mail, MapPin, Phone, Lock, Eye, EyeOff } from "lucide-react";
-import { useState } from "react";
 import { COUNTRY_CODES, US_STATES } from "@/lib";
 
-const basicInfoSchema = z
-  .object({
-    firstName: z.string().min(2, "First name must be at least 2 characters"),
-    lastName: z.string().min(2, "Last name must be at least 2 characters"),
-    postNominalLetters: z.string().optional(),
-    gender: z.enum(["male", "female", "other"]),
-    email: z.string().email("Invalid email address"),
-    city: z.string().min(2, "City must be at least 2 characters"),
-    state: z.string().min(1, "Please select a state"),
-    countryCode: z.string().min(1, "Please select country code"),
-    phone: z.string().min(10, "Phone number must be at least 10 digits"),
-    password: z.string().min(8, "Password must be at least 8 characters"),
-    confirmPassword: z.string(),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords don't match",
-    path: ["confirmPassword"],
-  });
-
-type BasicInfoFormData = z.infer<typeof basicInfoSchema>;
-
 interface BasicInfoStepProps {
-  onNext: (data: BasicInfoFormData) => void;
-  initialData?: Partial<BasicInfoFormData>;
+  onNext: (data: any) => void;
+  initialData?: any;
+  errors?: Record<string, string>;
+  isLoading?: boolean;
+  emailAvailability?: boolean | null;
 }
 
 export default function BasicInfoStep({
   onNext,
-  initialData,
+  initialData = {},
+  errors = {},
+  isLoading = false,
+  emailAvailability = null,
 }: BasicInfoStepProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
-  const {
-    register,
-    handleSubmit,
-    setValue,
-    formState: { errors },
-  } = useForm<BasicInfoFormData>({
-    resolver: zodResolver(basicInfoSchema),
-    defaultValues: initialData,
+  const [formData, setFormData] = useState({
+    firstName: initialData.firstName || '',
+    lastName: initialData.lastName || '',
+    postNominalLetters: initialData.postNominalLetters || '',
+    gender: initialData.gender || '',
+    email: initialData.email || '',
+    city: initialData.city || '',
+    state: initialData.state || '',
+    countryCode: initialData.countryCode || '',
+    phone: initialData.phone || '',
+    password: initialData.password || '',
+    confirmPassword: initialData.confirmPassword || '',
   });
 
-  const onSubmit = (data: BasicInfoFormData) => {
-    onNext(data);
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onNext(formData);
+  };
+
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   return (
@@ -78,44 +68,46 @@ export default function BasicInfoStep({
             <User className="w-6 h-6 text-blue-600" />
             Basic Information
           </CardTitle>
-          <p className="text-muted-foreground">
+          <p className="text-gray-600">
             Let&apos;s start with your professional details
           </p>
         </CardHeader>
 
         <CardContent>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label className="text-white mb-2" htmlFor="firstName">
+                <Label className="text-white font-medium mb-2" htmlFor="firstName">
                   First Name *
                 </Label>
                 <Input
                   id="firstName"
-                  {...register("firstName")}
-                  className="h-12 placeholder:text-white/50 text-white"
+                  value={formData.firstName}
+                  onChange={(e) => handleInputChange('firstName', e.target.value)}
+                  className="h-12 placeholder:text-gray-500 text-gray-900 bg-white/80 border-gray-300"
                   placeholder="Dr. John"
                 />
                 {errors.firstName && (
                   <p className="text-sm text-red-500 mt-1">
-                    {errors.firstName.message}
+                    {errors.firstName}
                   </p>
                 )}
               </div>
 
               <div>
-                <Label className="text-white mb-2" htmlFor="lastName">
+                <Label className="text-white font-medium mb-2" htmlFor="lastName">
                   Last Name *
                 </Label>
                 <Input
                   id="lastName"
-                  {...register("lastName")}
-                  className="h-12 placeholder:text-white/50 text-white"
+                  value={formData.lastName}
+                  onChange={(e) => handleInputChange('lastName', e.target.value)}
+                  className="h-12 placeholder:text-gray-500 text-gray-900 bg-white/80 border-gray-300"
                   placeholder="Smith"
                 />
                 {errors.lastName && (
                   <p className="text-sm text-red-500 mt-1">
-                    {errors.lastName.message}
+                    {errors.lastName}
                   </p>
                 )}
               </div>
@@ -123,27 +115,27 @@ export default function BasicInfoStep({
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label className="text-white mb-2" htmlFor="postNominalLetters">
+                <Label className="text-white font-medium mb-2" htmlFor="postNominalLetters">
                   Post Nominal Letters
                 </Label>
                 <Input
                   id="postNominalLetters"
-                  {...register("postNominalLetters")}
-                  className="h-12 placeholder:text-white/50 text-white"
+                  value={formData.postNominalLetters}
+                  onChange={(e) => handleInputChange('postNominalLetters', e.target.value)}
+                  className="h-12 placeholder:text-gray-500 text-gray-900 bg-white/80 border-gray-300"
                   placeholder="DVM, PhD"
                 />
               </div>
 
               <div>
-                <Label className="text-white mb-2" htmlFor="gender">
+                <Label className="text-white font-medium mb-2" htmlFor="gender">
                   Gender *
                 </Label>
                 <Select
-                  onValueChange={(value) =>
-                    setValue("gender", value as "male" | "female" | "other")
-                  }
+                  value={formData.gender}
+                  onValueChange={(value) => handleInputChange('gender', value)}
                 >
-                  <SelectTrigger className="h-12  placeholder:text-white/50 text-white">
+                  <SelectTrigger className="h-12 placeholder:text-gray-500 text-gray-900 bg-white/80 border-gray-300">
                     <SelectValue placeholder="Select gender" />
                   </SelectTrigger>
                   <SelectContent>
@@ -154,7 +146,7 @@ export default function BasicInfoStep({
                 </Select>
                 {errors.gender && (
                   <p className="text-sm text-red-500 mt-1">
-                    {errors.gender.message}
+                    {errors.gender}
                   </p>
                 )}
               </div>
@@ -162,22 +154,33 @@ export default function BasicInfoStep({
 
             <div>
               <Label
-                className="text-white mb-2 flex items-center gap-2"
+                className="text-white font-medium mb-2 flex items-center gap-2"
                 htmlFor="email"
               >
-                <Mail className="w-4 h-4" />
+                <Mail className="w-4 h-4 text-blue-600" />
                 Email Address *
               </Label>
               <Input
                 id="email"
                 type="email"
-                {...register("email")}
-                className="h-12 placeholder:text-white/50 text-white"
+                value={formData.email}
+                onChange={(e) => handleInputChange('email', e.target.value)}
+                className="h-12 placeholder:text-gray-500 text-gray-900 bg-white/80 border-gray-300"
                 placeholder="dr.john@example.com"
               />
               {errors.email && (
                 <p className="text-sm text-red-500 mt-1">
-                  {errors.email.message}
+                  {errors.email}
+                </p>
+              )}
+              {emailAvailability === false && (
+                <p className="text-sm text-red-500 mt-1">
+                  This email is already registered
+                </p>
+              )}
+              {emailAvailability === true && (
+                <p className="text-sm text-green-500 mt-1">
+                  Email is available
                 </p>
               )}
             </div>
@@ -185,31 +188,35 @@ export default function BasicInfoStep({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label
-                  className="text-white mb-2 flex items-center gap-2"
+                  className="text-white font-medium mb-2 flex items-center gap-2"
                   htmlFor="city"
                 >
-                  <MapPin className="w-4 h-4" />
+                  <MapPin className="w-4 h-4 text-blue-600" />
                   City *
                 </Label>
                 <Input
                   id="city"
-                  {...register("city")}
-                  className="h-12 placeholder:text-white/50 text-white"
+                  value={formData.city}
+                  onChange={(e) => handleInputChange('city', e.target.value)}
+                  className="h-12 placeholder:text-gray-500 text-gray-900 bg-white/80 border-gray-300"
                   placeholder="New York"
                 />
                 {errors.city && (
                   <p className="text-sm text-red-500 mt-1">
-                    {errors.city.message}
+                    {errors.city}
                   </p>
                 )}
               </div>
 
               <div>
-                <Label className="text-white mb-2" htmlFor="state">
+                <Label className="text-white font-medium mb-2" htmlFor="state">
                   State *
                 </Label>
-                <Select onValueChange={(value) => setValue("state", value)}>
-                  <SelectTrigger className="h-12 placeholder:text-white/50 text-white">
+                <Select 
+                  value={formData.state}
+                  onValueChange={(value) => handleInputChange('state', value)}
+                >
+                  <SelectTrigger className="h-12 placeholder:text-gray-500 text-gray-900 bg-white/80 border-gray-300">
                     <SelectValue placeholder="Select state" />
                   </SelectTrigger>
                   <SelectContent>
@@ -222,7 +229,7 @@ export default function BasicInfoStep({
                 </Select>
                 {errors.state && (
                   <p className="text-sm text-red-500 mt-1">
-                    {errors.state.message}
+                    {errors.state}
                   </p>
                 )}
               </div>
@@ -230,17 +237,18 @@ export default function BasicInfoStep({
 
             <div>
               <Label
-                className="text-white mb-2 flex items-center gap-2"
+                className="text-white font-medium mb-2 flex items-center gap-2"
                 htmlFor="phone"
               >
-                <Phone className="w-4 h-4" />
+                <Phone className="w-4 h-4 text-blue-600" />
                 Phone Number *
               </Label>
               <div className="flex gap-2">
                 <Select
-                  onValueChange={(value) => setValue("countryCode", value)}
+                  value={formData.countryCode}
+                  onValueChange={(value) => handleInputChange('countryCode', value)}
                 >
-                  <SelectTrigger className="w-32 h-12 placeholder:text-white/50 text-white">
+                  <SelectTrigger className="w-32 h-12 placeholder:text-gray-500 text-gray-900 bg-white/80 border-gray-300">
                     <SelectValue placeholder="+1" />
                   </SelectTrigger>
                   <SelectContent>
@@ -253,14 +261,15 @@ export default function BasicInfoStep({
                 </Select>
                 <Input
                   id="phone"
-                  {...register("phone")}
-                  className="flex-1 h-12 placeholder:text-white/50 text-white"
+                  value={formData.phone}
+                  onChange={(e) => handleInputChange('phone', e.target.value)}
+                  className="flex-1 h-12 placeholder:text-gray-500 text-gray-900 bg-white/80 border-gray-300"
                   placeholder="(555) 123-4567"
                 />
               </div>
               {(errors.countryCode || errors.phone) && (
                 <p className="text-sm text-red-500 mt-1">
-                  {errors.countryCode?.message || errors.phone?.message}
+                  {errors.countryCode || errors.phone}
                 </p>
               )}
             </div>
@@ -268,25 +277,26 @@ export default function BasicInfoStep({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label
-                  className="text-white mb-2 flex items-center gap-2"
+                  className="text-white font-medium mb-2 flex items-center gap-2"
                   htmlFor="password"
                 >
-                  <Lock className="w-4 h-4" />
+                  <Lock className="w-4 h-4 text-blue-600" />
                   Password *
                 </Label>
                 <div className="relative">
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
-                    {...register("password")}
-                    className="h-12 pr-12 placeholder:text-white/50 text-white"
+                    value={formData.password}
+                    onChange={(e) => handleInputChange('password', e.target.value)}
+                    className="h-12 pr-12 placeholder:text-gray-500 text-gray-900 bg-white/80 border-gray-300"
                     placeholder="••••••••"
                   />
                   <Button
                     type="button"
                     variant="ghost"
                     size="sm"
-                    className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 p-0"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 p-0 text-gray-600 hover:text-gray-800"
                     onClick={() => setShowPassword(!showPassword)}
                   >
                     {showPassword ? (
@@ -298,28 +308,29 @@ export default function BasicInfoStep({
                 </div>
                 {errors.password && (
                   <p className="text-sm text-red-500 mt-1">
-                    {errors.password.message}
+                    {errors.password}
                   </p>
                 )}
               </div>
 
               <div>
-                <Label className="text-white mb-2" htmlFor="confirmPassword">
+                <Label className="text-white font-medium mb-2" htmlFor="confirmPassword">
                   Confirm Password *
                 </Label>
                 <div className="relative">
                   <Input
                     id="confirmPassword"
                     type={showConfirmPassword ? "text" : "password"}
-                    {...register("confirmPassword")}
-                    className="h-12 pr-12 placeholder:text-white/50 text-white"
+                    value={formData.confirmPassword}
+                    onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
+                    className="h-12 pr-12 placeholder:text-gray-500 text-gray-900 bg-white/80 border-gray-300"
                     placeholder="••••••••"
                   />
                   <Button
                     type="button"
                     variant="ghost"
                     size="sm"
-                    className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 p-0"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 p-0 text-gray-600 hover:text-gray-800"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   >
                     {showConfirmPassword ? (
@@ -331,7 +342,7 @@ export default function BasicInfoStep({
                 </div>
                 {errors.confirmPassword && (
                   <p className="text-sm text-red-500 mt-1">
-                    {errors.confirmPassword.message}
+                    {errors.confirmPassword}
                   </p>
                 )}
               </div>
@@ -339,9 +350,10 @@ export default function BasicInfoStep({
 
             <Button
               type="submit"
-              className="w-full h-12 text-base bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 transition-all duration-200"
+              disabled={isLoading}
+              className="w-full h-12 text-base bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 transition-all duration-200 text-white"
             >
-              Continue to Schedule Setup
+              {isLoading ? "Processing..." : "Continue to Schedule Setup"}
             </Button>
           </form>
         </CardContent>
