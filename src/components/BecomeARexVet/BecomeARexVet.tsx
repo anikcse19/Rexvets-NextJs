@@ -15,7 +15,6 @@ import {
   MdVerified,
   MdVideoCall,
 } from "react-icons/md";
-import { Footer } from "../Footer";
 import FeaturesSection from "../Home/FeaturesSection";
 import BComeRexVetHeroSection from "./BComeRexVetHeroSection";
 import BeComeHowItWorksSection from "./BeComeHowItWorksSection";
@@ -215,7 +214,6 @@ const BecomeARexVet = () => {
       <BecomeRexVetBenefitsTableSection benefits={benefits} />
       <BecomeRexVetStatsCTASection isVisible={isVisible} stats={stats} />
       {/* <FinalCTASection /> */}
-      <Footer />
     </div>
   );
 };

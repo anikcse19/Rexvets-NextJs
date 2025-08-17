@@ -37,8 +37,8 @@ const BecomeRexVetStatsCTASection: React.FC<StatsCTASectionProps> = ({
   stats,
 }) => {
   return (
-    <section className="py-12 md:py-20 bg-blue-900 text-white">
-      <div className="container mx-auto px-4">
+    <section className="px-5 py-12 md:py-20 bg-blue-900 text-white">
+      <div className="max-w-[1200px] mx-auto ">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
           <motion.div
             variants={fadeInUp}
@@ -52,17 +52,20 @@ const BecomeRexVetStatsCTASection: React.FC<StatsCTASectionProps> = ({
               Veterinarians on Rex Vets are helping fill critical care gaps for
               pets across the country.
             </p>
-            <Button
-              asChild
-              variant="default"
-              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-2xl"
+            <motion.button
+              whileHover={{
+                scale: 1.05,
+                boxShadow: "0 12px 48px -8px rgba(25,118,210,0.45)",
+              }}
+              whileTap={{ scale: 0.95 }}
+              className="inline-flex items-center justify-center min-w-[64px] rounded-2xl px-8 py-4 text-[1.1rem] font-semibold text-white no-underline transition duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] bg-[linear-gradient(135deg,rgb(25,118,210),rgb(156,39,176))] shadow-[0_8px_32px_-8px_rgba(25,118,210,0.376)]"
             >
-              <Link href="/register">
+              <Link href="/register" className="flex items-center">
                 Join the Movement <ArrowRight className="ml-2" />
               </Link>
-            </Button>
+            </motion.button>
           </motion.div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {stats.map((stat, index) => (
               <motion.div
                 key={index}
@@ -74,7 +77,7 @@ const BecomeRexVetStatsCTASection: React.FC<StatsCTASectionProps> = ({
                 <Card className="bg-white/10 backdrop-blur-sm border-white/20 rounded-2xl text-center hover:shadow-lg hover:-translate-y-2 transition-all duration-300">
                   <CardContent className="p-4">
                     <Avatar
-                      className={`w-12 h-12 mx-auto mb-4 bg-white ${stat.color}`}
+                      className={`w-12 h-12 mx-auto  items-center justify-center flex mb-4 bg-white ${stat.color}`}
                     >
                       {stat.icon}
                     </Avatar>
