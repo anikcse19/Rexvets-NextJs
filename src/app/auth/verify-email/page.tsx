@@ -28,20 +28,15 @@ function VerifyEmailContent() {
 
     const verifyEmail = async () => {
       try {
-        const response = await fetch("/api/auth/verify-email", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ token }),
+        const response = await fetch(`/api/auth/verify-email?token=${token}`, {
+          method: "GET",
         });
-
-        const data = await response.json();
 
         if (response.ok) {
           setVerificationStatus("success");
           setMessage("Email verified successfully! You can now sign in to your account.");
         } else {
+          const data = await response.json();
           setVerificationStatus("error");
           setMessage(data.error || "Verification failed. Please try again.");
         }

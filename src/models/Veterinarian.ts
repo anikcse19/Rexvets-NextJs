@@ -14,6 +14,15 @@ export interface IVeterinarian extends Document {
   consultationFee: number;
   available: boolean;
   profileImage?: string;
+  cv?: string;
+  signatureImage?: string;
+  signature?: string;
+  licenses?: Array<{
+    licenseNumber: string;
+    deaNumber?: string;
+    state: string;
+    licenseFile?: string;
+  }>;
   bio?: string;
   education: Array<{
     degree: string;
@@ -139,6 +148,38 @@ const veterinarianSchema = new Schema<IVeterinarian>({
     type: String,
     trim: true
   },
+  cv: {
+    type: String,
+    trim: true
+  },
+  signatureImage: {
+    type: String,
+    trim: true
+  },
+  signature: {
+    type: String,
+    trim: true
+  },
+  licenses: [{
+    licenseNumber: {
+      type: String,
+      required: true,
+      trim: true
+    },
+    deaNumber: {
+      type: String,
+      trim: true
+    },
+    state: {
+      type: String,
+      required: true,
+      trim: true
+    },
+    licenseFile: {
+      type: String,
+      trim: true
+    }
+  }],
   bio: {
     type: String,
     trim: true,
