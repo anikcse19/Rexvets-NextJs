@@ -73,9 +73,9 @@ const mockAppointment = {
 };
 
 export default function PetParentAppointmentDetailsPage({
-  params,
+  id: string,
 }: {
-  params: { id: string };
+  id: string;
 }) {
   const handleJoinMeeting = () => {
     window.open(mockAppointment.meetingLink, "_blank");
