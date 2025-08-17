@@ -8,6 +8,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useCallback, useEffect, useRef, useState } from "react";
+import { AiOutlineCamera } from "react-icons/ai";
 import {
   FaComments,
   FaMicrophone,
@@ -16,9 +17,7 @@ import {
   FaTimes,
   FaVideoSlash,
 } from "react-icons/fa";
-// Define interfaces
-import AgoraRTC from "agora-rtc-sdk-ng";
-import { AiOutlineCamera } from "react-icons/ai";
+
 type CallState = "connecting" | "waiting" | "active" | "ended" | "failed";
 interface VideoCallProps {
   onEndCall?: () => void;
@@ -30,7 +29,6 @@ const IS_PUBLISHER = true;
 
 const VideoCall: React.FC<VideoCallProps> = ({ onEndCall }) => {
   const router = useRouter();
-  // const [AgoraRTC, setAgoraRTC] = useState<any>(null);
   const [isAudioEnabled, setIsAudioEnabled] = useState(true);
   const [isVideoEnabled, setIsVideoEnabled] = useState(true);
   const [callState, setCallState] = useState<CallState>("connecting");
@@ -39,7 +37,11 @@ const VideoCall: React.FC<VideoCallProps> = ({ onEndCall }) => {
   const [remoteUserJoined, setRemoteUserJoined] = useState(false);
   const [isFrontCamera, setIsFrontCamera] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [showUI, setShowUI] = useState(false);
+  const [agoraLoaded, setAgoraLoaded] = useState(false);
+  const [clientInitialized, setClientInitialized] = useState(false);
+  const [remoteUsersState, setRemoteUsersState] = useState<{
+    [uid: string]: any;
+  }>({});
 
   // Agora refs
   const client = useRef<any>(null);
@@ -54,62 +56,90 @@ const VideoCall: React.FC<VideoCallProps> = ({ onEndCall }) => {
   const [uid] = useState(Math.floor(Math.random() * 100000));
 
   // Load AgoraRTC dynamically
-   
+  useEffect(() => {
+    (async () => {
+      try {
+        const agoraModule = await import("agora-rtc-sdk-ng");
+        if (agoraModule.default) {
+          console.log("AgoraRTC loaded successfully");
+          agoraModule.default.setLogLevel(1); // Enable INFO level logging
+          setAgoraLoaded(true);
+        } else {
+          throw new Error("AgoraRTC module is undefined");
+        }
+      } catch (error) {
+        console.error("Failed to load AgoraRTC:", error);
+        setErrorMessage("Failed to load video call library.");
+        setCallState("failed");
+      }
+    })();
+  }, []);
 
-  // useEffect(() => {
-  //   (async () => {
-  //     try {
-  //       // eslint-disable-next-line @next/next/no-assign-module-variable
-  //       const module = await import("agora-rtc-sdk-ng");
-  //       setAgoraRTC(module.default);
-  //       module.default.setLogLevel(1); // Enable INFO level logging for debugging
-  //     } catch (error) {
-  //       console.error("Failed to load AgoraRTC:", error);
-  //       setErrorMessage("Failed to load video call library.");
-  //       setCallState("failed");
-  //     }
-  //   })();
-  // }, []);
+  // Initialize Agora client
+  useEffect(() => {
+    const initializeClient = async () => {
+      if (agoraLoaded && !client.current) {
+        console.log("Initializing Agora client...");
+        try {
+          const AgoraRTC = (await import("agora-rtc-sdk-ng")).default;
+          if (!AgoraRTC.createClient) {
+            throw new Error("AgoraRTC.createClient is not available");
+          }
+          client.current = AgoraRTC.createClient({ mode: "rtc", codec: "vp8" });
+          console.log("Agora client initialized:", client.current);
+          setClientInitialized(true);
+        } catch (error) {
+          console.error("Failed to initialize Agora client:", error);
+          setErrorMessage("Failed to initialize video call client.");
+          setCallState("failed");
+        }
+      }
+    };
+
+    initializeClient();
+  }, [agoraLoaded]);
 
   // Format duration to MM:SS
-  const formatDuration = (seconds: number) => {
+  const formatDuration = useCallback((seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins.toString().padStart(2, "0")}:${secs
       .toString()
       .padStart(2, "0")}`;
-  };
+  }, []);
 
   // Fetch token
-  const fetchToken = async (
-    channelName: string,
-    id: number,
-    isPublisher: boolean
-  ) => {
-    try {
-      const res = await fetch(
-        `/api/agora-token?channelName=${channelName}&uid=${id}&isPublisher=${isPublisher}`
-      );
-      if (!res.ok) {
-        throw new Error(`Token fetch failed with status: ${res.status}`);
+  const fetchToken = useCallback(
+    async (channelName: string, id: number, isPublisher: boolean) => {
+      try {
+        const res = await fetch(
+          `/api/agora-token?channelName=${channelName}&uid=${id}&isPublisher=${isPublisher}`
+        );
+        if (!res.ok) {
+          throw new Error(`Token fetch failed with status: ${res.status}`);
+        }
+        const data = await res.json();
+        if (!data.token) {
+          throw new Error("No token received from server");
+        }
+        console.log("Token fetched successfully:", data.token);
+        return data.token;
+      } catch (error) {
+        console.error("Error fetching token:", error);
+        setErrorMessage("Failed to authenticate. Please try again.");
+        setCallState("failed");
+        return null;
       }
-      const data = await res.json();
-      if (!data.token) {
-        throw new Error("No token received from server");
-      }
-      console.log("TOKEN:", data.token);
-      return data.token;
-    } catch (error) {
-      console.error("Error fetching token:", error);
-      setErrorMessage("Failed to authenticate. Please try again.");
-      setCallState("failed");
-      return null;
-    }
-  };
+    },
+    []
+  );
 
-  // Join call function with retry logic
+  // Join call function
   const joinCall = useCallback(async () => {
-    if (isJoiningRef.current) return;
+    if (isJoiningRef.current || !client.current || !clientInitialized) {
+      console.log("Join call skipped: isJoining or client not ready");
+      return;
+    }
     isJoiningRef.current = true;
 
     try {
@@ -120,15 +150,11 @@ const VideoCall: React.FC<VideoCallProps> = ({ onEndCall }) => {
       setCallState("connecting");
       setErrorMessage(null);
 
-      // Initialize client
-      if (!client.current) {
-        client.current = AgoraRTC.createClient({ mode: "rtc", codec: "vp8" });
-        console.log("Client initialized:", client.current);
-      }
-
       // Set up event listeners
       client.current.on("user-joined", (user: any) => {
+        console.log("User joined:", user.uid);
         remoteUsers.current[user.uid] = user;
+        setRemoteUsersState((prev) => ({ ...prev, [user.uid]: user }));
         setRemoteUserJoined(true);
         setCallState("active");
       });
@@ -142,14 +168,18 @@ const VideoCall: React.FC<VideoCallProps> = ({ onEndCall }) => {
           }
           try {
             await client.current.subscribe(user, mediaType);
+            console.log(`Subscribed to ${mediaType} for user:`, user.uid);
             remoteUsers.current[user.uid] = user;
+            setRemoteUsersState((prev) => ({ ...prev, [user.uid]: user }));
 
             if (mediaType === "video" && remoteVideoRef.current) {
               user.videoTrack?.play(remoteVideoRef.current);
+              console.log("Remote video playing for user:", user.uid);
               setRemoteUserJoined(true);
             }
             if (mediaType === "audio") {
               user.audioTrack?.play();
+              console.log("Remote audio playing for user:", user.uid);
             }
           } catch (error) {
             console.error("Error in user-published:", error);
@@ -159,11 +189,16 @@ const VideoCall: React.FC<VideoCallProps> = ({ onEndCall }) => {
       );
 
       client.current.on("user-unpublished", (user: any, mediaType: string) => {
+        console.log("User unpublished:", user.uid, mediaType);
         if (mediaType === "video") {
           remoteUsers.current[user.uid] = {
             ...remoteUsers.current[user.uid],
             videoTrack: null,
           };
+          setRemoteUsersState((prev) => ({
+            ...prev,
+            [user.uid]: { ...prev[user.uid], videoTrack: null },
+          }));
         }
         if (Object.keys(remoteUsers.current).length <= 1) {
           setRemoteUserJoined(false);
@@ -172,7 +207,13 @@ const VideoCall: React.FC<VideoCallProps> = ({ onEndCall }) => {
       });
 
       client.current.on("user-left", (user: any) => {
+        console.log("User left:", user.uid);
         delete remoteUsers.current[user.uid];
+        setRemoteUsersState((prev) => {
+          const newState = { ...prev };
+          delete newState[user.uid];
+          return newState;
+        });
         if (Object.keys(remoteUsers.current).length === 0) {
           setRemoteUserJoined(false);
           setCallState("waiting");
@@ -180,6 +221,7 @@ const VideoCall: React.FC<VideoCallProps> = ({ onEndCall }) => {
       });
 
       client.current.on("connection-state-change", (state: string) => {
+        console.log("Connection state changed:", state);
         if (state === "DISCONNECTED" || state === "DISCONNECTING") {
           setCallState("failed");
           setRemoteUserJoined(false);
@@ -188,6 +230,7 @@ const VideoCall: React.FC<VideoCallProps> = ({ onEndCall }) => {
       });
 
       client.current.on("track-updated", (track: any) => {
+        console.log("Track updated:", track.trackMediaType);
         if (
           track.trackMediaType === "audio" &&
           track === localAudioTrack.current
@@ -205,8 +248,14 @@ const VideoCall: React.FC<VideoCallProps> = ({ onEndCall }) => {
       // Create and publish local tracks
       if (IS_PUBLISHER) {
         try {
+          const AgoraRTC = (await import("agora-rtc-sdk-ng")).default;
           localVideoTrack.current = await AgoraRTC.createCameraVideoTrack();
           localAudioTrack.current = await AgoraRTC.createMicrophoneAudioTrack();
+          console.log(
+            "Local tracks created:",
+            localVideoTrack.current,
+            localAudioTrack.current
+          );
         } catch (error) {
           console.error("Error accessing media devices:", error);
           setErrorMessage("Please allow camera and microphone access.");
@@ -226,7 +275,7 @@ const VideoCall: React.FC<VideoCallProps> = ({ onEndCall }) => {
         }
       }
 
-      // Join channel with retry logic for UID_CONFLICT
+      // Join channel with retry logic
       const attemptJoin = async (retryCount = 3) => {
         let currentUid = uid;
         for (let i = 0; i < retryCount; i++) {
@@ -236,6 +285,7 @@ const VideoCall: React.FC<VideoCallProps> = ({ onEndCall }) => {
               throw new Error("Failed to fetch token");
             }
             await client.current.join(APP_ID, CHANNEL, token, currentUid);
+            console.log("Joined channel with UID:", currentUid);
             if (
               IS_PUBLISHER &&
               localVideoTrack.current &&
@@ -245,6 +295,7 @@ const VideoCall: React.FC<VideoCallProps> = ({ onEndCall }) => {
                 localVideoTrack.current,
                 localAudioTrack.current,
               ]);
+              console.log("Local tracks published");
             }
             setLocalUserJoined(true);
             setCallState("waiting");
@@ -275,12 +326,15 @@ const VideoCall: React.FC<VideoCallProps> = ({ onEndCall }) => {
     } finally {
       isJoiningRef.current = false;
     }
-  }, [uid]);
+  }, [fetchToken, uid, clientInitialized]);
 
-  // Join call once on mount
+  // Join call once client is initialized
   useEffect(() => {
-    joinCall();
-  }, [joinCall]);
+    if (clientInitialized) {
+      console.log("Client initialized, joining call...");
+      joinCall();
+    }
+  }, [clientInitialized, joinCall]);
 
   // Call duration timer
   useEffect(() => {
@@ -300,18 +354,22 @@ const VideoCall: React.FC<VideoCallProps> = ({ onEndCall }) => {
             localVideoTrack.current.stop();
             localVideoTrack.current.close();
             localVideoTrack.current = null;
+            console.log("Local video track cleaned up");
           }
           if (localAudioTrack.current) {
             localAudioTrack.current.stop();
             localAudioTrack.current.close();
             localAudioTrack.current = null;
+            console.log("Local audio track cleaned up");
           }
           if (client.current) {
             await client.current.leave();
             client.current.removeAllListeners();
             client.current = null;
+            console.log("Agora client cleaned up");
           }
           remoteUsers.current = {};
+          setRemoteUsersState({});
         } catch (error) {
           console.error("Error during Agora cleanup:", error);
         }
@@ -320,39 +378,44 @@ const VideoCall: React.FC<VideoCallProps> = ({ onEndCall }) => {
     };
   }, []);
 
-  // Toggle audio/video
-  const toggleAudio = async () => {
+  // Toggle audio
+  const toggleAudio = useCallback(async () => {
     if (!localAudioTrack.current) return;
     try {
       const shouldMute = isAudioEnabled;
       await localAudioTrack.current.setEnabled(!shouldMute);
       setIsAudioEnabled(!shouldMute);
+      console.log("Audio toggled:", !shouldMute);
     } catch (error) {
       console.error("Error toggling audio:", error);
       setErrorMessage("Failed to toggle audio.");
     }
-  };
+  }, [isAudioEnabled]);
 
-  const toggleVideo = async () => {
+  // Toggle video
+  const toggleVideo = useCallback(async () => {
     if (!localVideoTrack.current) return;
     try {
       const shouldMute = isVideoEnabled;
       await localVideoTrack.current.setEnabled(!shouldMute);
       setIsVideoEnabled(!shouldMute);
+      console.log("Video toggled:", !shouldMute);
     } catch (error) {
       console.error("Error toggling video:", error);
       setErrorMessage("Failed to toggle video.");
     }
-  };
+  }, [isVideoEnabled]);
 
-  const switchCamera = async () => {
-    if (!localVideoTrack.current || !AgoraRTC) {
+  // Switch camera
+  const switchCamera = useCallback(async () => {
+    if (!localVideoTrack.current || !agoraLoaded) {
       console.warn("No video track or AgoraRTC available for camera switch");
       setErrorMessage("Camera switch unavailable: No active video track.");
       return;
     }
 
     try {
+      const AgoraRTC = (await import("agora-rtc-sdk-ng")).default;
       const devices = await AgoraRTC.getCameras();
       if (devices.length === 0) {
         console.warn("No cameras found");
@@ -365,9 +428,8 @@ const VideoCall: React.FC<VideoCallProps> = ({ onEndCall }) => {
         .getSettings();
       const currentDeviceId = currentSettings.deviceId;
       let targetDeviceId = null;
-      let newIsFrontCameraValue = isFrontCamera; // Keep current state by default
+      let newIsFrontCameraValue = isFrontCamera;
 
-      // Filter cameras into front and back based on labels
       const frontCameras = devices.filter(
         (device: any) =>
           device.label.toLowerCase().includes("front") ||
@@ -379,7 +441,6 @@ const VideoCall: React.FC<VideoCallProps> = ({ onEndCall }) => {
           device.label.toLowerCase().includes("environment")
       );
 
-      // Determine if current camera is front or back based on its deviceId and filtered lists
       const isCurrentCameraFront = frontCameras.some(
         (d: { deviceId: any }) => d.deviceId === currentDeviceId
       );
@@ -388,16 +449,12 @@ const VideoCall: React.FC<VideoCallProps> = ({ onEndCall }) => {
       );
 
       if (isCurrentCameraFront && backCameras.length > 0) {
-        // Currently on front camera, try to switch to a back camera
-        targetDeviceId = backCameras[0].deviceId; // Pick the first back camera
+        targetDeviceId = backCameras[0].deviceId;
         newIsFrontCameraValue = false;
       } else if (isCurrentCameraBack && frontCameras.length > 0) {
-        // Currently on back camera, try to switch to a front camera
-        targetDeviceId = frontCameras[0].deviceId; // Pick the first front camera
+        targetDeviceId = frontCameras[0].deviceId;
         newIsFrontCameraValue = true;
       } else if (devices.length > 1) {
-        // Fallback: If current camera is not clearly front/back, or no opposite type found,
-        // cycle through all available cameras.
         const currentIndex = devices.findIndex(
           (device: any) => device.deviceId === currentDeviceId
         );
@@ -409,7 +466,7 @@ const VideoCall: React.FC<VideoCallProps> = ({ onEndCall }) => {
           newCamera.label.toLowerCase().includes("user");
       } else {
         console.warn(
-          "Only one camera found or no clear front/back distinction, cannot switch."
+          "Only one camera found or no clear front/back distinction"
         );
         setErrorMessage(
           "Only one camera available or no clear front/back distinction."
@@ -432,27 +489,31 @@ const VideoCall: React.FC<VideoCallProps> = ({ onEndCall }) => {
       console.error("Failed to switch camera:", error);
       setErrorMessage("Failed to switch camera. Please try again.");
     }
-  };
+  }, [isFrontCamera, agoraLoaded]);
 
   // End call
-  const endCall = async () => {
+  const endCall = useCallback(async () => {
     try {
       if (localVideoTrack.current) {
         localVideoTrack.current.stop();
         localVideoTrack.current.close();
         localVideoTrack.current = null;
+        console.log("Local video track stopped and closed");
       }
       if (localAudioTrack.current) {
         localAudioTrack.current.stop();
         localAudioTrack.current.close();
         localAudioTrack.current = null;
+        console.log("Local audio track stopped and closed");
       }
       if (client.current) {
         await client.current.leave();
         client.current.removeAllListeners();
         client.current = null;
+        console.log("Client left and cleaned up");
       }
       remoteUsers.current = {};
+      setRemoteUsersState({});
       setCallState("ended");
       setLocalUserJoined(false);
       setRemoteUserJoined(false);
@@ -468,10 +529,10 @@ const VideoCall: React.FC<VideoCallProps> = ({ onEndCall }) => {
         router.back();
       }
     }
-  };
+  }, [onEndCall, router]);
 
   // Connection status helper
-  const getConnectionStatus = () => {
+  const getConnectionStatus = useCallback(() => {
     switch (callState) {
       case "connecting":
         return {
@@ -502,14 +563,9 @@ const VideoCall: React.FC<VideoCallProps> = ({ onEndCall }) => {
       default:
         return { text: "Unknown", color: "text-gray-400", dot: "bg-gray-400" };
     }
-  };
+  }, [callState]);
 
   const status = getConnectionStatus();
-  console.log("localUserJoined:", localUserJoined);
-  console.log("remoteUserJoined:", remoteUserJoined);
-  console.log("isVideoEnabled:", isVideoEnabled);
-  console.log("isAudioEnabled:", isAudioEnabled);
-  console.log("errorMessage:", errorMessage);
 
   return (
     <div
@@ -526,7 +582,7 @@ const VideoCall: React.FC<VideoCallProps> = ({ onEndCall }) => {
           <div className="absolute -top-11 left-6">
             <Link href="/" aria-label="Homepage">
               <Image
-                src="/images/Logo (Gradient).svg"
+                src="/images/Logo.svg"
                 alt="Logo RexVet"
                 width={120}
                 height={100}
@@ -562,7 +618,7 @@ const VideoCall: React.FC<VideoCallProps> = ({ onEndCall }) => {
 
           {/* Main Video Area */}
           <div className="flex-1 flex items-center justify-center p-6 pt-24">
-            <div className="relative flex gap-4">
+            <div className="relative flex gap-4 w-full h-full">
               {callState === "connecting" && !errorMessage && (
                 <div className="text-white text-lg">Connecting...</div>
               )}
@@ -571,19 +627,20 @@ const VideoCall: React.FC<VideoCallProps> = ({ onEndCall }) => {
               )}
               {callState !== "connecting" &&
                 !errorMessage &&
-                Object.keys(remoteUsers.current).length !== 0 && (
-                  <div className="w-full h-full bg-red-600 rounded-[2.5rem] p-2 shadow-2xl">
+                Object.keys(remoteUsersState).length !== 0 && (
+                  <div className="w-full h-full rounded-[2.5rem] p-2 shadow-2xl">
                     <div className="w-full h-full bg-gray-900 rounded-[2rem] flex flex-col items-center justify-center relative overflow-hidden">
                       <div
                         ref={remoteVideoRef}
-                        className="w-full h-full bg-red-600 flex items-center justify-center"
+                        className="w-full h-full flex items-center justify-center"
+                        style={{ minHeight: "100%", minWidth: "100%" }}
                       ></div>
                     </div>
                   </div>
                 )}
               {callState !== "connecting" &&
                 !errorMessage &&
-                Object.keys(remoteUsers.current).length === 0 && (
+                Object.keys(remoteUsersState).length === 0 && (
                   <div className="h-full w-full flex items-center justify-center">
                     <div>
                       <div className="flex flex-col items-center text-center">
@@ -673,7 +730,7 @@ const VideoCall: React.FC<VideoCallProps> = ({ onEndCall }) => {
         </div>
 
         {/* Right Sidebar — Hidden below md */}
-        <div className="hidden md:block w-full md:w-[30%] bg-gradient-to-b from-purple-700 via-purple-800 to-blue-800 p-6 relative rounded-2xl">
+        <div className="hidden md:block w-full md:w-[30%] bg-[#4346a0]/20 backdrop-blur-sm p-6 relative rounded-2xl">
           <Button
             onClick={onEndCall}
             variant="ghost"
