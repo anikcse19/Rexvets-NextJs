@@ -108,7 +108,7 @@ const BeComeHowItWorksSection: React.FC<HowItWorksSectionProps> = ({
             initial="hidden"
             animate={isVisible ? "visible" : "hidden"}
           >
-            <div className="rounded-[32px] backdrop-blur-[20px] border border-[#1976d220] bg-gradient-to-br from-[#1976d208] to-[#9c27b005] p-7">
+            <div className="rounded-[32px] backdrop-blur-[20px] border border-[#1976d220] bg-gradient-to-br from-[#1976d208] to-[#9c27b005] p-2 md:p-7">
               <h3 className="text-2xl font-semibold text-center my-7">
                 Platform Overview
               </h3>
