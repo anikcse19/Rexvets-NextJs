@@ -104,8 +104,9 @@ export function RequestsTable({ requests }: RequestsTableProps) {
       </CardHeader>
 
       <CardContent>
-        <div className="rounded-lg border border-gray-200 overflow-hidden">
-          <Table>
+        {/* Responsive wrapper */}
+        <div className="w-full overflow-x-auto rounded-lg border border-gray-200">
+          <Table className="min-w-[800px]">
             <TableHeader className="bg-gray-50">
               <TableRow>
                 <TableHead className="font-semibold text-gray-900">

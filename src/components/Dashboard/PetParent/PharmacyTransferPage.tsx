@@ -21,7 +21,6 @@ export default function PharmacyTransferPage() {
     useState<PharmacyRequest[]>(mockPharmacyRequests);
 
   const handleFormSubmit = (data: PharmacyFormData) => {
-    // Find the selected appointment
     const selectedAppointment = mockAppointments.find(
       (apt) => apt.id === data.appointmentId
     );
@@ -31,7 +30,6 @@ export default function PharmacyTransferPage() {
       return;
     }
 
-    // Create new request
     const newRequest: PharmacyRequest = {
       id: `req-${Date.now()}`,
       pharmacyName: data.pharmacyName,
@@ -47,7 +45,6 @@ export default function PharmacyTransferPage() {
       amount: 19.99,
     };
 
-    // Add to requests
     setRequests((prev) => [newRequest, ...prev]);
 
     toast(
@@ -56,25 +53,28 @@ export default function PharmacyTransferPage() {
   };
 
   return (
-    <div className="container mx-auto">
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8">
       {/* Main Content */}
-      <Tabs defaultValue="history" className="space-y-8">
-        <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 bg-white shadow-sm border">
+      <Tabs defaultValue="history" className="space-y-6 sm:space-y-8">
+        {/* Responsive Tabs */}
+        <TabsList className="flex flex-col sm:flex-row w-full max-w-full sm:max-w-md mx-auto bg-white shadow-sm border rounded-lg overflow-hidden">
           <TabsTrigger
             value="request"
-            className="flex items-center gap-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+            className="flex items-center justify-center gap-2 w-full py-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white"
           >
             <FileText className="h-4 w-4" />
-            New Request
+            <span className="hidden sm:inline">New Request</span>
           </TabsTrigger>
           <TabsTrigger
             value="history"
-            className="flex items-center gap-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+            className="flex items-center justify-center gap-2 w-full py-2 data-[state=active]:bg-blue-600 data-[state=active]:text-white"
           >
             <History className="h-4 w-4" />
-            Request History
+            <span className="hidden sm:inline">Request History</span>
           </TabsTrigger>
         </TabsList>
+
+        {/* Tab Content */}
         <TabsContent value="history" className="animate-slide-up">
           <RequestsTable requests={requests} />
         </TabsContent>
@@ -85,7 +85,7 @@ export default function PharmacyTransferPage() {
       </Tabs>
 
       {/* Features Section */}
-      <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div className="mt-12 sm:mt-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
         <div className="text-center p-6 bg-white rounded-xl shadow-sm border border-gray-100">
           <div className="p-3 bg-green-100 rounded-full w-fit mx-auto mb-4">
             <Heart className="h-6 w-6 text-green-600" />
@@ -93,7 +93,7 @@ export default function PharmacyTransferPage() {
           <h3 className="text-lg font-semibold text-gray-900 mb-2">
             Quick & Easy
           </h3>
-          <p className="text-gray-600">
+          <p className="text-gray-600 text-sm sm:text-base">
             Submit your prescription transfer request in just a few minutes
           </p>
         </div>
@@ -105,7 +105,7 @@ export default function PharmacyTransferPage() {
           <h3 className="text-lg font-semibold text-gray-900 mb-2">
             Secure Payment
           </h3>
-          <p className="text-gray-600">
+          <p className="text-gray-600 text-sm sm:text-base">
             Safe and encrypted payment processing with industry-standard
             security
           </p>
@@ -118,7 +118,7 @@ export default function PharmacyTransferPage() {
           <h3 className="text-lg font-semibold text-gray-900 mb-2">
             Track Progress
           </h3>
-          <p className="text-gray-600">
+          <p className="text-gray-600 text-sm sm:text-base">
             Monitor the status of your transfer requests in real-time
           </p>
         </div>

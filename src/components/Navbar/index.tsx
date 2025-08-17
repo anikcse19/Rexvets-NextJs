@@ -49,7 +49,16 @@ const Header: React.FC = () => {
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const { data: session, status } = useSession();
+  // const { data: session, status } = useSession();
+
+  const session = {
+    user: {
+      name: "Anik",
+      image: "",
+      role: "user",
+      email: "anikdebcse@gmail.com",
+    },
+  };
 
   const handleMouseEnter = (key: string) => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -341,14 +350,14 @@ const Header: React.FC = () => {
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="ghost"
-                    className="relative h-10 w-10 rounded-full"
+                    className="relative h-10 w-10 rounded-full hover:ring-2 hover:ring-emerald-400 transition-all cursor-pointer"
                   >
                     <Avatar className="h-10 w-10">
                       <AvatarImage
                         src={session.user?.image || ""}
                         alt={session.user?.name || ""}
                       />
-                      <AvatarFallback className="bg-emerald-500 text-white">
+                      <AvatarFallback className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-semibold">
                         {session.user?.name
                           ? getUserInitials(session.user.name)
                           : "U"}
@@ -356,41 +365,66 @@ const Header: React.FC = () => {
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
+
                 <DropdownMenuContent
-                  className="w-56 z-[99999]"
+                  className="w-64 z-[99999] rounded-2xl shadow-lg border border-emerald-100 bg-white/95 backdrop-blur-md p-2"
                   align="end"
                   forceMount
                 >
-                  <DropdownMenuLabel className="font-normal">
-                    <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium leading-none">
-                        {session.user?.name || "User"}
-                      </p>
-                      <p className="text-xs leading-none text-muted-foreground">
-                        {session.user?.email}
-                      </p>
-                      <p className="text-xs leading-none text-muted-foreground">
-                        {session.user?.role
-                          ? getRoleDisplayName(session.user.role)
-                          : "User"}
-                      </p>
+                  {/* User Info */}
+                  <DropdownMenuLabel className="font-normal px-2 py-3">
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-10 w-10">
+                        <AvatarImage
+                          src={session.user?.image || ""}
+                          alt={session.user?.name || ""}
+                        />
+                        <AvatarFallback className="bg-emerald-500 text-white">
+                          {session.user?.name
+                            ? getUserInitials(session.user.name)
+                            : "U"}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex flex-col">
+                        <p className="text-sm font-semibold text-gray-900">
+                          {session.user?.name || "User"}
+                        </p>
+                        <p className="text-xs text-gray-500 truncate">
+                          {session.user?.email}
+                        </p>
+                        <p className="text-xs text-emerald-600 font-medium">
+                          {session.user?.role
+                            ? getRoleDisplayName(session.user.role)
+                            : "User"}
+                        </p>
+                      </div>
                     </div>
                   </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
+
+                  <DropdownMenuSeparator className="my-2 bg-emerald-100" />
+
+                  {/* Dashboard */}
                   <DropdownMenuItem asChild>
-                    <Link href="/dashboard" className="cursor-pointer">
-                      <UserCircle className="mr-2 h-4 w-4" />
-                      <span>Dashboard</span>
+                    <Link
+                      href={`/dashboard/${
+                        session.user.role === "doctor" ? "doctor" : "pet-parent"
+                      }/overview`}
+                      className="flex items-center px-3 py-2 rounded-lg hover:bg-emerald-50 transition-colors cursor-pointer"
+                    >
+                      <UserCircle className="mr-2 h-4 w-4 text-emerald-600" />
+                      <span className="text-sm">Dashboard</span>
                     </Link>
                   </DropdownMenuItem>
 
-                  <DropdownMenuSeparator />
+                  <DropdownMenuSeparator className="my-2 bg-emerald-100" />
+
+                  {/* Logout */}
                   <DropdownMenuItem
-                    className="cursor-pointer text-red-600 focus:text-red-600"
+                    className="flex items-center px-3 py-2 rounded-lg text-red-600 hover:bg-red-50 focus:text-red-600 cursor-pointer transition-colors"
                     onClick={handleSignOut}
                   >
                     <LogOut className="mr-2 h-4 w-4" />
-                    <span>Sign Out</span>
+                    <span className="text-sm">Sign Out</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
