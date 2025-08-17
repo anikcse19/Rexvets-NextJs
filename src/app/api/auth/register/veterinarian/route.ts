@@ -215,6 +215,9 @@ export async function POST(request: NextRequest) {
       licenseFile: uploadedFiles[`licenseFile_${index}`] || null
     }));
 
+    console.log('Uploaded files:', uploadedFiles);
+    console.log('Updated licenses:', updatedLicenses);
+
     // Create veterinarian document
     const veterinarianData = {
       name: `${basicInfo.firstName} ${basicInfo.lastName}`,
@@ -228,6 +231,10 @@ export async function POST(request: NextRequest) {
       consultationFee: 50, // Default fee, can be updated later
       available: true,
       profileImage: uploadedFiles.profileImage,
+      cv: uploadedFiles.cv,
+      signatureImage: uploadedFiles.signatureImage,
+      signature: formData.get('signature') as string,
+      licenses: updatedLicenses,
       bio: "",
       education: [],
       experience: [],
@@ -249,10 +256,23 @@ export async function POST(request: NextRequest) {
       loginAttempts: 0,
     };
 
+    console.log('Veterinarian data to save:', {
+      name: veterinarianData.name,
+      email: veterinarianData.email,
+      profileImage: veterinarianData.profileImage,
+      cv: veterinarianData.cv,
+      signatureImage: veterinarianData.signatureImage,
+      signature: veterinarianData.signature,
+      licenses: veterinarianData.licenses
+    });
+
     const veterinarian = new VeterinarianModel(veterinarianData);
     
     // Generate email verification token
     const verificationToken = veterinarian.generateEmailVerificationToken();
+    
+    console.log('Generated verification token:', verificationToken);
+    console.log('Token length:', verificationToken.length);
     
     await veterinarian.save();
 
@@ -260,9 +280,10 @@ export async function POST(request: NextRequest) {
     try {
       await sendEmailVerification(
         veterinarian.email,
-        veterinarian.name,
-        verificationToken
+        verificationToken,
+        veterinarian.name
       );
+      console.log('Email verification sent successfully to:', veterinarian.email);
     } catch (emailError) {
       console.error("Failed to send verification email:", emailError);
       // Don't fail the registration if email fails
@@ -275,9 +296,10 @@ export async function POST(request: NextRequest) {
       requiresEmailVerification: true,
     }, { status: 201 });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error("Veterinarian registration error:", error);
     
+    // Handle Zod validation errors
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: "Validation failed", details: error.issues },
@@ -285,8 +307,53 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Handle MongoDB duplicate key errors
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyPattern)[0];
+      let errorMessage = "A record with this information already exists.";
+      
+      if (field === 'email') {
+        errorMessage = "An account with this email address already exists. Please use a different email or try signing in.";
+      } else if (field === 'licenseNumber') {
+        errorMessage = "A veterinarian with this license number already exists. Please check your license number.";
+      } else if (field === 'phoneNumber') {
+        errorMessage = "A veterinarian with this phone number already exists. Please use a different phone number.";
+      }
+      
+      return NextResponse.json(
+        { error: errorMessage, field },
+        { status: 409 }
+      );
+    }
+
+    // Handle MongoDB validation errors
+    if (error.name === 'ValidationError') {
+      const validationErrors = Object.values(error.errors).map((err: any) => err.message);
+      return NextResponse.json(
+        { error: "Validation failed", details: validationErrors },
+        { status: 400 }
+      );
+    }
+
+    // Handle file upload errors
+    if (error.message && error.message.includes('File')) {
+      return NextResponse.json(
+        { error: "File upload failed. Please check your files and try again." },
+        { status: 400 }
+      );
+    }
+
+    // Handle network or database connection errors
+    if (error.name === 'MongoNetworkError' || error.name === 'MongoServerSelectionError') {
+      return NextResponse.json(
+        { error: "Database connection failed. Please try again later." },
+        { status: 503 }
+      );
+    }
+
+    // Generic error for everything else
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: "Registration failed. Please try again or contact support if the problem persists." },
       { status: 500 }
     );
   }

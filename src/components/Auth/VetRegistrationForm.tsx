@@ -28,6 +28,7 @@ export default function VetRegistrationForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [emailAvailability, setEmailAvailability] = useState<boolean | null>(null);
+  const [generalError, setGeneralError] = useState<string | null>(null);
 
   // Load saved progress on mount
   useEffect(() => {
@@ -166,6 +167,9 @@ export default function VetRegistrationForm() {
 
     const completedData = { ...formData, ...profileData };
     
+    // Clear any previous general errors
+    setGeneralError(null);
+    
     // Debug: Log the completed data
     console.log('Completed registration data:', completedData);
     
@@ -219,6 +223,42 @@ export default function VetRegistrationForm() {
       console.log('Response body:', result);
 
       if (!response.ok) {
+        // Handle specific error types
+        if (response.status === 409) {
+          // Duplicate email or other unique field
+          if (result.field === 'email') {
+            setErrors(prev => ({ ...prev, email: result.error }));
+            setCurrentStep(1); // Go back to basic info step
+            toast.error(result.error);
+            return;
+          } else if (result.field === 'licenseNumber') {
+            setErrors(prev => ({ ...prev, 'licenses.0.licenseNumber': result.error }));
+            toast.error(result.error);
+            return;
+          } else if (result.field === 'phoneNumber') {
+            setErrors(prev => ({ ...prev, phone: result.error }));
+            setCurrentStep(1); // Go back to basic info step
+            toast.error(result.error);
+            return;
+          }
+        }
+        
+        // Handle validation errors
+        if (response.status === 400 && result.details) {
+          const newErrors: Record<string, string> = {};
+          if (Array.isArray(result.details)) {
+            result.details.forEach((detail: any) => {
+              if (detail.path) {
+                newErrors[detail.path.join('.')] = detail.message;
+              }
+            });
+          }
+          setErrors(newErrors);
+          toast.error('Please fix the validation errors and try again.');
+          return;
+        }
+        
+        // Handle other errors
         throw new Error(result.error || 'Registration failed');
       }
 
@@ -238,7 +278,9 @@ export default function VetRegistrationForm() {
       
     } catch (error) {
       console.error('Registration error:', error);
-      toast.error(error instanceof Error ? error.message : 'Registration failed. Please try again.');
+      const errorMessage = error instanceof Error ? error.message : 'Registration failed. Please try again.';
+      setGeneralError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
@@ -248,6 +290,7 @@ export default function VetRegistrationForm() {
   const handleBack = useCallback(() => {
     setCurrentStep(prev => Math.max(1, prev - 1));
     setErrors({});
+    setGeneralError(null);
   }, []);
 
   // Handle step change
@@ -255,6 +298,7 @@ export default function VetRegistrationForm() {
     if (step >= 1 && step <= REGISTRATION_STEPS.length) {
       setCurrentStep(step);
       setErrors({});
+      setGeneralError(null);
     }
   }, []);
 
@@ -281,6 +325,21 @@ export default function VetRegistrationForm() {
 
         {/* Form Steps */}
         <div className="mt-8">
+          {/* General Error Display */}
+          {generalError && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg"
+            >
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                <p className="text-red-700 font-medium">Registration Error</p>
+              </div>
+              <p className="text-red-600 mt-1">{generalError}</p>
+            </motion.div>
+          )}
+
           <AnimatePresence mode="wait">
             {currentStep === 1 && (
               <motion.div
