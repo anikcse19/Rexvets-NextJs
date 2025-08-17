@@ -77,7 +77,7 @@ export default function BasicInfoStep({
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label className="text-gray-700 font-medium mb-2" htmlFor="firstName">
+                <Label className="text-white font-medium mb-2" htmlFor="firstName">
                   First Name *
                 </Label>
                 <Input
@@ -95,7 +95,7 @@ export default function BasicInfoStep({
               </div>
 
               <div>
-                <Label className="text-gray-700 font-medium mb-2" htmlFor="lastName">
+                <Label className="text-white font-medium mb-2" htmlFor="lastName">
                   Last Name *
                 </Label>
                 <Input
@@ -115,7 +115,7 @@ export default function BasicInfoStep({
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label className="text-gray-700 font-medium mb-2" htmlFor="postNominalLetters">
+                <Label className="text-white font-medium mb-2" htmlFor="postNominalLetters">
                   Post Nominal Letters
                 </Label>
                 <Input
@@ -128,7 +128,7 @@ export default function BasicInfoStep({
               </div>
 
               <div>
-                <Label className="text-gray-700 font-medium mb-2" htmlFor="gender">
+                <Label className="text-white font-medium mb-2" htmlFor="gender">
                   Gender *
                 </Label>
                 <Select
@@ -154,7 +154,7 @@ export default function BasicInfoStep({
 
             <div>
               <Label
-                className="text-gray-700 font-medium mb-2 flex items-center gap-2"
+                className="text-white font-medium mb-2 flex items-center gap-2"
                 htmlFor="email"
               >
                 <Mail className="w-4 h-4 text-blue-600" />
@@ -188,7 +188,7 @@ export default function BasicInfoStep({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label
-                  className="text-gray-700 font-medium mb-2 flex items-center gap-2"
+                  className="text-white font-medium mb-2 flex items-center gap-2"
                   htmlFor="city"
                 >
                   <MapPin className="w-4 h-4 text-blue-600" />
@@ -209,7 +209,7 @@ export default function BasicInfoStep({
               </div>
 
               <div>
-                <Label className="text-gray-700 font-medium mb-2" htmlFor="state">
+                <Label className="text-white font-medium mb-2" htmlFor="state">
                   State *
                 </Label>
                 <Select 
@@ -237,7 +237,7 @@ export default function BasicInfoStep({
 
             <div>
               <Label
-                className="text-gray-700 font-medium mb-2 flex items-center gap-2"
+                className="text-white font-medium mb-2 flex items-center gap-2"
                 htmlFor="phone"
               >
                 <Phone className="w-4 h-4 text-blue-600" />
@@ -277,7 +277,7 @@ export default function BasicInfoStep({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label
-                  className="text-gray-700 font-medium mb-2 flex items-center gap-2"
+                  className="text-white font-medium mb-2 flex items-center gap-2"
                   htmlFor="password"
                 >
                   <Lock className="w-4 h-4 text-blue-600" />
@@ -314,7 +314,7 @@ export default function BasicInfoStep({
               </div>
 
               <div>
-                <Label className="text-gray-700 font-medium mb-2" htmlFor="confirmPassword">
+                <Label className="text-white font-medium mb-2" htmlFor="confirmPassword">
                   Confirm Password *
                 </Label>
                 <div className="relative">

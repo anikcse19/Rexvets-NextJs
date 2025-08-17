@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/mongoose";
 import PetParentModel, { IPetParentModel } from "@/models/PetParent";
+import VeterinarianModel from "@/models/Veterinarian";
+import VetTechModel from "@/models/VetTech";
 import { z } from "zod";
 import { sendEmailVerification } from "@/lib/email";
 
@@ -55,18 +57,37 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if user already exists
+    // Check if user already exists in any collection
     try {
-      console.log("Checking for existing user...");
-      const existingUser = await PetParentModel.findOne({ email });
-      if (existingUser) {
-        console.log("User already exists:", email);
+      console.log("Checking for existing user across all collections...");
+      
+      // Check all collections to prevent duplicate accounts
+      const existingPetParent = await PetParentModel.findOne({ email });
+      const existingVeterinarian = await VeterinarianModel.findOne({ email });
+      const existingVetTech = await VetTechModel.findOne({ email });
+      
+      // Count how many accounts exist with this email
+      const existingAccounts = [existingPetParent, existingVeterinarian, existingVetTech].filter(Boolean);
+      
+      if (existingAccounts.length > 0) {
+        console.log("Account already exists:", email);
+        console.log("Existing accounts:", {
+          petParent: !!existingPetParent,
+          veterinarian: !!existingVeterinarian,
+          vetTech: !!existingVetTech
+        });
+        
+        let accountType = "account";
+        if (existingVeterinarian) accountType = "veterinarian account";
+        else if (existingVetTech) accountType = "vet technician account";
+        else if (existingPetParent) accountType = "pet parent account";
+        
         return NextResponse.json(
-          { error: "An account with this email address already exists. Please use a different email or try signing in." },
+          { error: `This email is already associated with a ${accountType}. Please use a different email or try signing in.` },
           { status: 409 }
         );
       }
-      console.log("No existing user found");
+      console.log("No existing user found in any collection");
     } catch (findError) {
       console.error("Error checking existing user:", findError);
       return NextResponse.json(

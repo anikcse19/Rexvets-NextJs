@@ -26,11 +26,27 @@ const signUpSchema = z.object({
   consultationFee: z.number().min(0).optional(),
 });
 
+// Debug environment variables
+console.log("NextAuth Configuration Debug:", {
+  hasGoogleClientId: !!config.GOOGLE_CLIENT_ID,
+  hasGoogleClientSecret: !!config.GOOGLE_CLIENT_SECRET,
+  hasNextAuthUrl: !!config.NEXTAUTH_URL,
+  hasNextAuthSecret: !!config.NEXTAUTH_SECRET,
+  nodeEnv: config.NODE_ENVIRONMENT
+});
+
 export const authOptions: NextAuthOptions = {
   providers: [
     GoogleProvider({
       clientId: config.GOOGLE_CLIENT_ID!,
       clientSecret: config.GOOGLE_CLIENT_SECRET!,
+      authorization: {
+        params: {
+          prompt: "consent",
+          access_type: "offline",
+          response_type: "code"
+        }
+      }
     }),
     CredentialsProvider({
       name: "credentials",
@@ -141,6 +157,24 @@ export const authOptions: NextAuthOptions = {
         token.id = user.id;
         token.emailVerified = Boolean(user.emailVerified);
         token.image = user.image;
+        
+        // Enhanced user data
+        token.phoneNumber = user.phoneNumber;
+        token.state = user.state;
+        token.city = user.city;
+        token.address = user.address;
+        token.zipCode = user.zipCode;
+        token.firstName = user.firstName;
+        token.lastName = user.lastName;
+        token.locale = user.locale;
+        token.isApproved = user.isApproved;
+        token.specialization = user.specialization;
+        token.licenseNumber = user.licenseNumber;
+        token.consultationFee = user.consultationFee;
+        token.available = user.available;
+        token.pets = user.pets;
+        token.emergencyContact = user.emergencyContact;
+        token.preferences = user.preferences;
       }
 
       // Return previous token if the access token has not expired yet
@@ -154,6 +188,23 @@ export const authOptions: NextAuthOptions = {
           role: token.role as string,
           emailVerified: token.emailVerified as boolean,
           image: token.image as string,
+          // Enhanced session data
+          phoneNumber: token.phoneNumber as string,
+          state: token.state as string,
+          city: token.city as string,
+          address: token.address as string,
+          zipCode: token.zipCode as string,
+          firstName: token.firstName as string,
+          lastName: token.lastName as string,
+          locale: token.locale as string,
+          isApproved: token.isApproved as boolean,
+          specialization: token.specialization as string,
+          licenseNumber: token.licenseNumber as string,
+          consultationFee: token.consultationFee as number,
+          available: token.available as boolean,
+          pets: token.pets as any[],
+          emergencyContact: token.emergencyContact as any,
+          preferences: token.preferences as any,
         };
       }
       return session;
@@ -162,46 +213,236 @@ export const authOptions: NextAuthOptions = {
       // Handle Google OAuth sign in
       if (account?.provider === "google") {
         try {
+          console.log("Starting Google OAuth sign-in process...");
+          
+          // Connect to database
           await connectToDatabase();
+          console.log("Database connected successfully");
+          
+          // Extract comprehensive data from Google profile
+          const googleProfile = profile as any;
+          const googleData = {
+            googleId: googleProfile?.sub || account.providerAccountId,
+            email: user.email,
+            name: user.name,
+            profileImage: user.image,
+            firstName: googleProfile?.given_name || "",
+            lastName: googleProfile?.family_name || "",
+            locale: googleProfile?.locale || "en",
+            emailVerified: googleProfile?.email_verified || true,
+            picture: googleProfile?.picture || user.image,
+            hd: googleProfile?.hd || "", // Hosted domain
+            accessToken: account.access_token,
+            refreshToken: account.refresh_token,
+            expiresAt: account.expires_at,
+            tokenType: account.token_type,
+            scope: account.scope,
+          };
+          
+          console.log("Google OAuth data extracted:", {
+            email: googleData.email,
+            name: googleData.name,
+            googleId: googleData.googleId
+          });
           
           // Check if user already exists in any collection
-          let existingUser = await PetParentModel.findOne({ email: user.email });
+          console.log("Searching for existing user in database...");
           
-          if (!existingUser) {
-            existingUser = await VeterinarianModel.findOne({ email: user.email });
+          // Check all collections to prevent duplicate accounts
+          const petParentUser = await PetParentModel.findOne({ email: user.email });
+          const veterinarianUser = await VeterinarianModel.findOne({ email: user.email });
+          const vetTechUser = await VetTechModel.findOne({ email: user.email });
+          
+          // Count how many accounts exist with this email
+          const existingAccounts = [petParentUser, veterinarianUser, vetTechUser].filter(Boolean);
+          
+          if (existingAccounts.length > 1) {
+            console.error(`Multiple accounts found for email: ${user.email}`);
+            console.error("Existing accounts:", {
+              petParent: !!petParentUser,
+              veterinarian: !!veterinarianUser,
+              vetTech: !!vetTechUser
+            });
+            throw new Error("This email is already associated with another account type. Please use a different email or contact support.");
           }
           
-          if (!existingUser) {
-            existingUser = await VetTechModel.findOne({ email: user.email });
+          // Determine which account exists (if any)
+          let existingUser = petParentUser || veterinarianUser || vetTechUser;
+          let userRole = 'pet_parent';
+          let collectionName = 'PetParent';
+          
+          if (veterinarianUser) {
+            userRole = 'veterinarian';
+            collectionName = 'Veterinarian';
+          } else if (vetTechUser) {
+            userRole = 'technician';
+            collectionName = 'VetTech';
           }
+          
+          console.log("User lookup result:", {
+            found: !!existingUser,
+            collection: collectionName,
+            userRole: userRole,
+            email: user.email,
+            existingAccounts: existingAccounts.length
+          });
           
           if (existingUser) {
-            // Update last login
+            // EXISTING USER: Update with latest Google data and load all existing data
+            console.log(`Existing user found in ${collectionName}: ${user.email}`);
+            
+            // Update Google OAuth data (preserve existing profile data)
             existingUser.lastLogin = new Date();
+            existingUser.googleId = googleData.googleId;
+            existingUser.googleAccessToken = googleData.accessToken;
+            existingUser.googleRefreshToken = googleData.refreshToken;
+            existingUser.googleExpiresAt = googleData.expiresAt;
+            existingUser.googleTokenType = googleData.tokenType;
+            existingUser.googleScope = googleData.scope;
+            
+            // Only update profile data if not already set (preserve existing data)
+            if (!existingUser.profileImage && googleData.profileImage) {
+              existingUser.profileImage = googleData.profileImage;
+              console.log(`Updated profile image for existing user: ${user.email}`);
+            } else if (existingUser.profileImage) {
+              console.log(`Preserving existing profile image for user: ${user.email}`);
+            }
+            if (!existingUser.firstName && googleData.firstName) {
+              existingUser.firstName = googleData.firstName;
+            }
+            if (!existingUser.lastName && googleData.lastName) {
+              existingUser.lastName = googleData.lastName;
+            }
+            if (!existingUser.locale) {
+              existingUser.locale = googleData.locale;
+            }
+            
             await existingUser.save();
             
             // Check if account is active
             if (!existingUser.isActive) {
               throw new Error("Account is deactivated. Please contact support.");
             }
-          } else {
-            // Create new user from Google OAuth (default to pet parent)
-            const newUser = new PetParentModel({
-              name: user.name,
-              email: user.email,
-              profileImage: user.image,
-              isEmailVerified: true, // Google emails are pre-verified
-              lastLogin: new Date(),
-              phoneNumber: "", // Will be required to fill later
-              state: "", // Will be required to fill later
-            });
             
-            await newUser.save();
+            // Load all existing data into the session
+            user.id = existingUser._id.toString();
+            user.role = userRole;
+            user.emailVerified = existingUser.isEmailVerified;
+            user.name = existingUser.name;
+            user.image = existingUser.profileImage;
+            
+            // Add additional user data for enhanced experience (safely)
+            if (existingUser.phoneNumber) user.phoneNumber = existingUser.phoneNumber;
+            if (existingUser.state) user.state = existingUser.state;
+            if (existingUser.city) user.city = existingUser.city;
+            if (existingUser.address) user.address = existingUser.address;
+            if (existingUser.zipCode) user.zipCode = existingUser.zipCode;
+            if (existingUser.firstName) user.firstName = existingUser.firstName;
+            if (existingUser.lastName) user.lastName = existingUser.lastName;
+            if (existingUser.locale) user.locale = existingUser.locale;
+            
+            // Add role-specific data safely
+            if (userRole === 'veterinarian') {
+              const vetUser = existingUser as any;
+              if (vetUser.isApproved !== undefined) user.isApproved = vetUser.isApproved;
+              if (vetUser.specialization) user.specialization = vetUser.specialization;
+              if (vetUser.licenseNumber) user.licenseNumber = vetUser.licenseNumber;
+              if (vetUser.consultationFee) user.consultationFee = vetUser.consultationFee;
+              if (vetUser.available !== undefined) user.available = vetUser.available;
+            }
+            
+            // Add common data safely
+            const anyUser = existingUser as any;
+            if (anyUser.pets) user.pets = anyUser.pets;
+            if (anyUser.emergencyContact) user.emergencyContact = anyUser.emergencyContact;
+            if (anyUser.preferences) user.preferences = anyUser.preferences;
+            
+            console.log(`Existing user signed in via Google: ${user.email} (${userRole}) - All data loaded`);
+            
+          } else {
+            // NEW USER: Create new account in database
+            console.log(`User not found in database. Creating new user: ${user.email}`);
+            
+            try {
+              // Create new PetParent user (default role for Google sign-up)
+              const newUser = new PetParentModel({
+                name: googleData.name,
+                email: googleData.email,
+                profileImage: googleData.profileImage,
+                isEmailVerified: true, // Google emails are pre-verified
+                lastLogin: new Date(),
+                
+                // Google OAuth data
+                googleId: googleData.googleId,
+                googleAccessToken: googleData.accessToken,
+                googleRefreshToken: googleData.refreshToken,
+                googleExpiresAt: googleData.expiresAt,
+                googleTokenType: googleData.tokenType,
+                googleScope: googleData.scope,
+                
+                // Profile data from Google
+                firstName: googleData.firstName,
+                lastName: googleData.lastName,
+                locale: googleData.locale,
+                
+                // Required fields (empty for now, will be filled in profile completion)
+                phoneNumber: "",
+                state: "",
+                
+                // Default preferences
+                preferences: {
+                  notifications: {
+                    email: true,
+                    sms: true,
+                    push: true
+                  },
+                  language: googleData.locale || 'en',
+                  timezone: 'UTC'
+                },
+                
+                // Initialize empty arrays/objects
+                pets: [],
+                emergencyContact: {
+                  name: "",
+                  phone: "",
+                  relationship: ""
+                },
+                fcmTokens: {}
+              });
+              
+              await newUser.save();
+              console.log(`✅ New user created successfully: ${user.email}`);
+              
+              // Set basic session data for new user
+              user.id = newUser._id.toString();
+              user.role = 'pet_parent';
+              user.emailVerified = true;
+              user.name = newUser.name;
+              user.image = newUser.profileImage;
+              
+              console.log(`✅ New user session data set: ${user.email} (${user.role})`);
+              
+            } catch (createError: any) {
+              console.error("❌ Error creating new user:", createError);
+              console.error("Create error details:", {
+                message: createError?.message,
+                stack: createError?.stack,
+                email: user.email
+              });
+              throw new Error(`Failed to create new user: ${createError?.message}`);
+            }
           }
           
           return true;
-        } catch (error) {
-          console.error("Google OAuth error:", error);
+        } catch (error: any) {
+          console.error("❌ Google OAuth sign-in failed:", error);
+          console.error("Error details:", {
+            message: error?.message || "Unknown error",
+            stack: error?.stack || "No stack trace",
+            userEmail: user.email
+          });
+          
+          // Return false to show access denied
           return false;
         }
       }

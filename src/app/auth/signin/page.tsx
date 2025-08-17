@@ -70,7 +70,7 @@ export default function SignInPage() {
     setGoogleLoading(true);
     setError(""); // Clear previous errors
     try {
-      await signIn("google", { callbackUrl: "/dashboard" });
+      await signIn("google", { callbackUrl: "/" });
     } catch (error) {
       console.error("Google sign in error:", error);
       setError("Google sign-in failed. Please try again.");

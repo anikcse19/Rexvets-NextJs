@@ -72,11 +72,16 @@ const usePushNotification = () => {
       }
 
       try {
-        // Register service worker
-        await navigator.serviceWorker.register("/service-worker.js");
+        // Check if service worker is already registered
+        let registration = await navigator.serviceWorker.getRegistration();
+        
+        if (!registration) {
+          // Register service worker (using Next.js workbox service worker)
+          registration = await navigator.serviceWorker.register("/sw.js");
+        }
 
         // ✅ Wait for service worker to be active
-        const registration = await navigator.serviceWorker.ready;
+        await navigator.serviceWorker.ready;
 
         // Subscribe to push
         const subscription = await registration.pushManager.subscribe({
@@ -100,7 +105,18 @@ const usePushNotification = () => {
         return subJson;
       } catch (e: any) {
         console.error("Subscription error:", e);
-        setError(e.message || "Subscription failed");
+        
+        // Handle specific errors
+        if (e.name === 'AbortError') {
+          setError("Push notification registration was cancelled");
+        } else if (e.name === 'NotAllowedError') {
+          setError("Push notification permission denied");
+        } else if (e.name === 'NotSupportedError') {
+          setError("Push notifications not supported");
+        } else {
+          setError(e.message || "Subscription failed");
+        }
+        
         return null;
       }
     },

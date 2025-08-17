@@ -389,6 +389,7 @@ export default function VetRegistrationForm() {
                   onBack={handleBack}
                   isSubmitting={isSubmitting}
                   errors={errors}
+                  initialData={formData}
                 />
               </motion.div>
             )}
