@@ -52,9 +52,11 @@ export async function GET(request: NextRequest) {
 
     await user.save();
 
-    // Redirect to success page
-    const successUrl = `${process.env.NEXTAUTH_URL}/auth/email-verified`;
-    return NextResponse.redirect(successUrl);
+    // Return success response
+    return NextResponse.json({
+      message: "Email verified successfully",
+      email: user.email,
+    });
   } catch (error) {
     console.error("Email verification error:", error);
     return NextResponse.json(

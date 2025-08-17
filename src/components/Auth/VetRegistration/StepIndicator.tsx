@@ -7,12 +7,14 @@ interface StepIndicatorProps {
   currentStep: number;
   totalSteps: number;
   steps: { title: string; description: string }[];
+  onStepClick?: (step: number) => void;
 }
 
 export default function StepIndicator({
   currentStep,
   totalSteps,
   steps,
+  onStepClick,
 }: StepIndicatorProps) {
   return (
     <div className="w-full mb-8">
@@ -34,6 +36,7 @@ export default function StepIndicator({
           const stepNumber = index + 1;
           const isCompleted = stepNumber < currentStep;
           const isCurrent = stepNumber === currentStep;
+          const isClickable = onStepClick && (isCompleted || stepNumber === currentStep);
 
           return (
             <div
@@ -47,10 +50,13 @@ export default function StepIndicator({
                     : isCurrent
                     ? "bg-blue-500 text-white"
                     : "bg-gray-200 text-gray-500"
-                }`}
+                } ${isClickable ? "cursor-pointer hover:scale-110" : ""}`}
                 initial={{ scale: 0.8 }}
                 animate={{ scale: 1 }}
                 transition={{ duration: 0.3 }}
+                onClick={() => isClickable && onStepClick(stepNumber)}
+                role={isClickable ? "button" : undefined}
+                tabIndex={isClickable ? 0 : undefined}
               >
                 {isCompleted ? (
                   <Check className="w-5 h-5" />
@@ -63,7 +69,8 @@ export default function StepIndicator({
                 <p
                   className={`text-xs font-medium ${
                     isCurrent ? "text-blue-600" : "text-gray-500"
-                  }`}
+                  } ${isClickable ? "cursor-pointer" : ""}`}
+                  onClick={() => isClickable && onStepClick(stepNumber)}
                 >
                   {step.title}
                 </p>
