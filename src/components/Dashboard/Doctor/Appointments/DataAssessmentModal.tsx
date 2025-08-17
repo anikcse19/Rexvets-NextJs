@@ -33,7 +33,7 @@ const assessmentSchema = z.object({
   additionalData: z.string().optional(),
   assessment: z.string().min(10, "Assessment must be at least 10 characters"),
   plan: z.string().min(10, "Treatment plan must be at least 10 characters"),
-  sendToChat: z.boolean().default(true),
+  sendToChat: z.boolean(),
 });
 
 type AssessmentFormData = z.infer<typeof assessmentSchema>;
@@ -52,7 +52,7 @@ export default function DataAssessmentModal({
   petName,
 }: DataAssessmentModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [sendToChat, setSendToChat] = useState(true);
+  // const [sendToChat, setSendToChat] = useState(true);
 
   const {
     register,
@@ -266,13 +266,13 @@ export default function DataAssessmentModal({
           </div>
 
           {/* Send to Chat Option */}
+          {/* Send to Chat Option */}
           <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200">
             <div className="flex items-center gap-3">
               <input
                 type="checkbox"
                 id="sendToChat"
-                checked={sendToChat}
-                onChange={(e) => setSendToChat(e.target.checked)}
+                {...register("sendToChat")}
                 className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
               />
               <Label

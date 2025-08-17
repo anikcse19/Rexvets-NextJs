@@ -36,7 +36,7 @@ const prescriptionSchema = z.object({
     .array(medicationSchema)
     .min(1, "At least one medication is required"),
   notes: z.string().optional(),
-  sendToChat: z.boolean().default(true),
+  sendToChat: z.boolean(), // strict boolean, no .default()
 });
 
 type PrescriptionFormData = z.infer<typeof prescriptionSchema>;
@@ -85,7 +85,6 @@ export default function PrescriptionModal({
   petDetails,
 }: PrescriptionModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [sendToChat, setSendToChat] = useState(true);
 
   const {
     register,
@@ -101,7 +100,7 @@ export default function PrescriptionModal({
       medications: [
         { name: "", dosage: "", frequency: "", duration: "", instructions: "" },
       ],
-      sendToChat: true,
+      sendToChat: true, // initialize here
     },
   });
 
@@ -113,10 +112,8 @@ export default function PrescriptionModal({
   const onSubmit = async (data: PrescriptionFormData) => {
     setIsSubmitting(true);
     try {
-      // API call to save prescription
       console.log("Saving prescription:", data);
 
-      // If sendToChat is true, also send to chat
       if (data.sendToChat) {
         const medicationList = data.medications
           .map(
@@ -131,7 +128,7 @@ export default function PrescriptionModal({
         console.log("Sending to chat:", chatMessage);
       }
 
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 1000));
       reset();
       onClose();
     } catch (error) {
@@ -157,9 +154,7 @@ export default function PrescriptionModal({
   };
 
   const removeMedication = (index: number) => {
-    if (fields.length > 1) {
-      remove(index);
-    }
+    if (fields.length > 1) remove(index);
   };
 
   return (
@@ -181,7 +176,7 @@ export default function PrescriptionModal({
           </div>
         </DialogHeader>
 
-        {/* Pet Information Header */}
+        {/* Pet Info */}
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-xl border border-blue-200 mt-4">
           <div className="flex items-center gap-4">
             <div className="bg-blue-500 text-white p-2 rounded-lg">
@@ -264,13 +259,10 @@ export default function PrescriptionModal({
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor={`medications.${index}.name`}>
-                        Medication Name *
-                      </Label>
+                      <Label>Medication Name *</Label>
                       <Input
                         {...register(`medications.${index}.name`)}
                         placeholder="e.g., Amoxicillin"
-                        className="border-gray-300 focus:border-green-500 focus:ring-green-500"
                       />
                       {errors.medications?.[index]?.name && (
                         <p className="text-sm text-red-600">
@@ -280,13 +272,10 @@ export default function PrescriptionModal({
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor={`medications.${index}.dosage`}>
-                        Dosage *
-                      </Label>
+                      <Label>Dosage *</Label>
                       <Input
                         {...register(`medications.${index}.dosage`)}
                         placeholder="e.g., 250mg"
-                        className="border-gray-300 focus:border-green-500 focus:ring-green-500"
                       />
                       {errors.medications?.[index]?.dosage && (
                         <p className="text-sm text-red-600">
@@ -296,15 +285,13 @@ export default function PrescriptionModal({
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor={`medications.${index}.frequency`}>
-                        Frequency *
-                      </Label>
+                      <Label>Frequency *</Label>
                       <Select
                         onValueChange={(value) =>
                           setValue(`medications.${index}.frequency`, value)
                         }
                       >
-                        <SelectTrigger className="border-gray-300 focus:border-green-500 focus:ring-green-500">
+                        <SelectTrigger>
                           <SelectValue placeholder="Select frequency" />
                         </SelectTrigger>
                         <SelectContent>
@@ -323,15 +310,13 @@ export default function PrescriptionModal({
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor={`medications.${index}.duration`}>
-                        Duration *
-                      </Label>
+                      <Label>Duration *</Label>
                       <Select
                         onValueChange={(value) =>
                           setValue(`medications.${index}.duration`, value)
                         }
                       >
-                        <SelectTrigger className="border-gray-300 focus:border-green-500 focus:ring-green-500">
+                        <SelectTrigger>
                           <SelectValue placeholder="Select duration" />
                         </SelectTrigger>
                         <SelectContent>
@@ -351,13 +336,10 @@ export default function PrescriptionModal({
                   </div>
 
                   <div className="mt-4 space-y-2">
-                    <Label htmlFor={`medications.${index}.instructions`}>
-                      Special Instructions
-                    </Label>
+                    <Label>Special Instructions</Label>
                     <Textarea
                       {...register(`medications.${index}.instructions`)}
                       placeholder="e.g., Give with food, monitor for side effects..."
-                      className="border-gray-300 focus:border-green-500 focus:ring-green-500"
                       rows={2}
                     />
                   </div>
@@ -366,7 +348,7 @@ export default function PrescriptionModal({
             </div>
           </div>
 
-          {/* Additional Notes */}
+          {/* Notes */}
           <div className="space-y-4">
             <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
               <Calendar className="w-5 h-5 text-orange-600" />
@@ -376,31 +358,24 @@ export default function PrescriptionModal({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="notes">Prescription Notes</Label>
+              <Label>Prescription Notes</Label>
               <Textarea
-                id="notes"
                 {...register("notes")}
                 placeholder="Any additional instructions, warnings, or follow-up recommendations..."
-                className="border-gray-300 focus:border-green-500 focus:ring-green-500"
                 rows={3}
               />
             </div>
           </div>
 
-          {/* Send to Chat Option */}
+          {/* Send to Chat */}
           <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200">
             <div className="flex items-center gap-3">
               <input
                 type="checkbox"
-                id="sendToChat"
-                checked={sendToChat}
-                onChange={(e) => setSendToChat(e.target.checked)}
+                {...register("sendToChat")}
                 className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
               />
-              <Label
-                htmlFor="sendToChat"
-                className="flex items-center gap-2 cursor-pointer"
-              >
+              <Label className="flex items-center gap-2 cursor-pointer">
                 <Send className="w-4 h-4 text-blue-600" />
                 Send prescription summary to chat with pet parent
               </Label>
@@ -411,14 +386,9 @@ export default function PrescriptionModal({
             </p>
           </div>
 
-          {/* Action Buttons */}
+          {/* Buttons */}
           <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleClose}
-              className="border-gray-300 hover:bg-gray-50"
-            >
+            <Button type="button" variant="outline" onClick={handleClose}>
               Cancel
             </Button>
             <Button
