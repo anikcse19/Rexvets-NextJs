@@ -8,7 +8,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { AiOutlineCamera } from "react-icons/ai";
+import { AiOutlineCamera, AiOutlineCamera } from "react-icons/ai";
 import {
   FaComments,
   FaMicrophone,
@@ -56,48 +56,21 @@ const VideoCall: React.FC<VideoCallProps> = ({ onEndCall }) => {
   const [uid] = useState(Math.floor(Math.random() * 100000));
 
   // Load AgoraRTC dynamically
-  useEffect(() => {
-    (async () => {
-      try {
-        const agoraModule = await import("agora-rtc-sdk-ng");
-        if (agoraModule.default) {
-          console.log("AgoraRTC loaded successfully");
-          agoraModule.default.setLogLevel(1); // Enable INFO level logging
-          setAgoraLoaded(true);
-        } else {
-          throw new Error("AgoraRTC module is undefined");
-        }
-      } catch (error) {
-        console.error("Failed to load AgoraRTC:", error);
-        setErrorMessage("Failed to load video call library.");
-        setCallState("failed");
-      }
-    })();
-  }, []);
 
-  // Initialize Agora client
-  useEffect(() => {
-    const initializeClient = async () => {
-      if (agoraLoaded && !client.current) {
-        console.log("Initializing Agora client...");
-        try {
-          const AgoraRTC = (await import("agora-rtc-sdk-ng")).default;
-          if (!AgoraRTC.createClient) {
-            throw new Error("AgoraRTC.createClient is not available");
-          }
-          client.current = AgoraRTC.createClient({ mode: "rtc", codec: "vp8" });
-          console.log("Agora client initialized:", client.current);
-          setClientInitialized(true);
-        } catch (error) {
-          console.error("Failed to initialize Agora client:", error);
-          setErrorMessage("Failed to initialize video call client.");
-          setCallState("failed");
-        }
-      }
-    };
-    
-    initializeClient();
-  }, [agoraLoaded]);
+  // useEffect(() => {
+  //   (async () => {
+  //     try {
+  //       // eslint-disable-next-line @next/next/no-assign-module-variable
+  //       const module = await import("agora-rtc-sdk-ng");
+  //       setAgoraRTC(module.default);
+  //       module.default.setLogLevel(1); // Enable INFO level logging for debugging
+  //     } catch (error) {
+  //       console.error("Failed to load AgoraRTC:", error);
+  //       setErrorMessage("Failed to load video call library.");
+  //       setCallState("failed");
+  //     }
+  //   })();
+  // }, []);
 
   // Format duration to MM:SS
   const formatDuration = useCallback((seconds: number) => {
@@ -248,7 +221,6 @@ const VideoCall: React.FC<VideoCallProps> = ({ onEndCall }) => {
       // Create and publish local tracks
       if (IS_PUBLISHER) {
         try {
-          const AgoraRTC = (await import("agora-rtc-sdk-ng")).default;
           localVideoTrack.current = await AgoraRTC.createCameraVideoTrack();
           localAudioTrack.current = await AgoraRTC.createMicrophoneAudioTrack();
           console.log(
@@ -415,7 +387,6 @@ const VideoCall: React.FC<VideoCallProps> = ({ onEndCall }) => {
     }
 
     try {
-      const AgoraRTC = (await import("agora-rtc-sdk-ng")).default;
       const devices = await AgoraRTC.getCameras();
       if (devices.length === 0) {
         console.warn("No cameras found");
