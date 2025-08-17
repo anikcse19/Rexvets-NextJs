@@ -2,6 +2,7 @@ import Image from "next/image";
 import React from "react";
 import { Card, CardContent } from "../ui/card";
 import BecomeRexVetPlatformFeaturesSectionCardItem from "./BecomeRexVetPlatformFeaturesSectionCardItem";
+
 interface IProps {
   title: string;
   items: { title: string; description: string }[];
@@ -14,6 +15,7 @@ interface IProps {
   iconBgClass?: string;
   reverseOrder?: boolean;
 }
+
 const BecomeRexVetPlatformFeaturesSectionCard: React.FC<IProps> = ({
   title,
   items,
@@ -38,11 +40,12 @@ const BecomeRexVetPlatformFeaturesSectionCard: React.FC<IProps> = ({
         >
           {/* Left content */}
           <div className="flex-1">
-            <h3
-              className={`text-[32px] leading-[40px] text-start font-bold ${titleGradientClass} bg-clip-text text-transparent mb-7`}
+            <h1
+              className={`w-full text-[24px] md:text-[32px] leading-[40px] text-start font-bold ${titleGradientClass} bg-clip-text text-transparent mb-7`}
             >
               {title}
-            </h3>
+            </h1>
+
             <div className="space-y-4">
               {items.map((item, index) => (
                 <BecomeRexVetPlatformFeaturesSectionCardItem

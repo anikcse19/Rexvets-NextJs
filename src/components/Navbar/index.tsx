@@ -1,12 +1,12 @@
 "use client";
 
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,7 +15,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { BsChatLeftTextFill } from "react-icons/bs";
 import { FaFacebookF, FaInstagram, FaTiktok } from "react-icons/fa";
 
@@ -23,18 +23,25 @@ import { toSlug } from "@/lib/utils";
 import { DialogTitle } from "@radix-ui/react-dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { AnimatePresence, motion } from "framer-motion";
-import { ChevronDown, Menu, User, LogOut, Settings, UserCircle } from "lucide-react";
+import {
+  ChevronDown,
+  LogOut,
+  Menu,
+  Settings,
+  User,
+  UserCircle,
+} from "lucide-react";
+import { signOut, useSession } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
 import React, { useRef, useState } from "react";
-import { useSession, signOut } from "next-auth/react";
 import TalkToVetButton from "../TalkToVet";
 import styles from "./Header.module.css";
 import IconWrapper from "./IconWrapper";
 
 const menuItems = {
   "For pet parents": ["Donate", "What we treat", "Get a prescription"],
-  "For Vet & techs": ["Become a Rex Vet", "Rex's Health Hub", "Support"],
+  "For Vet & techs": ["Become a Rex Vet", "Rex Health Hub", "Support"],
   About: ["Our Mission", "Our Team", "How it Works"],
 };
 
@@ -220,7 +227,9 @@ const Header: React.FC = () => {
                           <Avatar className="w-10 h-10">
                             <AvatarImage src={session.user?.image || ""} />
                             <AvatarFallback className="bg-emerald-500 text-white">
-                              {session.user?.name ? getUserInitials(session.user.name) : "U"}
+                              {session.user?.name
+                                ? getUserInitials(session.user.name)
+                                : "U"}
                             </AvatarFallback>
                           </Avatar>
                           <div className="flex-1">
@@ -228,7 +237,9 @@ const Header: React.FC = () => {
                               {session.user?.name || "User"}
                             </p>
                             <p className="text-white/70 text-xs">
-                              {session.user?.role ? getRoleDisplayName(session.user.role) : "User"}
+                              {session.user?.role
+                                ? getRoleDisplayName(session.user.role)
+                                : "User"}
                             </p>
                           </div>
                         </div>
@@ -322,22 +333,34 @@ const Header: React.FC = () => {
               </div>
             </SheetContent>
           </Sheet>
-          
+
           <div className="lg:flex hidden items-center space-x-3">
             {/* User Profile Dropdown for Desktop */}
-                        {session ? (
+            {session ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                  <Button
+                    variant="ghost"
+                    className="relative h-10 w-10 rounded-full"
+                  >
                     <Avatar className="h-10 w-10">
-                      <AvatarImage src={session.user?.image || ""} alt={session.user?.name || ""} />
+                      <AvatarImage
+                        src={session.user?.image || ""}
+                        alt={session.user?.name || ""}
+                      />
                       <AvatarFallback className="bg-emerald-500 text-white">
-                        {session.user?.name ? getUserInitials(session.user.name) : "U"}
+                        {session.user?.name
+                          ? getUserInitials(session.user.name)
+                          : "U"}
                       </AvatarFallback>
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56 z-[99999]" align="end" forceMount>
+                <DropdownMenuContent
+                  className="w-56 z-[99999]"
+                  align="end"
+                  forceMount
+                >
                   <DropdownMenuLabel className="font-normal">
                     <div className="flex flex-col space-y-1">
                       <p className="text-sm font-medium leading-none">
@@ -347,7 +370,9 @@ const Header: React.FC = () => {
                         {session.user?.email}
                       </p>
                       <p className="text-xs leading-none text-muted-foreground">
-                        {session.user?.role ? getRoleDisplayName(session.user.role) : "User"}
+                        {session.user?.role
+                          ? getRoleDisplayName(session.user.role)
+                          : "User"}
                       </p>
                     </div>
                   </DropdownMenuLabel>
@@ -358,9 +383,9 @@ const Header: React.FC = () => {
                       <span>Dashboard</span>
                     </Link>
                   </DropdownMenuItem>
-               
+
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem 
+                  <DropdownMenuItem
                     className="cursor-pointer text-red-600 focus:text-red-600"
                     onClick={handleSignOut}
                   >
@@ -371,14 +396,17 @@ const Header: React.FC = () => {
               </DropdownMenu>
             ) : (
               <Link href="/auth/signin">
-                <Button variant="ghost" className="text-white hover:text-emerald-400">
+                <Button
+                  variant="ghost"
+                  className="text-white hover:text-emerald-400"
+                >
                   <User className="h-5 w-5 mr-2" />
                   Sign In
                 </Button>
               </Link>
             )}
-            
-            <div className="hidden xl:block">
+
+            <div className="hidden 2xl:block">
               <TalkToVetButton />
             </div>
           </div>
