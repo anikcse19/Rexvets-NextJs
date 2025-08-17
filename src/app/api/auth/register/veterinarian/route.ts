@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
     const scheduleData = formData.get('schedule') as string;
     const schedule = scheduleData ? JSON.parse(scheduleData) : {};
     
-    console.log('Received schedule data:', schedule);
+
     
     // Convert schedule format to workingHours format for database
     const convertScheduleToWorkingHours = (scheduleData: any) => {
@@ -77,7 +77,6 @@ export async function POST(request: NextRequest) {
         }
       });
       
-      console.log('Converted workingHours:', workingHours);
       return workingHours;
     };
 
@@ -120,8 +119,6 @@ export async function POST(request: NextRequest) {
     await connectToDatabase();
 
     // Check if user already exists in any collection
-    console.log("Checking for existing user across all collections...");
-    
     const existingPetParent = await PetParentModel.findOne({ 
       email: basicInfo.email.toLowerCase() 
     });
@@ -136,13 +133,6 @@ export async function POST(request: NextRequest) {
     const existingAccounts = [existingPetParent, existingVet, existingVetTech].filter(Boolean);
     
     if (existingAccounts.length > 0) {
-      console.log("Account already exists:", basicInfo.email);
-      console.log("Existing accounts:", {
-        petParent: !!existingPetParent,
-        veterinarian: !!existingVet,
-        vetTech: !!existingVetTech
-      });
-      
       let accountType = "account";
       if (existingPetParent) accountType = "pet parent account";
       else if (existingVetTech) accountType = "vet technician account";

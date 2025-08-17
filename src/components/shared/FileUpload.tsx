@@ -162,15 +162,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
       preview = URL.createObjectURL(renamedFile);
     }
 
-    console.log('Before creating FileWithPreview:', {
-      renamedFile: {
-        name: renamedFile.name,
-        size: renamedFile.size,
-        type: renamedFile.type,
-        hasName: !!renamedFile.name,
-        hasSize: typeof renamedFile.size === 'number'
-      }
-    });
+
 
     // Add preview properties directly to the renamed file
     (renamedFile as FileWithPreview).preview = preview;
@@ -178,13 +170,6 @@ const FileUpload: React.FC<FileUploadProps> = ({
 
     // Final validation of the complete object
     if (!renamedFile.name || typeof renamedFile.size !== 'number') {
-      console.error('Final validation failed - file object:', {
-        name: renamedFile.name,
-        size: renamedFile.size,
-        type: typeof renamedFile.size,
-        hasName: !!renamedFile.name,
-        hasSize: typeof renamedFile.size === 'number'
-      });
       throw new Error('File processing failed - final validation failed');
     }
 
@@ -230,13 +215,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
         
         try {
           const processedFile = await validateAndProcessFile(file);
-          // Debug: Log file object structure
-          console.log('Processed file:', {
-            name: processedFile.name,
-            size: processedFile.size,
-            type: processedFile.type,
-            sizeType: typeof processedFile.size
-          });
+
           // Ensure the processed file has all required properties
           if (!processedFile.name || typeof processedFile.size !== 'number') {
             errors.push(`${file.name}: File processing failed - invalid file object`);

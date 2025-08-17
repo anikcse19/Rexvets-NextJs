@@ -34,7 +34,6 @@ export default function GoogleSignUp({ onBack }: GoogleSignUpProps) {
         redirect: true 
       });
     } catch (error) {
-      console.error("Google sign up error:", error);
       setError("Google sign-up failed. Please try again.");
     } finally {
       setIsLoading(false);

@@ -26,14 +26,7 @@ const signUpSchema = z.object({
   consultationFee: z.number().min(0).optional(),
 });
 
-// Debug environment variables
-console.log("NextAuth Configuration Debug:", {
-  hasGoogleClientId: !!config.GOOGLE_CLIENT_ID,
-  hasGoogleClientSecret: !!config.GOOGLE_CLIENT_SECRET,
-  hasNextAuthUrl: !!config.NEXTAUTH_URL,
-  hasNextAuthSecret: !!config.NEXTAUTH_SECRET,
-  nodeEnv: config.NODE_ENVIRONMENT
-});
+
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -213,11 +206,8 @@ export const authOptions: NextAuthOptions = {
       // Handle Google OAuth sign in
       if (account?.provider === "google") {
         try {
-          console.log("Starting Google OAuth sign-in process...");
-          
           // Connect to database
           await connectToDatabase();
-          console.log("Database connected successfully");
           
           // Extract comprehensive data from Google profile
           const googleProfile = profile as any;
@@ -239,14 +229,7 @@ export const authOptions: NextAuthOptions = {
             scope: account.scope,
           };
           
-          console.log("Google OAuth data extracted:", {
-            email: googleData.email,
-            name: googleData.name,
-            googleId: googleData.googleId
-          });
-          
           // Check if user already exists in any collection
-          console.log("Searching for existing user in database...");
           
           // Check all collections to prevent duplicate accounts
           const petParentUser = await PetParentModel.findOne({ email: user.email });
@@ -257,12 +240,6 @@ export const authOptions: NextAuthOptions = {
           const existingAccounts = [petParentUser, veterinarianUser, vetTechUser].filter(Boolean);
           
           if (existingAccounts.length > 1) {
-            console.error(`Multiple accounts found for email: ${user.email}`);
-            console.error("Existing accounts:", {
-              petParent: !!petParentUser,
-              veterinarian: !!veterinarianUser,
-              vetTech: !!vetTechUser
-            });
             throw new Error("This email is already associated with another account type. Please use a different email or contact support.");
           }
           
@@ -279,17 +256,11 @@ export const authOptions: NextAuthOptions = {
             collectionName = 'VetTech';
           }
           
-          console.log("User lookup result:", {
-            found: !!existingUser,
-            collection: collectionName,
-            userRole: userRole,
-            email: user.email,
-            existingAccounts: existingAccounts.length
-          });
+
           
           if (existingUser) {
             // EXISTING USER: Update with latest Google data and load all existing data
-            console.log(`Existing user found in ${collectionName}: ${user.email}`);
+
             
             // Update Google OAuth data (preserve existing profile data)
             existingUser.lastLogin = new Date();
@@ -303,9 +274,6 @@ export const authOptions: NextAuthOptions = {
             // Only update profile data if not already set (preserve existing data)
             if (!existingUser.profileImage && googleData.profileImage) {
               existingUser.profileImage = googleData.profileImage;
-              console.log(`Updated profile image for existing user: ${user.email}`);
-            } else if (existingUser.profileImage) {
-              console.log(`Preserving existing profile image for user: ${user.email}`);
             }
             if (!existingUser.firstName && googleData.firstName) {
               existingUser.firstName = googleData.firstName;
@@ -357,11 +325,10 @@ export const authOptions: NextAuthOptions = {
             if (anyUser.emergencyContact) user.emergencyContact = anyUser.emergencyContact;
             if (anyUser.preferences) user.preferences = anyUser.preferences;
             
-            console.log(`Existing user signed in via Google: ${user.email} (${userRole}) - All data loaded`);
+
             
           } else {
             // NEW USER: Create new account in database
-            console.log(`User not found in database. Creating new user: ${user.email}`);
             
             try {
               // Create new PetParent user (default role for Google sign-up)
@@ -411,7 +378,6 @@ export const authOptions: NextAuthOptions = {
               });
               
               await newUser.save();
-              console.log(`✅ New user created successfully: ${user.email}`);
               
               // Set basic session data for new user
               user.id = newUser._id.toString();
@@ -420,29 +386,15 @@ export const authOptions: NextAuthOptions = {
               user.name = newUser.name;
               user.image = newUser.profileImage;
               
-              console.log(`✅ New user session data set: ${user.email} (${user.role})`);
+
               
             } catch (createError: any) {
-              console.error("❌ Error creating new user:", createError);
-              console.error("Create error details:", {
-                message: createError?.message,
-                stack: createError?.stack,
-                email: user.email
-              });
               throw new Error(`Failed to create new user: ${createError?.message}`);
             }
           }
           
           return true;
         } catch (error: any) {
-          console.error("❌ Google OAuth sign-in failed:", error);
-          console.error("Error details:", {
-            message: error?.message || "Unknown error",
-            stack: error?.stack || "No stack trace",
-            userEmail: user.email
-          });
-          
-          // Return false to show access denied
           return false;
         }
       }
@@ -457,11 +409,11 @@ export const authOptions: NextAuthOptions = {
   events: {
     async signIn({ user, account, profile, isNewUser }) {
       // Log successful sign in
-      console.log(`User signed in: ${user.email} via ${account?.provider}`);
+      
     },
     async signOut({ session, token }) {
       // Log sign out
-      console.log(`User signed out: ${session?.user?.email}`);
+      
     },
   },
   debug: process.env.NODE_ENV === "development",
