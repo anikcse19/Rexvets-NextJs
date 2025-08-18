@@ -262,7 +262,6 @@ export default function VetRegistrationForm() {
         throw new Error(result.error || 'Registration failed');
       }
 
-      
 
 
       // Clear progress and show success
