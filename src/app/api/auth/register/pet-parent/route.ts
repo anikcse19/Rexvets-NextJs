@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/mongoose";
 import PetParentModel, { IPetParentModel } from "@/models/PetParent";
+import VeterinarianModel from "@/models/Veterinarian";
+import VetTechModel from "@/models/VetTech";
 import { z } from "zod";
 import { sendEmailVerification } from "@/lib/email";
 
@@ -21,15 +23,10 @@ const petParentRegistrationSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
-    console.log("Starting pet parent registration...");
-    
     const body = await request.json();
-    console.log("Request body received:", { ...body, password: "[REDACTED]" });
-    
     const validatedFields = petParentRegistrationSchema.safeParse(body);
 
     if (!validatedFields.success) {
-      console.log("Validation failed:", validatedFields.error.issues);
       return NextResponse.json(
         { 
           error: "Validation failed", 
@@ -40,35 +37,39 @@ export async function POST(request: NextRequest) {
     }
 
     const { name, email, password, phoneNumber, state, city, address, zipCode } = validatedFields.data;
-    console.log("Validation passed for:", { name, email, state, phoneNumber });
 
     // Connect to database
     try {
-      console.log("Connecting to database...");
       await connectToDatabase();
-      console.log("Database connected successfully");
     } catch (dbError) {
-      console.error("Database connection error:", dbError);
       return NextResponse.json(
         { error: "Database connection failed. Please try again later." },
         { status: 503 }
       );
     }
 
-    // Check if user already exists
+    // Check if user already exists in any collection
     try {
-      console.log("Checking for existing user...");
-      const existingUser = await PetParentModel.findOne({ email });
-      if (existingUser) {
-        console.log("User already exists:", email);
+      // Check all collections to prevent duplicate accounts
+      const existingPetParent = await PetParentModel.findOne({ email });
+      const existingVeterinarian = await VeterinarianModel.findOne({ email });
+      const existingVetTech = await VetTechModel.findOne({ email });
+      
+      // Count how many accounts exist with this email
+      const existingAccounts = [existingPetParent, existingVeterinarian, existingVetTech].filter(Boolean);
+      
+      if (existingAccounts.length > 0) {
+        let accountType = "account";
+        if (existingVeterinarian) accountType = "veterinarian account";
+        else if (existingVetTech) accountType = "vet technician account";
+        else if (existingPetParent) accountType = "pet parent account";
+        
         return NextResponse.json(
-          { error: "An account with this email address already exists. Please use a different email or try signing in." },
+          { error: `This email is already associated with a ${accountType}. Please use a different email or try signing in.` },
           { status: 409 }
         );
       }
-      console.log("No existing user found");
     } catch (findError) {
-      console.error("Error checking existing user:", findError);
       return NextResponse.json(
         { error: "Unable to verify email availability. Please try again." },
         { status: 500 }
@@ -76,7 +77,6 @@ export async function POST(request: NextRequest) {
     }
 
     // Create new pet parent
-    console.log("Creating new pet parent...");
     const petParent = new PetParentModel({
       name,
       email,
@@ -99,23 +99,12 @@ export async function POST(request: NextRequest) {
     });
 
     // Generate email verification token
-    console.log("Generating email verification token...");
     const verificationToken = petParent.generateEmailVerificationToken();
 
     // Save the user
     try {
-      console.log("Saving pet parent to database...");
       await petParent.save();
-      console.log("Pet parent saved successfully");
     } catch (saveError: any) {
-      console.error("Error saving pet parent:", saveError);
-      console.error("Save error details:", {
-        name: saveError.name,
-        message: saveError.message,
-        code: saveError.code,
-        keyPattern: saveError.keyPattern,
-        errors: saveError.errors
-      });
       
       // Handle specific MongoDB errors
       if (saveError.code === 11000) {
@@ -133,7 +122,6 @@ export async function POST(request: NextRequest) {
       
       if (saveError.name === 'ValidationError') {
         const validationErrors = Object.values(saveError.errors).map((err: any) => err.message);
-        console.log("Validation errors:", validationErrors);
         return NextResponse.json(
           { error: "Validation error", details: validationErrors },
           { status: 400 }
@@ -148,16 +136,12 @@ export async function POST(request: NextRequest) {
 
     // Send email verification
     try {
-      console.log("Sending email verification...");
       await sendEmailVerification(email, verificationToken, name);
-      console.log("Email verification sent");
     } catch (emailError) {
-      console.error("Email verification failed:", emailError);
-      // Don't fail the registration if email fails, but log it
+      // Don't fail the registration if email fails
       // User can request email verification later
     }
 
-    console.log("Registration completed successfully");
     // Return success response (without sensitive data)
     return NextResponse.json(
       {
@@ -173,12 +157,6 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     );
   } catch (error) {
-    console.error("Pet parent registration error:", error);
-    console.error("Error details:", {
-      name: error instanceof Error ? error.name : 'Unknown',
-      message: error instanceof Error ? error.message : 'Unknown error',
-      stack: error instanceof Error ? error.stack : 'No stack trace'
-    });
     
     // Handle specific errors
     if (error instanceof Error) {

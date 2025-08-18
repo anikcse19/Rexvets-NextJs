@@ -1,13 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, User, FileText } from "lucide-react";
 import FileUpload from "@/components/shared/FileUpload";
 import { US_STATES } from "@/lib";
 
@@ -16,6 +17,10 @@ interface ProfileStepProps {
   onBack: () => void;
   isSubmitting?: boolean;
   errors?: Record<string, string>;
+  initialData?: {
+    firstName?: string;
+    lastName?: string;
+  };
 }
 
 interface LicenseData {
@@ -30,6 +35,7 @@ export default function ProfileStep({
   onBack,
   isSubmitting = false,
   errors = {},
+  initialData = {},
 }: ProfileStepProps) {
   const [profileData, setProfileData] = useState({
     profilePicture: null as File | null,
@@ -84,10 +90,32 @@ export default function ProfileStep({
     updateLicense(licenseIndex, 'licenseFile', files[0] || null);
   };
 
+  // Create vet name for file prefixing
+  const getVetName = () => {
+    const firstName = initialData?.firstName || '';
+    const lastName = initialData?.lastName || '';
+    return `${firstName} ${lastName}`.trim();
+  };
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="bg-white rounded-lg shadow-sm border p-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-6">Profile & Documents</h2>
+    <motion.div
+      initial={{ opacity: 0, x: 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.5 }}
+    >
+      <Card className="backdrop-blur-sm bg-white/95 shadow-xl border-0">
+        <CardHeader>
+          <CardTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent flex items-center gap-2">
+            <User className="w-6 h-6 text-blue-600" />
+            Profile & Documents
+          </CardTitle>
+          <p className="text-muted-foreground">
+            Upload your documents and complete your profile
+          </p>
+        </CardHeader>
+
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-6">
         
         <div className="space-y-6">
           {/* Profile Picture */}
@@ -98,11 +126,12 @@ export default function ProfileStep({
             maxSize={5 * 1024 * 1024} // 5MB
             onFileChange={(files) => handleFileChange(files, 'profilePicture')}
             onError={(error) => console.error('Profile picture error:', error)}
+            vetName={getVetName()}
           />
 
           {/* Signature */}
           <div className="space-y-2">
-            <Label htmlFor="signature">Digital Signature</Label>
+                         <Label htmlFor="signature" className="text-white">Digital Signature</Label>
             <Textarea
               id="signature"
               value={profileData.signature}
@@ -121,6 +150,7 @@ export default function ProfileStep({
             maxSize={2 * 1024 * 1024} // 2MB
             onFileChange={(files) => handleFileChange(files, 'signatureImage')}
             onError={(error) => console.error('Signature image error:', error)}
+            vetName={getVetName()}
           />
 
           {/* CV/Resume */}
@@ -131,12 +161,13 @@ export default function ProfileStep({
             maxSize={10 * 1024 * 1024} // 10MB
             onFileChange={(files) => handleFileChange(files, 'cv')}
             onError={(error) => console.error('CV error:', error)}
+            vetName={getVetName()}
           />
 
           {/* License Information */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <Label className="text-base font-semibold">License Information</Label>
+                             <Label className="text-base font-semibold text-white">License Information</Label>
               <Button
                 type="button"
                 variant="outline"
@@ -176,9 +207,9 @@ export default function ProfileStep({
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {/* License Number */}
                         <div className="space-y-2">
-                          <Label htmlFor={`licenseNumber-${index}`}>
-                            License Number *
-                          </Label>
+                                                     <Label htmlFor={`licenseNumber-${index}`} className="text-white">
+                             License Number *
+                           </Label>
                           <Input
                             id={`licenseNumber-${index}`}
                             value={license.licenseNumber}
@@ -193,9 +224,9 @@ export default function ProfileStep({
 
                         {/* State */}
                         <div className="space-y-2">
-                          <Label htmlFor={`state-${index}`}>
-                            State *
-                          </Label>
+                                                     <Label htmlFor={`state-${index}`} className="text-white">
+                             State *
+                           </Label>
                           <Select
                             value={license.state}
                             onValueChange={(value) => updateLicense(index, 'state', value)}
@@ -219,9 +250,9 @@ export default function ProfileStep({
 
                       {/* DEA Number */}
                       <div className="space-y-2">
-                        <Label htmlFor={`deaNumber-${index}`}>
-                          DEA Number (Optional)
-                        </Label>
+                                                 <Label htmlFor={`deaNumber-${index}`} className="text-white">
+                           DEA Number (Optional)
+                         </Label>
                         <Input
                           id={`deaNumber-${index}`}
                           value={license.deaNumber || ''}
@@ -232,7 +263,7 @@ export default function ProfileStep({
 
                       {/* License File */}
                       <div className="space-y-2">
-                        <Label>License File *</Label>
+                                                 <Label className="text-white">License File *</Label>
                         <FileUpload
                           label=""
                           name={`licenseFile-${index}`}
@@ -241,6 +272,7 @@ export default function ProfileStep({
                           onFileChange={(files) => handleLicenseFileChange(files, index)}
                           onError={(error) => console.error(`License ${index + 1} file error:`, error)}
                           preview={true}
+                          vetName={getVetName()}
                         />
                         {errors[`licenses.${index}.licenseFile`] && (
                           <p className="text-sm text-red-500">{errors[`licenses.${index}.licenseFile`]}</p>
@@ -260,16 +292,22 @@ export default function ProfileStep({
             )}
           </div>
         </div>
-      </div>
 
-      <div className="flex justify-between">
-        <Button type="button" variant="outline" onClick={onBack}>
-          Back
-        </Button>
-        <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? 'Submitting...' : 'Complete Registration'}
-        </Button>
-      </div>
-    </form>
+        <div className="flex gap-4 pt-6">
+          <Button variant="outline" onClick={onBack} className="flex-1 h-12">
+            Back
+          </Button>
+          <Button 
+            type="submit" 
+            disabled={isSubmitting}
+            className="flex-1 h-12 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700"
+          >
+            {isSubmitting ? 'Submitting...' : 'Complete Registration'}
+          </Button>
+        </div>
+      </form>
+    </CardContent>
+  </Card>
+</motion.div>
   );
 }

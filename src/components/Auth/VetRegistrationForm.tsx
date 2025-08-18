@@ -171,7 +171,7 @@ export default function VetRegistrationForm() {
     setGeneralError(null);
     
     // Debug: Log the completed data
-    console.log('Completed registration data:', completedData);
+    
     
     try {
       setIsSubmitting(true);
@@ -262,12 +262,8 @@ export default function VetRegistrationForm() {
         throw new Error(result.error || 'Registration failed');
       }
 
-      console.log('Registration successful! Email verification should be sent to:', completedData.email);
-      console.log('Response details:', {
-        veterinarianId: result.veterinarianId,
-        email: result.email,
-        requiresEmailVerification: result.requiresEmailVerification
-      });
+      
+
 
       // Clear progress and show success
       clearProgress();
@@ -277,7 +273,6 @@ export default function VetRegistrationForm() {
       router.push(`/auth/check-email?email=${encodeURIComponent(completedData.email)}`);
       
     } catch (error) {
-      console.error('Registration error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Registration failed. Please try again.';
       setGeneralError(errorMessage);
       toast.error(errorMessage);
@@ -389,6 +384,7 @@ export default function VetRegistrationForm() {
                   onBack={handleBack}
                   isSubmitting={isSubmitting}
                   errors={errors}
+                  initialData={formData}
                 />
               </motion.div>
             )}

@@ -24,6 +24,7 @@ export interface UploadOptions {
   resource_type?: 'image' | 'video' | 'raw' | 'auto';
   allowed_formats?: string[];
   max_bytes?: number;
+  public_id?: string; // Custom filename for Cloudinary
 }
 
 // Default upload options
@@ -83,8 +84,9 @@ export const uploadToCloudinary = async (
       folder: uploadOptions.folder,
       resource_type: uploadOptions.resource_type,
       transformation: uploadOptions.transformation,
-      use_filename: true,
-      unique_filename: true,
+      public_id: uploadOptions.public_id, // Use custom filename if provided
+      use_filename: !uploadOptions.public_id, // Only use filename if no custom public_id
+      unique_filename: !uploadOptions.public_id, // Only use unique filename if no custom public_id
       overwrite: false,
     });
     

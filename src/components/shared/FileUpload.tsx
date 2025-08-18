@@ -18,6 +18,7 @@ interface FileUploadProps {
   preview?: boolean;
   className?: string;
   disabled?: boolean;
+  vetName?: string; // Add vet name for filename prefixing
 }
 
 interface FileWithPreview extends File {
@@ -39,11 +40,34 @@ const FileUpload: React.FC<FileUploadProps> = ({
   preview = true,
   className = "",
   disabled = false,
+  vetName,
 }) => {
   const [files, setFiles] = useState<FileWithPreview[]>([]);
   const [isDragOver, setIsDragOver] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Create filename with vet name prefix for better Cloudinary recognition
+  const createPrefixedFilename = useCallback((originalName: string): string => {
+    if (!vetName) return originalName;
+    
+    // Clean the vet name (remove special characters, spaces to underscores)
+    const cleanVetName = vetName
+      .replace(/[^a-zA-Z0-9\s]/g, '') // Remove special characters
+      .replace(/\s+/g, '_') // Replace spaces with underscores
+      .toLowerCase();
+    
+    // Get file extension
+    const lastDotIndex = originalName.lastIndexOf('.');
+    const extension = lastDotIndex !== -1 ? originalName.substring(lastDotIndex) : '';
+    const nameWithoutExtension = lastDotIndex !== -1 ? originalName.substring(0, lastDotIndex) : originalName;
+    
+    // Create timestamp for uniqueness
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+    
+    // Return prefixed filename: vetname_timestamp_originalname.extension
+    return `${cleanVetName}_${timestamp}_${nameWithoutExtension}${extension}`;
+  }, [vetName]);
 
   // Compress image if needed
   const compressImage = useCallback(async (file: File): Promise<File> => {
@@ -117,52 +141,40 @@ const FileUpload: React.FC<FileUploadProps> = ({
     // Compress image if needed
     const processedFile = await compressImage(file);
 
+    // Use the processed file directly - filename prefixing will be handled during upload
+    const renamedFile = processedFile;
+
     console.log('After compression:', { 
-      name: processedFile.name, 
-      size: processedFile.size, 
-      type: processedFile.type 
+      name: renamedFile.name, 
+      size: renamedFile.size, 
+      type: renamedFile.type 
     });
 
-    // Validate the processed file
-    if (!processedFile || !processedFile.name || typeof processedFile.size !== 'number') {
-      console.error('Processed file validation failed:', processedFile);
+    // Validate the renamed file
+    if (!renamedFile || !renamedFile.name || typeof renamedFile.size !== 'number') {
+      console.error('Renamed file validation failed:', renamedFile);
       throw new Error('File processing failed - invalid file object returned');
     }
 
     // Create preview for images
     let preview: string | undefined;
-    if (processedFile.type.startsWith('image/')) {
-      preview = URL.createObjectURL(processedFile);
+    if (renamedFile.type.startsWith('image/')) {
+      preview = URL.createObjectURL(renamedFile);
     }
 
-    console.log('Before creating FileWithPreview:', {
-      processedFile: {
-        name: processedFile.name,
-        size: processedFile.size,
-        type: processedFile.type,
-        hasName: !!processedFile.name,
-        hasSize: typeof processedFile.size === 'number'
-      }
-    });
 
-    // Add preview properties directly to the processed file
-    (processedFile as FileWithPreview).preview = preview;
-    (processedFile as FileWithPreview).uploadStatus = 'pending';
+
+    // Add preview properties directly to the renamed file
+    (renamedFile as FileWithPreview).preview = preview;
+    (renamedFile as FileWithPreview).uploadStatus = 'pending';
 
     // Final validation of the complete object
-    if (!processedFile.name || typeof processedFile.size !== 'number') {
-      console.error('Final validation failed - file object:', {
-        name: processedFile.name,
-        size: processedFile.size,
-        type: typeof processedFile.size,
-        hasName: !!processedFile.name,
-        hasSize: typeof processedFile.size === 'number'
-      });
+    if (!renamedFile.name || typeof renamedFile.size !== 'number') {
       throw new Error('File processing failed - final validation failed');
     }
 
-    return processedFile as FileWithPreview;
-  }, [accept, maxSize, compressImage]);
+    return renamedFile as FileWithPreview;
+  }, [accept, maxSize, compressImage, createPrefixedFilename]);
 
   // Get file icon safely
   const getFileIconSafely = useCallback((file: FileWithPreview) => {
@@ -203,13 +215,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
         
         try {
           const processedFile = await validateAndProcessFile(file);
-          // Debug: Log file object structure
-          console.log('Processed file:', {
-            name: processedFile.name,
-            size: processedFile.size,
-            type: processedFile.type,
-            sizeType: typeof processedFile.size
-          });
+
           // Ensure the processed file has all required properties
           if (!processedFile.name || typeof processedFile.size !== 'number') {
             errors.push(`${file.name}: File processing failed - invalid file object`);

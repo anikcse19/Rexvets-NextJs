@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/mongoose";
 import VeterinarianModel from "@/models/Veterinarian";
+import PetParentModel from "@/models/PetParent";
+import VetTechModel from "@/models/VetTech";
 import { veterinarianProfileSchema } from "@/lib/validation/veterinarian";
 import { uploadToCloudinary, validateFile } from "@/lib/cloudinary";
 import { sendEmailVerification } from "@/lib/email";
@@ -48,6 +50,35 @@ export async function POST(request: NextRequest) {
     // Extract schedule
     const scheduleData = formData.get('schedule') as string;
     const schedule = scheduleData ? JSON.parse(scheduleData) : {};
+    
+
+    
+    // Convert schedule format to workingHours format for database
+    const convertScheduleToWorkingHours = (scheduleData: any) => {
+      const workingHours: any = {};
+      
+      // Initialize all days with default values
+      const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+      days.forEach(day => {
+        workingHours[day] = { start: "09:00", end: "17:00", available: false };
+      });
+      
+      // Update with actual schedule data
+      Object.keys(scheduleData).forEach(day => {
+        const dayKey = day.toLowerCase();
+        if (scheduleData[day] && scheduleData[day].length > 0) {
+          // Use the first time slot for the day
+          const firstSlot = scheduleData[day][0];
+          workingHours[dayKey] = {
+            start: firstSlot.startTime,
+            end: firstSlot.endTime,
+            available: true
+          };
+        }
+      });
+      
+      return workingHours;
+    };
 
     // Extract files
     const profilePicture = formData.get('profilePicture') as File;
@@ -87,14 +118,28 @@ export async function POST(request: NextRequest) {
     // Connect to database
     await connectToDatabase();
 
-    // Check if veterinarian already exists
+    // Check if user already exists in any collection
+    const existingPetParent = await PetParentModel.findOne({ 
+      email: basicInfo.email.toLowerCase() 
+    });
     const existingVet = await VeterinarianModel.findOne({ 
       email: basicInfo.email.toLowerCase() 
     });
+    const existingVetTech = await VetTechModel.findOne({ 
+      email: basicInfo.email.toLowerCase() 
+    });
     
-    if (existingVet) {
+    // Count how many accounts exist with this email
+    const existingAccounts = [existingPetParent, existingVet, existingVetTech].filter(Boolean);
+    
+    if (existingAccounts.length > 0) {
+      let accountType = "account";
+      if (existingPetParent) accountType = "pet parent account";
+      else if (existingVetTech) accountType = "vet technician account";
+      else if (existingVet) accountType = "veterinarian account";
+      
       return NextResponse.json(
-        { error: "Veterinarian with this email already exists" },
+        { error: `This email is already associated with a ${accountType}. Please use a different email or try signing in.` },
         { status: 409 }
       );
     }
@@ -102,6 +147,31 @@ export async function POST(request: NextRequest) {
     // Upload files to Cloudinary
     const uploadPromises: Promise<any>[] = [];
     const uploadedFiles: Record<string, any> = {};
+
+    // Helper function to create prefixed filename
+    const createPrefixedFilename = (originalName: string, vetName: string) => {
+      if (!vetName) return originalName;
+      
+      // Clean the vet name (remove special characters, spaces to underscores)
+      const cleanVetName = vetName
+        .replace(/[^a-zA-Z0-9\s]/g, '') // Remove special characters
+        .replace(/\s+/g, '_') // Replace spaces with underscores
+        .toLowerCase();
+      
+      // Get file extension
+      const lastDotIndex = originalName.lastIndexOf('.');
+      const extension = lastDotIndex !== -1 ? originalName.substring(lastDotIndex) : '';
+      const nameWithoutExtension = lastDotIndex !== -1 ? originalName.substring(0, lastDotIndex) : originalName;
+      
+      // Create timestamp for uniqueness
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+      
+      // Return prefixed filename: vetname_timestamp_originalname.extension
+      return `${cleanVetName}_${timestamp}_${nameWithoutExtension}${extension}`;
+    };
+
+    // Get vet name for file prefixing
+    const vetName = `${basicInfo.firstName} ${basicInfo.lastName}`.trim();
 
     // Upload profile picture
     if (profilePicture && profilePicture.size > 0) {
@@ -117,10 +187,13 @@ export async function POST(request: NextRequest) {
         );
       }
 
+      const prefixedFilename = createPrefixedFilename(profilePicture.name, vetName);
+      
       uploadPromises.push(
         uploadToCloudinary(profilePicture, { 
           folder: 'rexvets/profiles',
-          transformation: { width: 400, height: 400, crop: 'fill' }
+          transformation: { width: 400, height: 400, crop: 'fill' },
+          public_id: prefixedFilename
         }).then(result => {
           uploadedFiles.profileImage = result.secure_url;
         })
@@ -141,10 +214,13 @@ export async function POST(request: NextRequest) {
         );
       }
 
+      const prefixedFilename = createPrefixedFilename(signatureImage.name, vetName);
+      
       uploadPromises.push(
         uploadToCloudinary(signatureImage, { 
           folder: 'rexvets/signatures',
-          transformation: { width: 300, height: 100, crop: 'fill' }
+          transformation: { width: 300, height: 100, crop: 'fill' },
+          public_id: prefixedFilename
         }).then(result => {
           uploadedFiles.signatureImage = result.secure_url;
         })
@@ -165,10 +241,13 @@ export async function POST(request: NextRequest) {
         );
       }
 
+      const prefixedFilename = createPrefixedFilename(cv.name, vetName);
+      
       uploadPromises.push(
         uploadToCloudinary(cv, { 
           folder: 'rexvets/cv',
-          resource_type: 'raw'
+          resource_type: 'raw',
+          public_id: prefixedFilename
         }).then(result => {
           uploadedFiles.cv = result.secure_url;
         })
@@ -187,8 +266,11 @@ export async function POST(request: NextRequest) {
           throw new Error(`License file ${index + 1}: ${validation.error}`);
         }
 
+        const prefixedFilename = createPrefixedFilename(file.name, vetName);
+        
         const result = await uploadToCloudinary(file, { 
-          folder: 'rexvets/licenses'
+          folder: 'rexvets/licenses',
+          public_id: prefixedFilename
         });
         
         return { index, url: result.secure_url };
@@ -241,15 +323,7 @@ export async function POST(request: NextRequest) {
       certifications: [],
       languages: ["English"],
       timezone: "UTC",
-      workingHours: {
-        monday: { start: "09:00", end: "17:00", available: true },
-        tuesday: { start: "09:00", end: "17:00", available: true },
-        wednesday: { start: "09:00", end: "17:00", available: true },
-        thursday: { start: "09:00", end: "17:00", available: true },
-        friday: { start: "09:00", end: "17:00", available: true },
-        saturday: { start: "09:00", end: "17:00", available: false },
-        sunday: { start: "09:00", end: "17:00", available: false },
-      },
+      workingHours: convertScheduleToWorkingHours(schedule),
       isEmailVerified: false,
       isActive: true,
       isApproved: false,
