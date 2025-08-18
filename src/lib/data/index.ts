@@ -1,6 +1,7 @@
 import {
   MdFavorite,
   MdHome,
+  MdLocalPharmacy,
   MdMonetizationOn,
   MdSchedule,
   MdSchool,
@@ -32,7 +33,7 @@ import {
   IHomeFeaturesSection,
   ITreatmentCategory,
 } from "../interfaces";
-import { MenuItems } from "../types";
+import { Doctor, DonationAmount, MenuItems, Review } from "../types";
 import { FaFilePrescription } from "react-icons/fa6";
 import { FaPrescription } from "react-icons/fa";
 
@@ -680,6 +681,12 @@ export const menuItemsPetParent: MenuItems[] = [
     href: "/dashboard/pet-parent/appointments",
   },
   {
+    id: "pharmacy-transfer",
+    label: "Pharmacy Transfer",
+    icon: MdLocalPharmacy,
+    href: "/dashboard/pet-parent/pharmacy-transfer",
+  },
+  {
     id: "my-pets",
     label: "My Pets",
     icon: Cat,
@@ -995,4 +1002,202 @@ export const colorOptions = [
   "Tabby",
   "Solid",
   "Mixed Colors",
+];
+
+export const mockDoctors: Doctor[] = [
+  {
+    id: "1",
+    name: "Dr. Sarah Johnson",
+    image:
+      "https://images.pexels.com/photos/5215024/pexels-photo-5215024.jpeg?auto=compress&cs=tinysrgb&w=400",
+    degree: "DVM, MS",
+    rating: 4.9,
+    reviewCount: 124,
+    license: "VET-2019-CA-5431",
+    prescriptionBadge: true,
+    state: "California",
+    specialties: ["Small Animal Medicine", "Surgery", "Emergency Care"],
+    bio: "Dr. Sarah Johnson is a passionate veterinarian with over 8 years of experience in small animal medicine. She specializes in emergency care and surgical procedures, with a particular interest in minimally invasive techniques.",
+    address: "123 Pet Care Blvd, San Francisco, CA 94105",
+    speciesTreated: ["Dogs", "Cats", "Rabbits", "Guinea Pigs"],
+    availableSlots: [
+      { id: "1", date: "2025-01-20", time: "09:00", available: true },
+      { id: "2", date: "2025-01-20", time: "10:30", available: true },
+      { id: "3", date: "2025-01-20", time: "14:00", available: true },
+      { id: "4", date: "2025-01-21", time: "11:00", available: true },
+      { id: "5", date: "2025-01-21", time: "15:30", available: true },
+    ],
+  },
+  {
+    id: "2",
+    name: "Dr. Michael Chen",
+    image:
+      "https://images.pexels.com/photos/6129507/pexels-photo-6129507.jpeg?auto=compress&cs=tinysrgb&w=400",
+    degree: "DVM, PhD",
+    rating: 4.8,
+    reviewCount: 89,
+    license: "VET-2020-CA-7823",
+    prescriptionBadge: true,
+    state: "California",
+    specialties: ["Exotic Animals", "Dermatology", "Oncology"],
+    bio: "Dr. Michael Chen brings expertise in exotic animal care and veterinary dermatology. With a PhD in Veterinary Medicine, he has published numerous research papers on animal oncology.",
+    address: "456 Healing Paws Ave, Los Angeles, CA 90210",
+    speciesTreated: ["Dogs", "Cats", "Birds", "Reptiles", "Small Mammals"],
+    availableSlots: [
+      { id: "6", date: "2025-01-20", time: "08:30", available: true },
+      { id: "7", date: "2025-01-20", time: "13:00", available: true },
+      { id: "8", date: "2025-01-21", time: "09:30", available: true },
+      { id: "9", date: "2025-01-22", time: "10:00", available: true },
+    ],
+  },
+  {
+    id: "3",
+    name: "Dr. Emily Rodriguez",
+    image:
+      "https://images.pexels.com/photos/5452268/pexels-photo-5452268.jpeg?auto=compress&cs=tinysrgb&w=400",
+    degree: "DVM",
+    rating: 4.7,
+    reviewCount: 156,
+    license: "VET-2018-CA-3321",
+    prescriptionBadge: true,
+    state: "California",
+    specialties: ["Behavioral Medicine", "Preventive Care", "Nutrition"],
+    bio: "Dr. Emily Rodriguez focuses on preventive veterinary medicine and animal behavior. She believes in building strong relationships with both pets and their families to ensure long-term health and happiness.",
+    address: "789 Compassion St, San Diego, CA 92101",
+    speciesTreated: ["Dogs", "Cats"],
+    availableSlots: [
+      { id: "10", date: "2025-01-20", time: "11:00", available: true },
+      { id: "11", date: "2025-01-20", time: "16:00", available: true },
+      { id: "12", date: "2025-01-21", time: "14:30", available: true },
+    ],
+  },
+  {
+    id: "4",
+    name: "Dr. James Wilson",
+    image:
+      "https://images.pexels.com/photos/6749773/pexels-photo-6749773.jpeg?auto=compress&cs=tinysrgb&w=400",
+    degree: "DVM, DACVS",
+    rating: 4.9,
+    reviewCount: 203,
+    license: "VET-2017-CA-8901",
+    prescriptionBadge: true,
+    state: "California",
+    specialties: ["Orthopedic Surgery", "Sports Medicine", "Rehabilitation"],
+    bio: "Dr. James Wilson is a board-certified veterinary surgeon specializing in orthopedic procedures. He has extensive experience in treating sports injuries in working dogs and rehabilitation therapy.",
+    address: "321 Healing Hands Dr, Oakland, CA 94607",
+    speciesTreated: ["Dogs", "Cats", "Horses"],
+    availableSlots: [],
+  },
+];
+
+export const mockReviews: { [doctorId: string]: Review[] } = {
+  "1": [
+    {
+      id: "1",
+      patientName: "Maria Garcia",
+      rating: 5,
+      comment:
+        "Dr. Johnson was amazing with my anxious rescue dog. She took the time to explain everything and made both me and my pet feel comfortable.",
+      date: "2025-01-15",
+      petType: "Dog",
+    },
+    {
+      id: "2",
+      patientName: "John Smith",
+      rating: 5,
+      comment:
+        "Excellent care for my cat's emergency surgery. Dr. Johnson's expertise saved my pet's life.",
+      date: "2025-01-10",
+      petType: "Cat",
+    },
+    {
+      id: "3",
+      patientName: "Lisa Brown",
+      rating: 4,
+      comment:
+        "Very professional and knowledgeable. The clinic is clean and well-organized.",
+      date: "2025-01-08",
+      petType: "Rabbit",
+    },
+    {
+      id: "4",
+      patientName: "David Lee",
+      rating: 5,
+      comment:
+        "Dr. Johnson went above and beyond to help my senior dog. Highly recommend!",
+      date: "2025-01-05",
+      petType: "Dog",
+    },
+    {
+      id: "5",
+      patientName: "Anna Wilson",
+      rating: 5,
+      comment:
+        "Great communication and follow-up care. My pet is doing much better now.",
+      date: "2025-01-03",
+      petType: "Cat",
+    },
+  ],
+  "2": [
+    {
+      id: "6",
+      patientName: "Robert Chen",
+      rating: 5,
+      comment:
+        "Dr. Chen is the best exotic animal vet in the area. My parrot loves him!",
+      date: "2025-01-12",
+      petType: "Bird",
+    },
+    {
+      id: "7",
+      patientName: "Sophie Davis",
+      rating: 4,
+      comment:
+        "Very knowledgeable about reptile care. Helped my iguana recover quickly.",
+      date: "2025-01-09",
+      petType: "Reptile",
+    },
+  ],
+  "3": [
+    {
+      id: "8",
+      patientName: "Carlos Rodriguez",
+      rating: 5,
+      comment:
+        "Dr. Rodriguez helped with my dog's behavioral issues. Saw improvement within weeks!",
+      date: "2025-01-14",
+      petType: "Dog",
+    },
+  ],
+  "4": [
+    {
+      id: "9",
+      patientName: "Jennifer Thompson",
+      rating: 5,
+      comment:
+        "Exceptional surgical skills. My dog's recovery was faster than expected.",
+      date: "2025-01-11",
+      petType: "Dog",
+    },
+  ],
+};
+
+export const donationAmounts: DonationAmount[] = [
+  { value: 25, label: "$25", description: "Feeds 2 street dogs for a week" },
+  {
+    value: 50,
+    label: "$50",
+    description: "Provides basic medical care for 1 dog",
+  },
+  {
+    value: 100,
+    label: "$100",
+    description: "Covers vaccination for 5 street dogs",
+  },
+  {
+    value: 200,
+    label: "$200",
+    description: "Emergency medical treatment for 1 dog",
+  },
+  { value: 500, label: "$500", description: "Sponsors a full health program" },
 ];

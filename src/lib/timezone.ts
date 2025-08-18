@@ -23,3 +23,18 @@ export const convertTimeToTimezone = (
 export const getUserTimezone = () => {
   return Intl.DateTimeFormat().resolvedOptions().timeZone;
 };
+
+export const formatTimeToUserTimezone = (
+  time: string,
+  timezone?: string
+): string => {
+  const userTz = timezone || getUserTimezone();
+  const date = new Date(`2024-01-01 ${time}`);
+
+  return new Intl.DateTimeFormat("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+    timeZone: userTz,
+  }).format(date);
+};
