@@ -51,8 +51,11 @@ const Header: React.FC = () => {
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { data: session, status } = useSession();
 
+<<<<<<< HEAD
   console.log(session, "session");
 
+=======
+>>>>>>> 2b7c745eabfc5a93474d57df707b6c66bef50b33
   // const session = {
   //   user: {
   //     name: "Anik",
