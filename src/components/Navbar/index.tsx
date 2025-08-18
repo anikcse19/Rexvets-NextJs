@@ -49,16 +49,16 @@ const Header: React.FC = () => {
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-  // const { data: session, status } = useSession();
+  const { data: session, status } = useSession();
 
-  const session = {
-    user: {
-      name: "Anik",
-      image: "",
-      role: "user",
-      email: "anikdebcse@gmail.com",
-    },
-  };
+  // const session = {
+  //   user: {
+  //     name: "Anik",
+  //     image: "",
+  //     role: "user",
+  //     email: "anikdebcse@gmail.com",
+  //   },
+  // };
 
   const handleMouseEnter = (key: string) => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
