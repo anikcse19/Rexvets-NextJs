@@ -39,9 +39,9 @@ const Footer = React.memo(() => {
   const sitemapLinks = useMemo(
     () => [
       { to: "/", text: "Home" },
-      { to: "/PetParents", text: "For pet parents" },
-      { to: "/VetandTechs", text: "For Vet & techs" },
-      { to: "/About", text: "About" },
+      { to: "/pet-parents", text: "For pet parents" },
+      { to: "/become-a-rex-vet", text: "For Vet & techs" },
+      { to: "/about", text: "About" },
       { to: "/Blogs", text: "Blogs" },
       { to: "/Support", text: "Support" },
     ],
@@ -50,12 +50,18 @@ const Footer = React.memo(() => {
 
   const usefulLinks: LinkType[] = useMemo(
     () => [
-      { to: "/NonProfitPage", text: "Non Profit Status" },
-      { to: "/SupportUs", text: "Support Us" },
-      { to: "/FinancialTransparency", text: "Financial Transparency" },
-      { to: "/PrivacyPolicy", text: "Privacy Policy" },
-      { to: "/RefundPolicy", text: "Refund Policy" },
-      { to: "/TermsandConditions", text: "Terms and Conditions" },
+      { to: "/legal-and-support/non-profit-status", text: "Non Profit Status" },
+      { to: "/legal-and-support/support-us", text: "Support Us" },
+      {
+        to: "/legal-and-support/financial-transparency",
+        text: "Financial Transparency",
+      },
+      { to: "/legal-and-support/privacy-policy", text: "Privacy Policy" },
+      { to: "/legal-and-support/refund-policy", text: "Refund Policy" },
+      {
+        to: "/legal-and-support/terms-and-conditions",
+        text: "Terms and Conditions",
+      },
     ],
     []
   );
