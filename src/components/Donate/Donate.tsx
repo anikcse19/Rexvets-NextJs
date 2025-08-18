@@ -15,9 +15,12 @@ const DonateContributionsSection = dynamic(
     loading: () => <p>Loading...</p>,
   }
 );
-const DonateHeroSection = dynamic(() => import("./DonateHeroSection"), {
-  loading: () => <p>Loading...</p>,
-});
+const DonateHeroSection = dynamic(
+  () => import("../shared/Donate_OurMIssion_HeroSection"),
+  {
+    loading: () => <p>Loading...</p>,
+  }
+);
 const DonatePawsCauseSection = dynamic(
   () => import("./DonatePawsCauseSection"),
   {
