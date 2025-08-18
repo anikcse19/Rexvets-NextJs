@@ -39,9 +39,9 @@ const Footer = React.memo(() => {
   const sitemapLinks = useMemo(
     () => [
       { to: "/", text: "Home" },
-      { to: "/PetParents", text: "For pet parents" },
-      { to: "/VetandTechs", text: "For Vet & techs" },
-      { to: "/About", text: "About" },
+      { to: "/pet-parents", text: "For pet parents" },
+      { to: "/become-a-rex-vet", text: "For Vet & techs" },
+      { to: "/about", text: "About" },
       { to: "/Blogs", text: "Blogs" },
       { to: "/Support", text: "Support" },
     ],
@@ -50,7 +50,7 @@ const Footer = React.memo(() => {
 
   const usefulLinks: LinkType[] = useMemo(
     () => [
-      { to: "/NonProfitPage", text: "Non Profit Status" },
+      { to: "/non-profit-status", text: "Non Profit Status" },
       { to: "/SupportUs", text: "Support Us" },
       { to: "/FinancialTransparency", text: "Financial Transparency" },
       { to: "/PrivacyPolicy", text: "Privacy Policy" },
