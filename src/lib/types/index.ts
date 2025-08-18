@@ -85,3 +85,50 @@ export interface Appointment {
   service: string;
   notes?: string;
 }
+
+export interface Doctor {
+  id: string;
+  name: string;
+  image: string;
+  degree: string;
+  rating: number;
+  reviewCount: number;
+  license: string;
+  prescriptionBadge: boolean;
+  state: string;
+  specialties: string[];
+  bio: string;
+  address: string;
+  speciesTreated: string[];
+  availableSlots: TimeSlots[];
+}
+
+export interface TimeSlots {
+  id: string;
+  date: string;
+  time: string;
+  available: boolean;
+}
+
+export interface Review {
+  id: string;
+  patientName: string;
+  rating: number;
+  comment: string;
+  date: string;
+  petType: string;
+}
+
+export interface Location {
+  latitude: number;
+  longitude: number;
+  address: string;
+  city: string;
+  state: string;
+}
+
+export interface DonationAmount {
+  value: number;
+  label: string;
+  description: string;
+}
