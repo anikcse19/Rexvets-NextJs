@@ -19,6 +19,19 @@ const petParentRegistrationSchema = z.object({
   city: z.string().optional(),
   address: z.string().optional(),
   zipCode: z.string().optional(),
+  preferences: z
+    .object({
+      timezone: z.string().optional(),
+      language: z.string().optional(),
+      notifications: z
+        .object({
+          email: z.boolean().optional(),
+          sms: z.boolean().optional(),
+          push: z.boolean().optional(),
+        })
+        .optional(),
+    })
+    .optional(),
 });
 
 export async function POST(request: NextRequest) {
@@ -36,7 +49,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { name, email, password, phoneNumber, state, city, address, zipCode } = validatedFields.data;
+    const { name, email, password, phoneNumber, state, city, address, zipCode, preferences: incomingPreferences } = validatedFields.data;
 
     // Connect to database
     try {
@@ -76,6 +89,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Build preferences by merging defaults with incoming values
+    const mergedPreferences = {
+      notifications: {
+        email: true,
+        sms: true,
+        push: true,
+        ...(incomingPreferences?.notifications ?? {}),
+      },
+      language: incomingPreferences?.language ?? 'en',
+      timezone: incomingPreferences?.timezone ?? 'UTC',
+    };
+
     // Create new pet parent
     const petParent = new PetParentModel({
       name,
@@ -87,15 +112,8 @@ export async function POST(request: NextRequest) {
       address,
       zipCode,
       pets: [], // Empty array initially
-      preferences: {
-        notifications: {
-          email: true,
-          sms: true,
-          push: true,
-        },
-        language: 'en',
-        timezone: 'UTC',
-      },
+
+      preferences: mergedPreferences,
     });
 
     // Generate email verification token
