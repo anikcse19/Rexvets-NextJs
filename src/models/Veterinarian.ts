@@ -44,7 +44,7 @@ export interface IVeterinarian extends Document {
   }>;
   languages: string[];
   timezone: string;
-  workingHours: {
+  schedule: {
     monday: { start: string; end: string; available: boolean };
     tuesday: { start: string; end: string; available: boolean };
     wednesday: { start: string; end: string; available: boolean };
@@ -134,24 +134,24 @@ const veterinarianSchema = new Schema<IVeterinarian>({
     required: [true, 'Specialization is required'],
     trim: true
   },
-  licenseNumber: {
-    type: String,
-    required: [true, 'License number is required'],
-    unique: true,
-    trim: true
-  },
-  licenseState: {
-    type: String,
-    required: [true, 'License state is required'],
-    trim: true
-  },
-  licenseExpiryDate: {
-    type: Date,
-    required: [true, 'License expiry date is required']
-  },
+  // licenseNumber: {
+  //   type: String,
+  //   required: [true, 'License number is required'],
+  //   unique: true,
+  //   trim: true
+  // },
+  // licenseState: {
+  //   type: String,
+  //   required: [true, 'License state is required'],
+  //   trim: true
+  // },
+  // licenseExpiryDate: {
+  //   type: Date,
+  //   required: [true, 'License expiry date is required']
+  // },
   consultationFee: {
     type: Number,
-    required: [true, 'Consultation fee is required'],
+    required: [false, 'Consultation fee is required'],
     min: [0, 'Consultation fee cannot be negative']
   },
   available: {
@@ -267,31 +267,31 @@ const veterinarianSchema = new Schema<IVeterinarian>({
     type: String,
     default: 'UTC'
   },
-  workingHours: {
+  schedule: {
     monday: {
       start: { type: String, default: '09:00' },
       end: { type: String, default: '17:00' },
-      available: { type: Boolean, default: true }
+      available: { type: Boolean, default: false }
     },
     tuesday: {
       start: { type: String, default: '09:00' },
       end: { type: String, default: '17:00' },
-      available: { type: Boolean, default: true }
+      available: { type: Boolean, default: false }
     },
     wednesday: {
       start: { type: String, default: '09:00' },
       end: { type: String, default: '17:00' },
-      available: { type: Boolean, default: true }
+      available: { type: Boolean, default: false }
     },
     thursday: {
       start: { type: String, default: '09:00' },
       end: { type: String, default: '17:00' },
-      available: { type: Boolean, default: true }
+      available: { type: Boolean, default: false }
     },
     friday: {
       start: { type: String, default: '09:00' },
       end: { type: String, default: '17:00' },
-      available: { type: Boolean, default: true }
+      available: { type: Boolean, default: false }
     },
     saturday: {
       start: { type: String, default: '09:00' },
@@ -400,7 +400,6 @@ const veterinarianSchema = new Schema<IVeterinarian>({
 
 // Indexes
 veterinarianSchema.index({ email: 1 });
-veterinarianSchema.index({ licenseNumber: 1 });
 veterinarianSchema.index({ isActive: 1 });
 veterinarianSchema.index({ isApproved: 1 });
 veterinarianSchema.index({ specialization: 1 });

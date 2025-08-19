@@ -99,7 +99,7 @@ const updateVeterinarianSchema = z.object({
   }).optional(),
   removeLicense: z.number().min(0).optional(),
   
-  workingHours: z.object({
+  schedule: z.object({
     monday: workingHoursSchema.optional(),
     tuesday: workingHoursSchema.optional(),
     wednesday: workingHoursSchema.optional(),
@@ -164,7 +164,7 @@ export async function PUT(request: NextRequest) {
           key !== 'experience' && key !== 'addExperience' && key !== 'updateExperience' && key !== 'removeExperience' &&
           key !== 'certifications' && key !== 'addCertification' && key !== 'updateCertification' && key !== 'removeCertification' &&
           key !== 'licenses' && key !== 'addLicense' && key !== 'updateLicense' && key !== 'removeLicense' &&
-          key !== 'workingHours' && key !== 'fcmTokens' &&
+          key !== 'schedule' && key !== 'fcmTokens' &&
           updateData[key as keyof typeof updateData] !== undefined) {
         updateObject[key] = updateData[key as keyof typeof updateData];
       }
@@ -289,18 +289,18 @@ export async function PUT(request: NextRequest) {
       updateObject.licenses = licensesArray;
     }
 
-    // Handle working hours updates
-    if (updateData.workingHours) {
-      const currentWorkingHours = { ...veterinarian.workingHours };
-      Object.keys(updateData.workingHours).forEach(day => {
-        if (updateData.workingHours![day as keyof typeof updateData.workingHours]) {
-          currentWorkingHours[day as keyof typeof currentWorkingHours] = {
-            ...currentWorkingHours[day as keyof typeof currentWorkingHours],
-            ...updateData.workingHours![day as keyof typeof updateData.workingHours]
+    // Handle schedule updates
+    if (updateData.schedule) {
+      const currentSchedule = { ...(veterinarian as any).schedule };
+      Object.keys(updateData.schedule).forEach(day => {
+        if (updateData.schedule![day as keyof typeof updateData.schedule]) {
+          currentSchedule[day as keyof typeof currentSchedule] = {
+            ...currentSchedule[day as keyof typeof currentSchedule],
+            ...updateData.schedule![day as keyof typeof updateData.schedule]
           };
         }
       });
-      updateObject.workingHours = currentWorkingHours;
+      updateObject.schedule = currentSchedule;
     }
 
     // Handle FCM tokens updates
