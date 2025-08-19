@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -34,7 +34,9 @@ const petParentSchema = z
   .object({
     name: z.string().min(2, "Name must be at least 2 characters"),
     email: z.string().email("Invalid email address"),
-    phone: z.string().regex(/^[\+]?[1-9][\d]{0,15}$/, "Please enter a valid phone number"),
+    phone: z
+      .string()
+      .regex(/^[\+]?[1-9][\d]{0,15}$/, "Please enter a valid phone number"),
     state: z.string().min(1, "Please select a state"),
     password: z.string().min(8, "Password must be at least 8 characters"),
     confirmPassword: z.string(),
@@ -64,25 +66,45 @@ export default function PetParentForm() {
 
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [timezone, setTimezone] = useState<string>("");
+
+  useEffect(() => {
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    console.log("tzzz", tz);
+    setTimezone(tz);
+  }, []);
+
+  useEffect(() => {
+    console.log("form errors", errors);
+  }, [errors]);
+
+  console.log("timezone check", timezone);
 
   const onSubmit = async (data: PetParentFormData) => {
+    console.log("function click");
     setIsLoading(true);
     setError("");
     setSuccess("");
-    
+
     try {
+      const createParentData = {
+        name: data.name,
+        email: data.email,
+        password: data.password,
+        phoneNumber: data.phone,
+        state: data.state,
+        preferences: {
+          timezone: timezone,
+        },
+      };
+
+      console.log("createParentData", createParentData);
       const response = await fetch("/api/auth/register/pet-parent", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          name: data.name,
-          email: data.email,
-          password: data.password,
-          phoneNumber: data.phone,
-          state: data.state,
-        }),
+        body: JSON.stringify(createParentData),
       });
 
       const result = await response.json();
@@ -91,7 +113,9 @@ export default function PetParentForm() {
         // Handle different types of errors
         if (result.details && Array.isArray(result.details)) {
           // Handle validation errors with details
-          const errorMessages = result.details.map((detail: any) => detail.message).join(", ");
+          const errorMessages = result.details
+            .map((detail: any) => detail.message)
+            .join(", ");
           setError(errorMessages);
         } else if (result.error) {
           // Handle specific error messages from API
@@ -100,13 +124,19 @@ export default function PetParentForm() {
           // Handle generic errors based on status code
           switch (response.status) {
             case 400:
-              setError("Invalid information provided. Please check your details and try again.");
+              setError(
+                "Invalid information provided. Please check your details and try again."
+              );
               break;
             case 409:
-              setError("An account with this email already exists. Please use a different email or try signing in.");
+              setError(
+                "An account with this email already exists. Please use a different email or try signing in."
+              );
               break;
             case 503:
-              setError("Service temporarily unavailable. Please try again in a few moments.");
+              setError(
+                "Service temporarily unavailable. Please try again in a few moments."
+              );
               break;
             case 500:
               setError("Server error. Please try again later.");
@@ -119,18 +149,19 @@ export default function PetParentForm() {
       }
 
       setSuccess(result.message || "Registration successful!");
-      
+
       // Redirect to sign in page after 3 seconds
       setTimeout(() => {
         window.location.href = "/auth/signin";
       }, 3000);
-      
     } catch (error) {
       console.error("Registration error:", error);
-      
+
       // Handle network errors
       if (error instanceof TypeError && error.message.includes("fetch")) {
-        setError("Network error. Please check your internet connection and try again.");
+        setError(
+          "Network error. Please check your internet connection and try again."
+        );
       } else {
         setError("Registration failed. Please try again later.");
       }
