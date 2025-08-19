@@ -65,6 +65,8 @@ export interface IVeterinarian extends Document {
   isApproved: boolean;
   approvalDate?: Date;
   approvedBy?: string;
+  // Soft delete flag
+  isDeleted?: boolean;
   
   // Google OAuth fields
   googleId?: string;
@@ -338,6 +340,10 @@ const veterinarianSchema = new Schema<IVeterinarian>({
     type: Boolean,
     default: true
   },
+  isDeleted: {
+    type: Boolean,
+    default: false
+  },
   isApproved: {
     type: Boolean,
     default: false
@@ -398,15 +404,13 @@ const veterinarianSchema = new Schema<IVeterinarian>({
   toObject: { virtuals: true }
 });
 
-// Indexes
-veterinarianSchema.index({ email: 1 });
+// Indexes (email and googleId are auto-created by unique/sparse)
 veterinarianSchema.index({ isActive: 1 });
 veterinarianSchema.index({ isApproved: 1 });
 veterinarianSchema.index({ specialization: 1 });
 veterinarianSchema.index({ available: 1 });
 veterinarianSchema.index({ emailVerificationToken: 1 });
 veterinarianSchema.index({ passwordResetToken: 1 });
-veterinarianSchema.index({ googleId: 1 });
 
 // Virtual for checking if account is locked
 veterinarianSchema.virtual('isLocked').get(function() {

@@ -14,9 +14,7 @@ const SupportOptions = dynamic(() => import("./SupportOptions"), {
   ssr: false,
 });
 
-interface IProps {}
-
-const Support: React.FC<IProps> = ({}) => {
+const Support: React.FC = () => {
   return (
     <>
       <div

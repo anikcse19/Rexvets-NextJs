@@ -28,6 +28,9 @@ export interface IAppointment extends Document {
   followUpDate?: Date;
   followUpRequired?: boolean;
   
+  // Soft delete flag
+  isDeleted?: boolean;
+  
   createdAt: Date;
   updatedAt: Date;
 }
@@ -205,6 +208,12 @@ const appointmentSchema = new Schema<IAppointment>({
     }
   },
   followUpRequired: {
+    type: Boolean,
+    default: false
+  },
+  
+  // Soft delete flag
+  isDeleted: {
     type: Boolean,
     default: false
   }
