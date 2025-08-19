@@ -43,6 +43,7 @@ import {
 } from "@/lib/validation/pet";
 import { calculatePetAge } from "@/lib/utils";
 import { colorOptions, speciesWithBreeds } from "@/lib";
+import { toast } from "sonner";
 
 interface AddPetModalProps {
   isOpen: boolean;
@@ -125,18 +126,10 @@ export default function AddPetModal({
         }
       });
 
-      // Append arrays (allergies, medicalConditions, medications)
-      allergies.forEach((item, index) => {
-        formData.append(`allergies[${index}]`, item);
-      });
-
-      medicalConditions.forEach((item, index) => {
-        formData.append(`medicalConditions[${index}]`, item);
-      });
-
-      currentMedications.forEach((item, index) => {
-        formData.append(`currentMedications[${index}]`, item);
-      });
+      formData.append("allergies", JSON.stringify(allergies));
+      formData.append("medicalConditions", JSON.stringify(medicalConditions));
+      formData.append("currentMedications", JSON.stringify(currentMedications));
+      formData.append("parentId", "68a4597b6fbe5d3c548c215d");
 
       // Append file (if any)
       if (petImage) {
@@ -155,7 +148,8 @@ export default function AddPetModal({
 
       const result = await response.json();
       console.log("result", result);
-      onSuccess?.(result);
+      toast.success("Added Pet Successfully");
+      // onSuccess?.(result);
       handleClose();
     } catch (error) {
       console.error("Error registering pet:", error);
