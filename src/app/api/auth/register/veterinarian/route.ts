@@ -31,6 +31,7 @@ export async function POST(request: NextRequest) {
 
     // Parse form data
     const formData = await request.formData();
+    console.log("Form data:", formData);
 
     // Extract basic info
     const basicInfo = {
@@ -51,9 +52,9 @@ export async function POST(request: NextRequest) {
     const scheduleData = formData.get("schedule") as string;
     const schedule = scheduleData ? JSON.parse(scheduleData) : {};
 
-    // Convert schedule format to workingHours format for database
-    const convertScheduleToWorkingHours = (scheduleData: any) => {
-      const workingHours: any = {};
+    // Convert schedule payload into model schedule
+    const convertToSchedule = (scheduleData: any) => {
+      const scheduleObj: any = {};
 
       // Initialize all days with default values
       const days = [
@@ -66,7 +67,7 @@ export async function POST(request: NextRequest) {
         "sunday",
       ];
       days.forEach((day) => {
-        workingHours[day] = { start: "09:00", end: "17:00", available: false };
+        scheduleObj[day] = { start: "09:00", end: "17:00", available: false };
       });
 
       // Update with actual schedule data
@@ -75,7 +76,7 @@ export async function POST(request: NextRequest) {
         if (scheduleData[day] && scheduleData[day].length > 0) {
           // Use the first time slot for the day
           const firstSlot = scheduleData[day][0];
-          workingHours[dayKey] = {
+          scheduleObj[dayKey] = {
             start: firstSlot.startTime,
             end: firstSlot.endTime,
             available: true,
@@ -83,7 +84,7 @@ export async function POST(request: NextRequest) {
         }
       });
 
-      return workingHours;
+      return scheduleObj;
     };
 
     // Extract files
@@ -91,10 +92,13 @@ export async function POST(request: NextRequest) {
     const signatureImage = formData.get("signatureImage") as File;
     const cv = formData.get("cv") as File;
 
-    // Extract licenses
+    // Extract licenses data
     const licensesData = formData.get("licenses") as string;
     const licenses = licensesData ? JSON.parse(licensesData) : [];
     const licenseFiles = formData.getAll("licenseFiles") as File[];
+
+    console.log("Extracted licenses:", licenses);
+    console.log("License files found:", licenseFiles.length);
 
     // Validate basic info
     const basicInfoValidation = veterinarianProfileSchema
@@ -272,7 +276,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Upload license files
+    // Upload license files and map them to licenses
     const licenseUploadPromises = licenseFiles.map(async (file, index) => {
       if (file && file.size > 0) {
         const validation = validateFile(file, {
@@ -325,23 +329,20 @@ export async function POST(request: NextRequest) {
       password: basicInfo.password,
       phoneNumber: basicInfo.phone,
       specialization: "General Practice", // Default, can be updated later
-      licenseNumber: updatedLicenses[0]?.licenseNumber || "",
-      licenseState: updatedLicenses[0]?.state || "",
-      licenseExpiryDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // Default 1 year
       consultationFee: 50, // Default fee, can be updated later
       available: true,
       profileImage: uploadedFiles.profileImage,
       cv: uploadedFiles.cv,
       signatureImage: uploadedFiles.signatureImage,
       signature: formData.get("signature") as string,
-      licenses: updatedLicenses,
+      licenses: updatedLicenses, // Use the licenses array
       bio: "",
       education: [],
       experience: [],
       certifications: [],
       languages: ["English"],
       timezone: "UTC",
-      workingHours: convertScheduleToWorkingHours(schedule),
+      schedule: convertToSchedule(schedule),
       isEmailVerified: false,
       isActive: true,
       isApproved: false,
@@ -412,9 +413,6 @@ export async function POST(request: NextRequest) {
       if (field === "email") {
         errorMessage =
           "An account with this email address already exists. Please use a different email or try signing in.";
-      } else if (field === "licenseNumber") {
-        errorMessage =
-          "A veterinarian with this license number already exists. Please check your license number.";
       } else if (field === "phoneNumber") {
         errorMessage =
           "A veterinarian with this phone number already exists. Please use a different phone number.";
@@ -449,7 +447,7 @@ export async function POST(request: NextRequest) {
     ) {
       return NextResponse.json(
         { error: "Database connection failed. Please try again later." },
-        { status: 503 }
+        { status: 500 }
       );
     }
 

@@ -44,7 +44,7 @@ export interface IVeterinarian extends Document {
   }>;
   languages: string[];
   timezone: string;
-  workingHours: {
+  schedule: {
     monday: { start: string; end: string; available: boolean };
     tuesday: { start: string; end: string; available: boolean };
     wednesday: { start: string; end: string; available: boolean };
@@ -267,7 +267,7 @@ const veterinarianSchema = new Schema<IVeterinarian>({
     type: String,
     default: 'UTC'
   },
-  workingHours: {
+  schedule: {
     monday: {
       start: { type: String, default: '09:00' },
       end: { type: String, default: '17:00' },
@@ -400,7 +400,6 @@ const veterinarianSchema = new Schema<IVeterinarian>({
 
 // Indexes
 veterinarianSchema.index({ email: 1 });
-veterinarianSchema.index({ licenseNumber: 1 });
 veterinarianSchema.index({ isActive: 1 });
 veterinarianSchema.index({ isApproved: 1 });
 veterinarianSchema.index({ specialization: 1 });
