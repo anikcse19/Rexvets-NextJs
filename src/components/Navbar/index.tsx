@@ -41,16 +41,21 @@ const Header: React.FC = () => {
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-  // const { data: session, status } = useSession();
+  const { data: session, status } = useSession();
 
-  const session = {
-    user: {
-      name: "Anik",
-      image: "",
-      role: "user",
-      email: "anikdebcse@gmail.com",
-    },
-  };
+<<<<<<< HEAD
+  console.log(session, "session");
+
+=======
+>>>>>>> 2b7c745eabfc5a93474d57df707b6c66bef50b33
+  // const session = {
+  //   user: {
+  //     name: "Anik",
+  //     image: "",
+  //     role: "user",
+  //     email: "anikdebcse@gmail.com",
+  //   },
+  // };
 
   const handleMouseEnter = (key: string) => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -84,8 +89,8 @@ const Header: React.FC = () => {
         return "Veterinarian";
       case "technician":
         return "Vet Technician";
-      default:
-        return "User";
+      // default:
+      //   return "User";
     }
   };
 

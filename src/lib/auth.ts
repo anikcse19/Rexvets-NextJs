@@ -83,6 +83,13 @@ export const authOptions: NextAuthOptions = {
             return null;
           }
 
+          // Check if user exists but has no password (Google OAuth user)
+          if (!user.password && user.googleId) {
+            console.error("Google OAuth user trying to sign in with password:", email);
+            // Return null but we'll handle this case in the signin page
+            return null;
+          }
+
           // Check if account is locked
           if (user.checkIfLocked()) {
             console.error("Account is locked:", email);

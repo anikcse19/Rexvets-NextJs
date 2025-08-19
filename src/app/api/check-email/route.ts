@@ -28,14 +28,20 @@ export async function GET(request: NextRequest) {
 
     // Check in both Veterinarian and PetParent collections
     const [existingVet, existingPetParent] = await Promise.all([
-      VeterinarianModel.findOne({ email }),
-      PetParentModel.findOne({ email })
+      VeterinarianModel.findOne({ email }).select('googleId password'),
+      PetParentModel.findOne({ email }).select('googleId password')
     ]);
 
     const isAvailable = !existingVet && !existingPetParent;
+    const exists = existingVet || existingPetParent;
+    
+    // Check if it's a Google OAuth account (has googleId but no password)
+    const isGoogleAccount = exists && exists.googleId && !exists.password;
 
     return NextResponse.json({
       available: isAvailable,
+      exists: !!exists,
+      isGoogleAccount: isGoogleAccount,
       email: email
     });
 

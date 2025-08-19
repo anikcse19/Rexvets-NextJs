@@ -41,22 +41,40 @@ export default function SignInPage() {
 
       if (result?.ok) {
         window.location.href = "/";
-              } else {
-          // Handle different error cases
-          if (result?.error === "CredentialsSignin") {
+      } else {
+        // Handle different error cases
+        if (result?.error === "CredentialsSignin") {
+          // Check if this might be a Google OAuth account
+          // We'll make an additional check to see if the email exists in the database
+          try {
+            const checkResponse = await fetch(`/api/check-email?email=${encodeURIComponent(email)}`);
+            if (checkResponse.ok) {
+                          const checkData = await checkResponse.json();
+            if (checkData.isGoogleAccount) {
+              setError("This email is linked to a Google account. Please sign in using the 'Continue with Google' button instead of email and password.");
+            } else {
+              setError("Invalid email or password. Please try again.");
+            }
+            } else {
+              setError("Invalid email or password. Please try again.");
+            }
+          } catch (error) {
             setError("Invalid email or password. Please try again.");
-          } else if (result?.error === "AccountLocked") {
-            setError("Account is temporarily locked due to too many failed attempts. Please try again later.");
-          } else if (result?.error === "AccountDeactivated") {
-            setError("Account is deactivated. Please contact support.");
-          } else if (result?.error === "EmailNotVerified") {
-            setError("Please verify your email address before signing in.");
-          } else if (result?.error?.includes("Database connection failed")) {
-            setError("Service temporarily unavailable. Please try again later.");
-          } else {
-            setError("Sign in failed. Please check your credentials and try again.");
           }
+        } else if (result?.error === "AccountLocked") {
+          setError("Account is temporarily locked due to too many failed attempts. Please try again later.");
+        } else if (result?.error === "AccountDeactivated") {
+          setError("Account is deactivated. Please contact support.");
+        } else if (result?.error === "EmailNotVerified") {
+          setError("Please verify your email address before signing in.");
+        } else if (result?.error?.includes("Database connection failed")) {
+          setError("Service temporarily unavailable. Please try again later.");
+        } else if (result?.error?.includes("linked to a Google account")) {
+          setError("This email is linked to a Google account. Please sign in using the 'Continue with Google' button instead of email and password.");
+        } else {
+          setError("Sign in failed. Please check your credentials and try again.");
         }
+      }
     } catch (error) {
       setError("An unexpected error occurred. Please try again.");
     } finally {
