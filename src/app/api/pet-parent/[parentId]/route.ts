@@ -1,4 +1,3 @@
-// app/api/pets/by-parent/[parentId]/route.ts
 import { connectToDatabase } from "@/lib/mongoose";
 import { PetModel } from "@/models/Pet";
 import mongoose from "mongoose";
@@ -27,16 +26,6 @@ export async function GET(
         { status: 404 }
       );
     }
-
-    return NextResponse.json({ success: true, pets }, { status: 200 });
-  } catch (err) {
-    console.error("GET pets by parent error:", err);
-    return NextResponse.json(
-      { error: "Failed to fetch pets" },
-      { status: 500 }
-    );
-  }
-}
 
     return NextResponse.json({ success: true, pets }, { status: 200 });
   } catch (err) {
