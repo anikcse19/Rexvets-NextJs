@@ -23,20 +23,12 @@ import { toSlug } from "@/lib/utils";
 import { DialogTitle } from "@radix-ui/react-dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { AnimatePresence, motion } from "framer-motion";
-import {
-  ChevronDown,
-  LogOut,
-  Menu,
-  Settings,
-  User,
-  UserCircle,
-} from "lucide-react";
+import { ChevronDown, LogOut, Menu, User, UserCircle } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
 import React, { useRef, useState } from "react";
 import TalkToVetButton from "../TalkToVet";
-import styles from "./Header.module.css";
 import IconWrapper from "./IconWrapper";
 
 const menuItems = {
@@ -50,8 +42,6 @@ const Header: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { data: session, status } = useSession();
-
-
 
   // const session = {
   //   user: {

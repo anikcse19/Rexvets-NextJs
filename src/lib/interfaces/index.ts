@@ -1,3 +1,4 @@
+import { Types } from "mongoose";
 import { StaticImageData } from "next/image";
 import { IconType } from "react-icons/lib";
 
@@ -18,12 +19,30 @@ export enum UserRole {
   Admin = "admin",
 }
 export interface IPet {
+  _id: string;
   name: string;
-  species: PetSpecies;
-  breed?: string;
-  age: number;
-  medicalHistory?: string[];
+  image: string;
+  species: "dog" | "cat" | "bird" | "rabbit" | "hamster" | "guinea pig";
+  breed: string;
+  gender: "male" | "female";
+  primaryColor: string;
+  spayedNeutered: "spayed" | "neutered" | "intact";
+  weight: number;
+  weightUnit: "kg" | "lb";
+  dateOfBirth: string;
+  microchipId?: string;
+  parentId: Types.ObjectId;
+  allergies?: string[];
+  medicalConditions?: string[];
+  currentMedications?: string[];
+  healthStatus?: "Healthy" | "Under Treatment" | "Critical" | "Unknown";
+  emergencyContact?: string;
+  veterinarianNotes?: string;
+  lastVisit?: string;
+  nextVaccination?: string;
+  isDeleted?: boolean;
 }
+
 export enum PetSpecies {
   Dog = "dog",
   Cat = "cat",
