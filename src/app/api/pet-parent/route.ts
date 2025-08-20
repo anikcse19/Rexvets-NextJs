@@ -1,10 +1,10 @@
 // src/app/api/pet-parent/route.ts api to get pet parent data
 
-import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { connectToDatabase } from "@/lib/mongoose";
 import PetParentModel from "@/models/PetParent";
+import { getServerSession } from "next-auth";
+import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 // Query validation
@@ -49,7 +49,13 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const { id, email, includePets, includePreferences, includeEmergencyContact } = parsed.data as any;
+    const {
+      id,
+      email,
+      includePets,
+      includePreferences,
+      includeEmergencyContact,
+    } = parsed.data as any;
 
     // Resolve identity: prefer explicit id/email; otherwise use authenticated session
     let resolvedFilter: Record<string, unknown> | null = null;
@@ -72,10 +78,14 @@ export async function GET(request: NextRequest) {
     const projectionParts: string[] = [SENSITIVE_EXCLUDE];
     if (includePets === false) projectionParts.push("-pets");
     if (includePreferences === false) projectionParts.push("-preferences");
-    if (includeEmergencyContact === false) projectionParts.push("-emergencyContact");
+    if (includeEmergencyContact === false)
+      projectionParts.push("-emergencyContact");
     const projection = projectionParts.join(" ");
 
-    const petParent = await PetParentModel.findOne({ ...resolvedFilter, isActive: true }).select(projection);
+    const petParent = await PetParentModel.findOne({
+      ...resolvedFilter,
+      isActive: true,
+    }).select(projection);
 
     if (!petParent) {
       return NextResponse.json(
