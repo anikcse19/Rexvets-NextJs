@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
 
     // Parse form data
     const formData = await request.formData();
-    console.log("Form data:", formData);
+    console.log("Form data received", formData);
 
     // Extract basic info
     const basicInfo = {
@@ -160,6 +160,39 @@ export async function POST(request: NextRequest) {
         },
         { status: 409 }
       );
+    }
+
+    // Check for duplicate license numbers across all veterinarians
+    if (licenses && licenses.length > 0) {
+      const licenseNumbers = licenses
+        .map((license: any) => license.licenseNumber)
+        .filter(Boolean);
+
+      if (licenseNumbers.length > 0) {
+        // Check for duplicate license numbers in the database
+        const existingLicenses = await VeterinarianModel.find({
+          "licenses.licenseNumber": { $in: licenseNumbers },
+        });
+
+        if (existingLicenses.length > 0) {
+          const duplicateNumbers = existingLicenses
+            .flatMap(
+              (vet) =>
+                vet.licenses?.map((license: any) => license.licenseNumber) || []
+            )
+            .filter((num) => licenseNumbers.includes(num));
+
+          return NextResponse.json(
+            {
+              error: `License number(s) already exist: ${duplicateNumbers.join(
+                ", "
+              )}. Please use different license numbers.`,
+              field: "licenseNumber",
+            },
+            { status: 409 }
+          );
+        }
+      }
     }
 
     // Upload files to Cloudinary
@@ -347,6 +380,7 @@ export async function POST(request: NextRequest) {
       isActive: true,
       isApproved: false,
       loginAttempts: 0,
+      isDeleted: false,
     };
 
     console.log("Veterinarian data to save:", {
@@ -416,6 +450,9 @@ export async function POST(request: NextRequest) {
       } else if (field === "phoneNumber") {
         errorMessage =
           "A veterinarian with this phone number already exists. Please use a different phone number.";
+      } else if (field.includes("licenseNumber")) {
+        errorMessage =
+          "A license number already exists. Please use a different license number.";
       }
 
       return NextResponse.json({ error: errorMessage, field }, { status: 409 });
