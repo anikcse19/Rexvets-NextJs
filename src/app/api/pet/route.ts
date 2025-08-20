@@ -1,38 +1,15 @@
-import { NextRequest, NextResponse } from "next/server";
-
 import { uploadToCloudinary } from "@/lib/cloudinary";
-import { IPet } from "@/lib/interfaces";
 import { connectToDatabase } from "@/lib/mongoose";
+import {
+  IErrorResponse,
+  sendResponse,
+  throwAppError,
+} from "@/lib/utils/send.response";
 import { PetModel } from "@/models/Pet";
 import { Types } from "mongoose";
-const validatePet = (data: Partial<IPet>) => {
-  const requiredFields = [
-    "name",
-    "image",
-    "species",
-    "breed",
-    "gender",
-    "primaryColor",
-    "spayedNeutered",
-    "weight",
-    "weightUnit",
-    "dateOfBirth",
-    "parentId",
-  ];
+import { NextRequest } from "next/server";
 
-  for (const field of requiredFields) {
-    if (!data[field as keyof IPet]) {
-      return `${field} is required`;
-    }
-  }
-
-  if (!Types.ObjectId.isValid(data.parentId as any)) {
-    return "Invalid parentId";
-  }
-
-  return null;
-};
-
+// Create a new pet
 export async function POST(req: NextRequest) {
   try {
     await connectToDatabase();
@@ -41,12 +18,20 @@ export async function POST(req: NextRequest) {
     const imageFile = formData.get("image") as File;
 
     if (!imageFile) {
-      return NextResponse.json({ error: "Image is required" }, { status: 400 });
+      return throwAppError(
+        {
+          success: false,
+          message: "Image is required",
+          errorCode: "IMAGE_REQUIRED",
+          errors: null,
+        },
+        400
+      );
     }
 
     // Upload image to Cloudinary
     const uploadResult = await uploadToCloudinary(imageFile, {
-      folder: "pets", // optional folder in Cloudinary
+      folder: "pets",
       resource_type: "image",
     });
 
@@ -76,15 +61,26 @@ export async function POST(req: NextRequest) {
     const pet = new PetModel(petData);
     await pet.save();
 
-    return NextResponse.json({ success: true, pet });
-  } catch (err) {
-    console.error(err);
-    return NextResponse.json(
-      { error: "Failed to create pet" },
-      { status: 500 }
+    return sendResponse({
+      statusCode: 201,
+      success: true,
+      message: "Pet created successfully",
+      data: pet,
+    });
+  } catch (error: any) {
+    return throwAppError(
+      {
+        success: false,
+        message: error.message || "Failed to create pet",
+        errorCode: "CREATE_FAILED",
+        errors: null,
+      },
+      500
     );
   }
 }
+
+// Get pets (single or paginated list)
 export async function GET(req: NextRequest) {
   try {
     await connectToDatabase();
@@ -97,21 +93,48 @@ export async function GET(req: NextRequest) {
 
     if (petId) {
       if (!Types.ObjectId.isValid(petId)) {
-        return NextResponse.json({ error: "Invalid pet ID" }, { status: 400 });
+        return throwAppError(
+          {
+            success: false,
+            message: "Invalid pet ID",
+            errorCode: "INVALID_PET_ID",
+            errors: null,
+          },
+          400
+        );
       }
 
-      const pet = await PetModel.findById(petId).populate("parentId");
-      if (!pet)
-        return NextResponse.json({ error: "Pet not found" }, { status: 404 });
+      // ✅ Ensure single pet is not soft-deleted
+      const pet = await PetModel.findOne({
+        _id: petId,
+        isDeleted: false,
+      }).populate("parentId");
 
-      return NextResponse.json({ pet });
+      if (!pet) {
+        return throwAppError(
+          {
+            success: false,
+            message: "Pet not found",
+            errorCode: "NOT_FOUND",
+            errors: null,
+          },
+          404
+        );
+      }
+
+      return sendResponse({
+        statusCode: 200,
+        success: true,
+        message: "Pet fetched successfully",
+        data: pet,
+      });
     }
 
-    // Build search filter
-    const filter: any = {};
+    // Build search filter ✅ always filter out deleted pets
+    const filter: any = { isDeleted: false };
+
     if (searchQuery) {
-      // case-insensitive search by name
-      filter.name = { $regex: searchQuery, $options: "i" };
+      filter.name = { $regex: searchQuery, $options: "i" }; // case-insensitive search
     }
 
     const skip = (page - 1) * limit;
@@ -123,77 +146,26 @@ export async function GET(req: NextRequest) {
 
     const totalPages = Math.ceil(total / limit);
 
-    return NextResponse.json({
-      pets,
-      pagination: {
-        total,
+    return sendResponse({
+      statusCode: 200,
+      success: true,
+      message: "Pets fetched successfully",
+      data: pets,
+      meta: {
         page,
         limit,
         totalPages,
       },
     });
-  } catch (err) {
-    console.error(err);
-    return NextResponse.json(
-      { error: "Failed to fetch pets" },
-      { status: 500 }
-    );
-  }
-}
-export async function PATCH(req: NextRequest) {
-  try {
-    await connectToDatabase();
-    const { searchParams } = new URL(req.url);
-    const petId = searchParams.get("id");
-    if (!petId || !Types.ObjectId.isValid(petId)) {
-      return NextResponse.json({ error: "Invalid pet ID" }, { status: 400 });
-    }
-
-    const body = await req.json();
-    const error = validatePet({
-      ...body,
-      parentId: body.parentId || new Types.ObjectId(),
-    });
-    if (error) return NextResponse.json({ error }, { status: 400 });
-
-    const updatedPet = await PetModel.findByIdAndUpdate(petId, body, {
-      new: true,
-    }).populate("parentId");
-
-    if (!updatedPet)
-      return NextResponse.json({ error: "Pet not found" }, { status: 404 });
-    return NextResponse.json({ success: true, pet: updatedPet });
-  } catch (err) {
-    console.error(err);
-    return NextResponse.json(
-      { error: "Failed to update pet" },
-      { status: 500 }
-    );
-  }
-}
-
-export async function DELETE(req: NextRequest) {
-  try {
-    await connectToDatabase();
-    const { searchParams } = new URL(req.url);
-    const petId = searchParams.get("id");
-    if (!petId || !Types.ObjectId.isValid(petId)) {
-      return NextResponse.json({ error: "Invalid pet ID" }, { status: 400 });
-    }
-
-    const deletedPet = await PetModel.findByIdAndDelete(petId);
-    if (!deletedPet)
-      return NextResponse.json({ error: "Pet not found" }, { status: 404 });
-
-    return NextResponse.json({
-      success: true,
-      message: "Pet deleted successfully",
-    });
-  } catch (err) {
-    console.error(err);
-    return NextResponse.json(
-      { error: "Failed to delete pet" },
-      { status: 500 }
+  } catch (error: any) {
+    return throwAppError(
+      {
+        success: false,
+        message: error.message || "Failed to fetch pets",
+        errorCode: "FETCH_FAILED",
+        errors: null,
+      },
+      500
     );
   }
 }
