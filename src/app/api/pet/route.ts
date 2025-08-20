@@ -6,6 +6,7 @@ import {
   throwAppError,
 } from "@/lib/utils/send.response";
 import { PetModel } from "@/models/Pet";
+import PetParent from "@/models/PetParent";
 import { Types } from "mongoose";
 import { NextRequest } from "next/server";
 
@@ -80,67 +81,32 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// Get pets (single or paginated list)
+// Get pets
 export async function GET(req: NextRequest) {
+  await connectToDatabase();
   try {
-    await connectToDatabase();
     const { searchParams } = new URL(req.url);
 
-    const petId = searchParams.get("petId");
-    const searchQuery = searchParams.get("search") || "";
+    const searchQuery = searchParams.get("searchQuery") || "";
     const page = parseInt(searchParams.get("page") || "1", 10);
     const limit = parseInt(searchParams.get("limit") || "10", 10);
 
-    if (petId) {
-      if (!Types.ObjectId.isValid(petId)) {
-        return throwAppError(
-          {
-            success: false,
-            message: "Invalid pet ID",
-            errorCode: "INVALID_PET_ID",
-            errors: null,
-          },
-          400
-        );
-      }
-
-      // ✅ Ensure single pet is not soft-deleted
-      const pet = await PetModel.findOne({
-        _id: petId,
-        isDeleted: false,
-      }).populate("parentId");
-
-      if (!pet) {
-        return throwAppError(
-          {
-            success: false,
-            message: "Pet not found",
-            errorCode: "NOT_FOUND",
-            errors: null,
-          },
-          404
-        );
-      }
-
-      return sendResponse({
-        statusCode: 200,
-        success: true,
-        message: "Pet fetched successfully",
-        data: pet,
-      });
-    }
-
-    // Build search filter ✅ always filter out deleted pets
+    // Always filter out deleted pets
     const filter: any = { isDeleted: false };
 
+    // Apply search on name OR breed
     if (searchQuery) {
-      filter.name = { $regex: searchQuery, $options: "i" }; // case-insensitive search
+      filter.$or = [
+        { name: { $regex: searchQuery, $options: "i" } },
+        { breed: { $regex: searchQuery, $options: "i" } },
+        { gender: { $regex: searchQuery, $options: "i" } },
+      ];
     }
 
     const skip = (page - 1) * limit;
 
     const [pets, total] = await Promise.all([
-      PetModel.find(filter).populate("parentId").skip(skip).limit(limit),
+      PetModel.find(filter).skip(skip).limit(limit),
       PetModel.countDocuments(filter),
     ]);
 

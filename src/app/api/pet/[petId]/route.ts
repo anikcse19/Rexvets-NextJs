@@ -5,9 +5,8 @@ import {
   throwAppError,
 } from "@/lib/utils/send.response";
 import { PetModel } from "@/models/Pet";
-import mongoose from "mongoose";
+import mongoose, { Types } from "mongoose";
 import { NextRequest } from "next/server";
-
 //  Get single pet
 export async function GET(
   req: NextRequest,
@@ -16,7 +15,6 @@ export async function GET(
   try {
     await connectToDatabase();
     const { petId } = await context.params;
-
     if (!mongoose.Types.ObjectId.isValid(petId)) {
       const errResp: IErrorResponse = {
         success: false,
@@ -137,6 +135,11 @@ export async function DELETE(
     await connectToDatabase();
     const { petId } = await params;
 
+    // Extract isDeleted from query params, default to false
+    const { searchParams } = new URL(req.url);
+    const isDeletedQuery = searchParams.get("isDeleted");
+    const isDeleted = isDeletedQuery === "true";
+    console.log("isDeleted:", isDeleted);
     if (!mongoose.Types.ObjectId.isValid(petId)) {
       return throwAppError(
         {
@@ -148,37 +151,38 @@ export async function DELETE(
         400
       );
     }
-
-    // ✅ Only delete if not already deleted
-    const deletedPet = await PetModel.findOneAndUpdate(
-      { _id: petId, isDeleted: false },
-      { isDeleted: true },
-      { new: true }
+    console.log("petId", petId);
+    // Only update if current isDeleted matches query (prevents duplicate deletion)
+    const deletedPet = await PetModel.findOne(
+      { _id: petId } // only update if not already in target state
     );
-
     if (!deletedPet) {
       return throwAppError(
         {
           success: false,
-          message: "Pet not found or already deleted",
+          message: "Pet not found or already in requested deleted state",
           errorCode: "NOT_FOUND",
           errors: null,
         },
         404
       );
     }
-
+    deletedPet.isDeleted = isDeleted;
+    await deletedPet.save({
+      validateBeforeSave: true,
+      new: true,
+    });
     return sendResponse({
       statusCode: 200,
       success: true,
-      message: "Pet deleted successfully",
-      data: null,
+      message: `Pet ${isDeleted ? "deleted" : "restored"} successfully`,
+      data: deletedPet,
     });
   } catch (error: any) {
     return throwAppError(
       {
         success: false,
-        message: error.message || "Failed to delete pet",
+        message: error.message || "Failed to update pet deletion status",
         errorCode: "DELETE_FAILED",
         errors: null,
       },
