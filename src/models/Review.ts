@@ -13,6 +13,9 @@ export interface IReview extends Document {
   doctorId: mongoose.Types.ObjectId;
   parentId: mongoose.Types.ObjectId;
   
+  // Soft delete flag
+  isDeleted?: boolean;
+  
   // Timestamps
   createdAt: Date;
   updatedAt: Date;
@@ -31,6 +34,12 @@ export interface IReviewModel extends Model<IReview> {
     averageRating: number;
     ratingDistribution: { [key: number]: number };
   }>;
+  // Soft delete methods
+  softDelete(reviewId: mongoose.Types.ObjectId): Promise<IReview | null>;
+  restore(reviewId: mongoose.Types.ObjectId): Promise<IReview | null>;
+  findDeletedReviews(): Promise<IReview[]>;
+  findDeletedReviewsByDoctorId(doctorId: mongoose.Types.ObjectId): Promise<IReview[]>;
+  findDeletedReviewsByParentId(parentId: mongoose.Types.ObjectId): Promise<IReview[]>;
 }
 
 const reviewSchema = new Schema<IReview>({
@@ -47,7 +56,7 @@ const reviewSchema = new Schema<IReview>({
       message: 'Rating must be a whole number between 1 and 5'
     }
   },
-  reviewText: {
+  comment: {
     type: String,
     required: [true, 'Review text is required'],
     trim: true,
@@ -87,6 +96,13 @@ const reviewSchema = new Schema<IReview>({
     ref: 'PetParent',
     required: [true, 'Parent ID is required'],
     index: true
+  },
+  
+  // Soft delete flag
+  isDeleted: {
+    type: Boolean,
+    default: false,
+    index: true
   }
 }, {
   timestamps: true,
@@ -95,27 +111,28 @@ const reviewSchema = new Schema<IReview>({
 });
 
 // Indexes for better query performance
-reviewSchema.index({ doctorId: 1, visible: 1 });
-reviewSchema.index({ parentId: 1 });
-reviewSchema.index({ rating: 1 });
-reviewSchema.index({ createdAt: -1 });
-reviewSchema.index({ appointmentDate: 1 });
+reviewSchema.index({ doctorId: 1, visible: 1, isDeleted: 1 });
+reviewSchema.index({ parentId: 1, isDeleted: 1 });
+reviewSchema.index({ rating: 1, isDeleted: 1 });
+reviewSchema.index({ createdAt: -1, isDeleted: 1 });
+reviewSchema.index({ appointmentDate: 1, isDeleted: 1 });
+reviewSchema.index({ isDeleted: 1 });
 
 // Static methods
 reviewSchema.statics.findByDoctorId = function(doctorId: mongoose.Types.ObjectId) {
-  return this.find({ doctorId, visible: true }).sort({ createdAt: -1 });
+  return this.find({ doctorId, visible: true, isDeleted: { $ne: true } }).sort({ createdAt: -1 });
 };
 
 reviewSchema.statics.findByParentId = function(parentId: mongoose.Types.ObjectId) {
-  return this.find({ parentId }).sort({ createdAt: -1 });
+  return this.find({ parentId, isDeleted: { $ne: true } }).sort({ createdAt: -1 });
 };
 
 reviewSchema.statics.findVisibleReviews = function() {
-  return this.find({ visible: true }).sort({ createdAt: -1 });
+  return this.find({ visible: true, isDeleted: { $ne: true } }).sort({ createdAt: -1 });
 };
 
 reviewSchema.statics.findReviewsByRating = function(rating: number) {
-  return this.find({ rating, visible: true }).sort({ createdAt: -1 });
+  return this.find({ rating, visible: true, isDeleted: { $ne: true } }).sort({ createdAt: -1 });
 };
 
 reviewSchema.statics.findReviewsByDateRange = function(startDate: string, endDate: string) {
@@ -124,13 +141,14 @@ reviewSchema.statics.findReviewsByDateRange = function(startDate: string, endDat
       $gte: startDate,
       $lte: endDate
     },
-    visible: true
+    visible: true,
+    isDeleted: { $ne: true }
   }).sort({ createdAt: -1 });
 };
 
 reviewSchema.statics.getAverageRating = async function(doctorId: mongoose.Types.ObjectId) {
   const result = await this.aggregate([
-    { $match: { doctorId, visible: true } },
+    { $match: { doctorId, visible: true, isDeleted: { $ne: true } } },
     { $group: { _id: null, averageRating: { $avg: '$rating' } } }
   ]);
   return result.length > 0 ? Math.round(result[0].averageRating * 10) / 10 : 0;
@@ -138,7 +156,7 @@ reviewSchema.statics.getAverageRating = async function(doctorId: mongoose.Types.
 
 reviewSchema.statics.getReviewStats = async function(doctorId: mongoose.Types.ObjectId) {
   const result = await this.aggregate([
-    { $match: { doctorId, visible: true } },
+    { $match: { doctorId, visible: true, isDeleted: { $ne: true } } },
     {
       $group: {
         _id: null,
@@ -171,6 +189,35 @@ reviewSchema.statics.getReviewStats = async function(doctorId: mongoose.Types.Ob
   };
 };
 
+// Soft delete methods
+reviewSchema.statics.softDelete = function(reviewId: mongoose.Types.ObjectId) {
+  return this.findByIdAndUpdate(
+    reviewId,
+    { isDeleted: true },
+    { new: true }
+  );
+};
+
+reviewSchema.statics.restore = function(reviewId: mongoose.Types.ObjectId) {
+  return this.findByIdAndUpdate(
+    reviewId,
+    { isDeleted: false },
+    { new: true }
+  );
+};
+
+reviewSchema.statics.findDeletedReviews = function() {
+  return this.find({ isDeleted: true }).sort({ createdAt: -1 });
+};
+
+reviewSchema.statics.findDeletedReviewsByDoctorId = function(doctorId: mongoose.Types.ObjectId) {
+  return this.find({ doctorId, isDeleted: true }).sort({ createdAt: -1 });
+};
+
+reviewSchema.statics.findDeletedReviewsByParentId = function(parentId: mongoose.Types.ObjectId) {
+  return this.find({ parentId, isDeleted: true }).sort({ createdAt: -1 });
+};
+
 // Instance methods
 reviewSchema.methods.toJSON = function() {
   const review = this.toObject();
@@ -181,8 +228,8 @@ reviewSchema.methods.toJSON = function() {
 // Pre-save middleware
 reviewSchema.pre('save', function(next) {
   // Ensure review text is properly formatted
-  if (this.reviewText) {
-    this.reviewText = this.reviewText.trim();
+  if (this.comment) {
+    this.comment = this.comment.trim();
   }
   next();
 });

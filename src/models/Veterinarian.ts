@@ -440,6 +440,17 @@ veterinarianSchema.index({ specialization: 1 });
 veterinarianSchema.index({ available: 1 });
 veterinarianSchema.index({ emailVerificationToken: 1 });
 veterinarianSchema.index({ passwordResetToken: 1 });
+
+// Performance indexes for list API queries
+veterinarianSchema.index({ isActive: 1, isDeleted: 1, isApproved: 1 });
+veterinarianSchema.index({ specialization: 1, available: 1 });
+veterinarianSchema.index({ specialities: 1 });
+veterinarianSchema.index({ treatedSpecies: 1 });
+veterinarianSchema.index({ interests: 1 });
+veterinarianSchema.index({ researchAreas: 1 });
+veterinarianSchema.index({ isDeleted: 1 });
+veterinarianSchema.index({ name: 'text' }); // Text search index
+
 // Unique index for license numbers to prevent duplicates
 veterinarianSchema.index({ 'licenses.licenseNumber': 1 }, { unique: true, sparse: true });
 
