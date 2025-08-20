@@ -21,6 +21,13 @@ const basicInfoSchema = z.object({
   available: z.boolean().optional(),
   timezone: z.string().optional(),
   languages: z.array(z.string()).optional(),
+  // New optional fields
+  treatedSpecies: z.array(z.string()).optional(),
+  specialities: z.array(z.string()).optional(),
+  interests: z.array(z.string()).optional(),
+  researchAreas: z.array(z.string()).optional(),
+  monthlyGoal: z.number().min(0).optional(),
+  experienceYears: z.string().optional(),
 });
 
 const educationSchema = z.object({
@@ -332,8 +339,11 @@ export async function PUT(request: NextRequest) {
     }
 
     return NextResponse.json({
+      success: true,
       message: "Veterinarian profile updated successfully",
-      veterinarian: updatedVeterinarian
+      data: {
+        veterinarian: updatedVeterinarian
+      }
     }, { status: 200 });
 
   } catch (error: any) {
@@ -403,7 +413,10 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      veterinarian
+      message: "Veterinarian profile retrieved successfully",
+      data: {
+        veterinarian
+      }
     });
 
   } catch (error: any) {

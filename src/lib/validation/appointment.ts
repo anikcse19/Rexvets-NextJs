@@ -58,5 +58,3 @@ export type CreateAppointmentInput = z.infer<typeof createAppointmentSchema>;
 export type UpdateAppointmentInput = z.infer<typeof updateAppointmentSchema>;
 export type ListAppointmentsQuery = z.infer<typeof listAppointmentsQuerySchema>;
 export type BulkDeleteAppointmentsInput = z.infer<typeof bulkDeleteAppointmentsSchema>;
-
-
