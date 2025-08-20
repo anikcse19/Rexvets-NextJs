@@ -349,6 +349,13 @@ export async function POST(request: NextRequest) {
       languages: ["English"],
       timezone: "UTC",
       schedule: convertToSchedule(schedule),
+      // New optional fields with default values
+      treatedSpecies: [],
+      specialities: [],
+      interests: [],
+      researchAreas: [],
+      monthlyGoal: 0,
+      experienceYears: "",
       isEmailVerified: false,
       isActive: true,
       isApproved: false,
@@ -390,10 +397,13 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({
+      success: true,
       message: "Veterinarian registered successfully",
-      veterinarianId: veterinarian._id,
-      email: veterinarian.email,
-      requiresEmailVerification: true,
+      data: {
+        veterinarianId: veterinarian._id,
+        email: veterinarian.email,
+        requiresEmailVerification: true,
+      }
     }, { status: 201 });
 
   } catch (error: any) {

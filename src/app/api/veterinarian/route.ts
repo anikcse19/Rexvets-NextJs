@@ -24,6 +24,12 @@ export async function GET(req: NextRequest) {
     const specialization = (searchParams.get('specialization') || '').trim();
     const availableParam = searchParams.get('available');
     const approvedParam = searchParams.get('approved');
+    const speciality = (searchParams.get('speciality') || '').trim();
+    const treatedSpecies = (searchParams.get('treatedSpecies') || '').trim();
+    const interest = (searchParams.get('interest') || '').trim();
+    const researchArea = (searchParams.get('researchArea') || '').trim();
+    const monthlyGoal = searchParams.get('monthlyGoal');
+    const experienceYears = (searchParams.get('experienceYears') || '').trim();
 
     const filter: Record<string, any> = {
       isActive: true,
@@ -47,6 +53,24 @@ export async function GET(req: NextRequest) {
       filter.available = true;
     } else if (availableParam === 'false') {
       filter.available = false;
+    }
+    if (speciality) {
+      filter.specialities = { $in: [speciality] };
+    }
+    if (treatedSpecies) {
+      filter.treatedSpecies = { $in: [treatedSpecies] };
+    }
+    if (interest) {
+      filter.interests = { $in: [interest] };
+    }
+    if (researchArea) {
+      filter.researchAreas = { $in: [researchArea] };
+    }
+    if (monthlyGoal) {
+      filter.monthlyGoal = { $gte: parseInt(monthlyGoal) };
+    }
+    if (experienceYears) {
+      filter.experienceYears = { $regex: experienceYears, $options: 'i' };
     }
 
     const query = VeterinarianModel.find(filter)

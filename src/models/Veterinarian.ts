@@ -33,6 +33,13 @@ export interface IVeterinarian extends Document {
     endDate?: Date;
     description?: string;
   }>;
+  // New optional fields
+  treatedSpecies?: string[];
+  specialities?: string[];
+  interests?: string[];
+  researchAreas?: string[];
+  monthlyGoal?: number;
+  experienceYears?: string;
   certifications: Array<{
     name: string;
     issuingOrganization: string;
@@ -239,6 +246,31 @@ const veterinarianSchema = new Schema<IVeterinarian>({
       trim: true
     }
   }],
+  // New optional fields
+  treatedSpecies: [{
+    type: String,
+    trim: true
+  }],
+  specialities: [{
+    type: String,
+    trim: true
+  }],
+  interests: [{
+    type: String,
+    trim: true
+  }],
+  researchAreas: [{
+    type: String,
+    trim: true
+  }],
+  monthlyGoal: {
+    type: Number,
+    min: [0, 'Monthly goal cannot be negative']
+  },
+  experienceYears: {
+    type: String,
+    trim: true
+  },
   certifications: [{
     name: {
       type: String,
