@@ -8,9 +8,6 @@ export interface IVeterinarian extends Document {
   password?: string;
   phoneNumber: string;
   specialization: string;
-  licenseNumber: string;
-  licenseState: string;
-  licenseExpiryDate: Date;
   consultationFee: number;
   available: boolean;
   profileImage?: string;
@@ -411,6 +408,8 @@ veterinarianSchema.index({ specialization: 1 });
 veterinarianSchema.index({ available: 1 });
 veterinarianSchema.index({ emailVerificationToken: 1 });
 veterinarianSchema.index({ passwordResetToken: 1 });
+// Unique index for license numbers to prevent duplicates
+veterinarianSchema.index({ 'licenses.licenseNumber': 1 }, { unique: true, sparse: true });
 
 // Virtual for checking if account is locked
 veterinarianSchema.virtual('isLocked').get(function() {
