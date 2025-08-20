@@ -304,7 +304,10 @@ export default function CompleteProfilePage() {
                         <Input
                           id="emergencyName"
                           value={formData.emergencyContact.name}
-                          onChange={(e) => handleInputChange('emergencyContact', { ...formData.emergencyContact, name: e.target.value })}
+                          onChange={(e) => setFormData(prev => ({
+                            ...prev,
+                            emergencyContact: { ...prev.emergencyContact, name: e.target.value }
+                          }))}
                           className="h-12 bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-cyan-400 focus:ring-cyan-400/20 backdrop-blur-sm"
                           placeholder="Emergency contact name"
                         />
@@ -320,7 +323,10 @@ export default function CompleteProfilePage() {
                         <Input
                           id="emergencyPhone"
                           value={formData.emergencyContact.phone}
-                          onChange={(e) => handleInputChange('emergencyContact', { ...formData.emergencyContact, phone: e.target.value })}
+                          onChange={(e) => setFormData(prev => ({
+                            ...prev,
+                            emergencyContact: { ...prev.emergencyContact, phone: e.target.value }
+                          }))}
                           className="h-12 bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-cyan-400 focus:ring-cyan-400/20 backdrop-blur-sm"
                           placeholder="Emergency contact phone"
                         />
@@ -337,7 +343,10 @@ export default function CompleteProfilePage() {
                       <Input
                         id="emergencyRelationship"
                         value={formData.emergencyContact.relationship}
-                        onChange={(e) => handleInputChange('emergencyContact', { ...formData.emergencyContact, relationship: e.target.value })}
+                        onChange={(e) => setFormData(prev => ({
+                          ...prev,
+                          emergencyContact: { ...prev.emergencyContact, relationship: e.target.value }
+                        }))}
                         className="h-12 bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-cyan-400 focus:ring-cyan-400/20 backdrop-blur-sm"
                         placeholder="e.g., Spouse, Parent, Friend"
                       />
@@ -359,13 +368,16 @@ export default function CompleteProfilePage() {
                           type="checkbox"
                           id="emailNotifications"
                           checked={formData.preferences.notifications.email}
-                          onChange={(e) => handleInputChange('preferences', {
-                            ...formData.preferences,
-                            notifications: {
-                              ...formData.preferences.notifications,
-                              email: e.target.checked
+                          onChange={(e) => setFormData(prev => ({
+                            ...prev,
+                            preferences: {
+                              ...prev.preferences,
+                              notifications: {
+                                ...prev.preferences.notifications,
+                                email: e.target.checked
+                              }
                             }
-                          })}
+                          }))}
                           className="w-4 h-4 text-cyan-600 bg-white/10 border-white/20 rounded focus:ring-cyan-500"
                         />
                         <Label htmlFor="emailNotifications" className="text-white/90">
@@ -378,13 +390,16 @@ export default function CompleteProfilePage() {
                           type="checkbox"
                           id="smsNotifications"
                           checked={formData.preferences.notifications.sms}
-                          onChange={(e) => handleInputChange('preferences', {
-                            ...formData.preferences,
-                            notifications: {
-                              ...formData.preferences.notifications,
-                              sms: e.target.checked
+                          onChange={(e) => setFormData(prev => ({
+                            ...prev,
+                            preferences: {
+                              ...prev.preferences,
+                              notifications: {
+                                ...prev.preferences.notifications,
+                                sms: e.target.checked
+                              }
                             }
-                          })}
+                          }))}
                           className="w-4 h-4 text-cyan-600 bg-white/10 border-white/20 rounded focus:ring-cyan-500"
                         />
                         <Label htmlFor="smsNotifications" className="text-white/90">
@@ -397,13 +412,16 @@ export default function CompleteProfilePage() {
                           type="checkbox"
                           id="pushNotifications"
                           checked={formData.preferences.notifications.push}
-                          onChange={(e) => handleInputChange('preferences', {
-                            ...formData.preferences,
-                            notifications: {
-                              ...formData.preferences.notifications,
-                              push: e.target.checked
+                          onChange={(e) => setFormData(prev => ({
+                            ...prev,
+                            preferences: {
+                              ...prev.preferences,
+                              notifications: {
+                                ...prev.preferences.notifications,
+                                push: e.target.checked
+                              }
                             }
-                          })}
+                          }))}
                           className="w-4 h-4 text-cyan-600 bg-white/10 border-white/20 rounded focus:ring-cyan-500"
                         />
                         <Label htmlFor="pushNotifications" className="text-white/90">

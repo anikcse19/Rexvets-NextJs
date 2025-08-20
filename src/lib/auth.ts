@@ -251,16 +251,13 @@ export const authOptions: NextAuthOptions = {
           }
           
           // Determine which account exists (if any)
-          let existingUser = petParentUser || veterinarianUser || vetTechUser;
+          const existingUser = petParentUser || veterinarianUser || vetTechUser;
           let userRole = 'pet_parent';
-          let collectionName = 'PetParent';
           
           if (veterinarianUser) {
             userRole = 'veterinarian';
-            collectionName = 'Veterinarian';
           } else if (vetTechUser) {
             userRole = 'technician';
-            collectionName = 'VetTech';
           }
           
 

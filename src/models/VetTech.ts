@@ -347,15 +347,13 @@ const vetTechSchema = new Schema<IVetTech>({
   toObject: { virtuals: true }
 });
 
-// Indexes
-vetTechSchema.index({ email: 1 });
+// Indexes (email and googleId are auto-created by unique/sparse)
 vetTechSchema.index({ licenseNumber: 1 });
 vetTechSchema.index({ isActive: 1 });
 vetTechSchema.index({ isApproved: 1 });
 vetTechSchema.index({ specialization: 1 });
 vetTechSchema.index({ emailVerificationToken: 1 });
 vetTechSchema.index({ passwordResetToken: 1 });
-vetTechSchema.index({ googleId: 1 });
 
 // Virtual for checking if account is locked
 vetTechSchema.virtual('isLocked').get(function() {

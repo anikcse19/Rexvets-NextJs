@@ -10,7 +10,7 @@ export async function GET(
   try {
     await connectToDatabase();
 
-    const { parentId } = params;
+    const { parentId } = await params;
 
     // Validate ObjectId
     if (!mongoose.Types.ObjectId.isValid(parentId)) {

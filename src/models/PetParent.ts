@@ -21,6 +21,8 @@ export interface IPetParent extends Document {
   loginAttempts: number;
   lockUntil?: Date;
   isActive: boolean;
+  // Soft delete flag
+  isDeleted?: boolean;
   
   // Google OAuth fields
   googleId?: string;
@@ -172,6 +174,12 @@ const petParentSchema = new Schema<IPetParent>({
     default: true
   },
   
+  // Soft delete flag
+  isDeleted: {
+    type: Boolean,
+    default: false
+  },
+  
   // Google OAuth fields
   googleId: {
     type: String,
@@ -284,13 +292,11 @@ const petParentSchema = new Schema<IPetParent>({
   toObject: { virtuals: true }
 });
 
-// Indexes
-petParentSchema.index({ email: 1 });
+// Indexes (email and googleId are auto-created by unique/sparse)
 petParentSchema.index({ isActive: 1 });
 petParentSchema.index({ emailVerificationToken: 1 });
 petParentSchema.index({ passwordResetToken: 1 });
 petParentSchema.index({ state: 1 });
-petParentSchema.index({ googleId: 1 });
 
 // Virtual for checking if account is locked
 petParentSchema.virtual('isLocked').get(function() {

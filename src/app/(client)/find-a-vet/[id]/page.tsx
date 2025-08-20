@@ -166,11 +166,7 @@ const mockAvailableSlots = {
   ],
 };
 
-export default function DoctorProfilePage({
-  params,
-}: {
-  params: { id: string };
-}) {
+export default function DoctorProfilePage() {
   const [showAllReviews, setShowAllReviews] = useState(false);
   const [selectedDate, setSelectedDate] = useState("2025-01-16");
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);

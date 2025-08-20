@@ -194,7 +194,7 @@ export default function VetRegistrationForm() {
 
       // Debug: Log FormData contents
       console.log('FormData entries:');
-      for (let [key, value] of formDataToSend.entries()) {
+      for (const [key, value] of formDataToSend.entries()) {
         console.log(`${key}:`, value instanceof File ? `File: ${value.name} (${value.size} bytes)` : value);
       }
 
