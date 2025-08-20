@@ -20,7 +20,10 @@ const config = {
   APP_ID_PUBLIC: process.env.NEXT_PUBLIC_APP_ID,
   ZEGO_SECRET: process.env.ZEGO_SERVER_SECRET,
 
-  STRIPE_KEY_PUBLIC: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
+  // Simplified Stripe Configuration
+  // Only essential variables needed for basic payment processing
+  STRIPE_KEY_PUBLIC: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY, // Client-side publishable key
+  STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY, // Server-side secret key for API calls
 
   API_BASE_URL_PUBLIC: process.env.NEXT_PUBLIC_API_BASE_URL,
   EMAIL_SERVER_URL_PUBLIC: process.env.NEXT_PUBLIC_EMAIL_SERVER_URL,
@@ -34,7 +37,7 @@ const config = {
 
   NODE_ENVIRONMENT: process.env.NODE_ENV,
 
-  STRIPE_KEY_PUBLIC_ALT: process.env.NEXT_PUBLIC_STRIPE_KEY,
+  STRIPE_KEY_PUBLIC_ALT: process.env.NEXT_PUBLIC_STRIPE_KEY, // Alternative Stripe publishable key
 
   GOOGLE_PLACES_KEY_PUBLIC: process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY,
   GOOGLE_PLACE_ID_PUBLIC: process.env.NEXT_PUBLIC_GOOGLE_PLACE_ID,
