@@ -1,5 +1,5 @@
 import { IPet } from "@/lib";
-import mongoose, { Document, Schema, Types } from "mongoose";
+import mongoose, { Document, Schema } from "mongoose";
 
 const petSchema = new Schema<IPet & Document>({
   name: { type: String, required: true },

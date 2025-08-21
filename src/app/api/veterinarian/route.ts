@@ -20,10 +20,16 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const page = Math.max(parseInt(searchParams.get('page') || '1', 10), 1);
     const limit = Math.min(Math.max(parseInt(searchParams.get('limit') || '20', 10), 1), 100);
-    const q = (searchParams.get('q') || '').trim();
+    const q = (searchParams.get('q') || searchParams.get('name') || '').trim();
     const specialization = (searchParams.get('specialization') || '').trim();
     const availableParam = searchParams.get('available');
     const approvedParam = searchParams.get('approved');
+    const speciality = (searchParams.get('speciality') || '').trim();
+    const treatedSpecies = (searchParams.get('treatedSpecies') || '').trim();
+    const interest = (searchParams.get('interest') || '').trim();
+    const researchArea = (searchParams.get('researchArea') || '').trim();
+    const monthlyGoal = searchParams.get('monthlyGoal');
+    const experienceYears = (searchParams.get('experienceYears') || '').trim();
 
     const filter: Record<string, any> = {
       isActive: true,
@@ -47,6 +53,24 @@ export async function GET(req: NextRequest) {
       filter.available = true;
     } else if (availableParam === 'false') {
       filter.available = false;
+    }
+    if (speciality) {
+      filter.specialities = { $in: [speciality] };
+    }
+    if (treatedSpecies) {
+      filter.treatedSpecies = { $in: [treatedSpecies] };
+    }
+    if (interest) {
+      filter.interests = { $in: [interest] };
+    }
+    if (researchArea) {
+      filter.researchAreas = { $in: [researchArea] };
+    }
+    if (monthlyGoal) {
+      filter.monthlyGoal = { $gte: parseInt(monthlyGoal) };
+    }
+    if (experienceYears) {
+      filter.experienceYears = { $regex: experienceYears, $options: 'i' };
     }
 
     const query = VeterinarianModel.find(filter)

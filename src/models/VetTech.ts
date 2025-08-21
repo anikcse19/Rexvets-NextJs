@@ -107,12 +107,8 @@ const vetTechSchema = new Schema<IVetTech>({
     trim: true,
     match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Please enter a valid email']
   },
-  password: {
-    type: String,
-    required: [true, 'Password is required'],
-    minlength: [8, 'Password must be at least 8 characters long'],
-    select: false
-  },
+  // Password field removed - now handled by User model
+  // password: { ... },
   phoneNumber: {
     type: String,
     required: [true, 'Phone number is required'],
@@ -302,8 +298,7 @@ const vetTechSchema = new Schema<IVetTech>({
   // Google OAuth fields
   googleId: {
     type: String,
-    sparse: true,
-    index: true
+    sparse: true
   },
   googleAccessToken: {
     type: String,

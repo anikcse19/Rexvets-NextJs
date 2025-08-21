@@ -4,3 +4,4 @@ export { default as VeterinarianModel, type IVeterinarian, type IVeterinarianMod
 export { default as VetTechModel, type IVetTech, type IVetTechModel } from './VetTech';
 export { default as AppointmentModel, type IAppointment, type IAppointmentModel } from './Appointment';
 export { default as DonationModel, type IDonation, type IDonationModel } from './Donation';
+export { default as ReviewModel, type IReview, type IReviewModel } from './Review';
