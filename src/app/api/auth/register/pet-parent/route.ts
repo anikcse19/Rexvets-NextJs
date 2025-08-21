@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/mongoose";
-import PetParentModel, { IPetParentModel } from "@/models/PetParent";
-import VeterinarianModel from "@/models/Veterinarian";
-import VetTechModel from "@/models/VetTech";
+import PetParentModel from "@/models/PetParent";
+import UserModel from "@/models/User";
+import { createOrUpdateUserAuth, linkUserToModel } from "@/lib/auth-helpers";
 import { z } from "zod";
 import { sendEmailVerification } from "@/lib/email";
 
@@ -61,24 +61,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if user already exists in any collection
+    // Check if user already exists in User collection
     try {
-      // Check all collections to prevent duplicate accounts
-      const existingPetParent = await PetParentModel.findOne({ email });
-      const existingVeterinarian = await VeterinarianModel.findOne({ email });
-      const existingVetTech = await VetTechModel.findOne({ email });
+      const existingUser = await UserModel.findOne({ email });
       
-      // Count how many accounts exist with this email
-      const existingAccounts = [existingPetParent, existingVeterinarian, existingVetTech].filter(Boolean);
-      
-      if (existingAccounts.length > 0) {
-        let accountType = "account";
-        if (existingVeterinarian) accountType = "veterinarian account";
-        else if (existingVetTech) accountType = "vet technician account";
-        else if (existingPetParent) accountType = "pet parent account";
-        
+      if (existingUser) {
         return NextResponse.json(
-          { error: `This email is already associated with a ${accountType}. Please use a different email or try signing in.` },
+          { error: "This email is already associated with an account. Please use a different email or try signing in." },
           { status: 409 }
         );
       }
@@ -101,25 +90,20 @@ export async function POST(request: NextRequest) {
       timezone: incomingPreferences?.timezone ?? 'UTC',
     };
 
-    // Create new pet parent
+    // Create new pet parent profile (without authentication fields)
     const petParent = new PetParentModel({
       name,
       email,
-      password,
       phoneNumber,
       state,
       city,
       address,
       zipCode,
       pets: [], // Empty array initially
-
       preferences: mergedPreferences,
     });
 
-    // Generate email verification token
-    const verificationToken = petParent.generateEmailVerificationToken();
-
-    // Save the user
+    // Save the pet parent profile
     try {
       await petParent.save();
     } catch (saveError: any) {
@@ -134,7 +118,7 @@ export async function POST(request: NextRequest) {
         }
         return NextResponse.json(
           { error: "A user with this information already exists. Please check your details." },
-          { status: 409 }
+          { status: 500 }
         );
       }
       
@@ -152,28 +136,62 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Send email verification
+    // Create user authentication record
     try {
-      await sendEmailVerification(email, verificationToken, name);
-    } catch (emailError) {
-      // Don't fail the registration if email fails
-      // User can request email verification later
+      const userAuth = await createOrUpdateUserAuth(email, 'pet_parent', password);
+      
+      // Link the user auth to the pet parent profile
+      await linkUserToModel(userAuth._id.toString(), petParent._id.toString(), 'pet_parent');
+      
+      // Generate email verification token
+      const verificationToken = userAuth.generateEmailVerificationToken();
+      await userAuth.save();
+
+      // Send email verification
+      try {
+        await sendEmailVerification(email, verificationToken, name);
+      } catch (emailError) {
+        // Don't fail the registration if email fails
+        // User can request email verification later
+      }
+
+      // Return success response (without sensitive data)
+      return NextResponse.json(
+        {
+          message: "Pet parent registered successfully. Please check your email to verify your account.",
+          user: {
+            id: petParent._id,
+            name: petParent.name,
+            email: petParent.email,
+            state: petParent.state,
+            isEmailVerified: userAuth.isEmailVerified,
+          },
+        },
+        { status: 201 }
+      );
+
+    } catch (authError: any) {
+      // If user auth creation fails, clean up the pet parent record
+      try {
+        await PetParentModel.findByIdAndDelete(petParent._id);
+      } catch (cleanupError) {
+        // Log cleanup error but don't expose it to user
+        console.error("Failed to cleanup pet parent record:", cleanupError);
+      }
+
+      if (authError.code === 11000) {
+        return NextResponse.json(
+          { error: "An account with this email address already exists. Please use a different email or try signing in." },
+          { status: 409 }
+        );
+      }
+
+      return NextResponse.json(
+        { error: "Failed to create authentication account. Please try again." },
+        { status: 500 }
+      );
     }
 
-    // Return success response (without sensitive data)
-    return NextResponse.json(
-      {
-        message: "Pet parent registered successfully. Please check your email to verify your account.",
-        user: {
-          id: petParent._id,
-          name: petParent.name,
-          email: petParent.email,
-          state: petParent.state,
-          isEmailVerified: petParent.isEmailVerified,
-        },
-      },
-      { status: 201 }
-    );
   } catch (error) {
     
     // Handle specific errors
