@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import { ArrowLeft, Heart, Users, Award, TrendingUp } from "lucide-react";
-import DonationForm from "./DonationForm";
+import DonationFormWrapper from "./DonationFormWrapper";
 import BookingSystem from "../DoctorProfile/BookingSystem";
 
 const DonationPage = () => {
@@ -38,9 +38,6 @@ const DonationPage = () => {
     console.log("Donation completed:", amount);
     // Here you would typically redirect to a confirmation page
     // or show a success message and handle the booking confirmation
-    alert(
-      `Thank you for your donation of $${amount}! Your appointment has been confirmed.`
-    );
   };
 
   return (
@@ -163,7 +160,7 @@ const DonationPage = () => {
           </>
         ) : (
           <div className="max-w-2xl mx-auto">
-            <DonationForm onDonationComplete={handleDonationComplete} />
+            <DonationFormWrapper onDonationComplete={handleDonationComplete} />
           </div>
         )}
       </div>

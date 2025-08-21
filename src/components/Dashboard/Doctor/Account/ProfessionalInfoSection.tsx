@@ -26,8 +26,13 @@ import {
   professionalInfoSchema,
 } from "@/lib/validation/account";
 import { mockDoctorData } from "@/lib";
+import { Doctor } from "@/lib/types";
 
-export default function ProfessionalInfoSection() {
+export default function ProfessionalInfoSection({
+  doctorData,
+}: {
+  doctorData: Doctor;
+}) {
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [certifications, setCertifications] = useState<string[]>(
@@ -122,22 +127,17 @@ export default function ProfessionalInfoSection() {
               <InfoItem
                 icon={<Award className="w-5 h-5 text-purple-600" />}
                 label="License Number"
-                value={mockDoctorData.professionalInfo.licenseNumber}
+                value={doctorData?.licenses[0]?.licenseNumber}
               />
               <InfoItem
                 icon={<Stethoscope className="w-5 h-5 text-indigo-600" />}
                 label="Years of Experience"
-                value={`${mockDoctorData.professionalInfo.yearsOfExperience} years`}
+                value={`${doctorData?.yearsOfExperience} years`}
               />
               <InfoItem
                 icon={<Building className="w-5 h-5 text-blue-600" />}
                 label="Clinic Name"
-                value={mockDoctorData.professionalInfo.clinicName}
-              />
-              <InfoItem
-                icon={<Phone className="w-5 h-5 text-green-600" />}
-                label="Emergency Contact"
-                value={mockDoctorData.professionalInfo.emergencyContact}
+                value={doctorData?.clinic?.name}
               />
             </div>
 
@@ -146,7 +146,7 @@ export default function ProfessionalInfoSection() {
               <InfoItem
                 icon={<GraduationCap className="w-5 h-5 text-orange-600" />}
                 label="Education"
-                value={mockDoctorData.professionalInfo.education}
+                value={doctorData?.education[0]?.institution}
                 fullWidth
               />
             </div>
@@ -156,7 +156,7 @@ export default function ProfessionalInfoSection() {
               <InfoItem
                 icon={<Building className="w-5 h-5 text-teal-600" />}
                 label="Clinic Address"
-                value={mockDoctorData.professionalInfo.clinicAddress}
+                value={doctorData?.clinic?.address}
                 fullWidth
               />
             </div>
@@ -168,19 +168,17 @@ export default function ProfessionalInfoSection() {
                 Certifications & Qualifications
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {mockDoctorData.professionalInfo.certifications?.map(
-                  (cert, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center gap-3 p-4 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl border border-yellow-200"
-                    >
-                      <div className="bg-yellow-500 text-white rounded-full p-2 flex-shrink-0">
-                        <Award className="w-4 h-4" />
-                      </div>
-                      <span className="font-medium text-gray-900">{cert}</span>
+                {doctorData?.certifications?.map((cert, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center gap-3 p-4 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl border border-yellow-200"
+                  >
+                    <div className="bg-yellow-500 text-white rounded-full p-2 flex-shrink-0">
+                      <Award className="w-4 h-4" />
                     </div>
-                  )
-                )}
+                    <span className="font-medium text-gray-900">{cert}</span>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
