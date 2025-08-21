@@ -1,15 +1,15 @@
-import React from "react";
 import {
+  BarChart3,
+  CheckCircle,
+  Cookie,
+  Eye,
+  Lock,
+  Mail,
+  Settings,
   Shield,
   Users,
-  Eye,
-  Cookie,
-  BarChart3,
-  Settings,
-  Lock,
-  CheckCircle,
-  Mail,
 } from "lucide-react";
+import React from "react";
 
 const PrivacyPolicy = () => {
   const sections = [
@@ -150,10 +150,10 @@ const PrivacyPolicy = () => {
                   Just the information we need to give you useful online
                   services is what we try to collect. Contact us at{" "}
                   <a
-                    href="mailto:support@rexvets.com"
+                    href="mailto:support@rexvet.org"
                     className="text-blue-500 font-semibold hover:underline"
                   >
-                    support@rexvets.com
+                    support@rexvet.org
                   </a>{" "}
                   if you need help or have any questions.
                 </p>
