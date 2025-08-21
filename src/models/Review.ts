@@ -88,21 +88,18 @@ const reviewSchema = new Schema<IReview>({
   doctorId: {
     type: Schema.Types.ObjectId,
     ref: 'Veterinarian',
-    required: [true, 'Doctor ID is required'],
-    index: true
+    required: [true, 'Doctor ID is required']
   },
   parentId: {
     type: Schema.Types.ObjectId,
     ref: 'PetParent',
-    required: [true, 'Parent ID is required'],
-    index: true
+    required: [true, 'Parent ID is required']
   },
   
   // Soft delete flag
   isDeleted: {
     type: Boolean,
-    default: false,
-    index: true
+    default: false
   }
 }, {
   timestamps: true,
@@ -134,7 +131,6 @@ reviewSchema.statics.findVisibleReviews = function() {
 reviewSchema.statics.findReviewsByRating = function(rating: number) {
   return this.find({ rating, visible: true, isDeleted: { $ne: true } }).sort({ createdAt: -1 });
 };
-
 reviewSchema.statics.findReviewsByDateRange = function(startDate: string, endDate: string) {
   return this.find({
     appointmentDate: {
@@ -234,6 +230,7 @@ reviewSchema.pre('save', function(next) {
   next();
 });
 
-const ReviewModel = mongoose.model<IReview, IReviewModel>('Review', reviewSchema);
+// Check if model already exists to prevent overwrite error
+const ReviewModel = mongoose.models.Review || mongoose.model<IReview, IReviewModel>('Review', reviewSchema);
 
 export default ReviewModel;

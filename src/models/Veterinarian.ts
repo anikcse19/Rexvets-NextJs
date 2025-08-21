@@ -66,6 +66,9 @@ export interface IVeterinarian extends Document {
   lastName?: string;
   locale?: string;
   
+  // Reviews reference - veterinarians receive reviews from pet parents
+  reviews?: mongoose.Types.ObjectId[];
+  
   fcmTokens: {
     web?: string;
     mobile?: string;
@@ -118,21 +121,7 @@ const veterinarianSchema = new Schema<IVeterinarian>({
     required: [true, 'Specialization is required'],
     trim: true
   },
-  // licenseNumber: {
-  //   type: String,
-  //   required: [true, 'License number is required'],
-  //   unique: true,
-  //   trim: true
-  // },
-  // licenseState: {
-  //   type: String,
-  //   required: [true, 'License state is required'],
-  //   trim: true
-  // },
-  // licenseExpiryDate: {
-  //   type: Date,
-  //   required: [true, 'License expiry date is required']
-  // },
+
   consultationFee: {
     type: Number,
     required: [false, 'Consultation fee is required'],
@@ -364,6 +353,12 @@ const veterinarianSchema = new Schema<IVeterinarian>({
     default: 'en'
   },
   
+  // Reviews reference - veterinarians receive reviews from pet parents
+  reviews: [{
+    type: Schema.Types.ObjectId,
+    ref: 'Review'
+  }],
+  
   fcmTokens: {
     web: String,
     mobile: String
@@ -389,6 +384,7 @@ veterinarianSchema.index({ interests: 1 });
 veterinarianSchema.index({ researchAreas: 1 });
 veterinarianSchema.index({ isDeleted: 1 });
 veterinarianSchema.index({ name: 'text' }); // Text search index
+veterinarianSchema.index({ reviews: 1 }); // Index for reviews queries
 
 // Unique index for license numbers to prevent duplicates
 veterinarianSchema.index({ 'licenses.licenseNumber': 1 }, { unique: true, sparse: true });

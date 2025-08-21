@@ -244,10 +244,10 @@ const petParentSchema = new Schema<IPetParent>(
 petParentSchema.index({ isActive: 1 });
 petParentSchema.index({ state: 1 });
 
-// Virtual for checking if account is locked
-petParentSchema.virtual("isLocked").get(function () {
-  return !!(this.lockUntil && this.lockUntil > new Date());
-});
+// Virtual for checking if account is locked - removed since lockUntil field was removed
+// petParentSchema.virtual("isLocked").get(function () {
+//   return !!(this.lockUntil && this.lockUntil > new Date());
+// });
 
 // Password hashing removed - now handled by User model
 // petParentSchema.pre("save", async function (next) { ... });
