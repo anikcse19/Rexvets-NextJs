@@ -1,108 +1,68 @@
 // app/api/ai/chat/route.ts
 import { faqData } from "@/lib/data";
 import { NextRequest } from "next/server";
-import OpenAI from "openai";
 
-const token = process.env.GITHUB_TOKE_NV3;
-const endpoint = "https://models.github.ai/inference";
-const modelName = "openai/gpt-4o";
+// Rex Vet Team Information
+const rexVetTeam = {
+  leadership: {
+    chipLabel: "👑 Leadership",
+    title: "Exploring Our Leadership",
+    subtitle:
+      "Meet the visionary leaders driving innovation in veterinary care",
+    leaders: [
+      {
+        name: "Tiffany Delacruz",
+        title: "Chief Executive Officer",
+        description:
+          "Tiffany Delacruz, the CEO of Rex Vets, is a licensed veterinarian with a profound dedication to preventive medicine, striving to enhance the well-being of pets. With extensive experience in veterinary practice, Tiffany possesses a comprehensive understanding of the concerns of pet owners and their beloved companions. Under her astute leadership, Rex Vets has emerged as a renowned entity in the veterinary realm.",
+        image: "/images/our-team/CEO.webp",
+        icon: "School",
+        gradient: "accent",
+      },
+      {
+        name: "Johnny Dominguez",
+        title: "Founder",
+        description:
+          "Johnny Dominguez is the visionary founder behind Rex Vets. With a doctorate in computer science philosophy and a lifelong love for animals, Johnny set out to reimagine how pet families access care. Driven by a passion for innovation and compassion, he built Rex Vets to make veterinary support more accessible, especially for those who need it most.",
+        image: "/images/our-team/Founder.webp",
+        icon: "Psychology",
+        gradient: "secondary",
+      },
+    ],
+  },
+};
 
-// Consultation state interface
-interface ConsultationState {
-  isActive: boolean;
-  currentQuestion: string;
-  collectedData: {
-    petType?: string;
-    symptoms?: string[];
-    duration?: string;
-    severity?: string;
-    eatingDrinking?: string;
-    behaviorChanges?: string;
-    previousConditions?: string;
-    currentMedications?: string;
-  };
-}
-
-const systemPrompt = `You are Rex Vet's AI Assistant, a knowledgeable and compassionate virtual support specialist for a veterinary telehealth platform. Your primary role is to assist pet parents, veterinarians, and potential users with comprehensive information about Rex Vet's services while maintaining the highest standards of professionalism and care.
+const systemPrompt = `You are Rex Vet's AI Support Assistant, a knowledgeable and professional virtual support specialist for a veterinary telehealth platform. Your primary role is to assist pet parents, veterinarians, and potential users with comprehensive information about Rex Vet's services while maintaining the highest standards of professionalism.
 
 CORE RESPONSIBILITIES:
 1. Provide accurate information about Rex Vet's telehealth services, pricing structure, and company policies
 2. Utilize the comprehensive FAQ knowledge base to address common inquiries
-3. When users describe pet health issues, automatically detect this and initiate a structured consultation process
-4. Ask ONE relevant follow-up question at a time to gather necessary information about the pet's condition
-5. After gathering sufficient information, provide appropriate advice based on the severity of symptoms
-6. For emergency situations, immediately direct users to seek in-person emergency care
-7. Always emphasize that you provide general information, not medical diagnoses
+3. Assist with account-related questions, technical issues, and general platform guidance
+4. Direct users to appropriate resources or human support when needed
+5. Explain service features, appointment booking process, and platform functionality
+6. Provide information about Rex Vet's leadership team and company background when asked
 
-HEALTH CONSULTATION PROTOCOL:
-- When a user describes a health concern, initiate a consultation by asking ONE question at a time
-- Gather information about: pet type, symptoms, duration, severity, eating/drinking habits, behavior changes, medical history, and current medications
-- After gathering sufficient information, provide appropriate advice
-- For emergency situations, immediately direct users to seek in-person emergency care
-- Always maintain a compassionate, professional tone
+REX VET LEADERSHIP TEAM INFORMATION:
+${JSON.stringify(rexVetTeam.leadership, null, 2)}
 
-CRITICAL PROTOCOLS:
-- For emergency situations: Immediately direct users to emergency veterinary care
+IMPORTANT PROTOCOLS:
+- For health-related questions: Politely direct users to schedule a consultation with licensed veterinarians
+- For emergency situations: Immediately direct users to seek in-person emergency veterinary care
 - For prescription inquiries: Explain prescription availability depends on state regulations
-- For treatment advice: Clarify that specific recommendations require consultation with licensed veterinarians
-- Always prioritize pet safety and well-being above all other considerations
+- Always emphasize that you provide general information and platform support, not medical advice
+- Maintain a helpful, professional, and compassionate tone at all times
 
-Remember: You are a support tool designed to enhance the Rex Vet experience, not replace professional veterinary care.`;
+CRITICAL BOUNDARIES:
+- DO NOT provide any medical advice, diagnoses, or treatment recommendations
+- DO NOT ask health-related follow-up questions about pets' conditions
+- DO NOT attempt to assess symptoms or severity of medical issues
+- Immediately redirect any health concerns to professional veterinary consultation
 
-// Simple health keyword detection as fallback
-function isHealthRelatedFallback(text: string): boolean {
-  const healthKeywords = [
-    "sick",
-    "not feeling well",
-    "vomit",
-    "throw up",
-    "diarrhea",
-    "lethargic",
-    "not eating",
-    "limping",
-    "pain",
-    "hurt",
-    "injury",
-    "wound",
-    "bleeding",
-    "coughing",
-    "sneezing",
-    "breathing",
-    "eye",
-    "ear",
-    "skin",
-    "rash",
-    "allergy",
-    "infection",
-    "behavior change",
-    "emergency",
-    "urgent",
-    "fever",
-    "temperature",
-    "swelling",
-    "lump",
-    "bump",
-    "scratching",
-    "itching",
-    "redness",
-    "discharge",
-    "whining",
-    "crying",
-    "whimpering",
-  ];
-
-  return healthKeywords.some((keyword) =>
-    text.toLowerCase().includes(keyword.toLowerCase())
-  );
-}
+Remember: You are a support tool designed to enhance the Rex Vet experience and provide platform assistance, not replace professional veterinary care.`;
 
 export async function POST(req: NextRequest) {
   try {
-    const {
-      question,
-      conversationHistory = [],
-      consultationState,
-    } = await req.json();
+    const { question, conversationHistory = [] } = await req.json();
 
     if (!question) {
       return new Response(
@@ -118,252 +78,50 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const client = new OpenAI({ baseURL: endpoint, apiKey: token });
+    // Health-related query detection for redirection
+    const healthKeywords = [
+      "sick",
+      "vomit",
+      "diarrhea",
+      "lethargic",
+      "not eating",
+      "limping",
+      "pain",
+      "hurt",
+      "injury",
+      "wound",
+      "bleeding",
+      "coughing",
+      "sneezing",
+      "breathing",
+      "eye",
+      "ear",
+      "skin",
+      "rash",
+      "allergy",
+      "infection",
+      "behavior change",
+      "emergency",
+      "urgent",
+      "fever",
+      "swelling",
+      "lump",
+      "scratching",
+      "itching",
+      "redness",
+      "discharge",
+    ];
 
-    // If we have an active consultation, handle it with the AI
-    if (consultationState?.isActive) {
-      const messages = [
-        {
-          role: "system",
-          content:
-            systemPrompt +
-            "\n\nYou are currently in a health consultation. Ask ONE relevant follow-up question based on the user's response and the information you've already gathered. Only ask for one piece of information at a time." +
-            "\n\nCurrent consultation data: " +
-            JSON.stringify(consultationState.collectedData) +
-            "\n\nPrevious question: " +
-            consultationState.currentQuestion,
-        },
-        ...conversationHistory,
-        {
-          role: "user",
-          content: question,
-        },
-      ];
+    const isHealthRelated = healthKeywords.some((keyword) =>
+      question.toLowerCase().includes(keyword.toLowerCase())
+    );
 
-      const response = await client.chat.completions.create({
-        model: modelName,
-        messages: messages,
-        temperature: 0.7,
-        max_tokens: 300,
-      });
-
-      // Safely extract the AI response
-      const aiResponse =
-        response.choices?.[0]?.message?.content ||
-        "I apologize, I'm having trouble processing your response. Could you please provide more details?";
-
-      // Update collected data based on the previous question
-      const updatedData = { ...consultationState.collectedData };
-      const previousQuestion = consultationState.currentQuestion.toLowerCase();
-
-      if (
-        previousQuestion.includes("type of pet") ||
-        previousQuestion.includes("what kind of pet")
-      ) {
-        updatedData.petType = question;
-      } else if (
-        previousQuestion.includes("symptom") ||
-        previousQuestion.includes("noticing")
-      ) {
-        updatedData.symptoms = [...(updatedData.symptoms || []), question];
-      } else if (
-        previousQuestion.includes("how long") ||
-        previousQuestion.includes("duration")
-      ) {
-        updatedData.duration = question;
-      } else if (
-        previousQuestion.includes("severity") ||
-        previousQuestion.includes("scale")
-      ) {
-        updatedData.severity = question;
-      } else if (
-        previousQuestion.includes("eating") ||
-        previousQuestion.includes("drinking")
-      ) {
-        updatedData.eatingDrinking = question;
-      } else if (
-        previousQuestion.includes("behavior") ||
-        previousQuestion.includes("energy")
-      ) {
-        updatedData.behaviorChanges = question;
-      } else if (
-        previousQuestion.includes("previous") ||
-        previousQuestion.includes("medical history")
-      ) {
-        updatedData.previousConditions = question;
-      } else if (
-        previousQuestion.includes("medication") ||
-        previousQuestion.includes("supplement")
-      ) {
-        updatedData.currentMedications = question;
-      }
-
-      // Check if we have enough information to provide advice
-      const hasSufficientInfo =
-        updatedData.petType &&
-        updatedData.symptoms &&
-        updatedData.symptoms.length > 0 &&
-        updatedData.duration &&
-        updatedData.severity;
-
-      // Check if this is an emergency situation
-      const isEmergency =
-        (updatedData.severity && parseInt(updatedData.severity) >= 8) ||
-        (updatedData.symptoms &&
-          updatedData.symptoms.some((s: string) =>
-            [
-              "bleeding",
-              "difficulty breathing",
-              "unconscious",
-              "seizure",
-              "collapse",
-            ].some((emergencyTerm) => s.toLowerCase().includes(emergencyTerm))
-          ));
-
-      if (isEmergency) {
-        const completedConsultation = {
-          isActive: false,
-          currentQuestion: "",
-          collectedData: updatedData,
-        };
-
-        const emergencyResponse = `Based on the symptoms you've described (${updatedData.symptoms?.join(
-          ", "
-        )}), which you've rated as severe (${
-          updatedData.severity
-        }/10), I strongly recommend contacting an emergency veterinary clinic immediately. Your ${
-          updatedData.petType
-        } may need urgent medical attention that cannot be provided through telehealth.\n\nPlease proceed to the nearest emergency veterinary hospital or call them for guidance.`;
-
-        return new Response(
-          JSON.stringify({
-            response: emergencyResponse,
-            consultationState: completedConsultation,
-            isComplete: true,
-          }),
-          {
-            status: 200,
-            headers: { "Content-Type": "application/json" },
-          }
-        );
-      }
-
-      if (hasSufficientInfo) {
-        const completedConsultation = {
-          isActive: false,
-          currentQuestion: "",
-          collectedData: updatedData,
-        };
-
-        // Generate appropriate advice based on the collected information
-        const severity = parseInt(updatedData.severity || "3");
-
-        let advice = "";
-        if (severity >= 5) {
-          advice = `Thank you for providing details about your ${
-            updatedData.petType
-          }. Based on the symptoms (${updatedData.symptoms?.join(
-            ", "
-          )}) that have been ongoing for ${
-            updatedData.duration
-          }, I recommend scheduling a consultation with a veterinarian within the next 24-48 hours.\n\nIn the meantime:\n1. Keep your ${
-            updatedData.petType
-          } comfortable and rested\n2. Ensure they have access to fresh water\n3. Monitor for any changes in symptoms\n4. Avoid giving any human medications unless directed by a veterinarian\n\nWould you like me to help you book a telehealth appointment?`;
-        } else {
-          advice = `Thank you for the information about your ${
-            updatedData.petType
-          }. Based on the mild symptoms you've described (${updatedData.symptoms?.join(
-            ", "
-          )}), here's what I recommend:\n\n1. Continue monitoring your ${
-            updatedData.petType
-          } closely\n2. Ensure they're eating, drinking, and eliminating normally\n3. Provide a quiet, comfortable resting area\n4. Watch for any changes or worsening of symptoms\n\nIf symptoms persist for more than 24-48 hours or worsen, please schedule a consultation with one of our veterinarians. Would you like me to help you book an appointment?`;
-        }
-
-        return new Response(
-          JSON.stringify({
-            response: advice,
-            consultationState: completedConsultation,
-            isComplete: true,
-          }),
-          {
-            status: 200,
-            headers: { "Content-Type": "application/json" },
-          }
-        );
-      }
-
-      // Continue with the next question
-      const updatedConsultation = {
-        isActive: true,
-        currentQuestion: aiResponse,
-        collectedData: updatedData,
-      };
-
-      return new Response(
-        JSON.stringify({
-          response: aiResponse,
-          consultationState: updatedConsultation,
-          isComplete: false,
-        }),
-        {
-          status: 200,
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-    }
-
-    let isHealthRelated = false;
-
-    // Try to use AI for health detection, but fall back to keyword matching if it fails
-    try {
-      // Check if this is a health-related question using AI
-      const healthCheckMessages = [
-        {
-          role: "system",
-          content: `Analyze the user's message and determine if it describes a pet health issue that requires a consultation. 
-          Respond with ONLY "true" if it's a health issue, or "false" if it's not. 
-          Health issues include: symptoms, illnesses, injuries, behavioral changes, or any concern about a pet's wellbeing.`,
-        },
-        {
-          role: "user",
-          content: question,
-        },
-      ];
-
-      const healthCheckResponse = await client.chat.completions.create({
-        model: modelName,
-        messages: healthCheckMessages,
-        temperature: 0.1,
-        max_tokens: 10,
-      });
-
-      // Safely extract the health check response
-      const healthCheckResult =
-        healthCheckResponse.choices?.[0]?.message?.content || "";
-      isHealthRelated = healthCheckResult.toLowerCase().includes("true");
-    } catch (error) {
-      console.error("Health check AI failed, using fallback:", error);
-      // Fall back to keyword detection if AI health check fails
-      isHealthRelated = isHealthRelatedFallback(question);
-    }
-
-    // If this is a new health problem, start consultation
     if (isHealthRelated) {
-      const consultationStartMessage =
-        "I understand you're concerned about your pet's health. Let me help you with that. To give you the best advice, I need to ask you a few questions.";
-
-      const newConsultation: ConsultationState = {
-        isActive: true,
-        currentQuestion: "First, what type of pet do you have?",
-        collectedData: {},
-      };
-
       return new Response(
         JSON.stringify({
           response:
-            consultationStartMessage + " " + newConsultation.currentQuestion,
-          consultationState: newConsultation,
-          isComplete: false,
+            "I understand you have concerns about your pet's health. For medical questions, symptoms, or health concerns, I recommend scheduling a consultation with one of our licensed veterinarians. I'd be happy to help you with platform questions, account assistance, or general information about our services. How else can I assist you today?",
+          requiresHumanSupport: false,
         }),
         {
           status: 200,
@@ -372,7 +130,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Regular FAQ-based response
+    // Prepare messages for OpenRouter
     const messages = [
       {
         role: "system",
@@ -389,66 +147,87 @@ export async function POST(req: NextRequest) {
     ];
 
     try {
-      // Try to get a streamed response first
-      const stream = await client.chat.completions.create({
-        model: modelName,
-        messages: messages,
-        temperature: 0.7,
-        max_tokens: 1200,
-        stream: true,
-      });
-
-      const encoder = new TextEncoder();
-      const reader = stream[Symbol.asyncIterator]();
-
-      return new Response(
-        new ReadableStream({
-          async start(controller) {
-            try {
-              for await (const chunk of reader) {
-                const text = chunk.choices?.[0]?.delta?.content || "";
-                if (text) {
-                  controller.enqueue(encoder.encode(text));
-                }
-              }
-              controller.close();
-            } catch (error) {
-              console.error("Stream error:", error);
-              controller.error(error);
-            }
-          },
-          cancel() {
-            reader.return?.();
-          },
-        }),
+      // Use OpenRouter API instead of OpenAI
+      const openRouterResponse = await fetch(
+        "https://openrouter.ai/api/v1/chat/completions",
         {
+          method: "POST",
           headers: {
-            "Content-Type": "text/plain; charset=utf-8",
-            "X-Professional-Service": "Rex-Vet-AI-Support",
-            "Cache-Control": "no-cache",
+            Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+            "HTTP-Referer": process.env.SITE_URL || "https://rexvet.com",
+            "X-Title": process.env.SITE_NAME || "Rex Vet AI Assistant",
+            "Content-Type": "application/json",
           },
+          body: JSON.stringify({
+            model: "deepseek/deepseek-r1:free",
+            messages: messages,
+            temperature: 0.7,
+            max_tokens: 800,
+          }),
         }
       );
-    } catch (streamError) {
-      console.error("Stream failed, using regular response:", streamError);
 
-      // Fall back to non-streamed response if streaming fails
-      const response = await client.chat.completions.create({
-        model: modelName,
-        messages: messages,
-        temperature: 0.7,
-        max_tokens: 1200,
-      });
+      if (!openRouterResponse.ok) {
+        const errorText = await openRouterResponse.text();
+        console.error(
+          "OpenRouter API error:",
+          openRouterResponse.status,
+          errorText
+        );
+        throw new Error(
+          `OpenRouter API error: ${openRouterResponse.status} ${errorText}`
+        );
+      }
 
-      const aiResponse =
-        response.choices?.[0]?.message?.content ||
-        "I apologize, I'm having trouble processing your request. Please try again.";
+      const responseData = await openRouterResponse.json();
+
+      // // Debug log to see the actual response structure
+      // console.log(
+      //   "OpenRouter response:",
+      //   JSON.stringify(responseData, null, 2)
+      // );
+
+      // Handle different possible response structures from OpenRouter
+      let aiResponse =
+        "I apologize, I'm having trouble processing your request. Please try again or contact our support team at support@rexvet.com.";
+
+      if (
+        responseData.choices &&
+        responseData.choices[0] &&
+        responseData.choices[0].message
+      ) {
+        aiResponse = responseData.choices[0].message.content || aiResponse;
+      } else if (responseData.message) {
+        // Some models might return message directly
+        aiResponse = responseData.message;
+      } else if (responseData.error) {
+        // Handle error responses
+        aiResponse = `I'm experiencing technical difficulties: ${
+          responseData.error.message || "Unknown error"
+        }. Please contact support@rexvet.com.`;
+      }
 
       return new Response(
         JSON.stringify({
           response: aiResponse,
-          consultationState: null,
-          isComplete: false,
+          requiresHumanSupport:
+            aiResponse.includes("contact support") ||
+            aiResponse.includes("human agent"),
+        }),
+        {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    } catch (apiError) {
+      console.error("OpenRouter API Error:", apiError);
+
+      // Fallback response if API fails
+      return new Response(
+        JSON.stringify({
+          response:
+            "I'm currently experiencing technical difficulties. Please try again shortly or contact our support team at support@rexvet.com for immediate assistance.",
+          requiresHumanSupport: true,
         }),
         {
           status: 200,
@@ -463,6 +242,7 @@ export async function POST(req: NextRequest) {
         error: "Unable to process your request at this time",
         supportContact: "support@rexvet.com",
         responseTime: "Typically within 1 business day",
+        requiresHumanSupport: true,
       }),
       {
         status: 500,

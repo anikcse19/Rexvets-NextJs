@@ -6,7 +6,6 @@ import { useEffect, useRef, useState } from "react";
 import {
   HiOutlineChatAlt2,
   HiOutlineHeart,
-  HiOutlineInformationCircle,
   HiOutlineMinus,
   HiOutlinePaperAirplane,
   HiOutlineX,
@@ -16,20 +15,8 @@ type Message = {
   role: "user" | "assistant" | "system";
   content: string;
   timestamp: Date;
-  type?: "question" | "info" | "advice" | "followup";
-};
-
-type ConsultationState = {
-  isActive: boolean;
-  step: number;
-  petType: string;
-  symptoms: string[];
-  duration: string;
-  severity: string;
-  previousConditions: string;
-  currentMedications: string;
-  eatingDrinking: string;
-  behaviorChanges: string;
+  requiresHumanSupport?: boolean;
+  isTeamRelated?: boolean;
 };
 
 export default function ChatIcon() {
@@ -40,18 +27,6 @@ export default function ChatIcon() {
   const [isMinimized, setIsMinimized] = useState(false);
   const [hasNewMessage, setHasNewMessage] = useState(false);
   const [showDonationPanel, setShowDonationPanel] = useState(false);
-  const [consultation, setConsultation] = useState<ConsultationState>({
-    isActive: false,
-    step: 0,
-    petType: "",
-    symptoms: [],
-    duration: "",
-    severity: "",
-    previousConditions: "",
-    currentMedications: "",
-    eatingDrinking: "",
-    behaviorChanges: "",
-  });
 
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
@@ -72,8 +47,10 @@ export default function ChatIcon() {
       const welcomeMessage: Message = {
         role: "assistant",
         content:
-          "Hello! I'm your Rex Vet assistant. How can I help you and your pet today? 🐾\n\nYou can ask me about our services, appointments, or learn how to support our mission through donations.",
+          "Hello! I'm your Rex Vet support assistant. How can I help you today? 🐾\n\nYou can ask me about our services, appointments, pricing, or learn about our leadership team.",
         timestamp: new Date(),
+        requiresHumanSupport: false,
+        isTeamRelated: false,
       };
       setMessages([welcomeMessage]);
     }
@@ -105,73 +82,24 @@ export default function ChatIcon() {
             role: m.role,
             content: m.content,
           })),
-          consultationState: consultation.isActive ? consultation : null,
         }),
       });
 
       if (!response.ok) {
-        throw new Error("Network response was not ok");
+        throw new Error(`Network response was not ok: ${response.status}`);
       }
 
-      // Check if this is a consultation response
-      const contentType = response.headers.get("content-type");
-      if (contentType && contentType.includes("application/json")) {
-        // This is a consultation response
-        const data = await response.json();
+      const data = await response.json();
 
-        const assistantMessage: Message = {
-          role: "assistant",
-          content: data.response,
-          timestamp: new Date(),
-          type: data.isComplete ? "advice" : "question",
-        };
+      const assistantMessage: Message = {
+        role: "assistant",
+        content: data.response,
+        timestamp: new Date(),
+        requiresHumanSupport: data.requiresHumanSupport,
+        isTeamRelated: data.isTeamRelated,
+      };
 
-        setMessages((prev) => [...prev, assistantMessage]);
-
-        // Update consultation state if provided
-        if (data.consultationState) {
-          setConsultation(data.consultationState);
-        }
-      } else {
-        // This is a streamed response
-        const reader = response.body?.getReader();
-        const decoder = new TextDecoder();
-        let assistantMessage = "";
-
-        if (reader) {
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-
-            const text = decoder.decode(value);
-            assistantMessage += text;
-
-            // Update the message as chunks come in
-            setMessages((prev) => {
-              const lastMessage = prev[prev.length - 1];
-              if (lastMessage && lastMessage.role === "assistant") {
-                return [
-                  ...prev.slice(0, -1),
-                  {
-                    role: "assistant",
-                    content: lastMessage.content + text,
-                    timestamp: new Date(),
-                  },
-                ];
-              } else {
-                return [
-                  ...prev,
-                  {
-                    role: "assistant",
-                    content: assistantMessage,
-                    timestamp: new Date(),
-                  },
-                ];
-              }
-            });
-          }
-        }
-      }
+      setMessages((prev) => [...prev, assistantMessage]);
 
       if (isMinimized) {
         setHasNewMessage(true);
@@ -185,6 +113,7 @@ export default function ChatIcon() {
           content:
             "Sorry, I encountered an error. Please try again or contact support@rexvet.com for assistance.",
           timestamp: new Date(),
+          requiresHumanSupport: true,
         },
       ]);
     } finally {
@@ -206,19 +135,6 @@ export default function ChatIcon() {
   const closeChat = () => {
     setShowChatbot(false);
     setIsMinimized(false);
-    // Reset consultation if chat is closed
-    setConsultation({
-      isActive: false,
-      step: 0,
-      petType: "",
-      symptoms: [],
-      duration: "",
-      severity: "",
-      previousConditions: "",
-      currentMedications: "",
-      eatingDrinking: "",
-      behaviorChanges: "",
-    });
   };
 
   // Function to make URLs clickable
@@ -297,7 +213,7 @@ export default function ChatIcon() {
                 />
               </div>
               <div>
-                <h3 className="font-semibold text-sm">Rex Vet Assistant</h3>
+                <h3 className="font-semibold text-sm">Rex Vet Support</h3>
                 <p className="text-xs opacity-90">Online now</p>
               </div>
             </div>
@@ -341,10 +257,10 @@ export default function ChatIcon() {
                     className={`max-w-xs rounded-2xl px-4 py-2 text-lg ${
                       message.role === "user"
                         ? "bg-blue-600 text-white rounded-br-sm"
-                        : message.type === "question"
-                        ? "bg-blue-100 text-blue-800 border border-blue-200 rounded-bl-sm"
-                        : message.type === "advice"
-                        ? "bg-green-100 text-green-800 border border-green-200 rounded-bl-sm"
+                        : message.requiresHumanSupport
+                        ? "bg-yellow-100 text-yellow-800 border border-yellow-200 rounded-bl-sm"
+                        : message.isTeamRelated
+                        ? "bg-purple-100 text-purple-800 border border-purple-200 rounded-bl-sm"
                         : "bg-white text-gray-800 shadow-sm rounded-bl-sm border"
                     }`}
                   >
@@ -355,6 +271,10 @@ export default function ChatIcon() {
                       className={`text-xs mt-1 ${
                         message.role === "user"
                           ? "text-blue-200"
+                          : message.requiresHumanSupport
+                          ? "text-yellow-600"
+                          : message.isTeamRelated
+                          ? "text-purple-600"
                           : "text-gray-500"
                       }`}
                     >
@@ -362,6 +282,12 @@ export default function ChatIcon() {
                         hour: "2-digit",
                         minute: "2-digit",
                       })}
+                      {message.requiresHumanSupport && (
+                        <span className="ml-2">⚠️ Needs human support</span>
+                      )}
+                      {message.isTeamRelated && (
+                        <span className="ml-2">👑 Team info</span>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -393,11 +319,7 @@ export default function ChatIcon() {
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder={
-                  consultation.isActive
-                    ? "Answer the question..."
-                    : "Type your message..."
-                }
+                placeholder="Ask about our services, pricing, or team..."
                 className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
                 disabled={isLoading}
               />
@@ -410,7 +332,8 @@ export default function ChatIcon() {
               </button>
             </form>
             <p className="text-xs text-gray-500 mt-2 text-center">
-              For emergencies, contact your nearest vet clinic immediately.
+              For health emergencies, contact your nearest vet clinic
+              immediately.
             </p>
           </div>
         </div>
