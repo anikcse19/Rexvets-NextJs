@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const page = Math.max(parseInt(searchParams.get('page') || '1', 10), 1);
     const limit = Math.min(Math.max(parseInt(searchParams.get('limit') || '20', 10), 1), 100);
-    const q = (searchParams.get('q') || '').trim();
+    const q = (searchParams.get('q') || searchParams.get('name') || '').trim();
     const specialization = (searchParams.get('specialization') || '').trim();
     const availableParam = searchParams.get('available');
     const approvedParam = searchParams.get('approved');

@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/mongoose";
 import VeterinarianModel from "@/models/Veterinarian";
-import PetParentModel from "@/models/PetParent";
-import VetTechModel from "@/models/VetTech";
+import UserModel from "@/models/User";
+import { createOrUpdateUserAuth, linkUserToModel } from "@/lib/auth-helpers";
 import { veterinarianProfileSchema } from "@/lib/validation/veterinarian";
 import { uploadToCloudinary, validateFile } from "@/lib/cloudinary";
 import { sendEmailVerification } from "@/lib/email";
@@ -120,28 +120,14 @@ export async function POST(request: NextRequest) {
     // Connect to database
     await connectToDatabase();
 
-    // Check if user already exists in any collection
-    const existingPetParent = await PetParentModel.findOne({ 
-      email: basicInfo.email.toLowerCase() 
-    });
-    const existingVet = await VeterinarianModel.findOne({ 
-      email: basicInfo.email.toLowerCase() 
-    });
-    const existingVetTech = await VetTechModel.findOne({ 
+    // Check if user already exists in User collection
+    const existingUser = await UserModel.findOne({ 
       email: basicInfo.email.toLowerCase() 
     });
     
-    // Count how many accounts exist with this email
-    const existingAccounts = [existingPetParent, existingVet, existingVetTech].filter(Boolean);
-    
-    if (existingAccounts.length > 0) {
-      let accountType = "account";
-      if (existingPetParent) accountType = "pet parent account";
-      else if (existingVetTech) accountType = "vet technician account";
-      else if (existingVet) accountType = "veterinarian account";
-      
+    if (existingUser) {
       return NextResponse.json(
-        { error: `This email is already associated with a ${accountType}. Please use a different email or try signing in.` },
+        { error: "This email is already associated with an account. Please use a different email or try signing in." },
         { status: 409 }
       );
     }
@@ -373,38 +359,67 @@ export async function POST(request: NextRequest) {
       licenses: veterinarianData.licenses
     });
 
+    // Create veterinarian profile (without authentication fields)
     const veterinarian = new VeterinarianModel(veterinarianData);
     
-    // Generate email verification token
-    const verificationToken = veterinarian.generateEmailVerificationToken();
-    
-    console.log('Generated verification token:', verificationToken);
-    console.log('Token length:', verificationToken.length);
-    
+    // Save the veterinarian profile
     await veterinarian.save();
-
-    // Send email verification
+    
+    // Create user authentication record
     try {
-      await sendEmailVerification(
-        veterinarian.email,
-        verificationToken,
-        veterinarian.name
-      );
-      console.log('Email verification sent successfully to:', veterinarian.email);
-    } catch (emailError) {
-      console.error("Failed to send verification email:", emailError);
-      // Don't fail the registration if email fails
-    }
-
-    return NextResponse.json({
-      success: true,
-      message: "Veterinarian registered successfully",
-      data: {
-        veterinarianId: veterinarian._id,
-        email: veterinarian.email,
-        requiresEmailVerification: true,
+      const userAuth = await createOrUpdateUserAuth(basicInfo.email, 'veterinarian', basicInfo.password);
+      
+      // Link the user auth to the veterinarian profile
+      await linkUserToModel(userAuth._id.toString(), veterinarian._id.toString(), 'veterinarian');
+      
+      // Generate email verification token
+      const verificationToken = userAuth.generateEmailVerificationToken();
+      await userAuth.save();
+      
+      // Send email verification
+      try {
+        await sendEmailVerification(
+          basicInfo.email,
+          verificationToken,
+          veterinarian.name
+        );
+        console.log('Email verification sent successfully to:', basicInfo.email);
+      } catch (emailError) {
+        console.error("Failed to send verification email:", emailError);
+        // Don't fail the registration if email fails
       }
-    }, { status: 201 });
+      
+      return NextResponse.json({
+        success: true,
+        message: "Veterinarian registered successfully",
+        data: {
+          veterinarianId: veterinarian._id,
+          email: basicInfo.email,
+          requiresEmailVerification: true,
+        }
+      }, { status: 201 });
+      
+    } catch (authError: any) {
+      // If user auth creation fails, clean up the veterinarian record
+      try {
+        await VeterinarianModel.findByIdAndDelete(veterinarian._id);
+      } catch (cleanupError) {
+        // Log cleanup error but don't expose it to user
+        console.error("Failed to cleanup veterinarian record:", cleanupError);
+      }
+      
+      if (authError.code === 11000) {
+        return NextResponse.json(
+          { error: "An account with this email address already exists. Please use a different email or try signing in." },
+          { status: 409 }
+        );
+      }
+      
+      return NextResponse.json(
+        { error: "Failed to create authentication account. Please try again." },
+        { status: 500 }
+      );
+    }
 
   } catch (error: any) {
     console.error("Veterinarian registration error:", error);

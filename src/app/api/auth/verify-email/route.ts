@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/mongoose";
-import PetParentModel, { IPetParentModel } from "@/models/PetParent";
-import VeterinarianModel, { IVeterinarianModel } from "@/models/Veterinarian";
-import VetTechModel, { IVetTechModel } from "@/models/VetTech";
+import UserModel from "@/models/User";
 
 export async function GET(request: NextRequest) {
   try {
@@ -22,28 +20,18 @@ export async function GET(request: NextRequest) {
     // Connect to database
     await connectToDatabase();
 
-    // Try to find user with this token in all collections
-    let user: any = await (PetParentModel as IPetParentModel).findByEmailVerificationToken(token);
-    
-    if (!user) {
-      console.log('Token not found in PetParent collection');
-      user = await (VeterinarianModel as IVeterinarianModel).findByEmailVerificationToken(token);
-    }
-    
-    if (!user) {
-      console.log('Token not found in Veterinarian collection');
-      user = await (VetTechModel as IVetTechModel).findByEmailVerificationToken(token);
-    }
+    // Find user with this token in User collection
+    const user = await UserModel.findByEmailVerificationToken(token);
 
     if (!user) {
-      console.log('Token not found in any collection');
+      console.log('Token not found in User collection');
       return NextResponse.json(
         { error: "Invalid or expired verification token" },
         { status: 400 }
       );
     }
 
-    console.log('User found:', { email: user.email, name: user.name, type: user.constructor.name });
+    console.log('User found:', { email: user.email, name: user.name, role: user.role });
 
     // Check if account is active
     if (!user.isActive) {
