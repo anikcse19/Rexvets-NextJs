@@ -1,4 +1,6 @@
 import mongoose, { Document, Schema, Model } from 'mongoose';
+import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 
 export interface IVetTech extends Document {
   name: string;
@@ -296,8 +298,7 @@ const vetTechSchema = new Schema<IVetTech>({
   // Google OAuth fields
   googleId: {
     type: String,
-    sparse: true,
-    index: true
+    sparse: true
   },
   googleAccessToken: {
     type: String,

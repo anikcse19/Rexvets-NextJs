@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/mongoose";
-import UserModel from "@/models/User";
+import UserModel, { IUserModel } from "@/models/User";
 
 export async function GET(request: NextRequest) {
   try {
@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
     await connectToDatabase();
 
     // Find user with this token in User collection
-    const user = await UserModel.findByEmailVerificationToken(token);
+    const user = await (UserModel as IUserModel).findByEmailVerificationToken(token);
 
     if (!user) {
       console.log('Token not found in User collection');

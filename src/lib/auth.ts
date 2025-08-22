@@ -176,9 +176,9 @@ export const authOptions: NextAuthOptions = {
           const googleProfile = profile as any;
           const googleData = {
             googleId: googleProfile?.sub || account.providerAccountId,
-            email: user.email,
-            name: user.name,
-            profileImage: user.image,
+            email: user.email || "",
+            name: user.name || "",
+            profileImage: user.image || "",
             firstName: googleProfile?.given_name || "",
             lastName: googleProfile?.family_name || "",
             locale: googleProfile?.locale || "en",
