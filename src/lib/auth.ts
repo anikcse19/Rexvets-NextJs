@@ -1,16 +1,19 @@
-import NextAuth from "next-auth";
+import config from "@/config/env.config";
+import UserModel, { IUserModel } from "@/models/User";
 import type { NextAuthOptions, User } from "next-auth";
+import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
-import { connectToDatabase } from "./mongoose";
-import UserModel, { IUserModel } from "@/models/User";
-import { getUserWithFullData, createOrUpdateUserAuth } from "./auth-helpers";
 import { z } from "zod";
-import config from "@/config/env.config";
+import { createOrUpdateUserAuth, getUserWithFullData } from "./auth-helpers";
+import { connectToDatabase } from "./mongoose";
 
 // Input validation schemas
 const signInSchema = z.object({
-  email: z.string().min(1, "Email is required").regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, "Invalid email address"),
+  email: z
+    .string()
+    .min(1, "Email is required")
+    .regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, "Invalid email address"),
   password: z.string().min(1, "Password is required"),
 });
 
@@ -23,9 +26,9 @@ export const authOptions: NextAuthOptions = {
         params: {
           prompt: "consent",
           access_type: "offline",
-          response_type: "code"
-        }
-      }
+          response_type: "code",
+        },
+      },
     }),
     CredentialsProvider({
       name: "credentials",
@@ -48,8 +51,10 @@ export const authOptions: NextAuthOptions = {
           await connectToDatabase();
 
           // Find user with password for authentication (single query)
-          const user = await (UserModel as IUserModel).findByEmailForAuth(email);
-          
+          const user = await (UserModel as IUserModel).findByEmailForAuth(
+            email
+          );
+
           if (!user) {
             console.error("User not found:", email);
             return null;
@@ -57,14 +62,19 @@ export const authOptions: NextAuthOptions = {
 
           // Check if user exists but has no password (Google OAuth user)
           if (!user.password && user.googleId) {
-            console.error("Google OAuth user trying to sign in with password:", email);
+            console.error(
+              "Google OAuth user trying to sign in with password:",
+              email
+            );
             return null;
           }
 
           // Check if account is locked
           if (user.checkIfLocked()) {
             console.error("Account is locked:", email);
-            throw new Error("Account is temporarily locked due to too many failed login attempts. Please try again later.");
+            throw new Error(
+              "Account is temporarily locked due to too many failed login attempts. Please try again later."
+            );
           }
 
           // Check if account is active
@@ -92,7 +102,9 @@ export const authOptions: NextAuthOptions = {
           await user.resetLoginAttempts();
 
           // Get full user data with references populated
-          const fullUserData = await getUserWithFullData((user as any)._id.toString());
+          const fullUserData = await getUserWithFullData(
+            (user as any)._id.toString()
+          );
 
           // Return user data for NextAuth
           return {
@@ -104,12 +116,17 @@ export const authOptions: NextAuthOptions = {
           };
         } catch (error) {
           console.error("Authentication error:", error);
-          
+
           // Handle specific database connection errors
-          if (error instanceof Error && error.message.includes("ECONNREFUSED")) {
-            throw new Error("Database connection failed. Please try again later.");
+          if (
+            error instanceof Error &&
+            error.message.includes("ECONNREFUSED")
+          ) {
+            throw new Error(
+              "Database connection failed. Please try again later."
+            );
           }
-          
+
           throw error;
         }
       },
@@ -154,7 +171,7 @@ export const authOptions: NextAuthOptions = {
         try {
           // Connect to database
           await connectToDatabase();
-          
+
           // Extract data from Google profile
           const googleProfile = profile as any;
           const googleData = {
@@ -171,10 +188,10 @@ export const authOptions: NextAuthOptions = {
             tokenType: account.token_type,
             scope: account.scope,
           };
-          
+
           // Check if user already exists
           const existingUser = await UserModel.findOne({ email: user.email });
-          
+
           if (existingUser) {
             // Update existing user with Google data
             existingUser.lastLogin = new Date();
@@ -184,7 +201,7 @@ export const authOptions: NextAuthOptions = {
             existingUser.googleExpiresAt = googleData.expiresAt;
             existingUser.googleTokenType = googleData.tokenType;
             existingUser.googleScope = googleData.scope;
-            
+
             // Update profile data if not already set
             if (!existingUser.name && googleData.name) {
               existingUser.name = googleData.name;
@@ -192,30 +209,31 @@ export const authOptions: NextAuthOptions = {
             if (!existingUser.profileImage && googleData.profileImage) {
               existingUser.profileImage = googleData.profileImage;
             }
-            
+
             await existingUser.save();
-            
+
             // Check if account is active
             if (!existingUser.isActive) {
-              throw new Error("Account is deactivated. Please contact support.");
+              throw new Error(
+                "Account is deactivated. Please contact support."
+              );
             }
-            
+
             // Set session data
             user.id = (existingUser as any)._id.toString();
             user.role = existingUser.role;
             user.emailVerified = existingUser.isEmailVerified;
             user.name = existingUser.name;
             user.image = existingUser.profileImage;
-            
           } else {
             // Create new user with Google OAuth
             const newUser = await createOrUpdateUserAuth(
               googleData.email,
-              'pet_parent', // Default role for Google sign-up
+              "pet_parent", // Default role for Google sign-up
               undefined, // No password for OAuth
               googleData
             );
-            
+
             // Set session data for new user
             user.id = newUser._id.toString();
             user.role = newUser.role;
@@ -223,14 +241,14 @@ export const authOptions: NextAuthOptions = {
             user.name = newUser.name;
             user.image = newUser.profileImage;
           }
-          
+
           return true;
         } catch (error: any) {
           console.error("Google OAuth error:", error);
           return false;
         }
       }
-      
+
       return true;
     },
   },

@@ -1,4 +1,4 @@
-import mongoose, { Document, Schema, Model } from 'mongoose';
+import mongoose, { Document, Model, Schema } from 'mongoose';
 
 export interface IReview extends Document {
   // Review details
@@ -234,6 +234,7 @@ reviewSchema.pre('save', function(next) {
   next();
 });
 
-const ReviewModel = mongoose.model<IReview, IReviewModel>('Review', reviewSchema);
+// Prevent model recompilation error
+const ReviewModel = mongoose.models.Review || mongoose.model<IReview, IReviewModel>('Review', reviewSchema);
 
 export default ReviewModel;

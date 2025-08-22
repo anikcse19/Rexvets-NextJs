@@ -1,4 +1,5 @@
 "use client";
+import { MessageSenderType } from "@/lib";
 import {
   File,
   Image,
@@ -13,12 +14,14 @@ import {
 import React, { useEffect, useRef, useState } from "react";
 
 interface IProps {
-  receiverId: string;
+  receiverId: string; // petParentId if admin, adminId if petParent
+  isAdmin?: boolean;
 }
+
 interface Message {
-  id: string;
+  _id?: string;
   text: string;
-  sender: "admin" | "user";
+  sender: "admin" | "petParent";
   timestamp: Date;
   file?: {
     name: string;
@@ -28,15 +31,8 @@ interface Message {
   };
 }
 
-const ChatBox: React.FC<IProps> = ({ receiverId }) => {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: "1",
-      text: "Welcome to Vet Care Support! How can I assist you with your pet today?",
-      sender: "admin",
-      timestamp: new Date(),
-    },
-  ]);
+const ChatBox: React.FC<IProps> = ({ receiverId, isAdmin = true }) => {
+  const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState("");
   const [isRecording, setIsRecording] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(
@@ -64,29 +60,73 @@ const ChatBox: React.FC<IProps> = ({ receiverId }) => {
 
   const generateId = () => Math.random().toString(36).substring(2, 15);
 
+  // ---------- API INTEGRATION ----------
+  const fetchMessages = async () => {
+    try {
+      const adminId = isAdmin ? "ADMIN_OBJECT_ID" : receiverId;
+      const petParentId = isAdmin ? receiverId : "PETPARENT_OBJECT_ID";
+
+      const res = await fetch(
+        `/api/messages?adminId=${adminId}&petParentId=${petParentId}`
+      );
+      const data = await res.json();
+      if (data.success) {
+        setMessages(
+          data.data.map((msg: any) => ({
+            _id: msg._id,
+            text: msg.content,
+            sender: msg.senderType,
+            timestamp: new Date(msg.createdAt),
+          }))
+        );
+      }
+    } catch (error) {
+      console.error("Failed to fetch messages", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchMessages();
+  }, [receiverId, isAdmin]);
+
+  const sendMessage = async (content: string) => {
+    try {
+      const adminId = isAdmin;
+      const petParentId = isAdmin ? receiverId : "PETPARENT_OBJECT_ID";
+
+      const res = await fetch("/api/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          admin: adminId,
+          petParent: petParentId,
+          senderType: isAdmin
+            ? MessageSenderType.Admin
+            : MessageSenderType.VetParent,
+          content,
+        }),
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        const newMessage: Message = {
+          _id: data.data._id,
+          text: data.data.content,
+          sender: data.data.senderType,
+          timestamp: new Date(data.data.createdAt),
+        };
+        setMessages((prev) => [...prev, newMessage]);
+      }
+    } catch (error) {
+      console.error("Failed to send message", error);
+    }
+  };
+
+  // ---------- UI HANDLERS ----------
   const handleSendMessage = () => {
     if (!inputText.trim()) return;
-
-    const newMessage: Message = {
-      id: generateId(),
-      text: inputText,
-      sender: "user",
-      timestamp: new Date(),
-    };
-
-    setMessages((prev) => [...prev, newMessage]);
+    sendMessage(inputText);
     setInputText("");
-
-    // Simulate admin response
-    setTimeout(() => {
-      const adminResponse: Message = {
-        id: generateId(),
-        text: `Thank you for your message about your pet: "${inputText}". A vet will respond shortly.`,
-        sender: "admin",
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, adminResponse]);
-    }, 1000);
   };
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -96,9 +136,8 @@ const ChatBox: React.FC<IProps> = ({ receiverId }) => {
     const fileUrl = URL.createObjectURL(file);
 
     const newMessage: Message = {
-      id: generateId(),
       text: `Shared a file: ${file.name}`,
-      sender: "user",
+      sender: isAdmin ? "admin" : "petParent",
       timestamp: new Date(),
       file: {
         name: file.name,
@@ -130,9 +169,8 @@ const ChatBox: React.FC<IProps> = ({ receiverId }) => {
         const audioUrl = URL.createObjectURL(audioBlob);
 
         const newMessage: Message = {
-          id: generateId(),
           text: `Voice message (${recordingTime}s)`,
-          sender: "user",
+          sender: isAdmin ? "admin" : "petParent",
           timestamp: new Date(),
           file: {
             name: `voice-message-${Date.now()}.wav`,
@@ -186,13 +224,14 @@ const ChatBox: React.FC<IProps> = ({ receiverId }) => {
   };
 
   const formatTime = (date: Date): string => {
-    return date.toLocaleTimeString("en-US", {
+    return new Date(date).toLocaleTimeString("en-US", {
       hour: "2-digit",
       minute: "2-digit",
       hour12: false,
     });
   };
 
+  // ---------- UI ----------
   return (
     <div className="flex flex-col h-[80vh] w-full bg-white">
       <div className="container h-full max-w-4xl mx-auto flex flex-col shadow-lg rounded-lg overflow-hidden">
@@ -214,11 +253,13 @@ const ChatBox: React.FC<IProps> = ({ receiverId }) => {
           className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-4 bg-gray-50"
           ref={messagesContainerRef}
         >
-          {messages.map((message) => (
+          {messages.map((message, idx) => (
             <div
-              key={message.id}
+              key={message._id || idx}
               className={`flex items-end space-x-2 ${
-                message.sender === "user" ? "justify-end" : "justify-start"
+                message.sender === (isAdmin ? "admin" : "petParent")
+                  ? "justify-end"
+                  : "justify-start"
               }`}
             >
               {message.sender === "admin" && (
@@ -228,7 +269,7 @@ const ChatBox: React.FC<IProps> = ({ receiverId }) => {
               )}
               <div
                 className={`max-w-[70%] p-3 rounded-2xl shadow-md ${
-                  message.sender === "user"
+                  message.sender === (isAdmin ? "admin" : "petParent")
                     ? "bg-blue-100 text-blue-900"
                     : "bg-green-100 text-green-900"
                 }`}
@@ -277,7 +318,7 @@ const ChatBox: React.FC<IProps> = ({ receiverId }) => {
                   {formatTime(message.timestamp)}
                 </p>
               </div>
-              {message.sender === "user" && (
+              {message.sender === (isAdmin ? "admin" : "petParent") && (
                 <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white">
                   <span className="text-sm font-bold">YOU</span>
                 </div>

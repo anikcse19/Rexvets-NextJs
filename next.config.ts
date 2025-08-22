@@ -11,11 +11,13 @@ const withPWA = withPWAInit({
   disable: !isProd,
   register: true,
   skipWaiting: true,
+  maximumFileSizeToCacheInBytes: 10 * 1024 * 1024, // 10 MB
 });
 
 // Base Next.js config
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "widgets.guidestar.org" },

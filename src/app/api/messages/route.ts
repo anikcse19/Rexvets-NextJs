@@ -38,65 +38,51 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(req: NextRequest) {
   try {
     await connectToDatabase();
-    const {
-      receiverId,
-      message,
-    }: { receiverId: string; message: Partial<IMessage> } =
-      await request.json();
 
-    if (!receiverId || !message.content) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Receiver ID and message content are required",
-        },
-        { status: 400 }
-      );
+    const formData = await req.formData();
+    const senderType = formData.get("senderType") as MessageSenderType;
+    const isAdmin = senderType === MessageSenderType.Admin;
+    const vetParentId = formData.get("vetParentId") as string | null;
+    const content = formData.get("content") as string;
+    const files = formData.getAll("files") as File[];
+
+    // Upload files to Cloudinary
+    const attachments = [];
+    for (const file of files) {
+      const result = await uploadToCloudinary(file, { resource_type: "auto" });
+      attachments.push({
+        url: result.secure_url,
+        public_id: result.public_id,
+        type: result.resource_type as "image" | "video" | "audio" | "other",
+      });
     }
 
-    const newMessage = new MessageModel({
-      ...message,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+    // Create message
+    const message = await MessageModel.create({
+      isAdmin,
+      senderType,
+      vetParent: !isAdmin ? vetParentId : undefined,
+      content,
+      attachments,
     });
 
-    await newMessage.save();
-
-    // Trigger Pusher event
-    await pusher.trigger(`chat-${receiverId}`, "new-message", newMessage);
-
-    return NextResponse.json({ success: true, message: newMessage });
-  } catch (error) {
-    console.error("Error saving message:", error);
-    return NextResponse.json(
-      { success: false, error: "Server error" },
-      { status: 500 }
-    );
-  }
-}
-
-export async function POST_upload(request: NextRequest) {
-  try {
-    const formData = await request.formData();
-    const file = formData.get("file") as File;
-
-    if (!file) {
-      return NextResponse.json(
-        { success: false, error: "No file provided" },
-        { status: 400 }
-      );
+    // Trigger Pusher
+    if (isAdmin && vetParentId) {
+      // Notify specific PetParent
+      pusher.trigger(`petParent-${vetParentId}`, "new-message", message);
+    } else if (!isAdmin) {
+      // Notify all admins
+      pusher.trigger("admins", "new-message", message);
     }
 
-    const result = await uploadToCloudinary(file, { resource_type: "auto" });
-
-    return NextResponse.json({ success: true, url: result.secure_url });
+    return NextResponse.json({ success: true, message });
   } catch (error) {
-    console.error("Error uploading file:", error);
+    console.error("Send message error:", error);
     return NextResponse.json(
-      { success: false, error: "Server error" },
+      { success: false, error: (error as Error).message },
       { status: 500 }
     );
   }
