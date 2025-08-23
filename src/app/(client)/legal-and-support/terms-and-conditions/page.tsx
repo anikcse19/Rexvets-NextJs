@@ -14,7 +14,6 @@ import {
   Globe,
 } from "lucide-react";
 import Link from "next/link";
-import TermsConditions from "@/public/images/legal-support/TermsConditions.webp";
 
 const sections = [
   {

@@ -62,10 +62,6 @@ const page = async () => {
     const serializedVetData = JSON.parse(
       JSON.stringify(vetStatus.veterinarian)
     );
-    console.log(
-      "serializedVetData--------------------------",
-      serializedVetData
-    );
     return (
       <div>
         <AccountPage doctorData={serializedVetData} />

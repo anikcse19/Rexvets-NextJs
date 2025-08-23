@@ -284,7 +284,7 @@ export async function PUT(request: NextRequest) {
 }
 
 // GET method to retrieve current pet parent data
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     // Get session to verify authentication
     const session = await getServerSession(authOptions);

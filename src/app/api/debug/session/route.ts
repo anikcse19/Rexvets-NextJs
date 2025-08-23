@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { connectToDatabase } from "@/lib/mongoose";
@@ -6,7 +6,7 @@ import VeterinarianModel from "@/models/Veterinarian";
 import PetParentModel from "@/models/PetParent";
 import VetTechModel from "@/models/VetTech";
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const session = await getServerSession(authOptions);
     

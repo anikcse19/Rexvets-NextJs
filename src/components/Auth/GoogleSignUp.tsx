@@ -5,9 +5,6 @@ import { signIn } from "next-auth/react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Heart, Stethoscope, User } from "lucide-react";
 import LoadingSpinner from "@/components/ui/loading-spinner";
 
@@ -33,7 +30,7 @@ export default function GoogleSignUp({ onBack }: GoogleSignUpProps) {
         callbackUrl: "/auth/complete-profile",
         redirect: true 
       });
-    } catch (error) {
+    } catch {
       setError("Google sign-up failed. Please try again.");
     } finally {
       setIsLoading(false);
