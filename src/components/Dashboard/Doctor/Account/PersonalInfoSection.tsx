@@ -33,10 +33,17 @@ import {
   personalInfoSchema,
 } from "@/lib/validation/account";
 import { mockDoctorData } from "@/lib";
+import { Doctor } from "@/lib/types";
 
-export default function PersonalInfoSection() {
+export default function PersonalInfoSection({
+  doctorData,
+}: {
+  doctorData: Doctor;
+}) {
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  console.log(doctorData, "doctor in professional component");
 
   const {
     register,
@@ -105,17 +112,15 @@ export default function PersonalInfoSection() {
               <div className="text-center">
                 <Avatar className="w-32 h-32 mx-auto mb-4 border-4 border-blue-100 shadow-lg">
                   <AvatarImage
-                    src={mockDoctorData.personalInfo.profileImage}
-                    alt={`${mockDoctorData.personalInfo.firstName} ${mockDoctorData.personalInfo.lastName}`}
+                    src={doctorData?.profileImage}
+                    alt={`${doctorData?.name}`}
                   />
                   <AvatarFallback className="text-2xl font-bold text-gray-800 bg-gradient-to-br from-blue-100 to-purple-100">
-                    {mockDoctorData.personalInfo.firstName.charAt(0)}
-                    {mockDoctorData.personalInfo.lastName.charAt(0)}
+                    {doctorData?.name?.charAt(0)}
                   </AvatarFallback>
                 </Avatar>
                 <h3 className="text-xl font-bold text-gray-900 mb-1">
-                  Dr. {mockDoctorData.personalInfo.firstName}{" "}
-                  {mockDoctorData.personalInfo.lastName}
+                  Dr. {doctorData?.name}
                 </h3>
                 <Badge className="bg-blue-100 text-blue-700 border-blue-300">
                   Verified Profile
@@ -129,23 +134,19 @@ export default function PersonalInfoSection() {
                 <InfoItem
                   icon={<Mail className="w-5 h-5 text-blue-600" />}
                   label="Email Address"
-                  value={mockDoctorData.personalInfo.email}
-                />
-                <InfoItem
-                  icon={<Phone className="w-5 h-5 text-green-600" />}
-                  label="Phone Number"
-                  value={mockDoctorData.personalInfo.phone}
+                  value={doctorData?.email}
                 />
                 <InfoItem
                   icon={<Calendar className="w-5 h-5 text-purple-600" />}
                   label="Date of Birth"
-                  value={new Date(
-                    mockDoctorData.personalInfo.dateOfBirth
-                  ).toLocaleDateString("en-US", {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })}
+                  value={new Date(doctorData?.dob || "").toLocaleDateString(
+                    "en-US",
+                    {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    }
+                  )}
                 />
                 <InfoItem
                   icon={<User className="w-5 h-5 text-pink-600" />}
@@ -161,7 +162,7 @@ export default function PersonalInfoSection() {
                 <InfoItem
                   icon={<MapPin className="w-5 h-5 text-red-600" />}
                   label="Address"
-                  value={`${mockDoctorData.personalInfo.address}, ${mockDoctorData.personalInfo.city}, ${mockDoctorData.personalInfo.state} ${mockDoctorData.personalInfo.zipCode}, ${mockDoctorData.personalInfo.country}`}
+                  value={`${doctorData?.address}, ${doctorData?.city}, ${doctorData?.state} ${doctorData?.zipCode}, ${doctorData?.country}`}
                   fullWidth
                 />
               </div>

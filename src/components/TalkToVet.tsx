@@ -15,7 +15,7 @@ const TalkToVetButton = () => {
         }}
       >
         <button
-          onClick={() => navigate.push("/findAVet")}
+          onClick={() => navigate.push("/find-a-vet")}
           style={{
             position: "relative",
             backgroundColor: "#113F67",
