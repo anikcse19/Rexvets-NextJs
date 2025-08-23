@@ -224,7 +224,7 @@ export default function ChatIcon() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className=" bg-gray-50">
       {/* Chat Icon - Sticky position */}
       <div className="fixed bottom-6 right-6 z-40">
         <button
@@ -283,20 +283,20 @@ export default function ChatIcon() {
             <div className="flex items-center space-x-2">
               <button
                 onClick={() => setShowDonationPanel(true)}
-                className="text-white hover:text-blue-200 p-1 rounded transition-colors"
+                className=" cursor-pointer text-white hover:text-blue-200 p-1 rounded transition-colors"
                 title="Support our mission"
               >
                 <HiOutlineHeart className="w-4 h-4" />
               </button>
               <button
                 onClick={minimizeChat}
-                className="text-white hover:text-blue-200 p-1 rounded transition-colors"
+                className="cursor-pointer text-white hover:text-blue-200 p-1 rounded transition-colors"
               >
                 <HiOutlineMinus className="w-4 h-4" />
               </button>
               <button
                 onClick={closeChat}
-                className="text-white hover:text-blue-200 p-1 rounded transition-colors"
+                className="cursor-pointer text-white hover:text-blue-200 p-1 rounded transition-colors"
               >
                 <HiOutlineX className="w-4 h-4" />
               </button>
