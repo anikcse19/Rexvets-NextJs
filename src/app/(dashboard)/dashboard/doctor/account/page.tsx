@@ -56,7 +56,7 @@ const page = async () => {
     // Use the veterinarian data we already have from the status check
     // Serialize the data to remove circular references
     const serializedVetData = JSON.parse(JSON.stringify(vetStatus.veterinarian));
-    
+    console.log("serializedVetData--------------------------", serializedVetData);
     return (
       <div>
         <AccountPage doctorData={serializedVetData} />
