@@ -57,6 +57,7 @@ export interface IPetParent extends Document {
 }
 
 // Static methods interface
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface IPetParentModel extends Model<IPetParent> {
   // Authentication methods removed - now handled by User model
   // findByEmailForAuth(email: string): Promise<IPetParent | null>;

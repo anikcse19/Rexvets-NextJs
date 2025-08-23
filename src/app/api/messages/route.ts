@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { uploadToCloudinary } from "@/lib/cloudinary";
-import { IMessage, MessageSenderType } from "@/lib/interfaces";
+import { MessageSenderType } from "@/lib/interfaces";
 import { connectToDatabase } from "@/lib/mongoose";
 import { pusher } from "@/lib/pusher";
 import { MessageModel } from "@/models/Message";

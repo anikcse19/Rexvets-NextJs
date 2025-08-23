@@ -217,11 +217,11 @@ const findRelevantVeterinarians = async (
   try {
     await connectToDatabase();
 
-    const { species, breed } = report.petInformation;
+    const { species } = report.petInformation;
     const { suspectedCondition } = report.diagnosis;
 
     // Build query based on the pet's species and condition
-    let query: any = {
+    const query: any = {
       isActive: true,
       isApproved: true,
       available: true,

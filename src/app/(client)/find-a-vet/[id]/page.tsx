@@ -4,14 +4,15 @@ import { getVetById } from "@/components/DoctorProfile/service/get-doctor-by-id"
 import React from "react";
 
 interface PageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 // If using App Router and server component
 const Page = async ({ params }: PageProps) => {
-  const doctorId = params.id;
+  const resolvedParams = await params;
+  const doctorId = resolvedParams.id;
 
   // fetch data using the dynamic id
   const doctorData = await getVetById(doctorId);

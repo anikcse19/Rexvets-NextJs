@@ -51,7 +51,7 @@ export async function GET(
       );
     }
 
-    let query: any = { 
+    const query: any = { 
       parentId: new mongoose.Types.ObjectId(parentId), 
       isDeleted: { $ne: true } 
     };

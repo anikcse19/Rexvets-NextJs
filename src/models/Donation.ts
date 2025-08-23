@@ -39,7 +39,10 @@ export interface IDonation extends Document {
   updatedAt: Date;
 }
 
-export interface IDonationModel extends Model<IDonation> {}
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface IDonationModel extends Model<IDonation> {
+  // Add any static methods here if needed
+}
 
 /**
  * Donation Schema
