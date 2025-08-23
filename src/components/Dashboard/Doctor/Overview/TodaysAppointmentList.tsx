@@ -10,7 +10,7 @@ const TodaysAppointmentList = () => {
         <div className="flex items-center justify-between">
           <CardTitle className="text-xl font-bold text-gray-900 flex items-center gap-2">
             <Calendar className="w-5 h-5 text-blue-600" />
-            Today's Appointments
+            Today&apos;s Appointments
           </CardTitle>
           <Badge variant="secondary" className="bg-blue-100 text-blue-700">
             12 scheduled

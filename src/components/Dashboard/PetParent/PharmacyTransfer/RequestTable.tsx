@@ -78,7 +78,7 @@ export function RequestsTable({ requests }: RequestsTableProps) {
             No Transfer Requests
           </h3>
           <p className="text-gray-600">
-            You haven't submitted any prescription transfer requests yet.
+            You haven&apos;t submitted any prescription transfer requests yet.
           </p>
         </CardContent>
       </Card>

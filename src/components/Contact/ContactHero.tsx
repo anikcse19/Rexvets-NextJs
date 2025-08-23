@@ -47,7 +47,7 @@ const ContactHero = () => {
             </span>
           </h1>
           <p className="text-lg md:text-2xl text-white/90 mb-8 max-w-3xl mx-auto">
-            Have questions about our telehealth services? Need support? We're
+            Have questions about our telehealth services? Need support? We&apos;re
             here to help you and your pets get the care you deserve.
           </p>
           <motion.div

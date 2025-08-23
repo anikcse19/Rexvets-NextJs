@@ -51,7 +51,7 @@ export default function DataAssessmentSection() {
               Medical Assessment
             </CardTitle>
             <p className="text-purple-100">
-              Clinical records and doctor's assessments
+              Clinical records and doctor&apos;s assessments
             </p>
           </div>
         </div>

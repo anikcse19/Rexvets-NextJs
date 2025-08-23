@@ -114,7 +114,7 @@ const ContactSocial: React.FC = () => {
           <CardContent className="p-6">
             <h3 className="text-lg font-bold mb-2">Need Immediate Help?</h3>
             <p className="text-sm opacity-90 mb-4">
-              For urgent pet health concerns, don't hesitate to reach out
+              For urgent pet health concerns, don&apos;t hesitate to reach out
               immediately.
             </p>
             <Button

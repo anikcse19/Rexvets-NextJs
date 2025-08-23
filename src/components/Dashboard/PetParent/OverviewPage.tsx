@@ -572,7 +572,7 @@ export default function PetParentOverviewPage() {
                   Health Insights
                 </CardTitle>
                 <p className="text-indigo-100 mt-1">
-                  Keep track of your pets' wellness
+                  Keep track of your pets&apos; wellness
                 </p>
               </div>
             </div>
