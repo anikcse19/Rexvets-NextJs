@@ -120,6 +120,9 @@ export interface Doctor {
   };
   licenses: License[];
   bio: string;
+  specialties: string[];
+  interests: string[];
+  researchAreas: string[];
   education: any[]; // if you know structure, replace `any[]` with proper type
   experience: any[]; // same here
   certifications: any[]; // same here

@@ -26,7 +26,11 @@ import {
   areasOfInterestSchema,
 } from "@/lib/validation/account";
 
-export default function AreasOfInterestSection() {
+export default function AreasOfInterestSection({
+  doctorData,
+}: {
+  doctorData: any;
+}) {
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedSpecialties, setSelectedSpecialties] = useState<string[]>(
@@ -110,6 +114,8 @@ export default function AreasOfInterestSection() {
     setResearchAreas(researchAreas.filter((a) => a !== area));
   };
 
+  console.log("Doctor Data from area of interest:", doctorData);
+
   if (!isEditing) {
     return (
       <Card className="shadow-lg border-0 bg-white overflow-hidden">
@@ -148,71 +154,64 @@ export default function AreasOfInterestSection() {
                 Medical Specialties
               </h3>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                {mockDoctorData.areasOfInterest.specialties.map(
-                  (specialty, index) => (
-                    <Badge
-                      key={index}
-                      className="bg-gradient-to-r from-pink-100 to-rose-100 text-pink-700 border-pink-300 justify-center py-2 px-4 text-sm font-medium"
-                    >
-                      {specialty}
-                    </Badge>
-                  )
-                )}
+                {doctorData?.specialties?.map((specialty: any, index: any) => (
+                  <Badge
+                    key={index}
+                    className="bg-gradient-to-r from-pink-100 to-rose-100 text-pink-700 border-pink-300 justify-center py-2 px-4 text-sm font-medium"
+                  >
+                    {specialty}
+                  </Badge>
+                ))}
               </div>
             </div>
 
             {/* Interests */}
-            {mockDoctorData.areasOfInterest.interests &&
-              mockDoctorData.areasOfInterest.interests.length > 0 && (
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                    <Lightbulb className="w-5 h-5 text-yellow-600" />
-                    Professional Interests
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {mockDoctorData.areasOfInterest.interests.map(
-                      (interest, index) => (
-                        <div
-                          key={index}
-                          className="flex items-center gap-3 p-4 bg-gradient-to-r from-yellow-50 to-amber-50 rounded-xl border border-yellow-200"
-                        >
-                          <div className="bg-yellow-500 text-white rounded-full p-2 flex-shrink-0">
-                            <Lightbulb className="w-4 h-4" />
-                          </div>
-                          <span className="font-medium text-gray-900">
-                            {interest}
-                          </span>
-                        </div>
-                      )
-                    )}
-                  </div>
+            {doctorData?.interests && doctorData?.interests?.length > 0 && (
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                  <Lightbulb className="w-5 h-5 text-yellow-600" />
+                  Professional Interests
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {doctorData?.interests?.map((interest: any, index: any) => (
+                    <div
+                      key={index}
+                      className="flex items-center gap-3 p-4 bg-gradient-to-r from-yellow-50 to-amber-50 rounded-xl border border-yellow-200"
+                    >
+                      <div className="bg-yellow-500 text-white rounded-full p-2 flex-shrink-0">
+                        <Lightbulb className="w-4 h-4" />
+                      </div>
+                      <span className="font-medium text-gray-900">
+                        {interest}
+                      </span>
+                    </div>
+                  ))}
                 </div>
-              )}
+              </div>
+            )}
 
             {/* Research Areas */}
-            {mockDoctorData.areasOfInterest.researchAreas &&
-              mockDoctorData.areasOfInterest.researchAreas.length > 0 && (
+            {doctorData?.researchAreas &&
+              doctorData?.researchAreas?.length > 0 && (
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
                     <Search className="w-5 h-5 text-blue-600" />
                     Research Areas
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {mockDoctorData.areasOfInterest.researchAreas.map(
-                      (area, index) => (
-                        <div
-                          key={index}
-                          className="flex items-center gap-3 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200"
-                        >
-                          <div className="bg-blue-500 text-white rounded-full p-2 flex-shrink-0">
-                            <Search className="w-4 h-4" />
-                          </div>
-                          <span className="font-medium text-gray-900">
-                            {area}
-                          </span>
+                    {doctorData?.researchAreas?.map((area: any, index: any) => (
+                      <div
+                        key={index}
+                        className="flex items-center gap-3 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200"
+                      >
+                        <div className="bg-blue-500 text-white rounded-full p-2 flex-shrink-0">
+                          <Search className="w-4 h-4" />
                         </div>
-                      )
-                    )}
+                        <span className="font-medium text-gray-900">
+                          {area}
+                        </span>
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}
