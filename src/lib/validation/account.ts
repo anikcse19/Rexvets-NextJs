@@ -5,27 +5,50 @@ export const personalInfoSchema = z.object({
   firstName: z.string().min(2, "First name must be at least 2 characters"),
   lastName: z.string().min(2, "Last name must be at least 2 characters"),
   email: z.string().email("Please enter a valid email address"),
-  phone: z.string().min(10, "Phone number must be at least 10 digits"),
-  dateOfBirth: z.string().min(1, "Date of birth is required"),
+  phone: z
+    .string()
+    .min(10, "Phone number must be at least 10 digits")
+    .optional(),
+  dob: z.string().min(1, "Date of birth is required").optional(),
   gender: z.enum(["male", "female", "other"], {
     message: "Please select a gender",
   }),
-  address: z.string().min(10, "Address must be at least 10 characters"),
-  city: z.string().min(2, "City is required"),
-  state: z.string().min(2, "State is required"),
-  zipCode: z.string().min(4, "ZIP code is required"),
-  country: z.string().min(2, "Country is required"),
+  address: z
+    .string()
+    .min(10, "Address must be at least 10 characters")
+    .optional(),
+  city: z.string().min(2, "City is required").optional(),
+  state: z.string().min(2, "State is required").optional(),
+  zipCode: z.string().min(4, "ZIP code is required").optional(),
+  country: z.string().min(2, "Country is required").optional(),
+  bio: z.string().min(150, "Bio must be at most 1000 characters").optional(),
+  profileImage: z.string().url("Please provide a valid URL").optional(),
 });
 
-// Professional Information Schema
 export const professionalInfoSchema = z.object({
-  licenseNumber: z.string().min(5, "License number is required"),
+  licenseNumber: z
+    .string()
+    .transform((val) => (val === "" ? undefined : val))
+    .optional()
+    .refine((val) => !val || val.length >= 5, {
+      message: "License number must be at least 5 characters",
+    }),
   yearsOfExperience: z.number().min(0, "Years of experience must be positive"),
-  education: z.string().min(10, "Education details are required"),
+  education: z.string().min(10, "Education details are required").optional(),
   certifications: z.array(z.string()).optional(),
   clinicName: z.string().min(2, "Clinic name is required"),
   clinicAddress: z.string().min(10, "Clinic address is required"),
   emergencyContact: z.string().min(10, "Emergency contact is required"),
+  licenses: z
+    .array(
+      z.object({
+        licenseNumber: z.string().min(5, "License number is required"),
+        deaNumber: z.string().optional(),
+        state: z.string().optional(),
+        licenseFile: z.any().optional(), // File or null
+      })
+    )
+    .optional(),
 });
 
 // Areas of Interest Schema
