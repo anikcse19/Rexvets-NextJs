@@ -7,8 +7,9 @@ import React from "react";
 
 const page = async () => {
   const session = await getServerSession(authOptions);
-
+  console.log("session from server side", session);
   const accountData = await getVetByIdDashboard(session?.user?.id || "");
+  console.log("accountData from server side", accountData);
 
   return (
     <div>
