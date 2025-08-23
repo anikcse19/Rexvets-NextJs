@@ -1,7 +1,7 @@
 import { Clock } from "lucide-react";
-import { Doctor } from "./DoctorCard";
+import { Veterinarian } from "./type";
 
-export default function DoctorSlots({ doctor }: { doctor: Doctor }) {
+export default function DoctorSlots({ doctor }: { doctor: Veterinarian }) {
   return (
     <div>
       <p className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
@@ -9,13 +9,13 @@ export default function DoctorSlots({ doctor }: { doctor: Doctor }) {
         Next Available Slots:
       </p>
       <div className="grid grid-cols-2 gap-2">
-        {doctor.availableSlots.map((slot, index) => (
+        {["10:00 AM", "2:00 PM", "4:00 PM"].map((slot, index) => (
           <div
             key={index}
             className="p-2 bg-gray-50 rounded-lg border border-gray-200 text-center"
           >
-            <p className="text-sm font-medium text-gray-900">{slot.time}</p>
-            <p className="text-xs text-gray-600">{slot.timezone}</p>
+            <p className="text-sm font-medium text-gray-900">{slot}</p>
+            <p className="text-xs text-gray-600">{doctor.timezone || "EST"}</p>
           </div>
         ))}
       </div>

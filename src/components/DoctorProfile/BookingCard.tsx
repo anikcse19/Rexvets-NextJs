@@ -91,8 +91,8 @@ export default function BookingSystem({
     if (!schedule || !schedule.available) return [];
 
     const slots: Slot[] = [];
-    let [startH, startM] = schedule.start.split(":").map(Number);
-    let [endH, endM] = schedule.end.split(":").map(Number);
+    const [startH, startM] = schedule.start.split(":").map(Number);
+    const [endH, endM] = schedule.end.split(":").map(Number);
 
     const startMinutes = startH * 60 + startM;
     const endMinutes = endH * 60 + endM;

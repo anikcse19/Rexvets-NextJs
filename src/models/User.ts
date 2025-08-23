@@ -189,8 +189,8 @@ const userSchema = new Schema<IUser>(
 );
 
 // Indexes
-userSchema.index({ email: 1 });
-userSchema.index({ googleId: 1 });
+// Note: email index is automatically created by unique: true constraint
+// Note: googleId index is automatically created by sparse: true constraint
 userSchema.index({ role: 1 });
 userSchema.index({ isActive: 1 });
 userSchema.index({ isDeleted: 1 });
