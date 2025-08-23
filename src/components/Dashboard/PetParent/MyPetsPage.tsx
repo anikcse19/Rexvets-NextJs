@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { PetRegistrationData } from "@/lib/validation/pet";
 import AddPetModal from "./Pets/AddPetModal";
+import { getPetsByParent } from "./Service/pet";
 
 // Mock pets data - this would come from your API
 const mockPets = [
@@ -104,7 +105,17 @@ const mockPets = [
 export default function MyPetsPage() {
   const [isAddPetModalOpen, setIsAddPetModalOpen] = useState(false);
   const [editingPet, setEditingPet] = useState<any>(null);
-  const [pets, setPets] = useState(mockPets);
+  const [pets, setPets] = useState<any[]>([]);
+
+  const fetchPets = async () => {
+    const data = await getPetsByParent();
+    setPets(data?.pets);
+    console.log("pet data", data);
+  };
+
+  useEffect(() => {
+    fetchPets();
+  }, []);
 
   const calculateAge = (dateOfBirth: string) => {
     const today = new Date();
@@ -173,30 +184,30 @@ export default function MyPetsPage() {
     setIsAddPetModalOpen(true);
   };
 
-  const handlePetSuccess = (petData: any) => {
-    if (editingPet) {
-      // Update existing pet
-      setPets(
-        pets.map((pet) =>
-          pet.id === editingPet.id ? { ...pet, ...petData } : pet
-        )
-      );
-      console.log("Updating pet:", { id: editingPet.id, ...petData });
-    } else {
-      // Add new pet
-      const newPet = {
-        id: Date.now().toString(),
-        ...petData,
-        lastVisit: new Date().toISOString().split("T")[0],
-        nextVaccination: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000)
-          .toISOString()
-          .split("T")[0],
-        healthStatus: "Healthy",
-      };
-      setPets([...pets, newPet]);
-      console.log("Adding new pet:", newPet);
-    }
-  };
+  // const handlePetSuccess = (petData: any) => {
+  //   if (editingPet) {
+  //     // Update existing pet
+  //     setPets(
+  //       pets.map((pet) =>
+  //         pet.id === editingPet.id ? { ...pet, ...petData } : pet
+  //       )
+  //     );
+  //     console.log("Updating pet:", { id: editingPet.id, ...petData });
+  //   } else {
+  //     // Add new pet
+  //     const newPet = {
+  //       id: Date.now().toString(),
+  //       ...petData,
+  //       lastVisit: new Date().toISOString().split("T")[0],
+  //       nextVaccination: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000)
+  //         .toISOString()
+  //         .split("T")[0],
+  //       healthStatus: "Healthy",
+  //     };
+  //     setPets([...pets, newPet]);
+  //     console.log("Adding new pet:", newPet);
+  //   }
+  // };
 
   const handleCloseModal = () => {
     setIsAddPetModalOpen(false);
@@ -218,7 +229,7 @@ export default function MyPetsPage() {
 
         <Button
           onClick={handleAddPet}
-          className="bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
+          className="bg-gradient-to-r cursor-pointer from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
         >
           <Plus className="w-4 h-4 mr-2" />
           Add New Pet
@@ -251,7 +262,7 @@ export default function MyPetsPage() {
               </div>
               <div>
                 <p className="text-2xl font-bold text-green-900">
-                  {pets.filter((pet) => pet.healthStatus === "Healthy").length}
+                  {pets.filter((pet) => pet?.healthStatus === "Healthy").length}
                 </p>
                 <p className="text-green-700 text-sm">Healthy Pets</p>
               </div>
@@ -408,14 +419,16 @@ export default function MyPetsPage() {
                       </p>
                     </div>
                     <div className="flex flex-wrap gap-1">
-                      {pet.allergies.map((allergy, index) => (
-                        <Badge
-                          key={index}
-                          className="bg-red-100 text-red-700 border-red-300 text-xs"
-                        >
-                          {allergy}
-                        </Badge>
-                      ))}
+                      {JSON.parse(pet.allergies).map(
+                        (allergy: any, index: any) => (
+                          <Badge
+                            key={index}
+                            className="bg-red-100 text-red-700 border-red-300 text-xs"
+                          >
+                            {allergy}
+                          </Badge>
+                        )
+                      )}
                     </div>
                   </div>
                 )}
@@ -431,14 +444,16 @@ export default function MyPetsPage() {
                         </p>
                       </div>
                       <div className="flex flex-wrap gap-1">
-                        {pet.currentMedications.map((medication, index) => (
-                          <Badge
-                            key={index}
-                            className="bg-orange-100 text-orange-700 border-orange-300 text-xs"
-                          >
-                            {medication}
-                          </Badge>
-                        ))}
+                        {JSON.parse(pet.currentMedications).map(
+                          (medication: any, index: any) => (
+                            <Badge
+                              key={index}
+                              className="bg-orange-100 text-orange-700 border-orange-300 text-xs"
+                            >
+                              {medication}
+                            </Badge>
+                          )
+                        )}
                       </div>
                     </div>
                   )}
@@ -492,7 +507,7 @@ export default function MyPetsPage() {
       <AddPetModal
         isOpen={isAddPetModalOpen}
         onClose={handleCloseModal}
-        onSuccess={handlePetSuccess}
+        // onSuccess={handlePetSuccess}
         editingPet={editingPet}
       />
     </div>

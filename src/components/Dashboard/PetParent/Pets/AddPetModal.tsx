@@ -35,6 +35,7 @@ import {
   Pill,
   AlertTriangle,
   Phone,
+  HeartPlus,
 } from "lucide-react";
 import {
   PetRegistrationData,
@@ -42,6 +43,7 @@ import {
 } from "@/lib/validation/pet";
 import { calculatePetAge } from "@/lib/utils";
 import { colorOptions, speciesWithBreeds } from "@/lib";
+import { toast } from "sonner";
 
 interface AddPetModalProps {
   isOpen: boolean;
@@ -58,7 +60,8 @@ export default function AddPetModal({
 }: AddPetModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedSpecies, setSelectedSpecies] = useState<string>("");
-  const [petImage, setPetImage] = useState<string>("");
+  const [petImage, setPetImage] = useState<File | null>(null);
+  const [petImagePreview, setPetImagePreview] = useState<string | null>(null);
   const [allergies, setAllergies] = useState<string[]>([]);
   const [medicalConditions, setMedicalConditions] = useState<string[]>([]);
   const [currentMedications, setCurrentMedications] = useState<string[]>([]);
@@ -95,7 +98,6 @@ export default function AddPetModal({
         weight: editingPet.weight,
         weightUnit: editingPet.weightUnit,
         dateOfBirth: editingPet.dateOfBirth,
-        microchipId: editingPet.microchipId || "",
         emergencyContact: editingPet.emergencyContact || "",
         veterinarianNotes: editingPet.veterinarianNotes || "",
       });
@@ -115,19 +117,39 @@ export default function AddPetModal({
   const onSubmit = async (data: PetRegistrationData) => {
     setIsSubmitting(true);
     try {
-      const petData = {
-        ...data,
-        allergies,
-        medicalConditions,
-        currentMedications,
-        image: petImage,
-      };
+      const formData = new FormData();
 
-      // API call would go here
-      console.log("Registering pet:", petData);
-      await new Promise((resolve) => setTimeout(resolve, 2000)); // Simulate API call
+      // Append normal fields
+      Object.entries(data).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          formData.append(key, value as any);
+        }
+      });
 
-      onSuccess?.(petData);
+      formData.append("allergies", JSON.stringify(allergies));
+      formData.append("medicalConditions", JSON.stringify(medicalConditions));
+      formData.append("currentMedications", JSON.stringify(currentMedications));
+      formData.append("parentId", "68a4597b6fbe5d3c548c215d");
+
+      // Append file (if any)
+      if (petImage) {
+        formData.append("image", petImage);
+      }
+
+      // Example API call with fetch
+      const response = await fetch("/api/pet", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to register pet");
+      }
+
+      const result = await response.json();
+      console.log("result", result);
+      toast.success("Added Pet Successfully");
+      // onSuccess?.(result);
       handleClose();
     } catch (error) {
       console.error("Error registering pet:", error);
@@ -139,7 +161,7 @@ export default function AddPetModal({
   const handleClose = () => {
     reset();
     setSelectedSpecies("");
-    setPetImage("");
+    setPetImage(null);
     setAllergies([]);
     setMedicalConditions([]);
     setCurrentMedications([]);
@@ -152,9 +174,12 @@ export default function AddPetModal({
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      setPetImage(file); // store file for FormData
+
+      // generate preview for UI
       const reader = new FileReader();
       reader.onload = (e) => {
-        setPetImage(e.target?.result as string);
+        setPetImagePreview(e.target?.result as string);
       };
       reader.readAsDataURL(file);
     }
@@ -226,7 +251,7 @@ export default function AddPetModal({
             <div className="relative inline-block">
               <Avatar className="w-32 h-32 border-4 border-pink-100 shadow-lg">
                 <AvatarImage
-                  src={petImage}
+                  src={petImagePreview || ""}
                   alt="Pet"
                   className="object-cover"
                 />
@@ -516,14 +541,41 @@ export default function AddPetModal({
               </h3>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="microchipId">Microchip ID (Optional)</Label>
-              <Input
-                id="microchipId"
-                {...register("microchipId")}
-                placeholder="Enter microchip ID if available"
-                className="border-gray-300 focus:border-purple-500 focus:ring-purple-500"
-              />
+            {/* Health Status */}
+            <div className="space-y-4">
+              <Label className="flex items-center gap-2">
+                <HeartPlus className="w-4 h-4 text-red-600" />
+                Health Status
+              </Label>
+              <Select
+                onValueChange={(value) =>
+                  setValue(
+                    "healthStatus",
+                    value as
+                      | "Healthy"
+                      | "Under Treatment"
+                      | "Critical"
+                      | "Unknown"
+                  )
+                }
+              >
+                <SelectTrigger className="border-gray-300 focus:border-blue-500 focus:ring-blue-500 w-full">
+                  <SelectValue placeholder="Select unit" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Healthy">Healthy</SelectItem>
+                  <SelectItem value="Under Treatment">
+                    Under Treatment
+                  </SelectItem>
+                  <SelectItem value="Critical">Critical</SelectItem>
+                  <SelectItem value="Unknown">Unknown</SelectItem>
+                </SelectContent>
+              </Select>
+              {/* {errors.healthStatus && (
+                <p className="text-sm text-red-600">
+                  {errors.healthStatus.message}
+                </p>
+              )} */}
             </div>
 
             {/* Allergies */}

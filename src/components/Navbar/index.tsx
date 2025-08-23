@@ -399,7 +399,9 @@ const Header: React.FC = () => {
                   <DropdownMenuItem asChild>
                     <Link
                       href={`/dashboard/${
-                        session.user.role === "doctor" ? "doctor" : "pet-parent"
+                        session.user.role === "veterinarian"
+                          ? "doctor"
+                          : "pet-parent"
                       }/overview`}
                       className="flex items-center px-3 py-2 rounded-lg hover:bg-emerald-50 transition-colors cursor-pointer"
                     >

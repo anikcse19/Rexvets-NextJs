@@ -1,11 +1,14 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import PersonalInfoSection from "./Account/PersonalInfoSection";
 import ProfessionalInfoSection from "./Account/ProfessionalInfoSection";
 import AreasOfInterestSection from "./Account/AreaOfInterestSection";
+import { useSession } from "next-auth/react";
+import { getVetByIdDashboard } from "./Service/get-vet-by-id";
+import { Doctor } from "@/lib/types";
 
-export default function AccountPage() {
+export default function AccountPage({ doctorData }: { doctorData: Doctor }) {
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -21,8 +24,8 @@ export default function AccountPage() {
 
       {/* Account Sections */}
       <div className="space-y-8">
-        <PersonalInfoSection />
-        <ProfessionalInfoSection />
+        <PersonalInfoSection doctorData={doctorData} />
+        <ProfessionalInfoSection doctorData={doctorData} />
         <AreasOfInterestSection />
       </div>
     </div>

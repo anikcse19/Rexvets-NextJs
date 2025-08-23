@@ -27,7 +27,7 @@ interface DonationModalProps {
   onClose: () => void;
   doctorName: string;
   appointmentDate: string;
-  appointmentTime: string;
+  appointmentTime?: string;
 }
 
 const donationOptions = [

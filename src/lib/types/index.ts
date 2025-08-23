@@ -11,20 +11,29 @@ export interface PetParent extends User {
   state?: string;
 }
 
-export interface TimeSlot {
-  startTime: string;
-  endTime: string;
+export interface License {
+  licenseNumber: string;
+  deaNumber: string;
+  state: string;
+  licenseFile: string | null;
+  _id: string;
+  id: string;
+}
+
+export interface ScheduleDay {
+  start: string;
+  end: string;
+  available: boolean;
 }
 
 export interface Schedule {
-  [key: string]: TimeSlot[];
-}
-
-export interface License {
-  licenseNumber: string;
-  deaNumber?: string;
-  state: string;
-  licenseFile: File | null;
+  monday: ScheduleDay;
+  tuesday: ScheduleDay;
+  wednesday: ScheduleDay;
+  thursday: ScheduleDay;
+  friday: ScheduleDay;
+  saturday: ScheduleDay;
+  sunday: ScheduleDay;
 }
 
 export interface VeterinarianProfile {
@@ -87,20 +96,46 @@ export interface Appointment {
 }
 
 export interface Doctor {
-  id: string;
+  schedule: Schedule;
+  loginAttempts: number;
+  _id: string;
   name: string;
-  image: string;
-  degree: string;
-  rating: number;
-  reviewCount: number;
-  license: string;
-  prescriptionBadge: boolean;
-  state: string;
-  specialties: string[];
-  bio: string;
+  email: string;
+  phoneNumber: string;
+  specialization: string;
+  consultationFee: number;
+  available: boolean;
+  signature: string;
+  profileImage: string;
+  dob?: string;
   address: string;
-  speciesTreated: string[];
-  availableSlots: TimeSlots[];
+  city: string;
+  state: string;
+  zipCode: number;
+  country: string;
+  yearsOfExperience: string;
+  clinic: {
+    name: string;
+    address: string;
+  };
+  licenses: License[];
+  bio: string;
+  education: any[]; // if you know structure, replace `any[]` with proper type
+  experience: any[]; // same here
+  certifications: any[]; // same here
+  languages: string[];
+  timezone: string;
+  isEmailVerified: boolean;
+  isActive: boolean;
+  isDeleted: boolean;
+  isApproved: boolean;
+  locale: string;
+  createdAt: string; // ISO date
+  updatedAt: string; // ISO date
+  __v: number;
+  lastLogin: string; // ISO date
+  isLocked: boolean;
+  id: string;
 }
 
 export interface TimeSlots {
