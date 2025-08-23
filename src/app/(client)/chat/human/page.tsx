@@ -3,7 +3,7 @@ import { HumanChatBox } from "@/components/Chat";
 import { useParams, useSearchParams } from "next/navigation";
 import React from "react";
 
-const page = () => {
+const Page = () => {
   const searchParams = useSearchParams();
 
   const name = searchParams.get("name"); // "M Junaid"
