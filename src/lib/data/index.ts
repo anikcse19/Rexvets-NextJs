@@ -1,18 +1,14 @@
 import {
-  Activity,
   Calendar,
   Cat,
   FileCheck2,
-  HandHeart,
   HelpCircle,
-  HelpingHand,
   LayoutDashboard,
   LogOut,
   Settings,
-  Users,
 } from "lucide-react";
 import { FaPrescription } from "react-icons/fa";
-import { FaFilePrescription } from "react-icons/fa6";
+
 import {
   MdFavorite,
   MdHome,
@@ -35,7 +31,7 @@ import {
   IHomeFeaturesSection,
   ITreatmentCategory,
 } from "../interfaces";
-import { Doctor, DonationAmount, MenuItems, Review } from "../types";
+import { DonationAmount, MenuItems, Review } from "../types";
 
 export const brands: IBrand[] = [
   { id: 2, name: "HUFFPOST", imageUrl: marquee4 },

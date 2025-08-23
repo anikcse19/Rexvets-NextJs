@@ -58,7 +58,7 @@ const ChatBox: React.FC<IProps> = ({ receiverId, isAdmin = true }) => {
     scrollToBottom();
   }, [messages]);
 
-  const generateId = () => Math.random().toString(36).substring(2, 15);
+
 
   // ---------- API INTEGRATION ----------
   const fetchMessages = async () => {

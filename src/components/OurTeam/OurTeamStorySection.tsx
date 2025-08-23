@@ -37,16 +37,16 @@ const fadeIn: Variants = {
 };
 
 // Floating Paw Animation
-const bounceAnimation: Variants = {
-  animate: {
-    y: [0, -15, 0],
-    transition: {
-      duration: 3,
-      ease: "easeInOut",
-      repeat: Infinity,
-    },
-  },
-};
+// const bounceAnimation: Variants = {
+//   animate: {
+//     y: [0, -15, 0],
+//     transition: {
+//       duration: 3,
+//       ease: "easeInOut",
+//       repeat: Infinity,
+//     },
+//   },
+// };
 
 const OurTeamStorySection: React.FC<StoryProps> = ({
   images,

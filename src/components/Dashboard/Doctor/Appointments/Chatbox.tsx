@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -92,13 +92,12 @@ const mockMessages: Message[] = [
 ];
 
 export default function ChatBox({
-  appointmentId,
   parentName,
   parentImage,
 }: ChatBoxProps) {
   const [messages, setMessages] = useState<Message[]>(mockMessages);
   const [newMessage, setNewMessage] = useState("");
-  const [isTyping, setIsTyping] = useState(false);
+  const [isTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 

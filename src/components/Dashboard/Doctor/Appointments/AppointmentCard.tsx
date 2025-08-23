@@ -4,10 +4,7 @@ import { Appointment } from "@/lib/types";
 import {
   AlertCircle,
   Calendar,
-  CheckCircle,
   Clock,
-  Timer,
-  XCircle,
 } from "lucide-react";
 import Link from "next/link";
 import React from "react";
@@ -17,29 +14,6 @@ interface AppointmentCardProps {
 }
 
 export default function AppointmentCard({ appointment }: AppointmentCardProps) {
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "completed":
-      case "confirmed":
-        return <CheckCircle className="w-4 h-4" />;
-      case "pending":
-        return <Timer className="w-4 h-4" />;
-      case "cancelled":
-        return <XCircle className="w-4 h-4" />;
-      default:
-        return <AlertCircle className="w-4 h-4" />;
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    const colors: Record<string, string> = {
-      completed: "bg-green-500/20 text-green-700",
-      confirmed: "bg-blue-500/20 text-blue-700",
-      pending: "bg-yellow-500/20 text-yellow-700",
-      cancelled: "bg-red-500/20 text-red-700",
-    };
-    return colors[status] || "bg-gray-500/20 text-gray-700";
-  };
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {

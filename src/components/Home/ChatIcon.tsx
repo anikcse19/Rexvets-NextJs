@@ -1,7 +1,7 @@
 // app/page.tsx
 "use client";
 
-import { signIn, signOut, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -27,7 +27,7 @@ type UserInfo = {
 };
 
 export default function ChatIcon() {
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
   const router = useRouter();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -35,11 +35,12 @@ export default function ChatIcon() {
   const [showChatbot, setShowChatbot] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [hasNewMessage, setHasNewMessage] = useState(false);
-  const [showDonationPanel, setShowDonationPanel] = useState(false);
+
   const [userInfo, setUserInfo] = useState<UserInfo>({ name: "", email: "" });
   const [isUserInfoSubmitted, setIsUserInfoSubmitted] = useState(false);
   const [sessionId, setSessionId] = useState<string>("");
   const [showHumanRedirect, setShowHumanRedirect] = useState(false);
+  const [showDonationPanel, setShowDonationPanel] = useState(false);
 
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 

@@ -10,110 +10,110 @@ import { useRouter, useSearchParams } from "next/navigation";
 // mockDoctors stays here or can move into a data file
 // import { mockDoctors } from "./mockDoctors";
 
-const mockDoctors = [
-  {
-    id: "1",
-    name: "Dr. Anik Rahman",
-    image:
-      "https://images.pexels.com/photos/5327585/pexels-photo-5327585.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop&crop=face",
-    degree: "DVM, PhD in Veterinary Medicine",
-    rating: 4.9,
-    totalReviews: 847,
-    licenseNumber: "VET-BD-2012-001234",
-    state: "Dhaka",
-    specialties: ["Small Animal Surgery", "Emergency Medicine", "Cardiology"],
-    availableSlots: [
-      { time: "10:00 AM", timezone: "GMT+6" },
-      { time: "2:30 PM", timezone: "GMT+6" },
-    ],
-    subscriptionPlan: "Premium Family Plan",
-  },
-  {
-    id: "2",
-    name: "Dr. Sarah Ahmed",
-    image:
-      "https://images.pexels.com/photos/5327921/pexels-photo-5327921.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop&crop=face",
-    degree: "DVM, MS in Animal Behavior",
-    rating: 4.8,
-    totalReviews: 623,
-    licenseNumber: "VET-BD-2015-002156",
-    state: "Chittagong",
-    specialties: ["Animal Behavior", "Dermatology", "Nutrition"],
-    availableSlots: [
-      { time: "9:30 AM", timezone: "GMT+6" },
-      { time: "4:00 PM", timezone: "GMT+6" },
-    ],
-    subscriptionPlan: "Basic Family Plan",
-  },
-  {
-    id: "3",
-    name: "Dr. Mohammad Hasan",
-    image:
-      "https://images.pexels.com/photos/6749778/pexels-photo-6749778.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop&crop=face",
-    degree: "DVM, Specialist in Exotic Animals",
-    rating: 4.7,
-    totalReviews: 445,
-    licenseNumber: "VET-BD-2018-003287",
-    state: "Sylhet",
-    specialties: ["Exotic Animals", "Wildlife Medicine", "Orthopedics"],
-    availableSlots: [
-      { time: "11:00 AM", timezone: "GMT+6" },
-      { time: "3:15 PM", timezone: "GMT+6" },
-    ],
-    subscriptionPlan: "Premium Family Plan",
-  },
-  {
-    id: "4",
-    name: "Dr. Fatima Khan",
-    image:
-      "https://images.pexels.com/photos/5452293/pexels-photo-5452293.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop&crop=face",
-    degree: "DVM, MS in Veterinary Pathology",
-    rating: 4.9,
-    totalReviews: 756,
-    licenseNumber: "VET-BD-2013-001789",
-    state: "Dhaka",
-    specialties: ["Pathology", "Internal Medicine", "Oncology"],
-    availableSlots: [
-      { time: "8:30 AM", timezone: "GMT+6" },
-      { time: "1:45 PM", timezone: "GMT+6" },
-    ],
-    subscriptionPlan: "Premium Family Plan",
-  },
-  {
-    id: "5",
-    name: "Dr. Rashid Ali",
-    image:
-      "https://images.pexels.com/photos/5327656/pexels-photo-5327656.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop&crop=face",
-    degree: "DVM, Certificate in Emergency Medicine",
-    rating: 4.6,
-    totalReviews: 389,
-    licenseNumber: "VET-BD-2019-004123",
-    state: "Rajshahi",
-    specialties: ["Emergency Medicine", "Critical Care", "Surgery"],
-    availableSlots: [
-      { time: "12:00 PM", timezone: "GMT+6" },
-      { time: "5:30 PM", timezone: "GMT+6" },
-    ],
-    subscriptionPlan: "Basic Family Plan",
-  },
-  {
-    id: "6",
-    name: "Dr. Nusrat Jahan",
-    image:
-      "https://images.pexels.com/photos/5327647/pexels-photo-5327647.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop&crop=face",
-    degree: "DVM, MS in Reproductive Medicine",
-    rating: 4.8,
-    totalReviews: 512,
-    licenseNumber: "VET-BD-2016-002634",
-    state: "Khulna",
-    specialties: ["Reproductive Medicine", "Obstetrics", "Pediatrics"],
-    availableSlots: [
-      { time: "9:00 AM", timezone: "GMT+6" },
-      { time: "2:00 PM", timezone: "GMT+6" },
-    ],
-    subscriptionPlan: "Premium Family Plan",
-  },
-];
+// const mockDoctors = [
+//   {
+//     id: "1",
+//     name: "Dr. Anik Rahman",
+//     image:
+//       "https://images.pexels.com/photos/5327585/pexels-photo-5327585.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop&crop=face",
+//     degree: "DVM, PhD in Veterinary Medicine",
+//     rating: 4.9,
+//     totalReviews: 847,
+//     licenseNumber: "VET-BD-2012-001234",
+//     state: "Dhaka",
+//     specialties: ["Small Animal Surgery", "Emergency Medicine", "Cardiology"],
+//     availableSlots: [
+//       { time: "10:00 AM", timezone: "GMT+6" },
+//       { time: "2:30 PM", timezone: "GMT+6" },
+//     ],
+//     subscriptionPlan: "Premium Family Plan",
+//   },
+//   {
+//     id: "2",
+//     name: "Dr. Sarah Ahmed",
+//     image:
+//       "https://images.pexels.com/photos/5327921/pexels-photo-5327921.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop&crop=face",
+//     degree: "DVM, MS in Animal Behavior",
+//     rating: 4.8,
+//     totalReviews: 623,
+//     licenseNumber: "VET-BD-2015-002156",
+//     state: "Chittagong",
+//     specialties: ["Animal Behavior", "Dermatology", "Nutrition"],
+//     availableSlots: [
+//       { time: "9:30 AM", timezone: "GMT+6" },
+//       { time: "4:00 PM", timezone: "GMT+6" },
+//     ],
+//     subscriptionPlan: "Basic Family Plan",
+//   },
+//   {
+//     id: "3",
+//     name: "Dr. Mohammad Hasan",
+//     image:
+//       "https://images.pexels.com/photos/6749778/pexels-photo-6749778.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop&crop=face",
+//     degree: "DVM, Specialist in Exotic Animals",
+//     rating: 4.7,
+//     totalReviews: 445,
+//     licenseNumber: "VET-BD-2018-003287",
+//     state: "Sylhet",
+//     specialties: ["Exotic Animals", "Wildlife Medicine", "Orthopedics"],
+//     availableSlots: [
+//       { time: "11:00 AM", timezone: "GMT+6" },
+//       { time: "3:15 PM", timezone: "GMT+6" },
+//     ],
+//     subscriptionPlan: "Premium Family Plan",
+//   },
+//   {
+//     id: "4",
+//     name: "Dr. Fatima Khan",
+//     image:
+//       "https://images.pexels.com/photos/5452293/pexels-photo-5452293.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop&crop=face",
+//     degree: "DVM, MS in Veterinary Pathology",
+//     rating: 4.9,
+//     totalReviews: 756,
+//     licenseNumber: "VET-BD-2013-001789",
+//     state: "Dhaka",
+//     specialties: ["Pathology", "Internal Medicine", "Oncology"],
+//     availableSlots: [
+//       { time: "8:30 AM", timezone: "GMT+6" },
+//       { time: "1:45 PM", timezone: "GMT+6" },
+//     ],
+//     subscriptionPlan: "Premium Family Plan",
+//   },
+//   {
+//     id: "5",
+//     name: "Dr. Rashid Ali",
+//     image:
+//       "https://images.pexels.com/photos/5327656/pexels-photo-5327656.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop&crop=face",
+//     degree: "DVM, Certificate in Emergency Medicine",
+//     rating: 4.6,
+//     totalReviews: 389,
+//     licenseNumber: "VET-BD-2019-004123",
+//     state: "Rajshahi",
+//     specialties: ["Emergency Medicine", "Critical Care", "Surgery"],
+//     availableSlots: [
+//       { time: "12:00 PM", timezone: "GMT+6" },
+//       { time: "5:30 PM", timezone: "GMT+6" },
+//     ],
+//     subscriptionPlan: "Basic Family Plan",
+//   },
+//   {
+//     id: "6",
+//     name: "Dr. Nusrat Jahan",
+//     image:
+//       "https://images.pexels.com/photos/5327647/pexels-photo-5327647.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop&crop=face",
+//     degree: "DVM, MS in Reproductive Medicine",
+//     rating: 4.8,
+//     totalReviews: 512,
+//     licenseNumber: "VET-BD-2016-002634",
+//     state: "Khulna",
+//     specialties: ["Reproductive Medicine", "Obstetrics", "Pediatrics"],
+//     availableSlots: [
+//       { time: "9:00 AM", timezone: "GMT+6" },
+//       { time: "2:00 PM", timezone: "GMT+6" },
+//     ],
+//     subscriptionPlan: "Premium Family Plan",
+//   },
+// ];
 
 export default function FindVetPage({
   doctors,

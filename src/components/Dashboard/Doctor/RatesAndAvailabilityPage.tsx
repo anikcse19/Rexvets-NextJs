@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
@@ -10,7 +10,6 @@ import {
   Plus,
   Trash2,
   Calendar,
-  AlertCircle,
   CheckCircle,
   Settings,
   Timer,
@@ -406,7 +405,7 @@ export default function RatesAndAvailabilityPage() {
                   {daySchedule.enabled && (
                     <div className="p-6">
                       <div className="space-y-4">
-                        {daySchedule.timeSlots.map((slot, slotIndex) => (
+                        {daySchedule.timeSlots.map((slot) => (
                           <div key={slot.id} className="group/slot">
                             <div className="flex items-center gap-4 p-4 bg-white rounded-xl border border-gray-200 hover:border-emerald-300 hover:shadow-md transition-all duration-300">
                               <div className="bg-gradient-to-br from-emerald-100 to-teal-100 p-2 rounded-lg">

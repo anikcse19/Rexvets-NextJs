@@ -1,10 +1,9 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Heart,
   Plus,
@@ -16,91 +15,15 @@ import {
   AlertTriangle,
   Pill,
   Syringe,
-  MapPin,
-  Phone,
   User,
   Activity,
   PawPrint,
 } from "lucide-react";
-import { PetRegistrationData } from "@/lib/validation/pet";
 import AddPetModal from "./Pets/AddPetModal";
 import { getPetsByParent } from "./Service/pet";
 
-// Mock pets data - this would come from your API
-const mockPets = [
-  {
-    id: "1",
-    name: "Max",
-    image:
-      "https://images.pexels.com/photos/1108099/pexels-photo-1108099.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop",
-    species: "dog" as const,
-    breed: "Golden Retriever",
-    gender: "male" as const,
-    primaryColor: "Golden",
-    spayedNeutered: "neutered" as const,
-    weight: 28,
-    weightUnit: "kg" as const,
-    dateOfBirth: "2021-03-15",
-    microchipId: "123456789012345",
-    allergies: ["Chicken", "Dairy"],
-    medicalConditions: ["Hip Dysplasia"],
-    currentMedications: ["Heartgard Plus", "Joint Supplement"],
-    emergencyContact: "+1 (555) 987-6543",
-    veterinarianNotes:
-      "Very friendly and active dog. Loves swimming and playing fetch.",
-    lastVisit: "2025-01-15",
-    nextVaccination: "2025-06-15",
-    healthStatus: "Healthy",
-  },
-  {
-    id: "2",
-    name: "Luna",
-    image:
-      "https://images.pexels.com/photos/1170986/pexels-photo-1170986.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop",
-    species: "cat" as const,
-    breed: "Siamese",
-    gender: "female" as const,
-    primaryColor: "Cream",
-    spayedNeutered: "spayed" as const,
-    weight: 4.5,
-    weightUnit: "kg" as const,
-    dateOfBirth: "2022-08-20",
-    microchipId: "987654321098765",
-    allergies: ["Fish"],
-    medicalConditions: [],
-    currentMedications: ["Flea Prevention"],
-    emergencyContact: "+1 (555) 987-6543",
-    veterinarianNotes:
-      "Indoor cat, very calm and affectionate. Prefers quiet environments.",
-    lastVisit: "2024-12-20",
-    nextVaccination: "2025-03-20",
-    healthStatus: "Healthy",
-  },
-  {
-    id: "3",
-    name: "Charlie",
-    image:
-      "https://images.pexels.com/photos/1805164/pexels-photo-1805164.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop",
-    species: "dog" as const,
-    breed: "Beagle",
-    gender: "male" as const,
-    primaryColor: "Brown",
-    spayedNeutered: "intact" as const,
-    weight: 15,
-    weightUnit: "kg" as const,
-    dateOfBirth: "2019-11-10",
-    microchipId: "456789123456789",
-    allergies: [],
-    medicalConditions: ["Ear Infections"],
-    currentMedications: ["Ear Drops", "Antibiotics"],
-    emergencyContact: "+1 (555) 987-6543",
-    veterinarianNotes:
-      "Prone to ear infections. Requires regular ear cleaning and monitoring.",
-    lastVisit: "2025-01-10",
-    nextVaccination: "2025-04-10",
-    healthStatus: "Under Treatment",
-  },
-];
+// Mock pets data - this would come from your API  
+
 
 export default function MyPetsPage() {
   const [isAddPetModalOpen, setIsAddPetModalOpen] = useState(false);

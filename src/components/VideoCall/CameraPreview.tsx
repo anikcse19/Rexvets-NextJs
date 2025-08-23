@@ -8,6 +8,7 @@ const CameraPreview: React.FC = () => {
   const [isAudioEnabled, setIsAudioEnabled] = useState(true);
   const [isMediaReady, setIsMediaReady] = useState(false);
 
+
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const startCamera = async () => {

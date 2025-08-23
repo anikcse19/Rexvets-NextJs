@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { getServerSession } from "next-auth/next";
+import type { Session } from "next-auth";
 import { connectToDatabase } from "@/lib/mongoose";
 import VeterinarianModel from "@/models/Veterinarian";
 import PetParentModel from "@/models/PetParent";
@@ -8,7 +9,7 @@ import VetTechModel from "@/models/VetTech";
 
 export async function GET() {
   try {
-    const session = await getServerSession(authOptions);
+    const session: Session | null = await getServerSession(authOptions as any);
     
     if (!session) {
       return NextResponse.json({
@@ -19,12 +20,12 @@ export async function GET() {
       });
     }
 
-    if (!session.user?.email) {
+    if (!(session as any)?.user?.email) {
       return NextResponse.json({
         error: "Session found but no email",
         session: {
-          user: session.user,
-          expires: session.expires
+          user: (session as any).user,
+          expires: (session as any).expires
         },
         userType: null,
         accountStatus: null
@@ -34,9 +35,9 @@ export async function GET() {
     await connectToDatabase();
 
     // Check all collections for this email
-    const petParent = await PetParentModel.findOne({ email: session.user.email.toLowerCase() });
-    const veterinarian = await VeterinarianModel.findOne({ email: session.user.email.toLowerCase() });
-    const vetTech = await VetTechModel.findOne({ email: session.user.email.toLowerCase() });
+    const petParent = await PetParentModel.findOne({ email: (session as any).user.email.toLowerCase() });
+    const veterinarian = await VeterinarianModel.findOne({ email: (session as any).user.email.toLowerCase() });
+    const vetTech = await VetTechModel.findOne({ email: (session as any).user.email.toLowerCase() });
 
     let userType = null;
     let accountStatus = null;
@@ -96,13 +97,13 @@ export async function GET() {
       success: true,
       session: {
         user: {
-          id: session.user.id,
-          email: session.user.email,
-          name: session.user.name,
-          role: session.user.role,
-          emailVerified: session.user.emailVerified
+          id: (session as any).user.id,
+          email: (session as any).user.email,
+          name: (session as any).user.name,
+          role: (session as any).user.role,
+          emailVerified: (session as any).user.emailVerified
         },
-        expires: session.expires
+        expires: (session as any).expires
       },
       userType,
       accountStatus,

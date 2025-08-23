@@ -32,9 +32,7 @@ const VideoCall: React.FC<VideoCallProps> = ({ onEndCall }) => {
   const [isAudioEnabled, setIsAudioEnabled] = useState(true);
   const [isVideoEnabled, setIsVideoEnabled] = useState(true);
   const [callState, setCallState] = useState<CallState>("connecting");
-  const [callDuration, setCallDuration] = useState(0);
-  const [localUserJoined, setLocalUserJoined] = useState(false);
-  const [remoteUserJoined, setRemoteUserJoined] = useState(false);
+
   const [isFrontCamera, setIsFrontCamera] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [agoraLoaded, setAgoraLoaded] = useState(false);
@@ -99,14 +97,7 @@ const VideoCall: React.FC<VideoCallProps> = ({ onEndCall }) => {
     initializeClient();
   }, [agoraLoaded]);
 
-  // Format duration to MM:SS
-  const formatDuration = useCallback((seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, "0")}:${secs
-      .toString()
-      .padStart(2, "0")}`;
-  }, []);
+
 
   // Fetch token
   const fetchToken = useCallback(
@@ -155,7 +146,7 @@ const VideoCall: React.FC<VideoCallProps> = ({ onEndCall }) => {
         console.log("User joined:", user.uid);
         remoteUsers.current[user.uid] = user;
         setRemoteUsersState((prev) => ({ ...prev, [user.uid]: user }));
-        setRemoteUserJoined(true);
+        // setRemoteUserJoined(true);
         setCallState("active");
       });
 
@@ -175,7 +166,7 @@ const VideoCall: React.FC<VideoCallProps> = ({ onEndCall }) => {
             if (mediaType === "video" && remoteVideoRef.current) {
               user.videoTrack?.play(remoteVideoRef.current);
               console.log("Remote video playing for user:", user.uid);
-              setRemoteUserJoined(true);
+              // setRemoteUserJoined(true);
             }
             if (mediaType === "audio") {
               user.audioTrack?.play();
@@ -201,7 +192,7 @@ const VideoCall: React.FC<VideoCallProps> = ({ onEndCall }) => {
           }));
         }
         if (Object.keys(remoteUsers.current).length <= 1) {
-          setRemoteUserJoined(false);
+          // setRemoteUserJoined(false);
           setCallState("waiting");
         }
       });
@@ -215,7 +206,7 @@ const VideoCall: React.FC<VideoCallProps> = ({ onEndCall }) => {
           return newState;
         });
         if (Object.keys(remoteUsers.current).length === 0) {
-          setRemoteUserJoined(false);
+          // setRemoteUserJoined(false);
           setCallState("waiting");
         }
       });
@@ -224,7 +215,7 @@ const VideoCall: React.FC<VideoCallProps> = ({ onEndCall }) => {
         console.log("Connection state changed:", state);
         if (state === "DISCONNECTED" || state === "DISCONNECTING") {
           setCallState("failed");
-          setRemoteUserJoined(false);
+          // setRemoteUserJoined(false);
           setErrorMessage("Connection lost.");
         }
       });
@@ -297,7 +288,7 @@ const VideoCall: React.FC<VideoCallProps> = ({ onEndCall }) => {
               ]);
               console.log("Local tracks published");
             }
-            setLocalUserJoined(true);
+            // setLocalUserJoined(true);
             setCallState("waiting");
             return;
           } catch (error: any) {
@@ -336,14 +327,14 @@ const VideoCall: React.FC<VideoCallProps> = ({ onEndCall }) => {
     }
   }, [clientInitialized, joinCall]);
 
-  // Call duration timer
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (callState === "active") {
-      interval = setInterval(() => setCallDuration((prev) => prev + 1), 1000);
-    }
-    return () => interval && clearInterval(interval);
-  }, [callState]);
+  // // Call duration timer
+  // useEffect(() => {
+  //   let interval: NodeJS.Timeout;
+  //   if (callState === "active") {
+  //     interval = setInterval(() => setCallDuration((prev) => prev + 1), 1000);
+  //   }
+  //   return () => interval && clearInterval(interval);
+  // }, [callState]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -515,8 +506,8 @@ const VideoCall: React.FC<VideoCallProps> = ({ onEndCall }) => {
       remoteUsers.current = {};
       setRemoteUsersState({});
       setCallState("ended");
-      setLocalUserJoined(false);
-      setRemoteUserJoined(false);
+      // setLocalUserJoined(false);
+      // setRemoteUserJoined(false);
       setErrorMessage(null);
     } catch (error) {
       console.error("Error ending call:", error);
@@ -532,40 +523,40 @@ const VideoCall: React.FC<VideoCallProps> = ({ onEndCall }) => {
   }, [onEndCall, router]);
 
   // Connection status helper
-  const getConnectionStatus = useCallback(() => {
-    switch (callState) {
-      case "connecting":
-        return {
-          text: "Connecting...",
-          color: "text-yellow-400",
-          dot: "bg-yellow-400",
-        };
-      case "waiting":
-        return {
-          text: "Waiting for others...",
-          color: "text-yellow-400",
-          dot: "bg-yellow-400",
-        };
-      case "active":
-        return {
-          text: "Connected",
-          color: "text-green-400",
-          dot: "bg-green-400",
-        };
-      case "ended":
-        return { text: "Call Ended", color: "text-red-400", dot: "bg-red-400" };
-      case "failed":
-        return {
-          text: "Connection Failed",
-          color: "text-red-400",
-          dot: "bg-red-400",
-        };
-      default:
-        return { text: "Unknown", color: "text-gray-400", dot: "bg-gray-400" };
-    }
-  }, [callState]);
+  // const getConnectionStatus = useCallback(() => {
+  //   switch (callState) {
+  //     case "connecting":
+  //       return {
+  //         text: "Connecting...",
+  //         color: "text-yellow-400",
+  //         dot: "bg-yellow-400",
+  //       };
+  //     case "waiting":
+  //       return {
+  //         text: "Waiting for others...",
+  //         color: "text-yellow-400",
+  //         dot: "bg-yellow-400",
+  //       };
+  //     case "active":
+  //       return {
+  //         text: "Connected",
+  //         color: "text-green-400",
+  //         dot: "bg-green-400",
+  //       };
+  //     case "ended":
+  //       return { text: "Call Ended", color: "text-red-400", dot: "bg-red-400" };
+  //     case "failed":
+  //       return {
+  //         text: "Connection Failed",
+  //         color: "text-red-400",
+  //         dot: "bg-red-400",
+  //       };
+  //     default:
+  //       return { text: "Unknown", color: "text-gray-400", dot: "bg-gray-400" };
+  //   }
+  // }, [callState]);
 
-  const status = getConnectionStatus();
+  // const status = getConnectionStatus();
 
   return (
     <div

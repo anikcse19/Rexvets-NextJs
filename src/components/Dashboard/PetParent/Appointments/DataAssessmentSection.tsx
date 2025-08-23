@@ -1,13 +1,10 @@
 "use client";
 
 import React from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { FileText, Calendar, User, Stethoscope, Eye } from "lucide-react";
 
-interface DataAssessmentSectionProps {
-  appointmentId: string;
-}
+
 
 // Mock data for existing assessments (read-only for pet parents)
 const mockAssessments = [
@@ -33,9 +30,7 @@ const mockAssessments = [
   },
 ];
 
-export default function DataAssessmentSection({
-  appointmentId,
-}: DataAssessmentSectionProps) {
+export default function DataAssessmentSection() {
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",

@@ -1,9 +1,8 @@
 "use client";
-import React, { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import React from "react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   ArrowLeft,
   Video,
@@ -11,10 +10,6 @@ import {
   Stethoscope,
   Calendar,
   Clock,
-  MapPin,
-  Phone,
-  Mail,
-  Star,
 } from "lucide-react";
 import Link from "next/link";
 import PetInfoCard from "./Appointments/PetInfoCard";
@@ -72,11 +67,7 @@ const mockAppointment = {
   },
 };
 
-export default function PetParentAppointmentDetailsPage({
-  id: string,
-}: {
-  id: string;
-}) {
+export default function PetParentAppointmentDetailsPage() {
   const handleJoinMeeting = () => {
     window.open(mockAppointment.meetingLink, "_blank");
   };
@@ -212,8 +203,8 @@ export default function PetParentAppointmentDetailsPage({
 
           {/* Middle Column - Data Assessment & Prescription */}
           <div className="xl:col-span-1 space-y-6">
-            <DataAssessmentSection appointmentId={mockAppointment.id} />
-            <PrescriptionSection appointmentId={mockAppointment.id} />
+            <DataAssessmentSection />
+            <PrescriptionSection />
           </div>
 
           {/* Right Column - Chat */}

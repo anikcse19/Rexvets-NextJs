@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
+import { getServerSession } from "next-auth/next";
+import type { Session } from "next-auth";
 import { connectToDatabase } from "@/lib/mongoose";
 import PetParentModel from "@/models/PetParent";
 import VeterinarianModel from "@/models/Veterinarian";
@@ -33,9 +34,9 @@ const profileCompletionSchema = z.object({
 export async function POST(request: NextRequest) {
   try {
     // Get the session
-    const session = await getServerSession(authOptions);
+    const session: Session | null = await getServerSession(authOptions as any);
     
-    if (!session?.user?.email) {
+    if (!(session?.user as any)?.email) {
       return NextResponse.json(
         { error: "Unauthorized - Please sign in first" },
         { status: 401 }
@@ -62,16 +63,16 @@ export async function POST(request: NextRequest) {
     await connectToDatabase();
 
     // Find the user in the appropriate collection
-    let user = await PetParentModel.findOne({ email: session.user.email });
+    let user = await PetParentModel.findOne({ email: (session?.user as any)?.email });
     let userRole = 'pet_parent';
     
     if (!user) {
-      user = await VeterinarianModel.findOne({ email: session.user.email });
+      user = await VeterinarianModel.findOne({ email: (session?.user as any)?.email });
       userRole = 'veterinarian';
     }
     
     if (!user) {
-      user = await VetTechModel.findOne({ email: session.user.email });
+      user = await VetTechModel.findOne({ email: (session?.user as any)?.email });
       userRole = 'technician';
     }
 
@@ -114,7 +115,7 @@ export async function POST(request: NextRequest) {
     // Save the updated user
     await user.save();
 
-    console.log(`Profile completed for user: ${session.user.email} (${userRole})`);
+    console.log(`Profile completed for user: ${(session?.user as any)?.email} (${userRole})`);
 
     return NextResponse.json({
       message: "Profile completed successfully",

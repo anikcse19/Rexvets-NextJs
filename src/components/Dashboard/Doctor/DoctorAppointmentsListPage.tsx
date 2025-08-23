@@ -1,21 +1,11 @@
 "use client";
 
 import React, { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
-  Calendar,
-  Clock,
-  MapPin,
-  Eye,
-  AlertCircle,
-  CheckCircle,
-  XCircle,
-  Timer,
-  History,
   Search,
 } from "lucide-react";
 import AppointmentCard from "./Appointments/AppointmentCard";

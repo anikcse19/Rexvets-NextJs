@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
+
 import {
   FileText,
   Save,
@@ -48,7 +48,6 @@ interface DataAssessmentModalProps {
 export default function DataAssessmentModal({
   isOpen,
   onClose,
-  appointmentId,
   petName,
 }: DataAssessmentModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -59,7 +58,6 @@ export default function DataAssessmentModal({
     handleSubmit,
     formState: { errors },
     reset,
-    watch,
   } = useForm<AssessmentFormData>({
     resolver: zodResolver(assessmentSchema),
     defaultValues: {

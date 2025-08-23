@@ -18,7 +18,7 @@ const VideoPlayer = dynamic(() => import("../VideoPlayer"), {
 const videoSource =
   "https://res.cloudinary.com/di6zff0rd/video/upload/v1753102241/RexVetsWeb_tb3zcq.mp4";
 const HeroSection = () => {
-  const [isOpen, setIsOpen] = useState(false);
+
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(false);
 

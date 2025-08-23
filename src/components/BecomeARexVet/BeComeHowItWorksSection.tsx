@@ -1,10 +1,9 @@
 "use client";
 import { Avatar } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { motion, Variants } from "framer-motion";
-import { ArrowRight, Calendar, HelpingHand, TrendingUp } from "lucide-react";
+import { ArrowRight, TrendingUp } from "lucide-react";
 import Link from "next/link";
 import { JSX } from "react";
 import { IBecomePlatformOverview } from "./become.type";

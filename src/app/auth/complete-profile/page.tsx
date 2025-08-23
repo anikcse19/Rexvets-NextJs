@@ -56,26 +56,26 @@ function CompleteProfileContent() {
     }
 
     // Pre-fill form with session data if available
-    if (session.user) {
+    if ((session?.user as any)) {
       setFormData(prev => ({
         ...prev,
-        phoneNumber: session.user.phoneNumber || "",
-        state: session.user.state || "",
-        city: session.user.city || "",
-        address: session.user.address || "",
-        zipCode: session.user.zipCode || "",
-        emergencyContact: session.user.emergencyContact || {
+        phoneNumber: (session?.user as any).phoneNumber || "",
+        state: (session?.user as any).state || "",
+        city: (session?.user as any).city || "",
+        address: (session?.user as any).address || "",
+        zipCode: (session?.user as any).zipCode || "",
+        emergencyContact: (session?.user as any).emergencyContact || {
           name: "",
           phone: "",
           relationship: ""
         },
-        preferences: session.user.preferences || {
+        preferences: (session?.user as any).preferences || {
           notifications: {
             email: true,
             sms: true,
             push: true
           },
-          language: session.user.locale || "en",
+          language: (session?.user as any).locale || "en",
           timezone: "UTC"
         }
       }));
@@ -109,7 +109,7 @@ function CompleteProfileContent() {
 
       if (response.ok) {
         // Redirect to dashboard based on user role
-        const role = session?.user?.role || "pet_parent";
+        const role = (session?.user as any)?.role || "pet_parent";
         router.push(`/dashboard/${role === "pet_parent" ? "pet-parent" : role}`);
       } else {
         setError(data.error || "Failed to complete profile");
@@ -168,7 +168,7 @@ function CompleteProfileContent() {
               Complete Your Profile
             </h1>
             <p className="text-white/70">
-              Welcome, {session.user?.name}! Let's get you set up.
+              Welcome, {(session?.user as any)?.name}! Let's get you set up.
             </p>
           </motion.div>
 

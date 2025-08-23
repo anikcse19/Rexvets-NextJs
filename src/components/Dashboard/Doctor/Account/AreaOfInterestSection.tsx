@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -16,7 +16,6 @@ import {
   Lightbulb,
   Search,
   Plus,
-  Trash2,
 } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
@@ -43,8 +42,6 @@ export default function AreasOfInterestSection() {
 
   const {
     handleSubmit,
-    formState: { errors },
-    reset,
   } = useForm<AreasOfInterestFormData>({
     resolver: zodResolver(areasOfInterestSchema),
     defaultValues: mockDoctorData.areasOfInterest,
