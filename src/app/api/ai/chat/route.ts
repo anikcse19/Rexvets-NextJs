@@ -4,7 +4,6 @@ import { faqData } from "@/lib/data";
 import { connectToDatabase } from "@/lib/mongoose";
 import { ChatConversation } from "@/models/ChatConversation";
 import type { Session } from "next-auth";
-import { getServerSession } from "next-auth";
 import { getServerSession } from "next-auth/next";
 import { NextRequest, NextResponse } from "next/server";
 import { generateSessionId, saveConversation } from "../ai.chat.utils";
