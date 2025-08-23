@@ -1,8 +1,7 @@
 "use client";
 import { Volume2, VolumeX } from "lucide-react";
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { FaPause, FaPlay } from "react-icons/fa";
-// import ReactPlayer from "react-player";
 
 interface IProps {
   playing?: boolean;
@@ -12,6 +11,7 @@ interface IProps {
   containerStyle?: React.CSSProperties;
   source: string;
 }
+
 const VideoPlayer: React.FC<IProps> = ({
   playing,
   muted,
@@ -19,18 +19,39 @@ const VideoPlayer: React.FC<IProps> = ({
   handleMuteToggle,
   source = "https://res.cloudinary.com/di6zff0rd/video/upload/v1753102241/RexVetWeb_tb3zcq.mp4",
 }) => {
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  // Synchronize video playback with the `playing` state
+  useEffect(() => {
+    if (videoRef.current) {
+      if (playing) {
+        videoRef.current.play().catch((error) => {
+          console.error("Error playing video:", error);
+        });
+      } else {
+        videoRef.current.pause();
+      }
+    }
+  }, [playing]);
+
+  // Synchronize video mute state with the `muted` state
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.muted = muted ?? false;
+    }
+  }, [muted]);
+
   return (
-    <div className=" rounded-[20px] h-[500px] w-[100%] md:h-[620px]  flex items-center justify-center  relative  overflow-hidden shadow-[0_20px_40px_rgba(0,0,0,0.3)] mb-6">
-      <div className=" relative h-[450px] w-[96%] md:w-[500px] md:h-[580px]  p-4 flex items-center justify-center">
+    <div className="rounded-[20px] h-[500px] w-[100%] md:h-[620px] flex items-center justify-center relative overflow-hidden shadow-[0_20px_40px_rgba(0,0,0,0.3)] mb-6">
+      <div className="relative h-[450px] w-[96%] md:w-[500px] md:h-[580px] p-4 flex items-center justify-center">
         <video
+          ref={videoRef}
           style={{
             width: "100%",
             height: "100%",
             borderRadius: 20,
             objectFit: "cover",
           }}
-          autoPlay={playing}
-          muted={muted}
           src={source}
           loop
         />

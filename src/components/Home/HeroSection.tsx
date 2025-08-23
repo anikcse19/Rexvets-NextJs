@@ -2,7 +2,6 @@
 import { motion } from "framer-motion";
 import dynamic from "next/dynamic";
 import React, { useCallback, useState } from "react";
-import { BsChatLeftTextFill } from "react-icons/bs";
 import CEOSection from "../CEOSection";
 import styles from "./hero.section.module.css";
 const loadingPlaceholder = () => <p>Loading...</p>;
