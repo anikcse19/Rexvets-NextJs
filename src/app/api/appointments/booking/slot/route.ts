@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
 
     // Filters
-    let date = searchParams.get("date"); // optional, format: 'YYYY-MM-DD'
+    const date = searchParams.get("date"); // optional, format: 'YYYY-MM-DD'
     const search = searchParams.get("search"); // optional, search in notes
 
     // Pagination

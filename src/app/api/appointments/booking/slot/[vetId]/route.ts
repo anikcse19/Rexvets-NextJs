@@ -33,7 +33,7 @@ export async function GET(
     }
 
     // Filters
-    let date = searchParams.get("date"); // optional
+    const date = searchParams.get("date"); // optional
     const search = searchParams.get("search"); // optional
 
     // Pagination
