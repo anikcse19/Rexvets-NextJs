@@ -17,12 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Edit3,
-  Save,
-  X,
-  Camera,
-} from "lucide-react";
+import { Edit3, Save, X, Camera } from "lucide-react";
 import {
   PersonalInfoFormData,
   personalInfoSchema,
@@ -30,7 +25,6 @@ import {
 import { mockDoctorData } from "@/lib";
 
 export default function PersonalInfoSection() {
-
   const [isLoading, setIsLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
 
@@ -285,13 +279,11 @@ export default function PersonalInfoSection() {
               <Input
                 id="dateOfBirth"
                 type="date"
-                {...register("dateOfBirth")}
+                {...register("dob")}
                 className="border-gray-300 focus:border-emerald-500 focus:ring-emerald-500"
               />
-              {errors.dateOfBirth && (
-                <p className="text-sm text-red-600">
-                  {errors.dateOfBirth.message}
-                </p>
+              {errors.dob && (
+                <p className="text-sm text-red-600">{errors.dob.message}</p>
               )}
             </div>
 
@@ -395,5 +387,3 @@ export default function PersonalInfoSection() {
     </Card>
   );
 }
-
-
