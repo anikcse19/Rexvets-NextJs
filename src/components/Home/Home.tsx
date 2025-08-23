@@ -4,6 +4,7 @@ import usePushNotification from "@/hooks/usePushNotification";
 import { doubledBrands, features, whyChooseFeaturesData } from "@/lib";
 import dynamic from "next/dynamic";
 import React, { useCallback, useEffect } from "react";
+import ChatIcon from "./ChatIcon";
 
 const loadingPlaceholder = () => <p>Loading...</p>;
 
@@ -77,6 +78,9 @@ const Home = () => {
       <VirtualCareIntroSection />
       <BlogPostSection />
       <TestimonialsSection />
+
+      {/* Chat Icon */}
+      <ChatIcon />
     </div>
   );
 };

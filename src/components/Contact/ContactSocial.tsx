@@ -36,18 +36,18 @@ const socialLinks: SocialLink[] = [
     link: "https://www.tiktok.com/@rexvets",
     color: "#000000",
   },
-  {
-    icon: Phone,
-    label: "Call us directly",
-    handle: "1 (888) 808-0495",
-    link: "tel:+18888080495",
-    color: "#10b981",
-  },
+  // {
+  //   icon: Phone,
+  //   label: "Call us directly",
+  //   handle: "1 (888) 808-0495",
+  //   link: "tel:+18888080495",
+  //   color: "#10b981",
+  // },
   {
     icon: Mail,
     label: "Send us an email",
-    handle: "support@rexvets.com",
-    link: "mailto:support@rexvets.com",
+    handle: "support@rexvet.org",
+    link: "mailto:support@rexvet.org",
     color: "#3b82f6",
   },
 ];

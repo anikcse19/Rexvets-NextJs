@@ -13,17 +13,10 @@ interface ContactInfoItem {
 
 const contactInfo: ContactInfoItem[] = [
   {
-    icon: Phone,
-    title: "Phone Support",
-    description: "Available 24/7 for urgent inquiries",
-    value: "1 (888) 808-0495",
-    color: "#10b981",
-  },
-  {
     icon: Mail,
     title: "Email Support",
     description: "We respond within 24 hours",
-    value: "support@rexvets.com",
+    value: "support@rexvet.org",
     color: "#3b82f6",
   },
   {
@@ -61,11 +54,11 @@ const ContactInfo: React.FC = () => {
           variants={containerVariants}
           initial="hidden"
           animate="visible"
-          className="grid grid-cols-1 md:grid-cols-3 gap-6"
+          className=" flex flex-col md:flex-row items-center justify-center w-full gap-8 md:gap-16 "
         >
           {contactInfo.map((info, index) => (
             <motion.div key={index} variants={cardVariants}>
-              <Card className="h-full rounded-3xl bg-white/95 backdrop-blur-xl border border-gray-200/50 hover:-translate-y-2 hover:scale-102 hover:shadow-xl transition-all duration-400 text-center">
+              <Card className="h-full w-[300px] rounded-3xl bg-white/95 backdrop-blur-xl border border-gray-200/50 hover:-translate-y-2 hover:scale-102 hover:shadow-xl transition-all duration-400 text-center">
                 <CardContent className="p-6">
                   <div
                     className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-4"

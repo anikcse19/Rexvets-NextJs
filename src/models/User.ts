@@ -7,12 +7,12 @@ export interface IUser extends Document {
   email: string;
   password?: string;
   role: UserRole;
-  
+
   // References to existing models
   petParentRef?: mongoose.Types.ObjectId;
   veterinarianRef?: mongoose.Types.ObjectId;
   vetTechRef?: mongoose.Types.ObjectId;
-  
+
   // Authentication & Security
   isEmailVerified: boolean;
   emailVerificationToken?: string;
@@ -24,7 +24,7 @@ export interface IUser extends Document {
   lockUntil?: Date;
   isActive: boolean;
   isDeleted?: boolean;
-  
+
   // Google OAuth
   googleId?: string;
   googleAccessToken?: string;
@@ -32,7 +32,7 @@ export interface IUser extends Document {
   googleExpiresAt?: number;
   googleTokenType?: string;
   googleScope?: string;
-  
+
   // Common fields for session
   name?: string;
   profileImage?: string;
@@ -40,10 +40,10 @@ export interface IUser extends Document {
     web?: string;
     mobile?: string;
   };
-  
+
   createdAt: Date;
   updatedAt: Date;
-  
+
   // Methods
   comparePassword(candidatePassword: string): Promise<boolean>;
   generateEmailVerificationToken(): string;
@@ -59,130 +59,133 @@ export interface IUserModel extends Model<IUser> {
   findByPasswordResetToken(token: string): Promise<IUser | null>;
 }
 
-const userSchema = new Schema<IUser>({
-  email: {
-    type: String,
-    required: [true, "Email is required"],
-    unique: true,
-    lowercase: true,
-    trim: true,
-    match: [
-      /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
-      "Please enter a valid email",
-    ],
-  },
-  password: {
-    type: String,
-    required: function (this: any) {
-      return !this.googleId;
+const userSchema = new Schema<IUser>(
+  {
+    email: {
+      type: String,
+      required: [true, "Email is required"],
+      unique: true,
+      lowercase: true,
+      trim: true,
+      match: [
+        /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
+        "Please enter a valid email",
+      ],
     },
-    minlength: [8, "Password must be at least 8 characters long"],
-    select: false,
+    password: {
+      type: String,
+      required: function (this: any) {
+        return !this.googleId;
+      },
+      minlength: [8, "Password must be at least 8 characters long"],
+      select: false,
+    },
+    role: {
+      type: String,
+      enum: ["pet_parent", "veterinarian", "technician", "admin"],
+      required: [true, "Role is required"],
+    },
+
+    // References to existing models
+    petParentRef: {
+      type: Schema.Types.ObjectId,
+      ref: "PetParent",
+      sparse: true,
+    },
+    veterinarianRef: {
+      type: Schema.Types.ObjectId,
+      ref: "Veterinarian",
+      sparse: true,
+    },
+    vetTechRef: {
+      type: Schema.Types.ObjectId,
+      ref: "VetTech",
+      sparse: true,
+    },
+
+    // Authentication & Security
+    isEmailVerified: {
+      type: Boolean,
+      default: false,
+    },
+    emailVerificationToken: {
+      type: String,
+      select: false,
+    },
+    emailVerificationExpires: {
+      type: Date,
+      select: false,
+    },
+    passwordResetToken: {
+      type: String,
+      select: false,
+    },
+    passwordResetExpires: {
+      type: Date,
+      select: false,
+    },
+    lastLogin: {
+      type: Date,
+    },
+    loginAttempts: {
+      type: Number,
+      default: 0,
+    },
+    lockUntil: {
+      type: Date,
+    },
+    isActive: {
+      type: Boolean,
+      default: true,
+    },
+    isDeleted: {
+      type: Boolean,
+      default: false,
+    },
+
+    // Google OAuth
+    googleId: {
+      type: String,
+      sparse: true,
+    },
+    googleAccessToken: {
+      type: String,
+      select: false,
+    },
+    googleRefreshToken: {
+      type: String,
+      select: false,
+    },
+    googleExpiresAt: {
+      type: Number,
+    },
+    googleTokenType: {
+      type: String,
+    },
+    googleScope: {
+      type: String,
+    },
+
+    // Common fields for session
+    name: {
+      type: String,
+      trim: true,
+    },
+    profileImage: {
+      type: String,
+      trim: true,
+    },
+    fcmTokens: {
+      web: String,
+      mobile: String,
+    },
   },
-  role: {
-    type: String,
-    enum: ["pet_parent", "veterinarian", "technician", "admin"],
-    required: [true, "Role is required"],
-  },
-  
-  // References to existing models
-  petParentRef: {
-    type: Schema.Types.ObjectId,
-    ref: "PetParent",
-    sparse: true,
-  },
-  veterinarianRef: {
-    type: Schema.Types.ObjectId,
-    ref: "Veterinarian", 
-    sparse: true,
-  },
-  vetTechRef: {
-    type: Schema.Types.ObjectId,
-    ref: "VetTech",
-    sparse: true,
-  },
-  
-  // Authentication & Security
-  isEmailVerified: {
-    type: Boolean,
-    default: false,
-  },
-  emailVerificationToken: {
-    type: String,
-    select: false,
-  },
-  emailVerificationExpires: {
-    type: Date,
-    select: false,
-  },
-  passwordResetToken: {
-    type: String,
-    select: false,
-  },
-  passwordResetExpires: {
-    type: Date,
-    select: false,
-  },
-  lastLogin: {
-    type: Date,
-  },
-  loginAttempts: {
-    type: Number,
-    default: 0,
-  },
-  lockUntil: {
-    type: Date,
-  },
-  isActive: {
-    type: Boolean,
-    default: true,
-  },
-  isDeleted: {
-    type: Boolean,
-    default: false,
-  },
-  
-  // Google OAuth
-  googleId: {
-    type: String,
-    sparse: true,
-  },
-  googleAccessToken: {
-    type: String,
-    select: false,
-  },
-  googleRefreshToken: {
-    type: String,
-    select: false,
-  },
-  googleExpiresAt: {
-    type: Number,
-  },
-  googleTokenType: {
-    type: String,
-  },
-  googleScope: {
-    type: String,
-  },
-  
-  // Common fields for session
-  name: {
-    type: String,
-    trim: true,
-  },
-  profileImage: {
-    type: String,
-    trim: true,
-  },
-  fcmTokens: {
-    web: String,
-    mobile: String,
-  },
-}, {
-  timestamps: true,
-  toJSON: { virtuals: true },
-  toObject: { virtuals: true },
-});
+  {
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
+  }
+);
 
 // Indexes
 userSchema.index({ email: 1 });
