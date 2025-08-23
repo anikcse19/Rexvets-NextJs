@@ -76,8 +76,7 @@ const cardVariants: Variants = {
   },
 };
 
-interface IProps {}
-const HowItWorksSteps: React.FC<IProps> = () => {
+const HowItWorksSteps: React.FC = () => {
   return (
     <section
       className="py-12 md:py-20 bg-cover bg-center relative"

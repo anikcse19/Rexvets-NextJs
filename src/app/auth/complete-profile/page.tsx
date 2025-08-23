@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
@@ -13,9 +13,12 @@ import { Phone, MapPin, User, ArrowRight } from "lucide-react";
 import LoadingSpinner from "@/components/ui/loading-spinner";
 import { US_STATES } from "@/lib";
 
-export default function CompleteProfilePage() {
+function CompleteProfileContent() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  
+  // Prevent SSR issues by checking if we're on the client
+  const [isClient, setIsClient] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [formData, setFormData] = useState({
@@ -39,6 +42,10 @@ export default function CompleteProfilePage() {
       timezone: "UTC"
     }
   });
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   useEffect(() => {
     if (status === "loading") return;
@@ -74,6 +81,15 @@ export default function CompleteProfilePage() {
       }));
     }
   }, [session, status, router]);
+
+  // Don't render anything until we're on the client
+  if (!isClient) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-white">Loading...</div>
+      </div>
+    );
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -501,5 +517,17 @@ export default function CompleteProfilePage() {
         }
       `}</style>
     </div>
+  );
+}
+
+export default function CompleteProfilePage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-white">Loading...</div>
+      </div>
+    }>
+      <CompleteProfileContent />
+    </Suspense>
   );
 }

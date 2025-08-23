@@ -1,4 +1,5 @@
 import mongoose, { Document, Model, Schema } from "mongoose";
+import crypto from "crypto";
 
 export type UserRole = "pet_parent" | "veterinarian" | "technician" | "admin";
 
@@ -225,7 +226,6 @@ userSchema.methods.comparePassword = async function (
 };
 
 userSchema.methods.generateEmailVerificationToken = function (): string {
-  const crypto = require("crypto");
   const token = crypto.randomBytes(32).toString("hex");
   this.emailVerificationToken = crypto
     .createHash("sha256")
@@ -236,7 +236,6 @@ userSchema.methods.generateEmailVerificationToken = function (): string {
 };
 
 userSchema.methods.generatePasswordResetToken = function (): string {
-  const crypto = require("crypto");
   const token = crypto.randomBytes(32).toString("hex");
   this.passwordResetToken = crypto
     .createHash("sha256")
@@ -282,7 +281,6 @@ userSchema.statics.findByEmailForAuth = function (email: string) {
 };
 
 userSchema.statics.findByEmailVerificationToken = function (token: string) {
-  const crypto = require("crypto");
   const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
   return this.findOne({
     emailVerificationToken: hashedToken,
@@ -291,7 +289,6 @@ userSchema.statics.findByEmailVerificationToken = function (token: string) {
 };
 
 userSchema.statics.findByPasswordResetToken = function (token: string) {
-  const crypto = require("crypto");
   const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
   return this.findOne({
     passwordResetToken: hashedToken,

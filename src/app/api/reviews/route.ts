@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1');
     const skip = (page - 1) * limit;
 
-    let query: any = { isDeleted: { $ne: true } };
+    const query: any = { isDeleted: { $ne: true } };
 
     // Filter by doctor
     if (doctorId) {
