@@ -1,16 +1,16 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { MapPin } from "lucide-react";
-import { Doctor } from "./DoctorCard";
+import { Veterinarian } from "./type";
 
-export default function DoctorHeader({ doctor }: { doctor: Doctor }) {
+export default function DoctorHeader({ doctor }: { doctor: Veterinarian }) {
   return (
     <div className="relative h-48 bg-gradient-to-br from-blue-100 to-purple-100 overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
 
       <Avatar className="absolute bottom-4 left-4 w-20 h-20 border-4 border-white shadow-lg">
         <AvatarImage
-          src={doctor.image}
+          src={doctor.profileImage}
           alt={doctor.name}
           className="object-cover"
         />

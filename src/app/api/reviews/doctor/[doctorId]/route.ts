@@ -52,7 +52,7 @@ export async function GET(
       );
     }
 
-    let query: any = { 
+    const query: any = { 
       doctorId: new mongoose.Types.ObjectId(doctorId), 
       isDeleted: { $ne: true },
       visible: true 

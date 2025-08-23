@@ -1,11 +1,9 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React from "react";
 import PersonalInfoSection from "./Account/PersonalInfoSection";
 import ProfessionalInfoSection from "./Account/ProfessionalInfoSection";
 import AreasOfInterestSection from "./Account/AreaOfInterestSection";
-import { useSession } from "next-auth/react";
-import { getVetByIdDashboard } from "./Service/get-vet-by-id";
 import { Doctor } from "@/lib/types";
 
 export default function AccountPage({ doctorData }: { doctorData: Doctor }) {

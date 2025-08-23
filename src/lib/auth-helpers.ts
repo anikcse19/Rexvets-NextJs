@@ -2,6 +2,7 @@ import UserModel, { IUser } from "@/models/User";
 import PetParentModel from "@/models/PetParent";
 import VeterinarianModel from "@/models/Veterinarian";
 import VetTechModel from "@/models/VetTech";
+import { connectToDatabase } from "@/lib/mongoose";
 
 /**
  * Get full user data by populating references
@@ -139,4 +140,38 @@ export async function getUserByEmailWithData(email: string) {
   if (!user) return null;
 
   return getUserWithFullData(user._id.toString());
+}
+
+/**
+ * Check if a user is a veterinarian and get their veterinarian data
+ */
+export async function checkVeterinarianStatus(userId: string) {
+  try {
+    await connectToDatabase();
+    
+    // First check if user exists and has veterinarian role
+    const user = await UserModel.findById(userId);
+    if (!user) {
+      return { isVeterinarian: false, error: "User not found" };
+    }
+    
+    if (user.role !== "veterinarian") {
+      return { isVeterinarian: false, error: "User is not a veterinarian" };
+    }
+    
+    // Check if veterinarian profile exists using the reference
+    if (!user.veterinarianRef) {
+      return { isVeterinarian: false, error: "Veterinarian profile not found" };
+    }
+    
+    const veterinarian = await VeterinarianModel.findById(user.veterinarianRef);
+    if (!veterinarian) {
+      return { isVeterinarian: false, error: "Veterinarian profile not found" };
+    }
+    
+    return { isVeterinarian: true, veterinarian };
+  } catch (error) {
+    console.error("Error checking veterinarian status:", error);
+    return { isVeterinarian: false, error: "Database error" };
+  }
 }

@@ -23,30 +23,40 @@ interface ScheduleStepProps {
   errors?: Record<string, string>;
 }
 
+const defaultSchedule: Schedule = {
+  monday: { start: "", end: "", available: false },
+  tuesday: { start: "", end: "", available: false },
+  wednesday: { start: "", end: "", available: false },
+  thursday: { start: "", end: "", available: false },
+  friday: { start: "", end: "", available: false },
+  saturday: { start: "", end: "", available: false },
+  sunday: { start: "", end: "", available: false },
+};
+
 export default function ScheduleStep({
   onNext,
   onBack,
-  initialData = {},
+  initialData = defaultSchedule,
   errors = {},
 }: ScheduleStepProps) {
   const [schedule, setSchedule] = useState<Schedule>(initialData);
 
-  const addTimeSlot = (day: string) => {
+  const addTimeSlot = (day: keyof Schedule) => {
     setSchedule((prev) => ({
       ...prev,
-      [day]: [...(prev[day] || []), { startTime: "", endTime: "" }],
+      [day]: [...(prev[day] as any || []), { startTime: "", endTime: "" }],
     }));
   };
 
-  const removeTimeSlot = (day: string, index: number) => {
+  const removeTimeSlot = (day: keyof Schedule, index: number) => {
     setSchedule((prev) => ({
       ...prev,
-      [day]: prev[day]?.filter((_, i) => i !== index) || [],
+      [day]: (prev[day] as any)?.filter((_: any, i: number) => i !== index) || [],
     }));
   };
 
   const updateTimeSlot = (
-    day: string,
+    day: keyof Schedule,
     index: number,
     field: "startTime" | "endTime",
     value: string
@@ -54,16 +64,16 @@ export default function ScheduleStep({
     setSchedule((prev) => ({
       ...prev,
       [day]:
-        prev[day]?.map((slot, i) =>
+        (prev[day] as any)?.map((slot: any, i: number) =>
           i === index ? { ...slot, [field]: value } : slot
         ) || [],
     }));
   };
 
   const validateSchedule = (): boolean => {
-    const hasValidSlots = Object.values(schedule).some((daySlots) =>
+    const hasValidSlots = Object.values(schedule).some((daySlots: any) =>
       Array.isArray(daySlots) && daySlots.some(
-        (slot) =>
+        (slot: any) =>
           slot.startTime && slot.endTime && slot.startTime < slot.endTime
       )
     );
@@ -74,12 +84,15 @@ export default function ScheduleStep({
     e.preventDefault();
     if (validateSchedule()) {
       // Filter out empty time slots
-      const cleanedSchedule = Object.keys(schedule).reduce((acc, day) => {
-        const validSlots = schedule[day].filter(
-          (slot) => slot.startTime && slot.endTime
-        );
-        if (validSlots.length > 0) {
-          acc[day] = validSlots;
+      const cleanedSchedule = Object.keys(schedule).reduce((acc: any, day) => {
+        const daySlots = (schedule as any)[day];
+        if (Array.isArray(daySlots)) {
+          const validSlots = daySlots.filter(
+            (slot: any) => slot.startTime && slot.endTime
+          );
+          if (validSlots.length > 0) {
+            acc[day] = validSlots;
+          }
         }
         return acc;
       }, {} as Schedule);
@@ -116,7 +129,7 @@ export default function ScheduleStep({
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => addTimeSlot(day)}
+                  onClick={() => addTimeSlot(day as keyof Schedule)}
                   className="flex items-center gap-1"
                 >
                   <Plus className="w-4 h-4" />
@@ -124,9 +137,9 @@ export default function ScheduleStep({
                 </Button>
               </div>
 
-              {schedule[day]?.length ? (
+              {(schedule as any)[day]?.length ? (
                 <div className="space-y-3">
-                  {schedule[day].map((timeSlot, index) => (
+                  {(schedule as any)[day].map((timeSlot: any, index: number) => (
                     <motion.div
                       key={index}
                       initial={{ opacity: 0, y: -10 }}
@@ -141,7 +154,7 @@ export default function ScheduleStep({
                         <Select
                           value={timeSlot.startTime}
                           onValueChange={(value) =>
-                            updateTimeSlot(day, index, "startTime", value)
+                            updateTimeSlot(day as keyof Schedule, index, "startTime", value)
                           }
                         >
                           <SelectTrigger className="mt-1">
@@ -164,7 +177,7 @@ export default function ScheduleStep({
                         <Select
                           value={timeSlot.endTime}
                           onValueChange={(value) =>
-                            updateTimeSlot(day, index, "endTime", value)
+                            updateTimeSlot(day as keyof Schedule, index, "endTime", value)
                           }
                         >
                           <SelectTrigger className="mt-1">
@@ -185,7 +198,7 @@ export default function ScheduleStep({
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => removeTimeSlot(day, index)}
+                        onClick={() => removeTimeSlot(day as keyof Schedule, index)}
                         className="text-red-500 hover:text-red-700 hover:bg-red-50"
                       >
                         <X className="w-4 h-4" />
