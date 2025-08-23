@@ -1,5 +1,4 @@
 "use client";
-import { Avatar } from "@radix-ui/react-avatar";
 import { motion, Variants } from "framer-motion";
 import { PawPrint, Play } from "lucide-react";
 import Link from "next/link";

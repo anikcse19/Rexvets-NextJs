@@ -1,5 +1,5 @@
 import React from "react";
-import { LocateIcon, Stethoscope, UserCheck } from "lucide-react";
+import { LocateIcon, Stethoscope } from "lucide-react";
 import { MdEmojiEvents } from "react-icons/md";
 
 const WelcomeSection = () => {

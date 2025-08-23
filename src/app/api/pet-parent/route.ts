@@ -1,9 +1,10 @@
 // src/app/api/pet-parent/route.ts api to get pet parent data
 
 import { authOptions } from "@/lib/auth";
+import { getServerSession } from "next-auth/next";
+import type { Session } from "next-auth";
 import { connectToDatabase } from "@/lib/mongoose";
 import PetParentModel from "@/models/PetParent";
-import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -65,11 +66,11 @@ export async function GET(request: NextRequest) {
     } else if (email) {
       resolvedFilter = { email: email.toLowerCase() };
     } else {
-      const session = await getServerSession(authOptions);
-      if (!session || !session.user?.email) {
+      const session: Session | null = await getServerSession(authOptions as any);
+      if (!session || !(session as any).user?.email) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
       }
-      resolvedFilter = { email: session.user.email.toLowerCase() };
+      resolvedFilter = { email: (session as any).user.email.toLowerCase() };
     }
 
     await connectToDatabase();

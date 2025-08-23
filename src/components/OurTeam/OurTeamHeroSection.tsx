@@ -1,5 +1,5 @@
 "use client";
-import { Badge } from "@/components/ui/badge";
+
 import { motion, Variants } from "framer-motion";
 import { PawPrint } from "lucide-react";
 import React from "react";

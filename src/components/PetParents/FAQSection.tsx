@@ -1,7 +1,7 @@
 "use client"
 import { Expand } from "lucide-react";
 import { useState } from "react";
-import { MdExpandMore } from "react-icons/md";
+
 
 
 interface FAQItem {

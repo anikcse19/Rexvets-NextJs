@@ -1,10 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/mongoose";
 import UserModel from "@/models/User";
 import PetParentModel from "@/models/PetParent";
 import VeterinarianModel from "@/models/Veterinarian";
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     await connectToDatabase();
     

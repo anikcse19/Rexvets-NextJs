@@ -1,13 +1,10 @@
 import { uploadToCloudinary } from "@/lib/cloudinary";
 import { connectToDatabase } from "@/lib/mongoose";
 import {
-  IErrorResponse,
   sendResponse,
   throwAppError,
 } from "@/lib/utils/send.response";
 import { PetModel } from "@/models/Pet";
-import PetParent from "@/models/PetParent";
-import { Types } from "mongoose";
 import { NextRequest } from "next/server";
 
 // Create a new pet

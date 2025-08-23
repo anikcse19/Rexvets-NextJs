@@ -1,5 +1,5 @@
 "use client";
-import { Button } from "@/components/ui/button";
+
 import { motion, Variants } from "framer-motion";
 import { Heart, Shield } from "lucide-react";
 import Image from "next/image";

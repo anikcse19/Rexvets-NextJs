@@ -1,14 +1,12 @@
 "use client";
 
 import React from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Pill, Download, Calendar, User, Clock, Eye } from "lucide-react";
 
-interface PrescriptionSectionProps {
-  appointmentId: string;
-}
+
 
 // Mock data for existing prescriptions (read-only for pet parents)
 const mockPrescriptions = [
@@ -57,9 +55,7 @@ const mockPrescriptions = [
   },
 ];
 
-export default function PrescriptionSection({
-  appointmentId,
-}: PrescriptionSectionProps) {
+export default function PrescriptionSection() {
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",

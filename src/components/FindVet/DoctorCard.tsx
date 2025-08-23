@@ -2,9 +2,7 @@ import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import DoctorInfo from "./DoctorInfo";
 import DoctorLicense from "./DoctorLicense";
-import DoctorSpecialties from "./DoctorSpecialties";
 import DoctorSubscription from "./DoctorSubscription";
-import DoctorSlots from "./DoctorSlots";
 import DoctorProfileButton from "./DoctorProfileButton";
 import DoctorHeader from "./DoctorHeader";
 import { Veterinarian } from "./type";
@@ -19,7 +17,7 @@ export default function DoctorCard({ doctor }: { doctor: Veterinarian }) {
             <DoctorInfo doctor={doctor} />
             <DoctorLicense doctor={doctor} />
             {/* <DoctorSpecialties doctor={doctor} /> */}
-            <DoctorSubscription doctor={doctor} />
+            <DoctorSubscription />
             {/* <DoctorSlots doctor={doctor} /> */}
             <DoctorProfileButton />
           </div>

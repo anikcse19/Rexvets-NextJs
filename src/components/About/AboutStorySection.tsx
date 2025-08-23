@@ -2,9 +2,6 @@
 import React from 'react';
 
 import { motion } from "framer-motion";
-import PawHeart from "/images/about/PawHeart.webp";
-import About1 from "/images/about/About1.webp";
-import About2 from "/images/about/About2.webp";
 import Image from 'next/image';
 const AboutStorySection = () => {
     return (

@@ -5,7 +5,7 @@ import {
   throwAppError,
 } from "@/lib/utils/send.response";
 import { PetModel } from "@/models/Pet";
-import mongoose, { Types } from "mongoose";
+import mongoose from "mongoose";
 import { NextRequest } from "next/server";
 //  Get single pet
 export async function GET(

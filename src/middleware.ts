@@ -1,8 +1,5 @@
-import { getToken } from "next-auth/jwt";
-import type { NextRequest } from "next/server";
+import { withAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
-
-const secret = process.env.NEXTAUTH_SECRET;
 
 const protectedRoutes = [
   "/dashboard",
@@ -11,35 +8,50 @@ const protectedRoutes = [
   "/api/test",
 ];
 
-export async function middleware(req: NextRequest) {
-  const { pathname } = req.nextUrl;
+export default withAuth(
+  function middleware(req) {
+    const { pathname } = req.nextUrl;
 
-  // Only run middleware on protected routes
-  if (protectedRoutes.some((route) => pathname.startsWith(route))) {
-    // Get JWT payload from NextAuth
-    const token = await getToken({ req, secret });
+    // Only run middleware on protected routes
+    if (protectedRoutes.some((route) => pathname.startsWith(route))) {
+      // The token is available in req.nextauth.token
+      const token = (req as any).nextauth?.token;
 
-    if (!token) {
-      // Redirect to login if no token
-      return NextResponse.redirect(new URL("/auth/signin", req.url));
+      if (!token) {
+        // Redirect to login if no token
+        return NextResponse.redirect(new URL("/auth/signin", req.url));
+      }
+
+      // Serialize user into headers (so API routes can access)
+      const userData = {
+        id: token.id,
+        role: token.role,
+        email: token.email,
+      };
+
+      const res = NextResponse.next();
+      res.headers.set("user", JSON.stringify(userData));
+      return res;
     }
 
-    // Serialize user into headers (so API routes can access)
-    const userData = {
-      id: token.id,
-      role: token.role,
-      email: token.email,
-    };
+    return NextResponse.next();
+  },
+  {
+    callbacks: {
+      authorized: ({ token, req }) => {
+        const { pathname } = req.nextUrl;
 
-    const res = NextResponse.next();
+        // Allow access to protected routes only if user has a token
+        if (protectedRoutes.some((route) => pathname.startsWith(route))) {
+          return !!token;
+        }
 
-    res.headers.set("user", JSON.stringify(userData));
-
-    return res;
+        // Allow access to non-protected routes
+        return true;
+      },
+    },
   }
-
-  return NextResponse.next();
-}
+);
 
 export const config = {
   matcher: ["/api/:path*", "/dashboard/:path*", "/admin/:path*", "/faq/:path*"],

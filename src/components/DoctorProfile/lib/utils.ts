@@ -8,7 +8,7 @@ export const formatDate = (dateString: string) => {
   });
 };
 
-export const formatTime = (time: string) => {
+export const formatTime = () => {
   // const [hours, minutes] = time.split(":");
   // const hour = parseInt(hours);
   // const ampm = hour >= 12 ? "PM" : "AM";

@@ -1,9 +1,9 @@
 "use client";
 import { HumanChatBox } from "@/components/Chat";
-import { useParams, useSearchParams } from "next/navigation";
-import React from "react";
+import { useSearchParams } from "next/navigation";
+import React, { Suspense } from "react";
 
-const page = () => {
+const ChatPageContent = () => {
   const searchParams = useSearchParams();
 
   const name = searchParams.get("name"); // "M Junaid"
@@ -21,4 +21,12 @@ const page = () => {
   );
 };
 
-export default page;
+const Page = () => {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ChatPageContent />
+    </Suspense>
+  );
+};
+
+export default Page;

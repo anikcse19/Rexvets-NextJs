@@ -80,7 +80,6 @@ const durationOptions = [
 export default function PrescriptionModal({
   isOpen,
   onClose,
-  appointmentId,
   petName,
   petDetails,
 }: PrescriptionModalProps) {
@@ -93,7 +92,6 @@ export default function PrescriptionModal({
     reset,
     control,
     setValue,
-    watch,
   } = useForm<PrescriptionFormData>({
     resolver: zodResolver(prescriptionSchema),
     defaultValues: {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { ArrowLeft, CheckCircle, XCircle, Loader2 } from "lucide-react";
@@ -11,7 +11,6 @@ import { Suspense } from "react";
 
 function VerifyEmailContent() {
   const searchParams = useSearchParams();
-  const router = useRouter();
   const token = searchParams.get("token");
   
   const [verificationStatus, setVerificationStatus] = useState<
@@ -40,7 +39,7 @@ function VerifyEmailContent() {
           setVerificationStatus("error");
           setMessage(data.error || "Verification failed. Please try again.");
         }
-      } catch (error) {
+      } catch {
         setVerificationStatus("error");
         setMessage("An error occurred during verification. Please try again.");
       }

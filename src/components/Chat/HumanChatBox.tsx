@@ -38,7 +38,7 @@ interface IProps {
   email?: string | null;
   sessionId?: string | null;
 }
-const HumanChatBox: React.FC<IProps> = ({ name, email, sessionId }) => {
+const HumanChatBox: React.FC<IProps> = () => {
   const [message, setMessage] = useState<string>("");
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -59,11 +59,9 @@ const HumanChatBox: React.FC<IProps> = ({ name, email, sessionId }) => {
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [isTextareaFocused, setIsTextareaFocused] = useState<boolean>(false);
   const [isTyping, setIsTyping] = useState<boolean>(false);
-  const [isOnline, setIsOnline] = useState<boolean>(true);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Auto-resize textarea
   const adjustTextareaHeight = useCallback(() => {
@@ -285,9 +283,7 @@ const HumanChatBox: React.FC<IProps> = ({ name, email, sessionId }) => {
                 className="h-12 w-12 bg-white rounded-full p-2 shadow-lg"
               />
               <div
-                className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white ${
-                  isOnline ? "bg-green-400" : "bg-gray-400"
-                }`}
+                className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white bg-green-400"
               ></div>
             </div>
             <div>
@@ -296,11 +292,9 @@ const HumanChatBox: React.FC<IProps> = ({ name, email, sessionId }) => {
               </h1>
               <p className="text-blue-100 text-sm flex items-center gap-2">
                 <FaCircle
-                  className={`w-2 h-2 ${
-                    isOnline ? "text-green-300" : "text-gray-300"
-                  }`}
+                  className="w-2 h-2 text-green-300"
                 />
-                {isOnline ? "Online - Professional Veterinary Care" : "Offline"}
+                Online - Professional Veterinary Care
               </p>
             </div>
           </div>

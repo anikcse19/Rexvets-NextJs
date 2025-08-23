@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { getServerSession } from "next-auth/next";
+import type { Session } from "next-auth";
 import { connectToDatabase } from "@/lib/mongoose";
 import PetParentModel from "@/models/PetParent";
 import { z } from "zod";
@@ -92,9 +93,9 @@ const updatePetParentSchema = z.object({
 export async function PUT(request: NextRequest) {
   try {
     // Get session to verify authentication
-    const session = await getServerSession(authOptions);
+    const session: Session | null = await getServerSession(authOptions as any);
     
-    if (!session?.user?.email) {
+    if (!(session as any)?.user?.email) {
       return NextResponse.json(
         { error: "Authentication required. Please sign in to update your profile." },
         { status: 401 }
@@ -130,7 +131,7 @@ export async function PUT(request: NextRequest) {
 
     // Find the pet parent by email
     const petParent = await PetParentModel.findOne({ 
-      email: session.user.email,
+      email: (session as any).user.email,
       isActive: true 
     });
 
@@ -284,12 +285,12 @@ export async function PUT(request: NextRequest) {
 }
 
 // GET method to retrieve current pet parent data
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     // Get session to verify authentication
-    const session = await getServerSession(authOptions);
+    const session: Session | null = await getServerSession(authOptions as any);
     
-    if (!session?.user?.email) {
+    if (!(session as any)?.user?.email) {
       return NextResponse.json(
         { error: "Authentication required. Please sign in to view your profile." },
         { status: 401 }
@@ -309,7 +310,7 @@ export async function GET(request: NextRequest) {
 
     // Find the pet parent by email
     const petParent = await PetParentModel.findOne({ 
-      email: session.user.email,
+      email: (session as any).user.email,
       isActive: true 
     }).select('-password -emailVerificationToken -passwordResetToken -googleAccessToken -googleRefreshToken');
 

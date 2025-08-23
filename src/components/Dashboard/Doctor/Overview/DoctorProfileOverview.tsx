@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Star, Users } from "lucide-react";
 import React from "react";
-import { FaBarsProgress } from "react-icons/fa6";
+
 
 const DoctorProfileOverview = () => {
   return (

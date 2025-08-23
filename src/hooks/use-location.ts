@@ -15,8 +15,8 @@ export const useLocation = () => {
       const currentLocation = await getCurrentLocation();
       setLocation(currentLocation);
       localStorage.setItem("userLocation", JSON.stringify(currentLocation));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to get location");
+    } catch {
+      setError("Failed to get location");
     } finally {
       setLoading(false);
     }
@@ -33,7 +33,7 @@ export const useLocation = () => {
     if (savedLocation) {
       try {
         setLocation(JSON.parse(savedLocation));
-      } catch (err) {
+      } catch {
         console.error("Failed to parse saved location");
       }
     }

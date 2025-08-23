@@ -6,7 +6,6 @@ import { createOrUpdateUserAuth, linkUserToModel } from "@/lib/auth-helpers";
 import { veterinarianProfileSchema } from "@/lib/validation/veterinarian";
 import { uploadToCloudinary, validateFile } from "@/lib/cloudinary";
 import { sendEmailVerification } from "@/lib/email";
-import { registerRateLimiter } from "@/lib/rate-limit";
 import { z } from "zod";
 
 export async function POST(request: NextRequest) {

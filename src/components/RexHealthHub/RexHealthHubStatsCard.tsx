@@ -1,5 +1,5 @@
 "use client";
-import { motion } from "framer-motion";
+
 import React from "react";
 
 interface RexHealthHubStatsCardProps {
@@ -13,7 +13,6 @@ const RexHealthHubStatsCard: React.FC<RexHealthHubStatsCardProps> = ({
   label,
   value,
   icon,
-  index = 0,
 }) => (
   <div className="p-6 rounded-3xl bg-white/95 backdrop-blur-xl border border-white/20 text-center will-change-transform">
     <div className="flex justify-center mb-2">{icon}</div>

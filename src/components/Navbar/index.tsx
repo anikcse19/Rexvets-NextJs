@@ -41,7 +41,7 @@ const Header: React.FC = () => {
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
 
   // const session = {
   //   user: {
@@ -226,20 +226,20 @@ const Header: React.FC = () => {
                       <div className="pb-4 border-b border-[#3D456B] mb-4">
                         <div className="flex items-center space-x-3">
                           <Avatar className="w-10 h-10">
-                            <AvatarImage src={session.user?.image || ""} />
+                            <AvatarImage src={(session?.user as any)?.image || ""} />
                             <AvatarFallback className="bg-emerald-500 text-white">
-                              {session.user?.name
-                                ? getUserInitials(session.user.name)
+                              {(session?.user as any)?.name
+                                ? getUserInitials((session?.user as any).name)
                                 : "U"}
                             </AvatarFallback>
                           </Avatar>
                           <div className="flex-1">
                             <p className="text-white font-semibold text-sm">
-                              {session.user?.name || "User"}
+                              {(session?.user as any)?.name || "User"}
                             </p>
                             <p className="text-white/70 text-xs">
-                              {session.user?.role
-                                ? getRoleDisplayName(session.user.role)
+                              {(session?.user as any)?.role
+                                ? getRoleDisplayName((session?.user as any)?.role)
                                 : "User"}
                             </p>
                           </div>
@@ -346,12 +346,12 @@ const Header: React.FC = () => {
                   >
                     <Avatar className="h-10 w-10">
                       <AvatarImage
-                        src={session.user?.image || ""}
-                        alt={session.user?.name || ""}
+                        src={(session?.user as any)?.image || ""}
+                        alt={(session?.user as any)?.name || ""}
                       />
                       <AvatarFallback className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-semibold">
-                        {session.user?.name
-                          ? getUserInitials(session.user.name)
+                        {(session?.user as any)?.name
+                          ? getUserInitials((session?.user as any).name)
                           : "U"}
                       </AvatarFallback>
                     </Avatar>
@@ -368,25 +368,25 @@ const Header: React.FC = () => {
                     <div className="flex items-center gap-3">
                       <Avatar className="h-10 w-10">
                         <AvatarImage
-                          src={session.user?.image || ""}
-                          alt={session.user?.name || ""}
+                          src={(session?.user as any)?.image || ""}
+                          alt={(session?.user as any)?.name || ""}
                         />
                         <AvatarFallback className="bg-emerald-500 text-white">
-                          {session.user?.name
-                            ? getUserInitials(session.user.name)
+                          {(session?.user as any)?.name
+                            ? getUserInitials((session?.user as any).name)
                             : "U"}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex flex-col">
                         <p className="text-sm font-semibold text-gray-900">
-                          {session.user?.name || "User"}
+                          {(session?.user as any)?.name || "User"}
                         </p>
                         <p className="text-xs text-gray-500 truncate">
-                          {session.user?.email}
+                          {(session?.user as any)?.email}
                         </p>
                         <p className="text-xs text-emerald-600 font-medium">
-                          {session.user?.role
-                            ? getRoleDisplayName(session.user.role)
+                          {(session?.user as any)?.role
+                            ? getRoleDisplayName((session?.user as any).role)
                             : "User"}
                         </p>
                       </div>
@@ -399,7 +399,7 @@ const Header: React.FC = () => {
                   <DropdownMenuItem asChild>
                     <Link
                       href={`/dashboard/${
-                        session.user.role === "veterinarian"
+                        (session?.user as any).role === "veterinarian"
                           ? "doctor"
                           : "pet-parent"
                       }/overview`}

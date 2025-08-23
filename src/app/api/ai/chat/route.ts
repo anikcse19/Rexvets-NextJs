@@ -3,7 +3,9 @@ import { authOptions } from "@/lib/auth";
 import { faqData } from "@/lib/data";
 import { connectToDatabase } from "@/lib/mongoose";
 import { ChatConversation } from "@/models/ChatConversation";
+import type { Session } from "next-auth";
 import { getServerSession } from "next-auth";
+import { getServerSession } from "next-auth/next";
 import { NextRequest, NextResponse } from "next/server";
 import { generateSessionId, saveConversation } from "../ai.chat.utils";
 
@@ -72,7 +74,7 @@ export async function POST(req: NextRequest) {
     await connectToDatabase(); // Connect to MongoDB
 
     // Check if user is authenticated
-    const session = await getServerSession(authOptions);
+    const session: Session | null = await getServerSession(authOptions as any);
 
     const {
       question,
@@ -146,7 +148,7 @@ export async function POST(req: NextRequest) {
       // Save the conversation
       await saveConversation({
         sessionId,
-        userId: session?.user?.id,
+        userId: (session?.user as any)?.id,
         userName: userName || "Unknown",
         userEmail: userEmail || "unknown@example.com",
         userMessage: question,
@@ -219,7 +221,7 @@ export async function POST(req: NextRequest) {
       // Save the conversation
       await saveConversation({
         sessionId,
-        userId: session?.user?.id,
+        userId: (session?.user as any)?.id,
         userName: userName || "Unknown",
         userEmail: userEmail || "unknown@example.com",
         userMessage: question,
@@ -322,7 +324,7 @@ export async function POST(req: NextRequest) {
       // Save the conversation
       await saveConversation({
         sessionId,
-        userId: session?.user?.id,
+        userId: (session?.user as any)?.id,
         userName: userName || "Unknown",
         userEmail: userEmail || "unknown@example.com",
         userMessage: question,
@@ -356,7 +358,7 @@ export async function POST(req: NextRequest) {
       // Save the error conversation
       await saveConversation({
         sessionId,
-        userId: session?.user?.id,
+        userId: (session?.user as any)?.id,
         userName: userName || "Unknown",
         userEmail: userEmail || "unknown@example.com",
         userMessage: question,

@@ -1,4 +1,4 @@
-import { JSX, ReactNode } from "react";
+import { JSX } from "react";
 
 export interface ISupportOption {
   icon: JSX.Element;
