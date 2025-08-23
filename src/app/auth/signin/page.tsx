@@ -62,7 +62,7 @@ export default function SignInPage() {
             } else {
               setError("Invalid email or password. Please try again.");
             }
-          } catch (error) {
+          } catch {
             setError("Invalid email or password. Please try again.");
           }
         } else if (result?.error === "AccountLocked") {
@@ -85,7 +85,7 @@ export default function SignInPage() {
           );
         }
       }
-    } catch (error) {
+    } catch {
       setError("An unexpected error occurred. Please try again.");
     } finally {
       setIsLoading(false);
@@ -97,7 +97,7 @@ export default function SignInPage() {
     setError(""); // Clear previous errors
     try {
       await signIn("google", { callbackUrl: "/" });
-    } catch (error) {
+    } catch {
       setError("Google sign-in failed. Please try again.");
     } finally {
       setGoogleLoading(false);

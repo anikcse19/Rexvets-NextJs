@@ -40,7 +40,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
   preview = true,
   className = "",
   disabled = false,
-  vetName,
+  // vetName,
 }) => {
   const [files, setFiles] = useState<FileWithPreview[]>([]);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -48,26 +48,26 @@ const FileUpload: React.FC<FileUploadProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Create filename with vet name prefix for better Cloudinary recognition
-  const createPrefixedFilename = useCallback((originalName: string): string => {
-    if (!vetName) return originalName;
-    
-    // Clean the vet name (remove special characters, spaces to underscores)
-    const cleanVetName = vetName
-      .replace(/[^a-zA-Z0-9\s]/g, '') // Remove special characters
-      .replace(/\s+/g, '_') // Replace spaces with underscores
-      .toLowerCase();
-    
-    // Get file extension
-    const lastDotIndex = originalName.lastIndexOf('.');
-    const extension = lastDotIndex !== -1 ? originalName.substring(lastDotIndex) : '';
-    const nameWithoutExtension = lastDotIndex !== -1 ? originalName.substring(0, lastDotIndex) : originalName;
-    
-    // Create timestamp for uniqueness
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
-    
-    // Return prefixed filename: vetname_timestamp_originalname.extension
-    return `${cleanVetName}_${timestamp}_${nameWithoutExtension}${extension}`;
-  }, [vetName]);
+  // const createPrefixedFilename = useCallback((originalName: string): string => {
+  //   if (!vetName) return originalName;
+  //   
+  //   // Clean the vet name (remove special characters, spaces to underscores)
+  //   const cleanVetName = vetName
+  //     .replace(/[^a-zA-Z0-9\s]/g, '') // Remove special characters
+  //     .replace(/\s+/g, '_') // Replace spaces with underscores
+  //     .toLowerCase();
+  //   
+  //   // Get file extension
+  //   const lastDotIndex = originalName.lastIndexOf('.');
+  //   const extension = lastDotIndex !== -1 ? originalName.substring(lastDotIndex) : '';
+  //   const nameWithoutExtension = lastDotIndex !== -1 ? originalName.substring(0, lastDotIndex) : originalName;
+  //   
+  //   // Create timestamp for uniqueness
+  //   const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+  //   
+  //   // Return prefixed filename: vetname_timestamp_originalname.extension
+  //   return `${cleanVetName}_${timestamp}_${nameWithoutExtension}${extension}`;
+  // }, [vetName]);
 
   // Compress image if needed
   const compressImage = useCallback(async (file: File): Promise<File> => {
@@ -174,7 +174,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
     }
 
     return renamedFile as FileWithPreview;
-  }, [accept, maxSize, compressImage, createPrefixedFilename]);
+  }, [accept, maxSize, compressImage]);
 
   // Get file icon safely
   const getFileIconSafely = useCallback((file: FileWithPreview) => {

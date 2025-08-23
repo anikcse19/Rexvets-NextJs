@@ -1,9 +1,8 @@
 "use client";
 
 import React from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { FileText, Plus, Calendar, User, Stethoscope } from "lucide-react";
 
 interface DataAssessmentSectionProps {
@@ -36,7 +35,6 @@ const mockAssessments = [
 ];
 
 export default function DataAssessmentSection({
-  appointmentId,
   onOpenModal,
 }: DataAssessmentSectionProps) {
   const formatDate = (dateString: string) => {

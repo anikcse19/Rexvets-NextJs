@@ -37,7 +37,6 @@ export default function ScheduleStep({
   onNext,
   onBack,
   initialData = defaultSchedule,
-  errors = {},
 }: ScheduleStepProps) {
   const [schedule, setSchedule] = useState<Schedule>(initialData);
 

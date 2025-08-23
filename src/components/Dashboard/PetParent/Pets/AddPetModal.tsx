@@ -55,7 +55,6 @@ interface AddPetModalProps {
 export default function AddPetModal({
   isOpen,
   onClose,
-  onSuccess,
   editingPet,
 }: AddPetModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);

@@ -3,12 +3,12 @@
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
+
 import {
   Select,
   SelectContent,
@@ -18,26 +18,21 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  User,
   Edit3,
   Save,
   X,
   Camera,
-  MapPin,
-  Phone,
-  Mail,
-  Calendar,
 } from "lucide-react";
 import {
   PersonalInfoFormData,
   personalInfoSchema,
 } from "@/lib/validation/account";
 import { mockDoctorData } from "@/lib";
-import { Doctor } from "@/lib/types";
 
 export default function PersonalInfoSection() {
-  const [isEditing, setIsEditing] = useState(false);
+
   const [isLoading, setIsLoading] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
 
   // console.log(doctorData, "doctor in professional component");
 
@@ -47,7 +42,6 @@ export default function PersonalInfoSection() {
     formState: { errors },
     reset,
     setValue,
-    watch,
   } = useForm<PersonalInfoFormData>({
     resolver: zodResolver(personalInfoSchema),
     defaultValues: mockDoctorData.personalInfo,
@@ -402,23 +396,4 @@ export default function PersonalInfoSection() {
   );
 }
 
-interface InfoItemProps {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-  fullWidth?: boolean;
-}
 
-function InfoItem({ icon, label, value, fullWidth = false }: InfoItemProps) {
-  return (
-    <div className={`${fullWidth ? "col-span-full" : ""}`}>
-      <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl border border-gray-200 hover:border-gray-300 transition-colors">
-        <div className="flex-shrink-0 mt-0.5">{icon}</div>
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-gray-600 mb-1">{label}</p>
-          <p className="text-gray-900 font-semibold break-words">{value}</p>
-        </div>
-      </div>
-    </div>
-  );
-}

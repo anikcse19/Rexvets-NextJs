@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
     // Connect to database
     try {
       await connectToDatabase();
-    } catch (dbError) {
+    } catch {
       return NextResponse.json(
         { error: "Database connection failed. Please try again later." },
         { status: 503 }
@@ -95,7 +95,7 @@ export async function POST(request: NextRequest) {
           { status: 409 }
         );
       }
-    } catch (findError) {
+    } catch {
       return NextResponse.json(
         { error: "Unable to verify email availability. Please try again." },
         { status: 500 }
@@ -192,7 +192,7 @@ export async function POST(request: NextRequest) {
       // Send email verification
       try {
         await sendEmailVerification(email, verificationToken, name);
-      } catch (emailError) {
+      } catch {
         // Don't fail the registration if email fails
         // User can request email verification later
       }

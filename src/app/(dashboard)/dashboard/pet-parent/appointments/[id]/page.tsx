@@ -1,15 +1,10 @@
 import PetParentAppointmentDetailsPage from "@/components/Dashboard/PetParent/PetParentAppointmentDetailsPage";
 import React from "react";
 
-interface AppointmentPageProps {
-  params: Promise<{ id: string }>;
-}
-
-export default async function Page(props: AppointmentPageProps) {
-  const { id } = await props.params;
+export default async function Page() {
   return (
     <div>
-      <PetParentAppointmentDetailsPage id={id} />
+      <PetParentAppointmentDetailsPage />
     </div>
   );
 }

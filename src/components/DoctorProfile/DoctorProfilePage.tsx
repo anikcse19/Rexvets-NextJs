@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Calendar } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import DonationModal from "@/components/Donation/DonationModal";
 
@@ -12,11 +12,10 @@ import ClinicAddress from "./ClinicAddress";
 import Specialties from "./Specialties";
 import SpeciesTreated from "./SpeciesTreated";
 import ReviewsSection from "./ReviewsSection";
-import BookingCard from "./BookingCard";
-import { formatDate, formatTime } from "./lib/utils";
-import { mockAvailableSlots, mockDoctor } from "./data";
-import BookingSystem from "./BookingCard";
+import { formatDate } from "./lib/utils";
+import { mockDoctor } from "./data";
 import { Doctor } from "./type";
+import BookingCard from "./BookingCard";
 
 export default function DoctorProfilePage({
   doctorData,
@@ -25,15 +24,10 @@ export default function DoctorProfilePage({
 }) {
   const [showAllReviews, setShowAllReviews] = useState(false);
   const [selectedDate, setSelectedDate] = useState("2025-01-16");
-  const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
+
   const [showDonationModal, setShowDonationModal] = useState(false);
 
-  const handleBookAppointment = () => {
-    if (selectedSlot) {
-      console.log(`Booking appointment for ${selectedDate} at ${selectedSlot}`);
-      setShowDonationModal(true);
-    }
-  };
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 p-4 lg:p-6">
@@ -68,14 +62,13 @@ export default function DoctorProfilePage({
 
           {/* Booking */}
           <div className="xl:col-span-1">
-            <BookingSystem
+            <BookingCard
               doctorName={mockDoctor.name}
               doctorData={doctorData}
-              onConfirm={(date, time) => {
+              onConfirm={(date: string, time: string) => {
                 console.log(`Booking appointment for ${date} at ${time}`);
                 setShowDonationModal(true);
                 setSelectedDate(date);
-                setSelectedSlot(time);
               }}
             />
           </div>

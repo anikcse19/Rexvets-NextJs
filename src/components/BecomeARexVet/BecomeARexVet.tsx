@@ -4,18 +4,14 @@ import React, { useEffect, useMemo, useState } from "react";
 import {
   MdAssignment,
   MdCalendarToday,
-  MdGrade,
   MdMessage,
   MdPets,
   MdPhone,
-  MdPsychology,
-  MdSchedule,
   MdSecurity,
   MdSupport,
   MdVerified,
   MdVideoCall,
 } from "react-icons/md";
-import FeaturesSection from "../Home/FeaturesSection";
 import BComeRexVetHeroSection from "./BComeRexVetHeroSection";
 import BeComeHowItWorksSection from "./BeComeHowItWorksSection";
 import BecomeRexVetBenefitsTableSection from "./BecomeRexVetBenefitsTableSection";
@@ -26,7 +22,6 @@ import { howItWorksBecomePlatformOverviewData } from "./become.data";
 
 const BecomeARexVet = () => {
   const [isVisible, setIsVisible] = useState(false);
-  const [activeSection, setActiveSection] = useState(0);
   const benefits = useMemo(
     () => [
       {
@@ -196,10 +191,6 @@ const BecomeARexVet = () => {
   );
   useEffect(() => {
     setIsVisible(true);
-    const timer = setInterval(() => {
-      setActiveSection((prev) => (prev + 1) % 3);
-    }, 3000);
-    return () => clearInterval(timer);
   }, []);
   return (
     <div className="min-h-screen bg-gray-50">

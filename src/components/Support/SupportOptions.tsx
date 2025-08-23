@@ -1,4 +1,4 @@
-import { motion, MotionProps, Variants } from "framer-motion";
+import { motion } from "framer-motion";
 import React from "react";
 import { supportCardVariants, supportHoverEffect } from "./animation.config";
 import { ISupportOption } from "./support.interface";

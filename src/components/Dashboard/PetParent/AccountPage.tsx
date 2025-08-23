@@ -1,10 +1,9 @@
 "use client";
 
-import { PetParent } from "@/lib/types";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import PersonalInfoSection from "./Account/PersonalInfoSection";
 
-export default function AccountPage({ doctorData }: { doctorData: PetParent }) {
+export default function AccountPage() {
   return (
     <div className="space-y-8">
       {/* Header */}

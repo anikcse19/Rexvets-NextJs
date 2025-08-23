@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { getServerSession } from "next-auth/next";
+import type { Session } from "next-auth";
 import { connectToDatabase } from "@/lib/mongoose";
 import VeterinarianModel from "@/models/Veterinarian";
 import { z } from "zod";
@@ -126,8 +127,8 @@ const updateVeterinarianSchema = z.object({
 // update veterinarian profile
 export async function PUT(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.email) {
+    const session: Session | null = await getServerSession(authOptions as any);
+    if (!(session as any)?.user?.email) {
       return NextResponse.json(
         { error: "Unauthorized. Please sign in to update your profile." },
         { status: 401 }
@@ -148,7 +149,7 @@ export async function PUT(request: NextRequest) {
     await connectToDatabase();
 
     const veterinarian = await VeterinarianModel.findOne({ 
-      email: session.user.email.toLowerCase(), 
+      email: (session as any).user.email.toLowerCase(), 
       isActive: true 
     });
 
@@ -387,10 +388,10 @@ export async function PUT(request: NextRequest) {
   }
 }
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.email) {
+    const session: Session | null = await getServerSession(authOptions as any);
+    if (!(session as any)?.user?.email) {
       return NextResponse.json(
         { error: "Unauthorized. Please sign in to view your profile." },
         { status: 401 }
@@ -400,7 +401,7 @@ export async function GET(request: NextRequest) {
     await connectToDatabase();
 
     const veterinarian = await VeterinarianModel.findOne({ 
-      email: session.user.email.toLowerCase(), 
+      email: (session as any).user.email.toLowerCase(), 
       isActive: true 
     }).select('-password -emailVerificationToken -emailVerificationExpires -passwordResetToken -passwordResetExpires -googleAccessToken -googleRefreshToken');
 

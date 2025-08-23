@@ -1,6 +1,11 @@
 // app/api/ai/chat/route.ts
+import { authOptions } from "@/lib/auth";
+import { getServerSession } from "next-auth/next";
+import type { Session } from "next-auth";
 import { faqData } from "@/lib/data";
+import { connectToDatabase } from "@/lib/mongoose";
 import { NextRequest } from "next/server";
+import { generateSessionId, saveConversation } from "../ai.chat.utils";
 
 // Rex Vet Team Information
 const rexVetTeam = {
@@ -51,6 +56,8 @@ IMPORTANT PROTOCOLS:
 - For prescription inquiries: Explain prescription availability depends on state regulations
 - Always emphasize that you provide general information and platform support, not medical advice
 - Maintain a helpful, professional, and compassionate tone at all times
+- If a user requests to speak with a human agent, acknowledge their request and inform them they'll be connected to a human representative
+- Personalize responses when user information is available
 
 CRITICAL BOUNDARIES:
 - DO NOT provide any medical advice, diagnoses, or treatment recommendations
@@ -62,7 +69,18 @@ Remember: You are a support tool designed to enhance the Rex Vet experience and 
 
 export async function POST(req: NextRequest) {
   try {
-    const { question, conversationHistory = [] } = await req.json();
+    await connectToDatabase(); // Connect to MongoDB
+
+    // Check if user is authenticated
+    const session: Session | null = await getServerSession(authOptions as any);
+
+    const {
+      question,
+      conversationHistory = [],
+      userName,
+      userEmail,
+      sessionId: clientSessionId,
+    } = await req.json();
 
     if (!question) {
       return new Response(
@@ -73,6 +91,77 @@ export async function POST(req: NextRequest) {
         }),
         {
           status: 400,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    // Generate or use existing session ID
+    const sessionId = clientSessionId || generateSessionId();
+
+    // Add user info to system prompt if available
+    let enhancedSystemPrompt = systemPrompt;
+    if (userName || userEmail) {
+      enhancedSystemPrompt += `\n\nCURRENT USER INFORMATION:\n- Name: ${
+        userName || "Not provided"
+      }\n- Email: ${
+        userEmail || "Not provided"
+      }\n- Authenticated: ${!!session}`;
+
+      // Add personalized greeting instruction
+      enhancedSystemPrompt += `\n\nPERSONALIZATION GUIDELINES:\n- If user provides their name, you may use it to personalize responses (e.g., "Thank you, ${userName}!")\n- Maintain professionalism while being personable\n- Do not overuse personal information - only when appropriate for context`;
+    }
+
+    // Check if user is requesting to speak with a human agent
+    const humanAgentKeywords = [
+      "human",
+      "agent",
+      "representative",
+      "person",
+      "real person",
+      "live agent",
+      "talk to someone",
+      "speak with someone",
+      "customer service",
+      "support agent",
+      "human support",
+    ];
+
+    const isRequestingHuman = humanAgentKeywords.some((keyword) =>
+      question.toLowerCase().includes(keyword.toLowerCase())
+    );
+
+    if (isRequestingHuman) {
+      // Personalize the response if we have user info
+      let responseMessage =
+        "I understand you'd like to speak with a human representative. I'll connect you with our support team who can provide personalized assistance.";
+
+      if (userName) {
+        responseMessage = `I understand you'd like to speak with a human representative, ${userName}. I'll connect you with our support team who can provide personalized assistance.`;
+      }
+
+      responseMessage +=
+        " Please hold while I transfer you, or you can email us directly at support@rexvet.com.";
+
+      // Save the conversation
+      await saveConversation({
+        sessionId,
+        userId: (session?.user as any)?.id,
+        userName: userName || "Unknown",
+        userEmail: userEmail || "unknown@example.com",
+        userMessage: question,
+        assistantMessage: responseMessage,
+        requiresHumanSupport: true,
+      });
+
+      return new Response(
+        JSON.stringify({
+          response: responseMessage,
+          requiresHumanSupport: true,
+          sessionId, // Send session ID back to client
+        }),
+        {
+          status: 200,
           headers: { "Content-Type": "application/json" },
         }
       );
@@ -117,11 +206,33 @@ export async function POST(req: NextRequest) {
     );
 
     if (isHealthRelated) {
+      let responseMessage =
+        "I understand you have concerns about your pet's health. For medical questions, symptoms, or health concerns, I recommend scheduling a consultation with one of our licensed veterinarians.";
+
+      if (userName) {
+        responseMessage = `I understand you have concerns about your pet's health, ${userName}. For medical questions, symptoms, or health concerns, I recommend scheduling a consultation with one of our licensed veterinarians.`;
+      }
+
+      responseMessage +=
+        " I'd be happy to help you with platform questions, account assistance, or general information about our services. How else can I assist you today?";
+
+      // Save the conversation
+      await saveConversation({
+        sessionId,
+        userId: (session?.user as any)?.id,
+        userName: userName || "Unknown",
+        userEmail: userEmail || "unknown@example.com",
+        userMessage: question,
+        assistantMessage: responseMessage,
+        requiresHumanSupport: false,
+        tags: ["health-related"],
+      });
+
       return new Response(
         JSON.stringify({
-          response:
-            "I understand you have concerns about your pet's health. For medical questions, symptoms, or health concerns, I recommend scheduling a consultation with one of our licensed veterinarians. I'd be happy to help you with platform questions, account assistance, or general information about our services. How else can I assist you today?",
+          response: responseMessage,
           requiresHumanSupport: false,
+          sessionId, // Send session ID back to client
         }),
         {
           status: 200,
@@ -135,7 +246,7 @@ export async function POST(req: NextRequest) {
       {
         role: "system",
         content:
-          systemPrompt +
+          enhancedSystemPrompt +
           "\n\nKNOWLEDGE BASE:\n" +
           JSON.stringify(faqData, null, 2),
       },
@@ -181,12 +292,6 @@ export async function POST(req: NextRequest) {
 
       const responseData = await openRouterResponse.json();
 
-      // // Debug log to see the actual response structure
-      // console.log(
-      //   "OpenRouter response:",
-      //   JSON.stringify(responseData, null, 2)
-      // );
-
       // Handle different possible response structures from OpenRouter
       let aiResponse =
         "I apologize, I'm having trouble processing your request. Please try again or contact our support team at support@rexvet.com.";
@@ -207,12 +312,30 @@ export async function POST(req: NextRequest) {
         }. Please contact support@rexvet.com.`;
       }
 
+      // Check if the AI response indicates a need for human support
+      const requiresHumanFromAI =
+        aiResponse.includes("human agent") ||
+        aiResponse.includes("contact support") ||
+        aiResponse.includes("representative") ||
+        aiResponse.includes("support team");
+
+      // Save the conversation
+      await saveConversation({
+        sessionId,
+        userId: (session?.user as any)?.id,
+        userName: userName || "Unknown",
+        userEmail: userEmail || "unknown@example.com",
+        userMessage: question,
+        assistantMessage: aiResponse,
+        requiresHumanSupport: requiresHumanFromAI,
+        tags: requiresHumanFromAI ? ["human-support-requested"] : [],
+      });
+
       return new Response(
         JSON.stringify({
           response: aiResponse,
-          requiresHumanSupport:
-            aiResponse.includes("contact support") ||
-            aiResponse.includes("human agent"),
+          requiresHumanSupport: requiresHumanFromAI,
+          sessionId, // Send session ID back to client
         }),
         {
           status: 200,
@@ -223,11 +346,30 @@ export async function POST(req: NextRequest) {
       console.error("OpenRouter API Error:", apiError);
 
       // Fallback response if API fails
+      let errorResponse =
+        "I'm currently experiencing technical difficulties. Please try again shortly or contact our support team at support@rexvet.com for immediate assistance.";
+
+      if (userName) {
+        errorResponse = `I'm currently experiencing technical difficulties, ${userName}. Please try again shortly or contact our support team at support@rexvet.com for immediate assistance.`;
+      }
+
+      // Save the error conversation
+      await saveConversation({
+        sessionId,
+        userId: (session?.user as any)?.id,
+        userName: userName || "Unknown",
+        userEmail: userEmail || "unknown@example.com",
+        userMessage: question,
+        assistantMessage: errorResponse,
+        requiresHumanSupport: true,
+        tags: ["api-error"],
+      });
+
       return new Response(
         JSON.stringify({
-          response:
-            "I'm currently experiencing technical difficulties. Please try again shortly or contact our support team at support@rexvet.com for immediate assistance.",
+          response: errorResponse,
           requiresHumanSupport: true,
+          sessionId, // Send session ID back to client
         }),
         {
           status: 200,

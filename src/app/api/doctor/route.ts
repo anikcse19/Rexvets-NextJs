@@ -6,7 +6,7 @@ export const GET = async () => {
   try {
     const doctors = await DoctorModel.find().limit(40);
     return NextResponse.json({ name: "HELLO", doctors });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: "Failed to fetch doctors" });
   }
 };

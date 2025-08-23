@@ -58,7 +58,6 @@ export default function PetParentForm() {
     register,
     handleSubmit,
     setValue,
-    watch,
     formState: { errors },
   } = useForm<PetParentFormData>({
     resolver: zodResolver(petParentSchema),

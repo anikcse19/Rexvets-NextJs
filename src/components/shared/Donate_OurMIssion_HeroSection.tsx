@@ -2,7 +2,7 @@
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
-import React, { FC, ReactNode, useCallback } from "react";
+import React, { FC, ReactNode } from "react";
 import { FaHeart, FaPaw, FaRocket } from "react-icons/fa6";
 
 interface HeroSectionProps {
@@ -54,7 +54,7 @@ const Donate_OurMIssion_HeroSection: FC<HeroSectionProps> = ({
     onClick: () => console.log("Learn More clicked"),
   },
   backgroundGradient = "from-blue-900 via-blue-950 to-blue-900",
-  titleGradient = "from-white to-gray-200",
+  // titleGradient = "from-white to-gray-200",
   showAnimatedBackground = true,
   className = "",
   subTitleClassName = "",
@@ -69,10 +69,7 @@ const Donate_OurMIssion_HeroSection: FC<HeroSectionProps> = ({
     }
     return null; // or undefined if it doesn't match exactly
   };
-  const checkSplit = useCallback(() => {
-    const result = splitString(subtitle);
-    return result ? result.first : subtitle;
-  }, [subtitle]);
+
   return (
     <section
       className={`relative min-h-screen flex items-center py-12 md:py-0 bg-gradient-to-br ${backgroundGradient} overflow-hidden ${className}`}

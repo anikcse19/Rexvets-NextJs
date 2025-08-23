@@ -1,7 +1,6 @@
 import config from "@/config/env.config";
 import UserModel, { IUserModel } from "@/models/User";
-import type { NextAuthOptions, User } from "next-auth";
-import NextAuth from "next-auth";
+import type { User } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import { z } from "zod";
@@ -17,7 +16,7 @@ const signInSchema = z.object({
   password: z.string().min(1, "Password is required"),
 });
 
-export const authOptions: NextAuthOptions = {
+export const authOptions = {
   providers: [
     GoogleProvider({
       clientId: config.GOOGLE_CLIENT_ID!,
@@ -109,11 +108,11 @@ export const authOptions: NextAuthOptions = {
           // Return user data for NextAuth
           return {
             id: (user as any)._id.toString(),
-            email: user.email,
-            name: fullUserData?.name || user.name,
-            role: user.role,
-            image: fullUserData?.profileImage || user.profileImage,
-          };
+            email: (user as any).email,
+            name: fullUserData?.name || (user as any).name,
+            image: fullUserData?.profileImage || (user as any).profileImage,
+            role: (user as any).role,
+          } as any;
         } catch (error) {
           console.error("Authentication error:", error);
 
@@ -133,7 +132,7 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   session: {
-    strategy: "jwt",
+    strategy: "jwt" as const,
     maxAge: 24 * 60 * 60, // 24 hours
     updateAge: 60 * 60, // 1 hour
   },
@@ -141,7 +140,7 @@ export const authOptions: NextAuthOptions = {
     maxAge: 24 * 60 * 60, // 24 hours
   },
   callbacks: {
-    async jwt({ token, user, account }) {
+    async jwt({ token, user, account }: any) {
       // Initial sign in
       if (account && user) {
         token.role = user.role;
@@ -153,7 +152,7 @@ export const authOptions: NextAuthOptions = {
       // Return previous token if the access token has not expired yet
       return token;
     },
-    async session({ session, token }) {
+    async session({ session, token }: any) {
       if (token) {
         session.user = {
           ...session.user,
@@ -165,7 +164,7 @@ export const authOptions: NextAuthOptions = {
       }
       return session;
     },
-    async signIn({ user, account, profile }) {
+    async signIn({ user, account, profile }: any) {
       // Handle Google OAuth sign in
       if (account?.provider === "google") {
         try {
@@ -257,11 +256,11 @@ export const authOptions: NextAuthOptions = {
     error: "/auth/error",
   },
   events: {
-    async signIn({ user, account, profile, isNewUser }) {
+    async signIn({ user }: any) {
       // Log successful sign in
       console.log("User signed in:", user.email);
     },
-    async signOut({ session, token }) {
+    async signOut({ session }: any) {
       // Log sign out
       console.log("User signed out:", session?.user?.email);
     },
@@ -269,4 +268,4 @@ export const authOptions: NextAuthOptions = {
   debug: process.env.NODE_ENV === "development",
 };
 
-export default NextAuth(authOptions);
+// export default NextAuth(authOptions);

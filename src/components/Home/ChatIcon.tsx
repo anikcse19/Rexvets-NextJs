@@ -1,7 +1,9 @@
 // app/page.tsx
 "use client";
 
+import { useSession } from "next-auth/react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import {
   HiOutlineChatAlt2,
@@ -19,13 +21,25 @@ type Message = {
   isTeamRelated?: boolean;
 };
 
+type UserInfo = {
+  name: string;
+  email: string;
+};
+
 export default function ChatIcon() {
+  const { data: session } = useSession();
+  const router = useRouter();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showChatbot, setShowChatbot] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [hasNewMessage, setHasNewMessage] = useState(false);
+
+  const [userInfo, setUserInfo] = useState<UserInfo>({ name: "", email: "" });
+  const [isUserInfoSubmitted, setIsUserInfoSubmitted] = useState(false);
+  const [sessionId, setSessionId] = useState<string>("");
+  const [showHumanRedirect, setShowHumanRedirect] = useState(false);
   const [showDonationPanel, setShowDonationPanel] = useState(false);
 
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -41,6 +55,17 @@ export default function ChatIcon() {
     scrollToBottom();
   }, [messages]);
 
+  // Check if user is logged in or has submitted info
+  useEffect(() => {
+    if (session?.user) {
+      setUserInfo({
+        name: session.user.name || "",
+        email: session.user.email || "",
+      });
+      setIsUserInfoSubmitted(true);
+    }
+  }, [session]);
+
   // Add welcome message when chatbot opens for the first time
   useEffect(() => {
     if (showChatbot && messages.length === 0) {
@@ -55,6 +80,22 @@ export default function ChatIcon() {
       setMessages([welcomeMessage]);
     }
   }, [showChatbot, messages.length]);
+
+  const handleUserInfoSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (userInfo.name.trim() && userInfo.email.trim()) {
+      setIsUserInfoSubmitted(true);
+    }
+  };
+
+  const redirectToHumanChat = () => {
+    const params = new URLSearchParams({
+      name: userInfo.name,
+      email: userInfo.email,
+      sessionId: sessionId,
+    });
+    router.push(`/chat/human?${params.toString()}`);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -82,6 +123,9 @@ export default function ChatIcon() {
             role: m.role,
             content: m.content,
           })),
+          userName: userInfo.name,
+          userEmail: userInfo.email,
+          sessionId: sessionId,
         }),
       });
 
@@ -101,6 +145,16 @@ export default function ChatIcon() {
 
       setMessages((prev) => [...prev, assistantMessage]);
 
+      // Store the sessionId from response if it's a new session
+      if (data.sessionId && !sessionId) {
+        setSessionId(data.sessionId);
+      }
+
+      // Show human redirect option if human support is required
+      if (data.requiresHumanSupport) {
+        setShowHumanRedirect(true);
+      }
+
       if (isMinimized) {
         setHasNewMessage(true);
       }
@@ -116,6 +170,7 @@ export default function ChatIcon() {
           requiresHumanSupport: true,
         },
       ]);
+      setShowHumanRedirect(true);
     } finally {
       setIsLoading(false);
     }
@@ -125,6 +180,7 @@ export default function ChatIcon() {
     setShowChatbot(!showChatbot);
     setIsMinimized(false);
     setHasNewMessage(false);
+    setShowHumanRedirect(false);
   };
 
   const minimizeChat = () => setIsMinimized(true);
@@ -135,6 +191,13 @@ export default function ChatIcon() {
   const closeChat = () => {
     setShowChatbot(false);
     setIsMinimized(false);
+    setShowHumanRedirect(false);
+    // Reset user info when closing chat (but keep if logged in)
+    if (!session) {
+      setUserInfo({ name: "", email: "" });
+      setIsUserInfoSubmitted(false);
+    }
+    // Keep sessionId for future conversations
   };
 
   // Function to make URLs clickable
@@ -166,7 +229,7 @@ export default function ChatIcon() {
       <div className="fixed bottom-6 right-6 z-40">
         <button
           onClick={toggleChatbot}
-          className="group bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-full shadow-lg transition-all duration-300 hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-200 relative"
+          className="cursor-pointer group bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-full shadow-lg transition-all duration-300 hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-200 relative"
         >
           <HiOutlineChatAlt2 className="w-6 h-6" />
           <div className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
@@ -310,32 +373,98 @@ export default function ChatIcon() {
                 </div>
               )}
             </div>
+
+            {/* Human Redirect Banner */}
+            {showHumanRedirect && (
+              <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="flex items-start space-x-2">
+                  <div className="flex-shrink-0">
+                    <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center text-white text-xs">
+                      ⚡
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="text-sm font-medium text-blue-800">
+                      Ready to connect with a human agent?
+                    </h4>
+                    <p className="text-xs text-blue-600 mt-1">
+                      Get personalized assistance from our support team
+                    </p>
+                    <button
+                      onClick={redirectToHumanChat}
+                      className="mt-2 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs transition-colors"
+                    >
+                      Connect Now
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Input Form */}
-          <div className="border-t border-gray-200 p-3 bg-white">
-            <form onSubmit={handleSubmit} className="flex space-x-2">
-              <input
-                type="text"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder="Ask about our services, pricing, or team..."
-                className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-                disabled={isLoading}
-              />
-              <button
-                type="submit"
-                disabled={isLoading || !input.trim()}
-                className="bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700 disabled:opacity-50 disabled: cursor-not-allowed transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <HiOutlinePaperAirplane className="w-4 h-4 transform rotate-45" />
-              </button>
-            </form>
-            <p className="text-xs text-gray-500 mt-2 text-center">
-              For health emergencies, contact your nearest vet clinic
-              immediately.
-            </p>
-          </div>
+          {/* User Info Form (if not logged in and not submitted) */}
+          {!session && !isUserInfoSubmitted && (
+            <div className="border-t border-gray-200 p-3 bg-white">
+              <form onSubmit={handleUserInfoSubmit} className="space-y-2">
+                <div className="text-sm text-gray-600 mb-2">
+                  Please provide your information to continue
+                </div>
+                <input
+                  type="text"
+                  placeholder="Your Name"
+                  value={userInfo.name}
+                  onChange={(e) =>
+                    setUserInfo({ ...userInfo, name: e.target.value })
+                  }
+                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  required
+                />
+                <input
+                  type="email"
+                  placeholder="Your Email"
+                  value={userInfo.email}
+                  onChange={(e) =>
+                    setUserInfo({ ...userInfo, email: e.target.value })
+                  }
+                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  required
+                />
+                <button
+                  type="submit"
+                  className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  Continue to Chat
+                </button>
+              </form>
+            </div>
+          )}
+
+          {/* Chat Input Form (if logged in or user info submitted) */}
+          {(session || isUserInfoSubmitted) && (
+            <div className="border-t border-gray-200 p-3 bg-white">
+              <form onSubmit={handleSubmit} className="flex space-x-2">
+                <input
+                  type="text"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  placeholder="Ask about our services, pricing, or team..."
+                  className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  disabled={isLoading}
+                />
+                <button
+                  type="submit"
+                  disabled={isLoading || !input.trim()}
+                  className="bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <HiOutlinePaperAirplane className="w-4 h-4 transform rotate-45" />
+                </button>
+              </form>
+              <p className="text-xs text-gray-500 mt-2 text-center">
+                For health emergencies, contact your nearest vet clinic
+                immediately.
+              </p>
+            </div>
+          )}
         </div>
       )}
     </div>

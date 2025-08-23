@@ -1,13 +1,14 @@
 import AccountPage from "@/components/Dashboard/Doctor/AccountPage";
-import { authOptions } from "@/lib/auth";
 import { checkVeterinarianStatus } from "@/lib/auth-helpers";
-import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { getServerSession } from "next-auth/next";
+import type { Session } from "next-auth";
 import React from "react";
 
 const page = async () => {
-  const session = await getServerSession(authOptions);
+  const session: Session | null = await getServerSession(authOptions as any);
 
-  if (!session?.user?.id) {
+  if (!session?.user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -22,7 +23,7 @@ const page = async () => {
 
   try {
     // First check if user is a veterinarian
-    const vetStatus = await checkVeterinarianStatus(session.user.id);
+    const vetStatus = await checkVeterinarianStatus((session.user as any).id);
 
     if (!vetStatus.isVeterinarian) {
       return (
@@ -61,10 +62,6 @@ const page = async () => {
     // Serialize the data to remove circular references
     const serializedVetData = JSON.parse(
       JSON.stringify(vetStatus.veterinarian)
-    );
-    console.log(
-      "serializedVetData--------------------------",
-      serializedVetData
     );
     return (
       <div>

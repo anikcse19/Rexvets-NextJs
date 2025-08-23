@@ -1,4 +1,4 @@
-import UserModel, { IUser } from "@/models/User";
+import UserModel from "@/models/User";
 import PetParentModel from "@/models/PetParent";
 import VeterinarianModel from "@/models/Veterinarian";
 import VetTechModel from "@/models/VetTech";

@@ -15,7 +15,7 @@ interface TopbarProps {
 export default function Topbar({
   title = "Dashboard",
   onMenuClick,
-  sidebarOpen = false,
+  // sidebarOpen = false,
 }: TopbarProps) {
   return (
     <header className="h-16 lg:h-20 bg-[#1C1B36] border-b border-slate-800 flex items-center justify-between px-4 lg:px-6 text-white shadow-sm">

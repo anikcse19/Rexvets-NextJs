@@ -1,7 +1,6 @@
 "use client";
 import { motion } from "framer-motion";
 import { FaPaw } from "react-icons/fa";
-import Cover from "/images/about/AboutUsCover.webp";
 
 
 const AboutHeroSection = () => {

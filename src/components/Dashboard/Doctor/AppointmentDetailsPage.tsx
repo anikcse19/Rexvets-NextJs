@@ -1,10 +1,9 @@
 "use client";
 
 import React, { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   ArrowLeft,
   Video,
@@ -12,9 +11,6 @@ import {
   Stethoscope,
   Calendar,
   Clock,
-  MapPin,
-  Phone,
-  Mail,
 } from "lucide-react";
 import Link from "next/link";
 import PetInfoCard from "./Appointments/PetInfoCard";
@@ -69,7 +65,7 @@ const mockAppointment = {
   },
 };
 
-export default function AppointmentDetailsPage({ id: string }: { id: string }) {
+export default function AppointmentDetailsPage() {
   const [isDataModalOpen, setIsDataModalOpen] = useState(false);
   const [isPrescriptionModalOpen, setIsPrescriptionModalOpen] = useState(false);
 
