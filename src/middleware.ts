@@ -6,7 +6,7 @@ const secret = process.env.NEXTAUTH_SECRET;
 
 const protectedRoutes = [
   "/dashboard",
-  "/api/appointments",
+  // "/api/appointments",
   // "/api/pet",
   "/api/test",
 ];
