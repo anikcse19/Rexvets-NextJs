@@ -65,14 +65,14 @@ const HeroSection = () => {
         </main>
 
         {/* Floating Chat Button */}
-        <button
+        {/* <button
           onClick={() => setIsOpen(!isOpen)}
           className="fixed bottom-6 right-6 cursor-pointer z-50"
         >
           <div className=" bg-[#041E89] p-3 rounded-full shadow-lg cursor-pointer">
             <BsChatLeftTextFill className="text-white text-xl" />
           </div>
-        </button>
+        </button> */}
       </div>
       {/* <HelpCenterModal isOpen={isOpen} setIsOpen={setIsOpen} /> */}
     </div>

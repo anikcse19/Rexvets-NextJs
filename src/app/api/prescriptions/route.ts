@@ -50,7 +50,7 @@ export async function GET(req: NextRequest) {
       .populate("doctor")
       .skip(skip)
       .limit(limit)
-      .sort({ createdAt: -1 }); // optional: latest first
+      .sort({ createdAt: -1 });
 
     const totalPages = Math.ceil(totalDocs / limit);
 

@@ -65,9 +65,9 @@ const OurTeamLeaderCard: React.FC<LeaderCardProps> = ({
           <Image
             src={image}
             alt={name}
-            width={600}
+            width={400}
             height={400}
-            className="w-full h-[400px] object-contain transition-transform duration-600 ease-in-out group-hover:scale-110"
+            className="w-full h-[400px] rounded-sm object-contain transition-transform duration-600 ease-in-out group-hover:scale-110"
           />
           <div
             className="

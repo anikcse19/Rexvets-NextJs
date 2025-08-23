@@ -142,3 +142,19 @@ export interface ITreatmentCategory {
   symptoms: string[];
   id: number;
 }
+export enum MessageSenderType {
+  Admin = "ADMIN",
+  VetParent = "VET_PARENT",
+}
+
+export interface IMessage {
+  _id?: Types.ObjectId;
+  isAdmin: boolean;
+  vetParent?: Types.ObjectId;
+  senderType: MessageSenderType;
+  content: string;
+  attachments?: string[];
+  isRead: boolean;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
