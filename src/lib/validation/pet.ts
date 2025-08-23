@@ -42,12 +42,9 @@ export const petRegistrationSchema = z.object({
     .optional(),
 
   dateOfBirth: z.string().min(1, "Date of birth is required").optional(),
-  microchipId: z.string().optional(),
-
   allergies: z.array(z.string()).optional(),
   medicalConditions: z.array(z.string()).optional(),
   currentMedications: z.array(z.string()).optional(),
-
   emergencyContact: z.string().optional(),
   veterinarianNotes: z.string().optional(),
 

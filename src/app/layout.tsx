@@ -81,7 +81,7 @@ const keywords = [
   "veterinary telemedicine",
   "pet care online",
   "online animal doctor",
-  "pet health services"
+  "pet health services",
 ];
 
 export const metadata: Metadata = {
@@ -98,8 +98,8 @@ export const metadata: Metadata = {
   creator: siteName,
   category: "Veterinary Services",
   classification: "Healthcare",
-  robots: { 
-    index: true, 
+  robots: {
+    index: true,
     follow: true,
     googleBot: {
       index: true,
@@ -109,11 +109,11 @@ export const metadata: Metadata = {
       "max-snippet": -1,
     },
   },
-  alternates: { 
+  alternates: {
     canonical: siteUrl,
     languages: {
-      'en-US': siteUrl,
-    }
+      "en-US": siteUrl,
+    },
   },
   openGraph: {
     title: "RexVet | 24/7 Affordable Online Pet Telehealth from Home",
@@ -174,7 +174,7 @@ export default function RootLayout({
         {/* Canonical Link */}
         <link rel="canonical" href={siteUrl} />
         <link rel="icon" href="/favicon.ico" sizes="any" />
-        
+
         {/* PWA & Mobile Meta */}
         <meta name="application-name" content={siteName} />
         <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -186,11 +186,17 @@ export default function RootLayout({
         <meta name="format-detection" content="telephone=no" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="theme-color" content="#ffffff" />
-        
+
         {/* Enhanced SEO Meta Tags */}
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+        <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1, maximum-scale=5"
+        />
         <meta name="author" content={siteName} />
-        <meta name="copyright" content={`© ${new Date().getFullYear()} ${siteName}. All rights reserved.`} />
+        <meta
+          name="copyright"
+          content={`© ${new Date().getFullYear()} ${siteName}. All rights reserved.`}
+        />
         <meta name="coverage" content="Worldwide" />
         <meta name="distribution" content="Global" />
         <meta name="rating" content="General" />
@@ -200,36 +206,61 @@ export default function RootLayout({
         <meta name="geo.placename" content="United States" />
         <meta name="geo.position" content="39.8283;-98.5795" />
         <meta name="ICBM" content="39.8283, -98.5795" />
-        
+
         {/* Social Media Meta Tags */}
         <meta property="og:site_name" content={siteName} />
         <meta property="og:locale" content="en_US" />
         <meta property="og:type" content="website" />
-        <meta property="og:title" content="RexVet | 24/7 Affordable Online Pet Telehealth from Home" />
+        <meta
+          property="og:title"
+          content="RexVet | 24/7 Affordable Online Pet Telehealth from Home"
+        />
         <meta property="og:description" content={description} />
         <meta property="og:url" content={siteUrl} />
         <meta property="og:image" content={`${siteUrl}/images/Logo.svg`} />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
-        <meta property="og:image:alt" content="RexVet - 24/7 Online Pet Telehealth Service" />
-        
+        <meta
+          property="og:image:alt"
+          content="RexVet - 24/7 Online Pet Telehealth Service"
+        />
+
         {/* Twitter Card Meta Tags */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:site" content="@RexVet" />
         <meta name="twitter:creator" content="@RexVet" />
-        <meta name="twitter:title" content="RexVet | 24/7 Affordable Online Pet Telehealth from Home" />
+        <meta
+          name="twitter:title"
+          content="RexVet | 24/7 Affordable Online Pet Telehealth from Home"
+        />
         <meta name="twitter:description" content={description} />
         <meta name="twitter:image" content={`${siteUrl}/images/Logo.svg`} />
-        <meta name="twitter:image:alt" content="RexVet - 24/7 Online Pet Telehealth Service" />
-        
+        <meta
+          name="twitter:image:alt"
+          content="RexVet - 24/7 Online Pet Telehealth Service"
+        />
+
         {/* Additional SEO Meta Tags */}
-        <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
-        <meta name="googlebot" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
-        <meta name="bingbot" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
-        
+        <meta
+          name="robots"
+          content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+        />
+        <meta
+          name="googlebot"
+          content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+        />
+        <meta
+          name="bingbot"
+          content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+        />
+
         {/* Preconnect for Performance */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossOrigin="anonymous"
+        />
         <link rel="dns-prefetch" href="https://www.google-analytics.com" />
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
 
@@ -243,130 +274,133 @@ export default function RootLayout({
                 {
                   "@type": "Organization",
                   "@id": `${siteUrl}/#organization`,
-                  "name": siteName,
-                  "url": siteUrl,
-                  "logo": {
+                  name: siteName,
+                  url: siteUrl,
+                  logo: {
                     "@type": "ImageObject",
-                    "url": `${siteUrl}/images/Logo.svg`,
-                    "width": 1200,
-                    "height": 630
+                    url: `${siteUrl}/images/Logo.svg`,
+                    width: 1200,
+                    height: 630,
                   },
-                  "description": description,
-                  "foundingDate": "2024",
-                  "legalName": "RexVet",
-                  "taxID": "501(c)(3)",
-                  "nonprofitStatus": "NonProfit501c3",
-                  "sameAs": sameAs,
-                  "contactPoint": [
+                  description: description,
+                  foundingDate: "2024",
+                  legalName: "RexVet",
+                  taxID: "501(c)(3)",
+                  nonprofitStatus: "NonProfit501c3",
+                  sameAs: sameAs,
+                  contactPoint: [
                     {
                       "@type": "ContactPoint",
-                      "telephone": "+1-555-555-5555",
-                      "contactType": "Customer Service",
-                      "areaServed": "US",
-                      "availableLanguage": ["English"],
-                      "hoursAvailable": {
+                      telephone: "+1-555-555-5555",
+                      contactType: "Customer Service",
+                      areaServed: "US",
+                      availableLanguage: ["English"],
+                      hoursAvailable: {
                         "@type": "OpeningHoursSpecification",
-                        "dayOfWeek": [
+                        dayOfWeek: [
                           "Monday",
-                          "Tuesday", 
+                          "Tuesday",
                           "Wednesday",
                           "Thursday",
                           "Friday",
                           "Saturday",
-                          "Sunday"
+                          "Sunday",
                         ],
-                        "opens": "00:00",
-                        "closes": "23:59"
-                      }
+                        opens: "00:00",
+                        closes: "23:59",
+                      },
                     },
                     {
                       "@type": "ContactPoint",
-                      "contactType": "Emergency",
-                      "telephone": "+1-555-555-5555",
-                      "areaServed": "US",
-                      "availableLanguage": ["English"],
-                      "hoursAvailable": {
+                      contactType: "Emergency",
+                      telephone: "+1-555-555-5555",
+                      areaServed: "US",
+                      availableLanguage: ["English"],
+                      hoursAvailable: {
                         "@type": "OpeningHoursSpecification",
-                        "dayOfWeek": [
+                        dayOfWeek: [
                           "Monday",
-                          "Tuesday", 
+                          "Tuesday",
                           "Wednesday",
                           "Thursday",
                           "Friday",
                           "Saturday",
-                          "Sunday"
+                          "Sunday",
                         ],
-                        "opens": "00:00",
-                        "closes": "23:59"
-                      }
-                    }
+                        opens: "00:00",
+                        closes: "23:59",
+                      },
+                    },
                   ],
-                  "address": {
+                  address: {
                     "@type": "PostalAddress",
-                    "addressCountry": "US",
-                    "addressRegion": "United States"
+                    addressCountry: "US",
+                    addressRegion: "United States",
                   },
-                  "areaServed": {
+                  areaServed: {
                     "@type": "Country",
-                    "name": "United States"
+                    name: "United States",
                   },
-                  "serviceArea": {
+                  serviceArea: {
                     "@type": "Country",
-                    "name": "United States"
+                    name: "United States",
                   },
-                  "hasOfferCatalog": {
+                  hasOfferCatalog: {
                     "@type": "OfferCatalog",
-                    "name": "Veterinary Services",
-                    "itemListElement": [
+                    name: "Veterinary Services",
+                    itemListElement: [
                       {
                         "@type": "Offer",
-                        "itemOffered": {
+                        itemOffered: {
                           "@type": "Service",
-                          "name": "Online Veterinary Consultation",
-                          "description": "24/7 virtual veterinary consultations for pets"
-                        }
+                          name: "Online Veterinary Consultation",
+                          description:
+                            "24/7 virtual veterinary consultations for pets",
+                        },
                       },
                       {
                         "@type": "Offer",
-                        "itemOffered": {
+                        itemOffered: {
                           "@type": "Service",
-                          "name": "Emergency Pet Care",
-                          "description": "Immediate online emergency veterinary care"
-                        }
+                          name: "Emergency Pet Care",
+                          description:
+                            "Immediate online emergency veterinary care",
+                        },
                       },
                       {
                         "@type": "Offer",
-                        "itemOffered": {
+                        itemOffered: {
                           "@type": "Service",
-                          "name": "Prescription Services",
-                          "description": "Online prescription and medication services for pets"
-                        }
-                      }
-                    ]
-                  }
+                          name: "Prescription Services",
+                          description:
+                            "Online prescription and medication services for pets",
+                        },
+                      },
+                    ],
+                  },
                 },
                 {
                   "@type": "WebSite",
                   "@id": `${siteUrl}/#website`,
-                  "url": siteUrl,
-                  "name": "RexVet | 24/7 Affordable Online Pet Telehealth from Home",
-                  "description": description,
-                  "publisher": {
-                    "@id": `${siteUrl}/#organization`
+                  url: siteUrl,
+                  name: "RexVet | 24/7 Affordable Online Pet Telehealth from Home",
+                  description: description,
+                  publisher: {
+                    "@id": `${siteUrl}/#organization`,
                   },
-                  "potentialAction": [
+                  potentialAction: [
                     {
                       "@type": "SearchAction",
-                      "target": {
+                      target: {
                         "@type": "EntryPoint",
-                        "urlTemplate": `${siteUrl}/search?q={search_term_string}`
+                        urlTemplate: `${siteUrl}/search?q={search_term_string}`,
                       },
-                      "query-input": "required name=search_term_string"
-                    }
-                  ]
-                }
-              ]
-            })
+                      "query-input": "required name=search_term_string",
+                    },
+                  ],
+                },
+              ],
+            }),
           }}
         />
       </head>

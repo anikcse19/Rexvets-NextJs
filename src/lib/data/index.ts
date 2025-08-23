@@ -1004,11 +1004,11 @@ export const colorOptions = [
   "Mixed Colors",
 ];
 
-export const mockDoctors: Doctor[] = [
+export const mockDoctors: any[] = [
   {
     id: "1",
     name: "Dr. Sarah Johnson",
-    image:
+    profileImage:
       "https://images.pexels.com/photos/5215024/pexels-photo-5215024.jpeg?auto=compress&cs=tinysrgb&w=400",
     degree: "DVM, MS",
     rating: 4.9,
