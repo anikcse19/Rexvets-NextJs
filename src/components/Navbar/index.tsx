@@ -426,7 +426,7 @@ const Header: React.FC = () => {
               <Link href="/auth/signin">
                 <Button
                   variant="ghost"
-                  className="text-white hover:text-emerald-400"
+                  className="text-white hover:text-emerald-400 cursor-pointer"
                 >
                   <User className="h-5 w-5 mr-2" />
                   Sign In

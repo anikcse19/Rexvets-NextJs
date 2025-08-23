@@ -47,14 +47,18 @@ export default function SignInPage() {
           // Check if this might be a Google OAuth account
           // We'll make an additional check to see if the email exists in the database
           try {
-            const checkResponse = await fetch(`/api/check-email?email=${encodeURIComponent(email)}`);
+            const checkResponse = await fetch(
+              `/api/check-email?email=${encodeURIComponent(email)}`
+            );
             if (checkResponse.ok) {
-                          const checkData = await checkResponse.json();
-            if (checkData.isGoogleAccount) {
-              setError("This email is linked to a Google account. Please sign in using the 'Continue with Google' button instead of email and password.");
-            } else {
-              setError("Invalid email or password. Please try again.");
-            }
+              const checkData = await checkResponse.json();
+              if (checkData.isGoogleAccount) {
+                setError(
+                  "This email is linked to a Google account. Please sign in using the 'Continue with Google' button instead of email and password."
+                );
+              } else {
+                setError("Invalid email or password. Please try again.");
+              }
             } else {
               setError("Invalid email or password. Please try again.");
             }
@@ -62,7 +66,9 @@ export default function SignInPage() {
             setError("Invalid email or password. Please try again.");
           }
         } else if (result?.error === "AccountLocked") {
-          setError("Account is temporarily locked due to too many failed attempts. Please try again later.");
+          setError(
+            "Account is temporarily locked due to too many failed attempts. Please try again later."
+          );
         } else if (result?.error === "AccountDeactivated") {
           setError("Account is deactivated. Please contact support.");
         } else if (result?.error === "EmailNotVerified") {
@@ -70,9 +76,13 @@ export default function SignInPage() {
         } else if (result?.error?.includes("Database connection failed")) {
           setError("Service temporarily unavailable. Please try again later.");
         } else if (result?.error?.includes("linked to a Google account")) {
-          setError("This email is linked to a Google account. Please sign in using the 'Continue with Google' button instead of email and password.");
+          setError(
+            "This email is linked to a Google account. Please sign in using the 'Continue with Google' button instead of email and password."
+          );
         } else {
-          setError("Sign in failed. Please check your credentials and try again.");
+          setError(
+            "Sign in failed. Please check your credentials and try again."
+          );
         }
       }
     } catch (error) {
@@ -318,7 +328,9 @@ export default function SignInPage() {
                       animate={{ opacity: 1, y: 0 }}
                       className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg"
                     >
-                      <p className="text-red-400 text-sm text-center">{error}</p>
+                      <p className="text-red-400 text-sm text-center">
+                        {error}
+                      </p>
                     </motion.div>
                   )}
 
@@ -331,7 +343,7 @@ export default function SignInPage() {
                   >
                     <Button
                       type="submit"
-                      className="w-full h-14 text-base bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300"
+                      className="w-full h-14 text-base cursor-pointer bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300"
                       disabled={isLoading}
                     >
                       {isLoading ? (

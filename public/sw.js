@@ -1,1 +1,1831 @@
-if(!self.define){let e,a={};const i=(i,c)=>(i=new URL(i+".js",c).href,a[i]||new Promise(a=>{if("document"in self){const e=document.createElement("script");e.src=i,e.onload=a,document.head.appendChild(e)}else e=i,importScripts(i),a()}).then(()=>{let e=a[i];if(!e)throw new Error(`Module ${i} didn’t register its module`);return e}));self.define=(c,s)=>{const r=e||("document"in self?document.currentScript.src:"")||location.href;if(a[r])return;let t={};const n=e=>i(e,r),d={module:{uri:r},exports:t,require:n};a[r]=Promise.all(c.map(e=>d[e]||n(e))).then(e=>(s(...e),t))}}define(["./workbox-e9849328"],function(e){"use strict";importScripts(),self.skipWaiting(),e.clientsClaim(),e.precacheAndRoute([{url:"/_next/app-build-manifest.json",revision:"7be8320cf5c09e4ae61c1503b7d18eb4"},{url:"/_next/static/GqE28O_EUBrupZ0-0h_La/_buildManifest.js",revision:"3f427109e50b10a34ae9b95644501eeb"},{url:"/_next/static/GqE28O_EUBrupZ0-0h_La/_ssgManifest.js",revision:"b6652df95db52feb4daf4eca35380933"},{url:"/_next/static/chunks/0-2514b948790fcff5.js",revision:"2514b948790fcff5"},{url:"/_next/static/chunks/1932-e716bb04d26c7432.js",revision:"e716bb04d26c7432"},{url:"/_next/static/chunks/1fc34c47-0a0dd6695264678f.js",revision:"0a0dd6695264678f"},{url:"/_next/static/chunks/2097-e48f36604a791c8d.js",revision:"e48f36604a791c8d"},{url:"/_next/static/chunks/2381.6f7d511eb16967f7.js",revision:"6f7d511eb16967f7"},{url:"/_next/static/chunks/2479-cd8bf60382762aa8.js",revision:"cd8bf60382762aa8"},{url:"/_next/static/chunks/2493-004af6d1dcb6976f.js",revision:"004af6d1dcb6976f"},{url:"/_next/static/chunks/2508-b569749fe9be8272.js",revision:"b569749fe9be8272"},{url:"/_next/static/chunks/2516.e012e90b334b7372.js",revision:"e012e90b334b7372"},{url:"/_next/static/chunks/3007.c89d507bc21f577c.js",revision:"c89d507bc21f577c"},{url:"/_next/static/chunks/3345-f645d04e0014e0b6.js",revision:"f645d04e0014e0b6"},{url:"/_next/static/chunks/3370-1812a2ed9e6a98d9.js",revision:"1812a2ed9e6a98d9"},{url:"/_next/static/chunks/33b75b42.e6359b008c4ca3b8.js",revision:"e6359b008c4ca3b8"},{url:"/_next/static/chunks/33e14e32-6864011622b76dc8.js",revision:"6864011622b76dc8"},{url:"/_next/static/chunks/3545-5cece1e09aa7a911.js",revision:"5cece1e09aa7a911"},{url:"/_next/static/chunks/3554.744579d8736c05c3.js",revision:"744579d8736c05c3"},{url:"/_next/static/chunks/3648-d592dbd73d48bd06.js",revision:"d592dbd73d48bd06"},{url:"/_next/static/chunks/375-7d74fcdf5eb38f25.js",revision:"7d74fcdf5eb38f25"},{url:"/_next/static/chunks/3831.923bf15ee60e9ce5.js",revision:"923bf15ee60e9ce5"},{url:"/_next/static/chunks/3852-9603226648dc5f3a.js",revision:"9603226648dc5f3a"},{url:"/_next/static/chunks/3900.fd251a03c409c147.js",revision:"fd251a03c409c147"},{url:"/_next/static/chunks/3f731c04-f323fa068d1d682d.js",revision:"f323fa068d1d682d"},{url:"/_next/static/chunks/4034.4479265cd1b6aa4e.js",revision:"4479265cd1b6aa4e"},{url:"/_next/static/chunks/4171-92c7f1ff79685c67.js",revision:"92c7f1ff79685c67"},{url:"/_next/static/chunks/4278.c3ec3b8884bcf44f.js",revision:"c3ec3b8884bcf44f"},{url:"/_next/static/chunks/4437-5e71cfdced5b1069.js",revision:"5e71cfdced5b1069"},{url:"/_next/static/chunks/4471.852b62694d9f39a2.js",revision:"852b62694d9f39a2"},{url:"/_next/static/chunks/4473-f52b67262e17531a.js",revision:"f52b67262e17531a"},{url:"/_next/static/chunks/4575.9e7cfe9006b7b0a0.js",revision:"9e7cfe9006b7b0a0"},{url:"/_next/static/chunks/4675-19099f40a020f4df.js",revision:"19099f40a020f4df"},{url:"/_next/static/chunks/4778-3db6004378abe634.js",revision:"3db6004378abe634"},{url:"/_next/static/chunks/49-2d1b9c901c9f2c7c.js",revision:"2d1b9c901c9f2c7c"},{url:"/_next/static/chunks/4921.3bab56b968d40b3f.js",revision:"3bab56b968d40b3f"},{url:"/_next/static/chunks/5044.40473452946aee98.js",revision:"40473452946aee98"},{url:"/_next/static/chunks/5080.4c8dd715f80b45ec.js",revision:"4c8dd715f80b45ec"},{url:"/_next/static/chunks/5162-00132e7b84c56a68.js",revision:"00132e7b84c56a68"},{url:"/_next/static/chunks/52ad4036-e4fb67bf755ad5ea.js",revision:"e4fb67bf755ad5ea"},{url:"/_next/static/chunks/5385-7caa8950636ef206.js",revision:"7caa8950636ef206"},{url:"/_next/static/chunks/5388.3e3be30dde7300e7.js",revision:"3e3be30dde7300e7"},{url:"/_next/static/chunks/539845e3-9134f876f7cd60a7.js",revision:"9134f876f7cd60a7"},{url:"/_next/static/chunks/5398b9db-2988262956246c3f.js",revision:"2988262956246c3f"},{url:"/_next/static/chunks/5400-c59df9d923028ae3.js",revision:"c59df9d923028ae3"},{url:"/_next/static/chunks/5513.0bf2284e817f964e.js",revision:"0bf2284e817f964e"},{url:"/_next/static/chunks/5524.446fb53e9122dd0e.js",revision:"446fb53e9122dd0e"},{url:"/_next/static/chunks/5651-6e910dfee2703dfb.js",revision:"6e910dfee2703dfb"},{url:"/_next/static/chunks/5692-fb3618d7b5098813.js",revision:"fb3618d7b5098813"},{url:"/_next/static/chunks/5738-fa5575c70838d6fa.js",revision:"fa5575c70838d6fa"},{url:"/_next/static/chunks/6077-5528d715d53977d7.js",revision:"5528d715d53977d7"},{url:"/_next/static/chunks/6235-1bc47bbc9d26c763.js",revision:"1bc47bbc9d26c763"},{url:"/_next/static/chunks/6255.8641289270878700.js",revision:"8641289270878700"},{url:"/_next/static/chunks/6350-abf40f15738e8f4c.js",revision:"abf40f15738e8f4c"},{url:"/_next/static/chunks/6411.be40ee64f7eb68ca.js",revision:"be40ee64f7eb68ca"},{url:"/_next/static/chunks/6485-023d95eeaca9d938.js",revision:"023d95eeaca9d938"},{url:"/_next/static/chunks/6571-c2071fc1fc41a76b.js",revision:"c2071fc1fc41a76b"},{url:"/_next/static/chunks/6689.c3dbe94ef96857dd.js",revision:"c3dbe94ef96857dd"},{url:"/_next/static/chunks/6782-f35c328607f1ca23.js",revision:"f35c328607f1ca23"},{url:"/_next/static/chunks/69.9dcf72d85ffc3664.js",revision:"9dcf72d85ffc3664"},{url:"/_next/static/chunks/7046.6e3760394eb94041.js",revision:"6e3760394eb94041"},{url:"/_next/static/chunks/7306-86bce7f9f0eee13a.js",revision:"86bce7f9f0eee13a"},{url:"/_next/static/chunks/7311-08d492ec0af4ea64.js",revision:"08d492ec0af4ea64"},{url:"/_next/static/chunks/7522.0d0062c35677436d.js",revision:"0d0062c35677436d"},{url:"/_next/static/chunks/7585-2689149c7436bc7f.js",revision:"2689149c7436bc7f"},{url:"/_next/static/chunks/774.83a443368cdd5494.js",revision:"83a443368cdd5494"},{url:"/_next/static/chunks/7774.d71ddb16bd59f449.js",revision:"d71ddb16bd59f449"},{url:"/_next/static/chunks/784-43f560086a7a6b81.js",revision:"43f560086a7a6b81"},{url:"/_next/static/chunks/7969-310517ebbb24cf73.js",revision:"310517ebbb24cf73"},{url:"/_next/static/chunks/8277-dfdaf800580c337d.js",revision:"dfdaf800580c337d"},{url:"/_next/static/chunks/8337.d5527536ac14c114.js",revision:"d5527536ac14c114"},{url:"/_next/static/chunks/8347.ab5e7b6ced7024d1.js",revision:"ab5e7b6ced7024d1"},{url:"/_next/static/chunks/8636.a1f9ba01d28ead51.js",revision:"a1f9ba01d28ead51"},{url:"/_next/static/chunks/8644-5b0f1f414a78c420.js",revision:"5b0f1f414a78c420"},{url:"/_next/static/chunks/8653.5e836af7da9abdbe.js",revision:"5e836af7da9abdbe"},{url:"/_next/static/chunks/8659.9ffc7227bd6840f2.js",revision:"9ffc7227bd6840f2"},{url:"/_next/static/chunks/871-85b7c62527e68658.js",revision:"85b7c62527e68658"},{url:"/_next/static/chunks/9047-6a67ae3ec497d0ad.js",revision:"6a67ae3ec497d0ad"},{url:"/_next/static/chunks/9600-b44a43ef765632d8.js",revision:"b44a43ef765632d8"},{url:"/_next/static/chunks/987-bef0235e6c55c9f5.js",revision:"bef0235e6c55c9f5"},{url:"/_next/static/chunks/app/(client)/ai/chat/page-bc22bb783c800e46.js",revision:"bc22bb783c800e46"},{url:"/_next/static/chunks/app/(client)/become-a-rex-vet/page-b4c6e39025680591.js",revision:"b4c6e39025680591"},{url:"/_next/static/chunks/app/(client)/chat-list/%5BreceiverId%5D/page-ceb242a872db2415.js",revision:"ceb242a872db2415"},{url:"/_next/static/chunks/app/(client)/chat-list/page-69a0da5100cc7f18.js",revision:"69a0da5100cc7f18"},{url:"/_next/static/chunks/app/(client)/complete-donation/page-660abce1053e9e32.js",revision:"660abce1053e9e32"},{url:"/_next/static/chunks/app/(client)/contact/page-dcc62a0373f5b466.js",revision:"dcc62a0373f5b466"},{url:"/_next/static/chunks/app/(client)/donate/page-4e21e0aba60779db.js",revision:"4e21e0aba60779db"},{url:"/_next/static/chunks/app/(client)/donation-card-info/page-b851fbbf559693ba.js",revision:"b851fbbf559693ba"},{url:"/_next/static/chunks/app/(client)/donation/page-300c3d309c14dacc.js",revision:"300c3d309c14dacc"},{url:"/_next/static/chunks/app/(client)/faq/page-a298ed75b33b8bf7.js",revision:"a298ed75b33b8bf7"},{url:"/_next/static/chunks/app/(client)/find-a-vet/%5Bid%5D/page-ddb3288efc0504f2.js",revision:"ddb3288efc0504f2"},{url:"/_next/static/chunks/app/(client)/find-a-vet/page-8117be5eb2f4274a.js",revision:"8117be5eb2f4274a"},{url:"/_next/static/chunks/app/(client)/get-a-prescription/page-28fcedec66aa1a47.js",revision:"28fcedec66aa1a47"},{url:"/_next/static/chunks/app/(client)/how-it-works/page-eff0630183cbcb8f.js",revision:"eff0630183cbcb8f"},{url:"/_next/static/chunks/app/(client)/join-video-call/page-242c2e4e3d61809d.js",revision:"242c2e4e3d61809d"},{url:"/_next/static/chunks/app/(client)/layout-bd891cfa8b971a31.js",revision:"bd891cfa8b971a31"},{url:"/_next/static/chunks/app/(client)/legal-and-support/financial-transparency/page-a75a1b47647ae586.js",revision:"a75a1b47647ae586"},{url:"/_next/static/chunks/app/(client)/legal-and-support/non-profit-status/page-a75a1b47647ae586.js",revision:"a75a1b47647ae586"},{url:"/_next/static/chunks/app/(client)/legal-and-support/privacy-policy/page-69a0da5100cc7f18.js",revision:"69a0da5100cc7f18"},{url:"/_next/static/chunks/app/(client)/legal-and-support/refund-policy/page-69a0da5100cc7f18.js",revision:"69a0da5100cc7f18"},{url:"/_next/static/chunks/app/(client)/legal-and-support/support-us/page-2a5d1e1a66b3b9fd.js",revision:"2a5d1e1a66b3b9fd"},{url:"/_next/static/chunks/app/(client)/legal-and-support/terms-and-conditions/page-a75a1b47647ae586.js",revision:"a75a1b47647ae586"},{url:"/_next/static/chunks/app/(client)/our-mission/page-66a732ce651a69d4.js",revision:"66a732ce651a69d4"},{url:"/_next/static/chunks/app/(client)/our-team/page-c427cda2edb48c5e.js",revision:"c427cda2edb48c5e"},{url:"/_next/static/chunks/app/(client)/page-08e4bc3550b21ded.js",revision:"08e4bc3550b21ded"},{url:"/_next/static/chunks/app/(client)/pet-parents/page-c14d9e811dd45bda.js",revision:"c14d9e811dd45bda"},{url:"/_next/static/chunks/app/(client)/rex-health-hub/page-bbfe993aca69622a.js",revision:"bbfe993aca69622a"},{url:"/_next/static/chunks/app/(client)/support/page-fc7abf88b0b61a9b.js",revision:"fc7abf88b0b61a9b"},{url:"/_next/static/chunks/app/(client)/video-call/page-9695fc5a945d0185.js",revision:"9695fc5a945d0185"},{url:"/_next/static/chunks/app/(client)/what-we-treat/page-406e6634180889e6.js",revision:"406e6634180889e6"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/doctor/account/page-eb2886361d0f53c4.js",revision:"eb2886361d0f53c4"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/doctor/appointments/%5Bid%5D/page-4bb5ea370cb533c4.js",revision:"4bb5ea370cb533c4"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/doctor/appointments/page-1757d2c4ed8c2bcd.js",revision:"1757d2c4ed8c2bcd"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/doctor/help/page-7e30c7bdb5d9a6ae.js",revision:"7e30c7bdb5d9a6ae"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/doctor/layout-7e510dfdcd044254.js",revision:"7e510dfdcd044254"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/doctor/overview/page-0c28eda026984449.js",revision:"0c28eda026984449"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/doctor/rates-and-availability/page-a27d198be67ce433.js",revision:"a27d198be67ce433"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/pet-parent/account/page-69a0da5100cc7f18.js",revision:"69a0da5100cc7f18"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/pet-parent/appointments/%5Bid%5D/page-7a0f905c180df188.js",revision:"7a0f905c180df188"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/pet-parent/appointments/page-795c555aec039901.js",revision:"795c555aec039901"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/pet-parent/help/page-69a0da5100cc7f18.js",revision:"69a0da5100cc7f18"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/pet-parent/layout-5b1b84145f6d7fd2.js",revision:"5b1b84145f6d7fd2"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/pet-parent/my-pets/page-23f65e6078310fe3.js",revision:"23f65e6078310fe3"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/pet-parent/overview/page-7664caa03ee5deed.js",revision:"7664caa03ee5deed"},{url:"/_next/static/chunks/app/(dashboard)/dashboard/pet-parent/pharmacy-transfer/page-35a0f998798292e2.js",revision:"35a0f998798292e2"},{url:"/_next/static/chunks/app/_not-found/page-69a0da5100cc7f18.js",revision:"69a0da5100cc7f18"},{url:"/_next/static/chunks/app/api/agora-token/route-69a0da5100cc7f18.js",revision:"69a0da5100cc7f18"},{url:"/_next/static/chunks/app/api/ai/chat/route-9b57740b77a4302b.js",revision:"9b57740b77a4302b"},{url:"/_next/static/chunks/app/api/ai/stream/route-69a0da5100cc7f18.js",revision:"69a0da5100cc7f18"},{url:"/_next/static/chunks/app/api/appointments/%5Bid%5D/route-69a0da5100cc7f18.js",revision:"69a0da5100cc7f18"},{url:"/_next/static/chunks/app/api/appointments/bulk-delete/route-69a0da5100cc7f18.js",revision:"69a0da5100cc7f18"},{url:"/_next/static/chunks/app/api/appointments/route-69a0da5100cc7f18.js",revision:"69a0da5100cc7f18"},{url:"/_next/static/chunks/app/api/auth/%5B...nextauth%5D/route-69a0da5100cc7f18.js",revision:"69a0da5100cc7f18"},{url:"/_next/static/chunks/app/api/auth/complete-profile/route-69a0da5100cc7f18.js",revision:"69a0da5100cc7f18"},{url:"/_next/static/chunks/app/api/auth/register/pet-parent/route-69a0da5100cc7f18.js",revision:"69a0da5100cc7f18"},{url:"/_next/static/chunks/app/api/auth/register/veterinarian/route-69a0da5100cc7f18.js",revision:"69a0da5100cc7f18"},{url:"/_next/static/chunks/app/api/auth/verify-email/route-69a0da5100cc7f18.js",revision:"69a0da5100cc7f18"},{url:"/_next/static/chunks/app/api/check-email/route-69a0da5100cc7f18.js",revision:"69a0da5100cc7f18"},{url:"/_next/static/chunks/app/api/debug/session/route-69a0da5100cc7f18.js",revision:"69a0da5100cc7f18"},{url:"/_next/static/chunks/app/api/doctor/route-69a0da5100cc7f18.js",revision:"69a0da5100cc7f18"},{url:"/_next/static/chunks/app/api/donations/create-payment-intent/route-69a0da5100cc7f18.js",revision:"69a0da5100cc7f18"},{url:"/_next/static/chunks/app/api/messages/route-69a0da5100cc7f18.js",revision:"69a0da5100cc7f18"},{url:"/_next/static/chunks/app/api/pet-parent/my-pets/%5BparentId%5D/route-69a0da5100cc7f18.js",revision:"69a0da5100cc7f18"},{url:"/_next/static/chunks/app/api/pet-parent/route-69a0da5100cc7f18.js",revision:"69a0da5100cc7f18"},{url:"/_next/static/chunks/app/api/pet-parent/update/route-69a0da5100cc7f18.js",revision:"69a0da5100cc7f18"},{url:"/_next/static/chunks/app/api/pet/%5BpetId%5D/route-69a0da5100cc7f18.js",revision:"69a0da5100cc7f18"},{url:"/_next/static/chunks/app/api/pet/route-69a0da5100cc7f18.js",revision:"69a0da5100cc7f18"},{url:"/_next/static/chunks/app/api/prescriptions/%5Bid%5D/route-69a0da5100cc7f18.js",revision:"69a0da5100cc7f18"},{url:"/_next/static/chunks/app/api/prescriptions/route-69a0da5100cc7f18.js",revision:"69a0da5100cc7f18"},{url:"/_next/static/chunks/app/api/record/route-69a0da5100cc7f18.js",revision:"69a0da5100cc7f18"},{url:"/_next/static/chunks/app/api/reviews/%5Bid%5D/route-69a0da5100cc7f18.js",revision:"69a0da5100cc7f18"},{url:"/_next/static/chunks/app/api/reviews/doctor/%5BdoctorId%5D/route-69a0da5100cc7f18.js",revision:"69a0da5100cc7f18"},{url:"/_next/static/chunks/app/api/reviews/parent/%5BparentId%5D/route-69a0da5100cc7f18.js",revision:"69a0da5100cc7f18"},{url:"/_next/static/chunks/app/api/reviews/route-69a0da5100cc7f18.js",revision:"69a0da5100cc7f18"},{url:"/_next/static/chunks/app/api/reviews/stats/route-69a0da5100cc7f18.js",revision:"69a0da5100cc7f18"},{url:"/_next/static/chunks/app/api/test-email/route-69a0da5100cc7f18.js",revision:"69a0da5100cc7f18"},{url:"/_next/static/chunks/app/api/test/ids/route-69a0da5100cc7f18.js",revision:"69a0da5100cc7f18"},{url:"/_next/static/chunks/app/api/test/route-69a0da5100cc7f18.js",revision:"69a0da5100cc7f18"},{url:"/_next/static/chunks/app/api/veterinarian/%5Bid%5D/route-69a0da5100cc7f18.js",revision:"69a0da5100cc7f18"},{url:"/_next/static/chunks/app/api/veterinarian/route-69a0da5100cc7f18.js",revision:"69a0da5100cc7f18"},{url:"/_next/static/chunks/app/api/veterinarian/update/route-69a0da5100cc7f18.js",revision:"69a0da5100cc7f18"},{url:"/_next/static/chunks/app/api/veterinarian/upload/route-69a0da5100cc7f18.js",revision:"69a0da5100cc7f18"},{url:"/_next/static/chunks/app/auth/check-email/page-c9230c4d65a9638b.js",revision:"c9230c4d65a9638b"},{url:"/_next/static/chunks/app/auth/complete-profile/page-b63ec39180172eac.js",revision:"b63ec39180172eac"},{url:"/_next/static/chunks/app/auth/email-verified/page-26ddcf83b4b293be.js",revision:"26ddcf83b4b293be"},{url:"/_next/static/chunks/app/auth/error/page-19ce22a2194d1280.js",revision:"19ce22a2194d1280"},{url:"/_next/static/chunks/app/auth/layout-69a0da5100cc7f18.js",revision:"69a0da5100cc7f18"},{url:"/_next/static/chunks/app/auth/signin/page-a410934d14f880b7.js",revision:"a410934d14f880b7"},{url:"/_next/static/chunks/app/auth/signup/page-6be08bd3c184c59d.js",revision:"6be08bd3c184c59d"},{url:"/_next/static/chunks/app/auth/verify-email/page-8a477302491b6d86.js",revision:"8a477302491b6d86"},{url:"/_next/static/chunks/app/error-f8fbf8e0160da58c.js",revision:"f8fbf8e0160da58c"},{url:"/_next/static/chunks/app/layout-cdd54c6d8e8236c3.js",revision:"cdd54c6d8e8236c3"},{url:"/_next/static/chunks/app/manifest.webmanifest/route-69a0da5100cc7f18.js",revision:"69a0da5100cc7f18"},{url:"/_next/static/chunks/app/not-found-6d7b26e8341abb01.js",revision:"6d7b26e8341abb01"},{url:"/_next/static/chunks/b816f9ec-e0fe9df42306d3c8.js",revision:"e0fe9df42306d3c8"},{url:"/_next/static/chunks/c7fe877c.daa5490e14e97796.js",revision:"daa5490e14e97796"},{url:"/_next/static/chunks/c99dd624-59cf5beabb795473.js",revision:"59cf5beabb795473"},{url:"/_next/static/chunks/framework-7ce03f4cbcc90835.js",revision:"7ce03f4cbcc90835"},{url:"/_next/static/chunks/main-912ffa92443e434f.js",revision:"912ffa92443e434f"},{url:"/_next/static/chunks/main-app-72c2fcbba35c7e40.js",revision:"72c2fcbba35c7e40"},{url:"/_next/static/chunks/pages/_app-571de2237eeb2c85.js",revision:"571de2237eeb2c85"},{url:"/_next/static/chunks/pages/_error-74f9f3b582dffa63.js",revision:"74f9f3b582dffa63"},{url:"/_next/static/chunks/polyfills-42372ed130431b0a.js",revision:"846118c33b2c0e922d7b3a7676f81f6f"},{url:"/_next/static/chunks/webpack-b48f95d765e5c337.js",revision:"b48f95d765e5c337"},{url:"/_next/static/css/3189894d25183ed6.css",revision:"3189894d25183ed6"},{url:"/_next/static/css/5e791358f066ece2.css",revision:"5e791358f066ece2"},{url:"/_next/static/css/6b58e23aad05ae8c.css",revision:"6b58e23aad05ae8c"},{url:"/_next/static/css/c66e46f533e6f7b8.css",revision:"c66e46f533e6f7b8"},{url:"/_next/static/media/33aa39707f7fa2b2-s.p.woff2",revision:"b38648a61c4208079adce4e4c40a4e34"},{url:"/_next/static/media/401e0cd2ecebe989-s.p.woff",revision:"bb4937a2c7a648de7599e81a50423ddc"},{url:"/_next/static/media/5a87fff34e8c406e-s.p.otf",revision:"74f42337dda036f6fcf86f282a316b7f"},{url:"/_next/static/media/5ad1c05db953a338-s.p.ttf",revision:"47fe1c58f44f53c78e65712a2581230f"},{url:"/_next/static/media/a19683daeb9405cd-s.p.woff2",revision:"0019a3a88cd6b8459fb73a617dee9166"},{url:"/_next/static/media/be77e8874e84bb02-s.p.ttf",revision:"6aea6bc41f902e6e21db5d54c9f77261"},{url:"/_next/static/media/c13f26aec537175e-s.p.otf",revision:"af54e77faed29b7e00745bd4995889c2"},{url:"/_next/static/media/championBadge3.f1554505.webp",revision:"354274548772bd41abca12c0e3973eca"},{url:"/_next/static/media/ebc7e891c5b3dfc3-s.p.woff",revision:"2e5e93eaa597cebd24b9c73bdada9c8e"},{url:"/_next/static/media/featureImage1-1.6dd3a79d.webp",revision:"1477a694e6d0fad3cb7eb15170b3fcdb"},{url:"/_next/static/media/featureImage2-2.bafcca09.webp",revision:"09286587ca8b056ee6e55cc090ce2cfc"},{url:"/_next/static/media/featureImage3-3.95c6c7b1.webp",revision:"66083e40ad9a3d758f274eecfbb0d095"},{url:"/_next/static/media/friendBadge3.ef58a3d5.webp",revision:"da0d6d0d3161e7e45be5cc0187a0886e"},{url:"/_next/static/media/heroBadge4.83d78502.webp",revision:"433ae3e8e3cc948aea8b4435439f640c"},{url:"/_next/static/media/marquee1.4bc96dd5.webp",revision:"15c199aa0a1d8b459c108e2e7a04d85c"},{url:"/_next/static/media/marquee2.0e915188.webp",revision:"7b06723c5f2c5e4fb00ad4fa4a30d949"},{url:"/_next/static/media/marquee3.3334691c.webp",revision:"6fb33887d9e9963ffd9ab678bead3721"},{url:"/_next/static/media/marquee4.9e64fcbc.webp",revision:"32f4b07a209b489cb54a1a0e5d7e125f"},{url:"/_next/static/media/mblImg.7c6175bf.webp",revision:"782ccb9970813ccdea1f760db262d030"},{url:"/android-chrome-192x192.png",revision:"fb4cad7aa195f7380b0e601ffafba5e4"},{url:"/android-chrome-512x512.png",revision:"0833a3493438701b5a238ba0be9a05d9"},{url:"/apple-touch-icon.png",revision:"2832eff8cfe36ede51119052073c9885"},{url:"/favicon-16x16.png",revision:"e6a35e4cb3424e749a55405597c4efdf"},{url:"/favicon-32x32.png",revision:"e800cde428286940d07d4bc8e60cf40c"},{url:"/favicon.ico",revision:"a5226852f1952abf45c948ab94035b5e"},{url:"/file.svg",revision:"d09f95206c3fa0bb9bd9fefabfd0ea71"},{url:"/fonts/Garet-Book.otf",revision:"74f42337dda036f6fcf86f282a316b7f"},{url:"/fonts/Garet-Book.ttf",revision:"6aea6bc41f902e6e21db5d54c9f77261"},{url:"/fonts/Garet-Book.woff",revision:"bb4937a2c7a648de7599e81a50423ddc"},{url:"/fonts/Garet-Book.woff2",revision:"b38648a61c4208079adce4e4c40a4e34"},{url:"/fonts/Garet-Heavy.otf",revision:"af54e77faed29b7e00745bd4995889c2"},{url:"/fonts/Garet-Heavy.ttf",revision:"47fe1c58f44f53c78e65712a2581230f"},{url:"/fonts/Garet-Heavy.woff",revision:"2e5e93eaa597cebd24b9c73bdada9c8e"},{url:"/fonts/Garet-Heavy.woff2",revision:"0019a3a88cd6b8459fb73a617dee9166"},{url:"/fonts/gothamnarrowoffice_bold.otf",revision:"f6bdcb85cbb41f610b13cc5c31ab3ffe"},{url:"/fonts/gothamnarrowoffice_bolditalic.otf",revision:"b8858057a69cac82f7d0f6d1ea4febfd"},{url:"/fonts/gothamoffice_bold.otf",revision:"dc317dc28862ef235c26026a07080df7"},{url:"/fonts/gothamoffice_bolditalic.otf",revision:"e9aa6079791f3d83527be6fb52a3a56c"},{url:"/fonts/gothamoffice_italic.otf",revision:"4bd0f3079c6b20d854b9ac5cf18533af"},{url:"/fonts/gothamoffice_regular.otf",revision:"82b3e6c63f2a7d05e9840159c90bb414"},{url:"/globe.svg",revision:"2aaafa6a49b6563925fe440891e32717"},{url:"/images/Blogs/Blog1/MainImage.webp",revision:"836e849861a0a7672d3d813c8577ad18"},{url:"/images/Blogs/Blog1/img1.webp",revision:"be8ddb7cbb8431a8452b31ee10036304"},{url:"/images/Blogs/Blog1/img2.webp",revision:"b6baec254b723b6f5ad5de000ae3345c"},{url:"/images/Blogs/Blog1/img3.webp",revision:"a3e02d7e94833c725065b869aab68b9a"},{url:"/images/Blogs/Blog1/img4.webp",revision:"6f46f10ac584bb62e94a3184a931516a"},{url:"/images/Blogs/Blog1/img5.webp",revision:"68c57d52685731400dffc84180aaf53c"},{url:"/images/Blogs/Blog1/petBlogImage4.webp",revision:"1330b6abfa47d2cf7de0a085711a7a27"},{url:"/images/Blogs/Blog1/petBlogImage5.webp",revision:"023edbc697fd1355ddffaa491b16303e"},{url:"/images/Blogs/Blog1/petBlogImage6.webp",revision:"2f711e9514d150d53aae360d6c89d3d6"},{url:"/images/Blogs/Blog2/MainImage.webp",revision:"b10aa02b546eabb27afe7604ec97a4fa"},{url:"/images/Blogs/Blog2/img1.webp",revision:"c780039e7325aa4460622148b9a2d4a5"},{url:"/images/Blogs/Blog2/img2.webp",revision:"e2b8dc5222af97d02b5afb5464bf8f1a"},{url:"/images/Blogs/Blog2/img3.webp",revision:"5b24524ed0ff756b50caa5192d250b32"},{url:"/images/Blogs/Blog2/img4.webp",revision:"337f6d18a862c6fc2a4871ccc672dd21"},{url:"/images/Blogs/Blog3/MainImage.webp",revision:"84ebdeeb4cce7cfde0aff28cab76a67b"},{url:"/images/Blogs/Blog3/img1.webp",revision:"c326f61fd50c1f66c3d219be32c84f09"},{url:"/images/Blogs/Blog3/img2.webp",revision:"010d471c793d0a3b055c453fb7b8b919"},{url:"/images/Blogs/Blog3/img3.webp",revision:"30bbee5e6a2fddf8bf00e4f1b7d2e707"},{url:"/images/Blogs/BlogsCover.webp",revision:"ec5489301a220df639dbf88ae4a74224"},{url:"/images/Homepage/Burger.webp",revision:"6f1ed38f8059d7735829fc942700eeb9"},{url:"/images/Homepage/ChatBalloon.webp",revision:"dbed9d908a06e6dceb92c56bbcf493dc"},{url:"/images/Homepage/Donateimg1.webp",revision:"f4119b7ec032986c72d1649c822c4150"},{url:"/images/Homepage/Donateimg2.webp",revision:"58da58cce096767b8a63e3506ed1f323"},{url:"/images/Homepage/FriendofRex.webp",revision:"5cdcbdc50e5babad570a77f1b950ca0e"},{url:"/images/Homepage/Hero.webp",revision:"424bec06076acfcadd4ea82f17f42aa4"},{url:"/images/Homepage/Hero2.webp",revision:"16a9afcdfeb4636dff4cb969f189c49e"},{url:"/images/Homepage/Herobadge.webp",revision:"53e37a0d137267c98ad234c51cb9c579"},{url:"/images/Homepage/Logo.svg",revision:"cf21811bf984a6d819299913746d056e"},{url:"/images/Homepage/Logo.webp",revision:"8809e6f68dfaea44a4a7779aad20debb"},{url:"/images/Homepage/LogoBlack.webp",revision:"e828870f42454b4cbdf9eba50c2d2f62"},{url:"/images/Homepage/LogoR.webp",revision:"2d499719ac2ff26112382670f50be2cf"},{url:"/images/Homepage/LogoWhite.webp",revision:"178d0af7e2bc89d291c6eae75812ccdd"},{url:"/images/Homepage/LogoYellow.webp",revision:"561bc54b81ed25626f1113a79dc1fe65"},{url:"/images/Homepage/PawTexture.webp",revision:"f5e3e9a92a157ffef3c5fec11bd1fb7c"},{url:"/images/Homepage/PetStickers/cat1.webp",revision:"8ac3f28a0bc8ded87f6a362196e29a92"},{url:"/images/Homepage/PetStickers/cat2.webp",revision:"4fc5164ed5d793810d80968f0af0b3d8"},{url:"/images/Homepage/PetStickers/catpeeking.webp",revision:"d7d9ab94924e6df4e555350daf782bbb"},{url:"/images/Homepage/PetStickers/dog1.webp",revision:"6f8a24733c2ba74210661a07b4d04ab5"},{url:"/images/Homepage/PetStickers/dog2.webp",revision:"dcce90d41c2efa434d317adeb3fb7778"},{url:"/images/Homepage/PetStickers/dog3.webp",revision:"8cb8cc360a3755c42cf7514a3a8e4228"},{url:"/images/Homepage/PetStickers/dog4.webp",revision:"c38d50ee84a142753d4c425ea4a97708"},{url:"/images/Homepage/VetPhoto.webp",revision:"72414c97fe64a865f306eb0b89a61d70"},{url:"/images/Homepage/VetPhotoHover.webp",revision:"a6080c8b6059199fcc530667296fbcae"},{url:"/images/Homepage/benefitsImage.webp",revision:"63346a6247c8116e0f7e69072e07556c"},{url:"/images/Homepage/bg1-assets/bg1.webp",revision:"4279eba9ad59450cb6dfa8cf95fc8415"},{url:"/images/Homepage/bg1.webp",revision:"3475676ff3faf89c7c71149aca8d5a9b"},{url:"/images/Homepage/bgDonate.webp",revision:"19b7541b040cfb194522cb49b58c3777"},{url:"/images/Homepage/bgPrescribe.webp",revision:"85aae6f3d116e8bc926960968b3d1844"},{url:"/images/Homepage/bgSupport.webp",revision:"b82fdb6d4a299a212f71741d372fdb58"},{url:"/images/Homepage/bgwidget.webp",revision:"60bd4c0fafbdc65d7a1be071171c4b62"},{url:"/images/Homepage/championBadge3.webp",revision:"354274548772bd41abca12c0e3973eca"},{url:"/images/Homepage/championbadge.webp",revision:"644015006e5697d2fb70869c838100c2"},{url:"/images/Homepage/chicle-blue-2.webp",revision:"8ec673f096a7e28ec8cdceba2ac23c77"},{url:"/images/Homepage/circle-dots.webp",revision:"9b689f3a07db2da7661a03bce45717cf"},{url:"/images/Homepage/circle-orange-2.webp",revision:"e4e1b5c4d70b8fed1a0de520b041432b"},{url:"/images/Homepage/circle-orange.webp",revision:"cc9cbeff985e0ee045a094720bd29346"},{url:"/images/Homepage/circle-small-blue.webp",revision:"6656aa59eff253e3043e83fd4d7584a8"},{url:"/images/Homepage/doc1.webp",revision:"3bab69fa443725f203456773e497a108"},{url:"/images/Homepage/doc2.webp",revision:"00bde15cb707354097aac49db48150d5"},{url:"/images/Homepage/doctor.webp",revision:"cb22f8f484634f66154cd5271f5ef746"},{url:"/images/Homepage/donatenow.webp",revision:"a2a7c5c3fb65ea7dbf94213b060912fa"},{url:"/images/Homepage/ext-blue.webp",revision:"737d874bca9a7948dcc8aa4837677cdc"},{url:"/images/Homepage/ext-orange.webp",revision:"6f483f0c18bc8d04380ef8f047e19b59"},{url:"/images/Homepage/featureImage1-1.webp",revision:"1477a694e6d0fad3cb7eb15170b3fcdb"},{url:"/images/Homepage/featureImage2-2.webp",revision:"09286587ca8b056ee6e55cc090ce2cfc"},{url:"/images/Homepage/featureImage3-3.webp",revision:"66083e40ad9a3d758f274eecfbb0d095"},{url:"/images/Homepage/footer-line.webp",revision:"b2771f54c377281690baf26b0aae8a4b"},{url:"/images/Homepage/friendBadge3.webp",revision:"da0d6d0d3161e7e45be5cc0187a0886e"},{url:"/images/Homepage/heroBadge4.webp",revision:"433ae3e8e3cc948aea8b4435439f640c"},{url:"/images/Homepage/hiw1.webp",revision:"87a8772fe66f4b3eb7629d1c7b1db209"},{url:"/images/Homepage/hiw2.webp",revision:"54d52b7f0d0971e0b8e81b166bd7caec"},{url:"/images/Homepage/hiw3.webp",revision:"cdb4295c529a8e69da8d8124a373a6a6"},{url:"/images/Homepage/image1.webp",revision:"d64c7c4caff08f86b94a3a41edc5418a"},{url:"/images/Homepage/imgShop.webp",revision:"4c1e3524d0e7ed7c8badd2e06fe133d5"},{url:"/images/Homepage/imgShop2.webp",revision:"7169e81ba0f883f5e77764cf732dde4e"},{url:"/images/Homepage/line-circle-blue.webp",revision:"7389bb9d714de6007831c1d85d3efa71"},{url:"/images/Homepage/loaderR.webp",revision:"5007ccb62b381213461c4b8c086c507c"},{url:"/images/Homepage/marquee1.webp",revision:"15c199aa0a1d8b459c108e2e7a04d85c"},{url:"/images/Homepage/marquee2.webp",revision:"7b06723c5f2c5e4fb00ad4fa4a30d949"},{url:"/images/Homepage/marquee3.webp",revision:"6fb33887d9e9963ffd9ab678bead3721"},{url:"/images/Homepage/marquee4.webp",revision:"32f4b07a209b489cb54a1a0e5d7e125f"},{url:"/images/Homepage/mblImg.webp",revision:"782ccb9970813ccdea1f760db262d030"},{url:"/images/Homepage/membershipsbg1.webp",revision:"21de8a74f2ed9b455b883da17fcb3907"},{url:"/images/Homepage/mobilerex.webp",revision:"58c8c36cda69be3d1ba7f6637267a4e3"},{url:"/images/Homepage/par-1.webp",revision:"8e664846cde22a7af00989102853e2ce"},{url:"/images/Homepage/pattern1.webp",revision:"d7f3fd500b0d1a0debf6122bba1199f1"},{url:"/images/Homepage/pattern2.webp",revision:"28b7576147ab528747dc371dc0be37ab"},{url:"/images/Homepage/pattern3.webp",revision:"b3174f8b7149e9c53781843770c45b6a"},{url:"/images/Homepage/pattern4-1.webp",revision:"e67d48e34e74679f34e36cab483a32ac"},{url:"/images/Homepage/pattern4-2.webp",revision:"80c97bc829ba87e7986c0fd326476dcf"},{url:"/images/Homepage/plus-blue.webp",revision:"03e20ebc8f51058bcce436eca71e14c0"},{url:"/images/Homepage/plus-orange.webp",revision:"22912a59ddaf1540dbf9f35f68606e0f"},{url:"/images/Homepage/product1.webp",revision:"2f376381af883e092ac0cbc99e87172b"},{url:"/images/Homepage/product2.webp",revision:"88720e9f7d799910c444cddb80af34fa"},{url:"/images/Homepage/product3.webp",revision:"115ec138df60e9217019ef4d0e5e738a"},{url:"/images/Homepage/product4.webp",revision:"4a56fb1de422e21987db11a573ff8631"},{url:"/images/Homepage/product5.webp",revision:"8faadfc081e3d8ccd5e7e9c01d79be2c"},{url:"/images/Homepage/product6.webp",revision:"2f376381af883e092ac0cbc99e87172b"},{url:"/images/Homepage/profile1.webp",revision:"59e0dc9ce7c7f9b3aaab2a11830e9c48"},{url:"/images/Homepage/profile2.webp",revision:"545e3e11b3f44e72ef2939f27dd16945"},{url:"/images/Homepage/profile3.webp",revision:"4861c0cb0135d5576e9401e2e5113a5c"},{url:"/images/Homepage/profile4.webp",revision:"c97d32e832e2c51926f0e8c31c658c12"},{url:"/images/Homepage/profile5.webp",revision:"898861a825a022a959e00dd95d55490f"},{url:"/images/Homepage/profile6.webp",revision:"a3e8a58b76d212237deb2e70e3356047"},{url:"/images/Homepage/profileDoc.webp",revision:"55e88ed44e08141ec2a4d0f0691c92b8"},{url:"/images/Homepage/shape1.webp",revision:"e7e00bc22dbc5d79d514cc01f4ca1d96"},{url:"/images/Homepage/square-blue.webp",revision:"a8669bcf3621788e5f3dda078ca9db82"},{url:"/images/Homepage/square-dots-orange.webp",revision:"d2e580eb280ae7571ceb361163cea6bd"},{url:"/images/Homepage/square-rotate.webp",revision:"a750a886fb510bea00f317218eafd319"},{url:"/images/Homepage/svg13.svg",revision:"de78952a6078051f3c7f9f11f8ab6960"},{url:"/images/Homepage/test1.webp",revision:"712c14b722050409b360bfc08f57b671"},{url:"/images/Homepage/test2.webp",revision:"299d1c1ea51735d0e0520c2bf88501b1"},{url:"/images/Homepage/test3.webp",revision:"60694e2ccd3bf8c2b8ca8557c5bd3bdb"},{url:"/images/Homepage/trangle-orange.webp",revision:"6b29dfa99c7ddae29e0af2741c75a179"},{url:"/images/Homepage/twoPuppy.webp",revision:"768bc172962827d4f2a4b7b20a381bfb"},{url:"/images/Homepage/user.png",revision:"7fbb50941e0b4d36fd04b172d071bc81"},{url:"/images/Homepage/user_icon.png",revision:"c5d1f8d475be7a5d7139e06114a3fb66"},{url:"/images/Homepage/waiting_room.webp",revision:"a25cb05c6982ffb7ef4e9324d9da1623"},{url:"/images/Homepage/wave-blue.webp",revision:"14133b9ade9f85c46346b8dafb894dd9"},{url:"/images/Homepage/wave-orange.webp",revision:"60ecf72c00dd985437d929c9bd2818ee"},{url:"/images/Logo.svg",revision:"61d53793098d89f1bb55f1e680901428"},{url:"/images/about/About1.webp",revision:"a187ee16a8a8c2412f591a58c8ebb644"},{url:"/images/about/About2.webp",revision:"35ee71f70b1847693e9d0e2b111456c7"},{url:"/images/about/AboutUsCover.webp",revision:"662351c415d293d8dc9913ddd932e07d"},{url:"/images/about/CEO.webp",revision:"bd0182f98f960ce1d2f2cda66f09bc20"},{url:"/images/about/Founder.webp",revision:"e9fc8cbb0cd594af84fd415da8dc4504"},{url:"/images/about/PawHeart.webp",revision:"4257658570d207bd2a57b6a54a71514c"},{url:"/images/become-a-rex-vet/control-your-availability.svg",revision:"74e3eb082400821a17a72f1fd21991af"},{url:"/images/become-a-rex-vet/create-manage-medical-records.webp",revision:"3543a25f6a07b3a424b6846c9369cb1f"},{url:"/images/become-a-rex-vet/secure-client.webp",revision:"5184c1fd487426c7457810571ef83bd1"},{url:"/images/donate-page/Cover2.webp",revision:"132ffe820a2f9a7bac531cbed708a857"},{url:"/images/donate-page/DocIcon.webp",revision:"3c403360f5705fa62eb77408a331711d"},{url:"/images/donate-page/Stripe.webp",revision:"79916de74994051e1e478ad2c4657326"},{url:"/images/donate-page/Texture.webp",revision:"e8ed323d7061b836493abba3ca1266f4"},{url:"/images/donate-page/vet.webp",revision:"6aaabdd85a9cbf3ab497f8aae95d08e6"},{url:"/images/donate-page/vet2.webp",revision:"fbda8e8aaa88263779638a949623cc52"},{url:"/images/get-a-prescription/imgShop2.webp",revision:"7169e81ba0f883f5e77764cf732dde4e"},{url:"/images/get-a-prescription/prescription.webp",revision:"3b053d4ef93cc5ff617988dc8266b8f4"},{url:"/images/how-it-works/HowitsWork1.svg",revision:"a19d4924259429f2a1d44a71814b8d67"},{url:"/images/how-it-works/HowitsWork2.svg",revision:"0c1d23e162a8d00688b8e77e31a5e4f3"},{url:"/images/how-it-works/HowitsWork3.webp",revision:"c45ceeac403799374f577b48831f5961"},{url:"/images/how-it-works/HowitsWork4.webp",revision:"1e9d3b27277f53cc85bff257d7f83cef"},{url:"/images/how-it-works/PrincipalImgWorks.webp",revision:"18ed074081d4cc4cbe0c7b082fc6827b"},{url:"/images/how-it-works/SecondImg.webp",revision:"1fe468dfb3bc0d0c0e09f0722f50e3ed"},{url:"/images/how-it-works/mblIm.webp",revision:"782ccb9970813ccdea1f760db262d030"},{url:"/images/how-it-works/principal.webp",revision:"360cd0f2be62371d3909d6fce4d800b6"},{url:"/images/legal-support/Privacy_Policy.webp",revision:"a7786df539001feb3769a19462b50144"},{url:"/images/legal-support/Refund_Policy.webp",revision:"5a1027678537e5add0eecc9a7da8b98c"},{url:"/images/legal-support/TermsConditions.webp",revision:"1ec61d03c4e01184ceff372ed529ddde"},{url:"/images/legal-support/nonprofitimage.webp",revision:"a0c90dec1bfa61d9f2126ff56e5a0485"},{url:"/images/legal-support/ourmissionbg.webp",revision:"9bccd2efe31c51c077897994d83fd2aa"},{url:"/images/legal-support/support.webp",revision:"bbb4c3a3829f954690c27f860cb9acd3"},{url:"/images/mission/dog.webp",revision:"fc05113a6a7bd66e860708a6682b7b2c"},{url:"/images/mission/image1.webp",revision:"5184c1fd487426c7457810571ef83bd1"},{url:"/images/our-team/About1.webp",revision:"a187ee16a8a8c2412f591a58c8ebb644"},{url:"/images/our-team/About2.webp",revision:"35ee71f70b1847693e9d0e2b111456c7"},{url:"/images/our-team/AboutUsCover.webp",revision:"662351c415d293d8dc9913ddd932e07d"},{url:"/images/our-team/CEO.webp",revision:"bd0182f98f960ce1d2f2cda66f09bc20"},{url:"/images/our-team/Founder.webp",revision:"e9fc8cbb0cd594af84fd415da8dc4504"},{url:"/images/our-team/PawHeart.webp",revision:"4257658570d207bd2a57b6a54a71514c"},{url:"/images/pet-parents/dogimage.webp",revision:"141779c3b5aaf26f635f5faff294e3c4"},{url:"/images/pet-parents/membershipsbg1.webp",revision:"21de8a74f2ed9b455b883da17fcb3907"},{url:"/images/pet-parents/profileDoc.webp",revision:"55e88ed44e08141ec2a4d0f0691c92b8"},{url:"/images/support/support.webp",revision:"bbb4c3a3829f954690c27f860cb9acd3"},{url:"/images/what-we-treat/anxiety.webp",revision:"7df3e7af152d1f8ad76899910b2e8cd3"},{url:"/images/what-we-treat/cough.webp",revision:"e5a8848aae41dd49afca3e6c2703fc1c"},{url:"/images/what-we-treat/dai.webp",revision:"0b3c578255ad74a1c606354a4fa37bbb"},{url:"/images/what-we-treat/diet.webp",revision:"f4e66ba47c2b978cd04cfbf0800bf53a"},{url:"/images/what-we-treat/dogd.png",revision:"fc05113a6a7bd66e860708a6682b7b2c"},{url:"/images/what-we-treat/dogd.webp",revision:"2608a90b794f97a9f61a39646b316726"},{url:"/images/what-we-treat/health.webp",revision:"d322c73e3ceef258c4f28d6b1e5a8640"},{url:"/images/what-we-treat/joint.webp",revision:"936ef2f0df0abc20bd96b79e353488fa"},{url:"/images/what-we-treat/mission.webp",revision:"b4857b26399a60044634b289d236a7ab"},{url:"/images/what-we-treat/support.webp",revision:"bbb4c3a3829f954690c27f860cb9acd3"},{url:"/images/what-we-treat/whyChoose.webp",revision:"865110e338b9416194d6152421135960"},{url:"/next.svg",revision:"8e061864f388b47f33a1c3780831193e"},{url:"/site.webmanifest",revision:"ce7ba918a05fcb1ec7af12b8676a26e8"},{url:"/vercel.svg",revision:"c0af2f507b369b085b35ef4bbe3bcf1e"},{url:"/window.svg",revision:"a2760511c65806022ad20adf74370ff3"}],{ignoreURLParametersMatching:[]}),e.cleanupOutdatedCaches(),e.registerRoute("/",new e.NetworkFirst({cacheName:"start-url",plugins:[{cacheWillUpdate:async({request:e,response:a,event:i,state:c})=>a&&"opaqueredirect"===a.type?new Response(a.body,{status:200,statusText:"OK",headers:a.headers}):a}]}),"GET"),e.registerRoute(/^https:\/\/fonts\.(?:gstatic)\.com\/.*/i,new e.CacheFirst({cacheName:"google-fonts-webfonts",plugins:[new e.ExpirationPlugin({maxEntries:4,maxAgeSeconds:31536e3})]}),"GET"),e.registerRoute(/^https:\/\/fonts\.(?:googleapis)\.com\/.*/i,new e.StaleWhileRevalidate({cacheName:"google-fonts-stylesheets",plugins:[new e.ExpirationPlugin({maxEntries:4,maxAgeSeconds:604800})]}),"GET"),e.registerRoute(/\.(?:eot|otf|ttc|ttf|woff|woff2|font.css)$/i,new e.StaleWhileRevalidate({cacheName:"static-font-assets",plugins:[new e.ExpirationPlugin({maxEntries:4,maxAgeSeconds:604800})]}),"GET"),e.registerRoute(/\.(?:jpg|jpeg|gif|png|svg|ico|webp)$/i,new e.StaleWhileRevalidate({cacheName:"static-image-assets",plugins:[new e.ExpirationPlugin({maxEntries:64,maxAgeSeconds:86400})]}),"GET"),e.registerRoute(/\/_next\/image\?url=.+$/i,new e.StaleWhileRevalidate({cacheName:"next-image",plugins:[new e.ExpirationPlugin({maxEntries:64,maxAgeSeconds:86400})]}),"GET"),e.registerRoute(/\.(?:mp3|wav|ogg)$/i,new e.CacheFirst({cacheName:"static-audio-assets",plugins:[new e.RangeRequestsPlugin,new e.ExpirationPlugin({maxEntries:32,maxAgeSeconds:86400})]}),"GET"),e.registerRoute(/\.(?:mp4)$/i,new e.CacheFirst({cacheName:"static-video-assets",plugins:[new e.RangeRequestsPlugin,new e.ExpirationPlugin({maxEntries:32,maxAgeSeconds:86400})]}),"GET"),e.registerRoute(/\.(?:js)$/i,new e.StaleWhileRevalidate({cacheName:"static-js-assets",plugins:[new e.ExpirationPlugin({maxEntries:32,maxAgeSeconds:86400})]}),"GET"),e.registerRoute(/\.(?:css|less)$/i,new e.StaleWhileRevalidate({cacheName:"static-style-assets",plugins:[new e.ExpirationPlugin({maxEntries:32,maxAgeSeconds:86400})]}),"GET"),e.registerRoute(/\/_next\/data\/.+\/.+\.json$/i,new e.StaleWhileRevalidate({cacheName:"next-data",plugins:[new e.ExpirationPlugin({maxEntries:32,maxAgeSeconds:86400})]}),"GET"),e.registerRoute(/\.(?:json|xml|csv)$/i,new e.NetworkFirst({cacheName:"static-data-assets",plugins:[new e.ExpirationPlugin({maxEntries:32,maxAgeSeconds:86400})]}),"GET"),e.registerRoute(({url:e})=>{if(!(self.origin===e.origin))return!1;const a=e.pathname;return!a.startsWith("/api/auth/")&&!!a.startsWith("/api/")},new e.NetworkFirst({cacheName:"apis",networkTimeoutSeconds:10,plugins:[new e.ExpirationPlugin({maxEntries:16,maxAgeSeconds:86400})]}),"GET"),e.registerRoute(({url:e})=>{if(!(self.origin===e.origin))return!1;return!e.pathname.startsWith("/api/")},new e.NetworkFirst({cacheName:"others",networkTimeoutSeconds:10,plugins:[new e.ExpirationPlugin({maxEntries:32,maxAgeSeconds:86400})]}),"GET"),e.registerRoute(({url:e})=>!(self.origin===e.origin),new e.NetworkFirst({cacheName:"cross-origin",networkTimeoutSeconds:10,plugins:[new e.ExpirationPlugin({maxEntries:32,maxAgeSeconds:3600})]}),"GET")});
+if (!self.define) {
+  let e,
+    a = {};
+  const i = (i, c) => (
+    (i = new URL(i + ".js", c).href),
+    a[i] ||
+      new Promise((a) => {
+        if ("document" in self) {
+          const e = document.createElement("script");
+          (e.src = i), (e.onload = a), document.head.appendChild(e);
+        } else (e = i), importScripts(i), a();
+      }).then(() => {
+        let e = a[i];
+        if (!e) throw new Error(`Module ${i} didn’t register its module`);
+        return e;
+      })
+  );
+  self.define = (c, s) => {
+    const r =
+      e ||
+      ("document" in self ? document.currentScript.src : "") ||
+      location.href;
+    if (a[r]) return;
+    let t = {};
+    const n = (e) => i(e, r),
+      d = { module: { uri: r }, exports: t, require: n };
+    a[r] = Promise.all(c.map((e) => d[e] || n(e))).then((e) => (s(...e), t));
+  };
+}
+define(["./workbox-e9849328"], function (e) {
+  "use strict";
+  importScripts(),
+    self.skipWaiting(),
+    e.clientsClaim(),
+    e.precacheAndRoute(
+      [
+        {
+          url: "/_next/app-build-manifest.json",
+          revision: "7be8320cf5c09e4ae61c1503b7d18eb4",
+        },
+        {
+          url: "/_next/static/GqE28O_EUBrupZ0-0h_La/_buildManifest.js",
+          revision: "3f427109e50b10a34ae9b95644501eeb",
+        },
+        {
+          url: "/_next/static/GqE28O_EUBrupZ0-0h_La/_ssgManifest.js",
+          revision: "b6652df95db52feb4daf4eca35380933",
+        },
+        {
+          url: "/_next/static/chunks/0-2514b948790fcff5.js",
+          revision: "2514b948790fcff5",
+        },
+        {
+          url: "/_next/static/chunks/1932-e716bb04d26c7432.js",
+          revision: "e716bb04d26c7432",
+        },
+        {
+          url: "/_next/static/chunks/1fc34c47-0a0dd6695264678f.js",
+          revision: "0a0dd6695264678f",
+        },
+        {
+          url: "/_next/static/chunks/2097-e48f36604a791c8d.js",
+          revision: "e48f36604a791c8d",
+        },
+        {
+          url: "/_next/static/chunks/2381.6f7d511eb16967f7.js",
+          revision: "6f7d511eb16967f7",
+        },
+        {
+          url: "/_next/static/chunks/2479-cd8bf60382762aa8.js",
+          revision: "cd8bf60382762aa8",
+        },
+        {
+          url: "/_next/static/chunks/2493-004af6d1dcb6976f.js",
+          revision: "004af6d1dcb6976f",
+        },
+        {
+          url: "/_next/static/chunks/2508-b569749fe9be8272.js",
+          revision: "b569749fe9be8272",
+        },
+        {
+          url: "/_next/static/chunks/2516.e012e90b334b7372.js",
+          revision: "e012e90b334b7372",
+        },
+        {
+          url: "/_next/static/chunks/3007.c89d507bc21f577c.js",
+          revision: "c89d507bc21f577c",
+        },
+        {
+          url: "/_next/static/chunks/3345-f645d04e0014e0b6.js",
+          revision: "f645d04e0014e0b6",
+        },
+        {
+          url: "/_next/static/chunks/3370-1812a2ed9e6a98d9.js",
+          revision: "1812a2ed9e6a98d9",
+        },
+        {
+          url: "/_next/static/chunks/33b75b42.e6359b008c4ca3b8.js",
+          revision: "e6359b008c4ca3b8",
+        },
+        {
+          url: "/_next/static/chunks/33e14e32-6864011622b76dc8.js",
+          revision: "6864011622b76dc8",
+        },
+        {
+          url: "/_next/static/chunks/3545-5cece1e09aa7a911.js",
+          revision: "5cece1e09aa7a911",
+        },
+        {
+          url: "/_next/static/chunks/3554.744579d8736c05c3.js",
+          revision: "744579d8736c05c3",
+        },
+        {
+          url: "/_next/static/chunks/3648-d592dbd73d48bd06.js",
+          revision: "d592dbd73d48bd06",
+        },
+        {
+          url: "/_next/static/chunks/375-7d74fcdf5eb38f25.js",
+          revision: "7d74fcdf5eb38f25",
+        },
+        {
+          url: "/_next/static/chunks/3831.923bf15ee60e9ce5.js",
+          revision: "923bf15ee60e9ce5",
+        },
+        {
+          url: "/_next/static/chunks/3852-9603226648dc5f3a.js",
+          revision: "9603226648dc5f3a",
+        },
+        {
+          url: "/_next/static/chunks/3900.fd251a03c409c147.js",
+          revision: "fd251a03c409c147",
+        },
+        {
+          url: "/_next/static/chunks/3f731c04-f323fa068d1d682d.js",
+          revision: "f323fa068d1d682d",
+        },
+        {
+          url: "/_next/static/chunks/4034.4479265cd1b6aa4e.js",
+          revision: "4479265cd1b6aa4e",
+        },
+        {
+          url: "/_next/static/chunks/4171-92c7f1ff79685c67.js",
+          revision: "92c7f1ff79685c67",
+        },
+        {
+          url: "/_next/static/chunks/4278.c3ec3b8884bcf44f.js",
+          revision: "c3ec3b8884bcf44f",
+        },
+        {
+          url: "/_next/static/chunks/4437-5e71cfdced5b1069.js",
+          revision: "5e71cfdced5b1069",
+        },
+        {
+          url: "/_next/static/chunks/4471.852b62694d9f39a2.js",
+          revision: "852b62694d9f39a2",
+        },
+        {
+          url: "/_next/static/chunks/4473-f52b67262e17531a.js",
+          revision: "f52b67262e17531a",
+        },
+        {
+          url: "/_next/static/chunks/4575.9e7cfe9006b7b0a0.js",
+          revision: "9e7cfe9006b7b0a0",
+        },
+        {
+          url: "/_next/static/chunks/4675-19099f40a020f4df.js",
+          revision: "19099f40a020f4df",
+        },
+        {
+          url: "/_next/static/chunks/4778-3db6004378abe634.js",
+          revision: "3db6004378abe634",
+        },
+        {
+          url: "/_next/static/chunks/49-2d1b9c901c9f2c7c.js",
+          revision: "2d1b9c901c9f2c7c",
+        },
+        {
+          url: "/_next/static/chunks/4921.3bab56b968d40b3f.js",
+          revision: "3bab56b968d40b3f",
+        },
+        {
+          url: "/_next/static/chunks/5044.40473452946aee98.js",
+          revision: "40473452946aee98",
+        },
+        {
+          url: "/_next/static/chunks/5080.4c8dd715f80b45ec.js",
+          revision: "4c8dd715f80b45ec",
+        },
+        {
+          url: "/_next/static/chunks/5162-00132e7b84c56a68.js",
+          revision: "00132e7b84c56a68",
+        },
+        {
+          url: "/_next/static/chunks/52ad4036-e4fb67bf755ad5ea.js",
+          revision: "e4fb67bf755ad5ea",
+        },
+        {
+          url: "/_next/static/chunks/5385-7caa8950636ef206.js",
+          revision: "7caa8950636ef206",
+        },
+        {
+          url: "/_next/static/chunks/5388.3e3be30dde7300e7.js",
+          revision: "3e3be30dde7300e7",
+        },
+        {
+          url: "/_next/static/chunks/539845e3-9134f876f7cd60a7.js",
+          revision: "9134f876f7cd60a7",
+        },
+        {
+          url: "/_next/static/chunks/5398b9db-2988262956246c3f.js",
+          revision: "2988262956246c3f",
+        },
+        {
+          url: "/_next/static/chunks/5400-c59df9d923028ae3.js",
+          revision: "c59df9d923028ae3",
+        },
+        {
+          url: "/_next/static/chunks/5513.0bf2284e817f964e.js",
+          revision: "0bf2284e817f964e",
+        },
+        {
+          url: "/_next/static/chunks/5524.446fb53e9122dd0e.js",
+          revision: "446fb53e9122dd0e",
+        },
+        {
+          url: "/_next/static/chunks/5651-6e910dfee2703dfb.js",
+          revision: "6e910dfee2703dfb",
+        },
+        {
+          url: "/_next/static/chunks/5692-fb3618d7b5098813.js",
+          revision: "fb3618d7b5098813",
+        },
+        {
+          url: "/_next/static/chunks/5738-fa5575c70838d6fa.js",
+          revision: "fa5575c70838d6fa",
+        },
+        {
+          url: "/_next/static/chunks/6077-5528d715d53977d7.js",
+          revision: "5528d715d53977d7",
+        },
+        {
+          url: "/_next/static/chunks/6235-1bc47bbc9d26c763.js",
+          revision: "1bc47bbc9d26c763",
+        },
+        {
+          url: "/_next/static/chunks/6255.8641289270878700.js",
+          revision: "8641289270878700",
+        },
+        {
+          url: "/_next/static/chunks/6350-abf40f15738e8f4c.js",
+          revision: "abf40f15738e8f4c",
+        },
+        {
+          url: "/_next/static/chunks/6411.be40ee64f7eb68ca.js",
+          revision: "be40ee64f7eb68ca",
+        },
+        {
+          url: "/_next/static/chunks/6485-023d95eeaca9d938.js",
+          revision: "023d95eeaca9d938",
+        },
+        {
+          url: "/_next/static/chunks/6571-c2071fc1fc41a76b.js",
+          revision: "c2071fc1fc41a76b",
+        },
+        {
+          url: "/_next/static/chunks/6689.c3dbe94ef96857dd.js",
+          revision: "c3dbe94ef96857dd",
+        },
+        {
+          url: "/_next/static/chunks/6782-f35c328607f1ca23.js",
+          revision: "f35c328607f1ca23",
+        },
+        {
+          url: "/_next/static/chunks/69.9dcf72d85ffc3664.js",
+          revision: "9dcf72d85ffc3664",
+        },
+        {
+          url: "/_next/static/chunks/7046.6e3760394eb94041.js",
+          revision: "6e3760394eb94041",
+        },
+        {
+          url: "/_next/static/chunks/7306-86bce7f9f0eee13a.js",
+          revision: "86bce7f9f0eee13a",
+        },
+        {
+          url: "/_next/static/chunks/7311-08d492ec0af4ea64.js",
+          revision: "08d492ec0af4ea64",
+        },
+        {
+          url: "/_next/static/chunks/7522.0d0062c35677436d.js",
+          revision: "0d0062c35677436d",
+        },
+        {
+          url: "/_next/static/chunks/7585-2689149c7436bc7f.js",
+          revision: "2689149c7436bc7f",
+        },
+        {
+          url: "/_next/static/chunks/774.83a443368cdd5494.js",
+          revision: "83a443368cdd5494",
+        },
+        {
+          url: "/_next/static/chunks/7774.d71ddb16bd59f449.js",
+          revision: "d71ddb16bd59f449",
+        },
+        {
+          url: "/_next/static/chunks/784-43f560086a7a6b81.js",
+          revision: "43f560086a7a6b81",
+        },
+        {
+          url: "/_next/static/chunks/7969-310517ebbb24cf73.js",
+          revision: "310517ebbb24cf73",
+        },
+        {
+          url: "/_next/static/chunks/8277-dfdaf800580c337d.js",
+          revision: "dfdaf800580c337d",
+        },
+        {
+          url: "/_next/static/chunks/8337.d5527536ac14c114.js",
+          revision: "d5527536ac14c114",
+        },
+        {
+          url: "/_next/static/chunks/8347.ab5e7b6ced7024d1.js",
+          revision: "ab5e7b6ced7024d1",
+        },
+        {
+          url: "/_next/static/chunks/8636.a1f9ba01d28ead51.js",
+          revision: "a1f9ba01d28ead51",
+        },
+        {
+          url: "/_next/static/chunks/8644-5b0f1f414a78c420.js",
+          revision: "5b0f1f414a78c420",
+        },
+        {
+          url: "/_next/static/chunks/8653.5e836af7da9abdbe.js",
+          revision: "5e836af7da9abdbe",
+        },
+        {
+          url: "/_next/static/chunks/8659.9ffc7227bd6840f2.js",
+          revision: "9ffc7227bd6840f2",
+        },
+        {
+          url: "/_next/static/chunks/871-85b7c62527e68658.js",
+          revision: "85b7c62527e68658",
+        },
+        {
+          url: "/_next/static/chunks/9047-6a67ae3ec497d0ad.js",
+          revision: "6a67ae3ec497d0ad",
+        },
+        {
+          url: "/_next/static/chunks/9600-b44a43ef765632d8.js",
+          revision: "b44a43ef765632d8",
+        },
+        {
+          url: "/_next/static/chunks/987-bef0235e6c55c9f5.js",
+          revision: "bef0235e6c55c9f5",
+        },
+        {
+          url: "/_next/static/chunks/app/(client)/ai/chat/page-bc22bb783c800e46.js",
+          revision: "bc22bb783c800e46",
+        },
+        {
+          url: "/_next/static/chunks/app/(client)/become-a-rex-vet/page-b4c6e39025680591.js",
+          revision: "b4c6e39025680591",
+        },
+        {
+          url: "/_next/static/chunks/app/(client)/chat-list/%5BreceiverId%5D/page-ceb242a872db2415.js",
+          revision: "ceb242a872db2415",
+        },
+        {
+          url: "/_next/static/chunks/app/(client)/chat-list/page-69a0da5100cc7f18.js",
+          revision: "69a0da5100cc7f18",
+        },
+        {
+          url: "/_next/static/chunks/app/(client)/complete-donation/page-660abce1053e9e32.js",
+          revision: "660abce1053e9e32",
+        },
+        {
+          url: "/_next/static/chunks/app/(client)/contact/page-dcc62a0373f5b466.js",
+          revision: "dcc62a0373f5b466",
+        },
+        {
+          url: "/_next/static/chunks/app/(client)/donate/page-4e21e0aba60779db.js",
+          revision: "4e21e0aba60779db",
+        },
+        {
+          url: "/_next/static/chunks/app/(client)/donation-card-info/page-b851fbbf559693ba.js",
+          revision: "b851fbbf559693ba",
+        },
+        {
+          url: "/_next/static/chunks/app/(client)/donation/page-300c3d309c14dacc.js",
+          revision: "300c3d309c14dacc",
+        },
+        {
+          url: "/_next/static/chunks/app/(client)/faq/page-a298ed75b33b8bf7.js",
+          revision: "a298ed75b33b8bf7",
+        },
+        {
+          url: "/_next/static/chunks/app/(client)/find-a-vet/%5Bid%5D/page-ddb3288efc0504f2.js",
+          revision: "ddb3288efc0504f2",
+        },
+        {
+          url: "/_next/static/chunks/app/(client)/find-a-vet/page-8117be5eb2f4274a.js",
+          revision: "8117be5eb2f4274a",
+        },
+        {
+          url: "/_next/static/chunks/app/(client)/get-a-prescription/page-28fcedec66aa1a47.js",
+          revision: "28fcedec66aa1a47",
+        },
+        {
+          url: "/_next/static/chunks/app/(client)/how-it-works/page-eff0630183cbcb8f.js",
+          revision: "eff0630183cbcb8f",
+        },
+        {
+          url: "/_next/static/chunks/app/(client)/join-video-call/page-242c2e4e3d61809d.js",
+          revision: "242c2e4e3d61809d",
+        },
+        {
+          url: "/_next/static/chunks/app/(client)/layout-bd891cfa8b971a31.js",
+          revision: "bd891cfa8b971a31",
+        },
+        {
+          url: "/_next/static/chunks/app/(client)/legal-and-support/financial-transparency/page-a75a1b47647ae586.js",
+          revision: "a75a1b47647ae586",
+        },
+        {
+          url: "/_next/static/chunks/app/(client)/legal-and-support/non-profit-status/page-a75a1b47647ae586.js",
+          revision: "a75a1b47647ae586",
+        },
+        {
+          url: "/_next/static/chunks/app/(client)/legal-and-support/privacy-policy/page-69a0da5100cc7f18.js",
+          revision: "69a0da5100cc7f18",
+        },
+        {
+          url: "/_next/static/chunks/app/(client)/legal-and-support/refund-policy/page-69a0da5100cc7f18.js",
+          revision: "69a0da5100cc7f18",
+        },
+        {
+          url: "/_next/static/chunks/app/(client)/legal-and-support/support-us/page-2a5d1e1a66b3b9fd.js",
+          revision: "2a5d1e1a66b3b9fd",
+        },
+        {
+          url: "/_next/static/chunks/app/(client)/legal-and-support/terms-and-conditions/page-a75a1b47647ae586.js",
+          revision: "a75a1b47647ae586",
+        },
+        {
+          url: "/_next/static/chunks/app/(client)/our-mission/page-66a732ce651a69d4.js",
+          revision: "66a732ce651a69d4",
+        },
+        {
+          url: "/_next/static/chunks/app/(client)/our-team/page-c427cda2edb48c5e.js",
+          revision: "c427cda2edb48c5e",
+        },
+        {
+          url: "/_next/static/chunks/app/(client)/page-08e4bc3550b21ded.js",
+          revision: "08e4bc3550b21ded",
+        },
+        {
+          url: "/_next/static/chunks/app/(client)/pet-parents/page-c14d9e811dd45bda.js",
+          revision: "c14d9e811dd45bda",
+        },
+        {
+          url: "/_next/static/chunks/app/(client)/rex-health-hub/page-bbfe993aca69622a.js",
+          revision: "bbfe993aca69622a",
+        },
+        {
+          url: "/_next/static/chunks/app/(client)/support/page-fc7abf88b0b61a9b.js",
+          revision: "fc7abf88b0b61a9b",
+        },
+        {
+          url: "/_next/static/chunks/app/(client)/video-call/page-9695fc5a945d0185.js",
+          revision: "9695fc5a945d0185",
+        },
+        {
+          url: "/_next/static/chunks/app/(client)/what-we-treat/page-406e6634180889e6.js",
+          revision: "406e6634180889e6",
+        },
+        {
+          url: "/_next/static/chunks/app/(dashboard)/dashboard/doctor/account/page-eb2886361d0f53c4.js",
+          revision: "eb2886361d0f53c4",
+        },
+        {
+          url: "/_next/static/chunks/app/(dashboard)/dashboard/doctor/appointments/%5Bid%5D/page-4bb5ea370cb533c4.js",
+          revision: "4bb5ea370cb533c4",
+        },
+        {
+          url: "/_next/static/chunks/app/(dashboard)/dashboard/doctor/appointments/page-1757d2c4ed8c2bcd.js",
+          revision: "1757d2c4ed8c2bcd",
+        },
+        {
+          url: "/_next/static/chunks/app/(dashboard)/dashboard/doctor/help/page-7e30c7bdb5d9a6ae.js",
+          revision: "7e30c7bdb5d9a6ae",
+        },
+        {
+          url: "/_next/static/chunks/app/(dashboard)/dashboard/doctor/layout-7e510dfdcd044254.js",
+          revision: "7e510dfdcd044254",
+        },
+        {
+          url: "/_next/static/chunks/app/(dashboard)/dashboard/doctor/overview/page-0c28eda026984449.js",
+          revision: "0c28eda026984449",
+        },
+        {
+          url: "/_next/static/chunks/app/(dashboard)/dashboard/doctor/rates-and-availability/page-a27d198be67ce433.js",
+          revision: "a27d198be67ce433",
+        },
+        {
+          url: "/_next/static/chunks/app/(dashboard)/dashboard/pet-parent/account/page-69a0da5100cc7f18.js",
+          revision: "69a0da5100cc7f18",
+        },
+        {
+          url: "/_next/static/chunks/app/(dashboard)/dashboard/pet-parent/appointments/%5Bid%5D/page-7a0f905c180df188.js",
+          revision: "7a0f905c180df188",
+        },
+        {
+          url: "/_next/static/chunks/app/(dashboard)/dashboard/pet-parent/appointments/page-795c555aec039901.js",
+          revision: "795c555aec039901",
+        },
+        {
+          url: "/_next/static/chunks/app/(dashboard)/dashboard/pet-parent/help/page-69a0da5100cc7f18.js",
+          revision: "69a0da5100cc7f18",
+        },
+        {
+          url: "/_next/static/chunks/app/(dashboard)/dashboard/pet-parent/layout-5b1b84145f6d7fd2.js",
+          revision: "5b1b84145f6d7fd2",
+        },
+        {
+          url: "/_next/static/chunks/app/(dashboard)/dashboard/pet-parent/my-pets/page-23f65e6078310fe3.js",
+          revision: "23f65e6078310fe3",
+        },
+        {
+          url: "/_next/static/chunks/app/(dashboard)/dashboard/pet-parent/overview/page-7664caa03ee5deed.js",
+          revision: "7664caa03ee5deed",
+        },
+        {
+          url: "/_next/static/chunks/app/(dashboard)/dashboard/pet-parent/pharmacy-transfer/page-35a0f998798292e2.js",
+          revision: "35a0f998798292e2",
+        },
+        {
+          url: "/_next/static/chunks/app/_not-found/page-69a0da5100cc7f18.js",
+          revision: "69a0da5100cc7f18",
+        },
+        {
+          url: "/_next/static/chunks/app/api/agora-token/route-69a0da5100cc7f18.js",
+          revision: "69a0da5100cc7f18",
+        },
+        {
+          url: "/_next/static/chunks/app/api/ai/chat/route-9b57740b77a4302b.js",
+          revision: "9b57740b77a4302b",
+        },
+        {
+          url: "/_next/static/chunks/app/api/ai/stream/route-69a0da5100cc7f18.js",
+          revision: "69a0da5100cc7f18",
+        },
+        {
+          url: "/_next/static/chunks/app/api/appointments/%5Bid%5D/route-69a0da5100cc7f18.js",
+          revision: "69a0da5100cc7f18",
+        },
+        {
+          url: "/_next/static/chunks/app/api/appointments/bulk-delete/route-69a0da5100cc7f18.js",
+          revision: "69a0da5100cc7f18",
+        },
+        {
+          url: "/_next/static/chunks/app/api/appointments/route-69a0da5100cc7f18.js",
+          revision: "69a0da5100cc7f18",
+        },
+        {
+          url: "/_next/static/chunks/app/api/auth/%5B...nextauth%5D/route-69a0da5100cc7f18.js",
+          revision: "69a0da5100cc7f18",
+        },
+        {
+          url: "/_next/static/chunks/app/api/auth/complete-profile/route-69a0da5100cc7f18.js",
+          revision: "69a0da5100cc7f18",
+        },
+        {
+          url: "/_next/static/chunks/app/api/auth/register/pet-parent/route-69a0da5100cc7f18.js",
+          revision: "69a0da5100cc7f18",
+        },
+        {
+          url: "/_next/static/chunks/app/api/auth/register/veterinarian/route-69a0da5100cc7f18.js",
+          revision: "69a0da5100cc7f18",
+        },
+        {
+          url: "/_next/static/chunks/app/api/auth/verify-email/route-69a0da5100cc7f18.js",
+          revision: "69a0da5100cc7f18",
+        },
+        {
+          url: "/_next/static/chunks/app/api/check-email/route-69a0da5100cc7f18.js",
+          revision: "69a0da5100cc7f18",
+        },
+        {
+          url: "/_next/static/chunks/app/api/debug/session/route-69a0da5100cc7f18.js",
+          revision: "69a0da5100cc7f18",
+        },
+        {
+          url: "/_next/static/chunks/app/api/doctor/route-69a0da5100cc7f18.js",
+          revision: "69a0da5100cc7f18",
+        },
+        {
+          url: "/_next/static/chunks/app/api/donations/create-payment-intent/route-69a0da5100cc7f18.js",
+          revision: "69a0da5100cc7f18",
+        },
+        {
+          url: "/_next/static/chunks/app/api/messages/route-69a0da5100cc7f18.js",
+          revision: "69a0da5100cc7f18",
+        },
+        {
+          url: "/_next/static/chunks/app/api/pet-parent/my-pets/%5BparentId%5D/route-69a0da5100cc7f18.js",
+          revision: "69a0da5100cc7f18",
+        },
+        {
+          url: "/_next/static/chunks/app/api/pet-parent/route-69a0da5100cc7f18.js",
+          revision: "69a0da5100cc7f18",
+        },
+        {
+          url: "/_next/static/chunks/app/api/pet-parent/update/route-69a0da5100cc7f18.js",
+          revision: "69a0da5100cc7f18",
+        },
+        {
+          url: "/_next/static/chunks/app/api/pet/%5BpetId%5D/route-69a0da5100cc7f18.js",
+          revision: "69a0da5100cc7f18",
+        },
+        {
+          url: "/_next/static/chunks/app/api/pet/route-69a0da5100cc7f18.js",
+          revision: "69a0da5100cc7f18",
+        },
+        {
+          url: "/_next/static/chunks/app/api/prescriptions/%5Bid%5D/route-69a0da5100cc7f18.js",
+          revision: "69a0da5100cc7f18",
+        },
+        {
+          url: "/_next/static/chunks/app/api/prescriptions/route-69a0da5100cc7f18.js",
+          revision: "69a0da5100cc7f18",
+        },
+        {
+          url: "/_next/static/chunks/app/api/record/route-69a0da5100cc7f18.js",
+          revision: "69a0da5100cc7f18",
+        },
+        {
+          url: "/_next/static/chunks/app/api/reviews/%5Bid%5D/route-69a0da5100cc7f18.js",
+          revision: "69a0da5100cc7f18",
+        },
+        {
+          url: "/_next/static/chunks/app/api/reviews/doctor/%5BdoctorId%5D/route-69a0da5100cc7f18.js",
+          revision: "69a0da5100cc7f18",
+        },
+        {
+          url: "/_next/static/chunks/app/api/reviews/parent/%5BparentId%5D/route-69a0da5100cc7f18.js",
+          revision: "69a0da5100cc7f18",
+        },
+        {
+          url: "/_next/static/chunks/app/api/reviews/route-69a0da5100cc7f18.js",
+          revision: "69a0da5100cc7f18",
+        },
+        {
+          url: "/_next/static/chunks/app/api/reviews/stats/route-69a0da5100cc7f18.js",
+          revision: "69a0da5100cc7f18",
+        },
+        {
+          url: "/_next/static/chunks/app/api/test-email/route-69a0da5100cc7f18.js",
+          revision: "69a0da5100cc7f18",
+        },
+        {
+          url: "/_next/static/chunks/app/api/test/ids/route-69a0da5100cc7f18.js",
+          revision: "69a0da5100cc7f18",
+        },
+        {
+          url: "/_next/static/chunks/app/api/test/route-69a0da5100cc7f18.js",
+          revision: "69a0da5100cc7f18",
+        },
+        {
+          url: "/_next/static/chunks/app/api/veterinarian/%5Bid%5D/route-69a0da5100cc7f18.js",
+          revision: "69a0da5100cc7f18",
+        },
+        {
+          url: "/_next/static/chunks/app/api/veterinarian/route-69a0da5100cc7f18.js",
+          revision: "69a0da5100cc7f18",
+        },
+        {
+          url: "/_next/static/chunks/app/api/veterinarian/update/route-69a0da5100cc7f18.js",
+          revision: "69a0da5100cc7f18",
+        },
+        {
+          url: "/_next/static/chunks/app/api/veterinarian/upload/route-69a0da5100cc7f18.js",
+          revision: "69a0da5100cc7f18",
+        },
+        {
+          url: "/_next/static/chunks/app/auth/check-email/page-c9230c4d65a9638b.js",
+          revision: "c9230c4d65a9638b",
+        },
+        {
+          url: "/_next/static/chunks/app/auth/complete-profile/page-b63ec39180172eac.js",
+          revision: "b63ec39180172eac",
+        },
+        {
+          url: "/_next/static/chunks/app/auth/email-verified/page-26ddcf83b4b293be.js",
+          revision: "26ddcf83b4b293be",
+        },
+        {
+          url: "/_next/static/chunks/app/auth/error/page-19ce22a2194d1280.js",
+          revision: "19ce22a2194d1280",
+        },
+        {
+          url: "/_next/static/chunks/app/auth/layout-69a0da5100cc7f18.js",
+          revision: "69a0da5100cc7f18",
+        },
+        {
+          url: "/_next/static/chunks/app/auth/signin/page-a410934d14f880b7.js",
+          revision: "a410934d14f880b7",
+        },
+        {
+          url: "/_next/static/chunks/app/auth/signup/page-6be08bd3c184c59d.js",
+          revision: "6be08bd3c184c59d",
+        },
+        {
+          url: "/_next/static/chunks/app/auth/verify-email/page-8a477302491b6d86.js",
+          revision: "8a477302491b6d86",
+        },
+        {
+          url: "/_next/static/chunks/app/error-f8fbf8e0160da58c.js",
+          revision: "f8fbf8e0160da58c",
+        },
+        {
+          url: "/_next/static/chunks/app/layout-cdd54c6d8e8236c3.js",
+          revision: "cdd54c6d8e8236c3",
+        },
+        {
+          url: "/_next/static/chunks/app/manifest.webmanifest/route-69a0da5100cc7f18.js",
+          revision: "69a0da5100cc7f18",
+        },
+        {
+          url: "/_next/static/chunks/app/not-found-6d7b26e8341abb01.js",
+          revision: "6d7b26e8341abb01",
+        },
+        {
+          url: "/_next/static/chunks/b816f9ec-e0fe9df42306d3c8.js",
+          revision: "e0fe9df42306d3c8",
+        },
+        {
+          url: "/_next/static/chunks/c7fe877c.daa5490e14e97796.js",
+          revision: "daa5490e14e97796",
+        },
+        {
+          url: "/_next/static/chunks/c99dd624-59cf5beabb795473.js",
+          revision: "59cf5beabb795473",
+        },
+        {
+          url: "/_next/static/chunks/framework-7ce03f4cbcc90835.js",
+          revision: "7ce03f4cbcc90835",
+        },
+        {
+          url: "/_next/static/chunks/main-912ffa92443e434f.js",
+          revision: "912ffa92443e434f",
+        },
+        {
+          url: "/_next/static/chunks/main-app-72c2fcbba35c7e40.js",
+          revision: "72c2fcbba35c7e40",
+        },
+        {
+          url: "/_next/static/chunks/pages/_app-571de2237eeb2c85.js",
+          revision: "571de2237eeb2c85",
+        },
+        {
+          url: "/_next/static/chunks/pages/_error-74f9f3b582dffa63.js",
+          revision: "74f9f3b582dffa63",
+        },
+        {
+          url: "/_next/static/chunks/polyfills-42372ed130431b0a.js",
+          revision: "846118c33b2c0e922d7b3a7676f81f6f",
+        },
+        {
+          url: "/_next/static/chunks/webpack-b48f95d765e5c337.js",
+          revision: "b48f95d765e5c337",
+        },
+        {
+          url: "/_next/static/css/3189894d25183ed6.css",
+          revision: "3189894d25183ed6",
+        },
+        {
+          url: "/_next/static/css/5e791358f066ece2.css",
+          revision: "5e791358f066ece2",
+        },
+        {
+          url: "/_next/static/css/6b58e23aad05ae8c.css",
+          revision: "6b58e23aad05ae8c",
+        },
+        {
+          url: "/_next/static/css/c66e46f533e6f7b8.css",
+          revision: "c66e46f533e6f7b8",
+        },
+        {
+          url: "/_next/static/media/33aa39707f7fa2b2-s.p.woff2",
+          revision: "b38648a61c4208079adce4e4c40a4e34",
+        },
+        {
+          url: "/_next/static/media/401e0cd2ecebe989-s.p.woff",
+          revision: "bb4937a2c7a648de7599e81a50423ddc",
+        },
+        {
+          url: "/_next/static/media/5a87fff34e8c406e-s.p.otf",
+          revision: "74f42337dda036f6fcf86f282a316b7f",
+        },
+        {
+          url: "/_next/static/media/5ad1c05db953a338-s.p.ttf",
+          revision: "47fe1c58f44f53c78e65712a2581230f",
+        },
+        {
+          url: "/_next/static/media/a19683daeb9405cd-s.p.woff2",
+          revision: "0019a3a88cd6b8459fb73a617dee9166",
+        },
+        {
+          url: "/_next/static/media/be77e8874e84bb02-s.p.ttf",
+          revision: "6aea6bc41f902e6e21db5d54c9f77261",
+        },
+        {
+          url: "/_next/static/media/c13f26aec537175e-s.p.otf",
+          revision: "af54e77faed29b7e00745bd4995889c2",
+        },
+        {
+          url: "/_next/static/media/championBadge3.f1554505.webp",
+          revision: "354274548772bd41abca12c0e3973eca",
+        },
+        {
+          url: "/_next/static/media/ebc7e891c5b3dfc3-s.p.woff",
+          revision: "2e5e93eaa597cebd24b9c73bdada9c8e",
+        },
+        {
+          url: "/_next/static/media/featureImage1-1.6dd3a79d.webp",
+          revision: "1477a694e6d0fad3cb7eb15170b3fcdb",
+        },
+        {
+          url: "/_next/static/media/featureImage2-2.bafcca09.webp",
+          revision: "09286587ca8b056ee6e55cc090ce2cfc",
+        },
+        {
+          url: "/_next/static/media/featureImage3-3.95c6c7b1.webp",
+          revision: "66083e40ad9a3d758f274eecfbb0d095",
+        },
+        {
+          url: "/_next/static/media/friendBadge3.ef58a3d5.webp",
+          revision: "da0d6d0d3161e7e45be5cc0187a0886e",
+        },
+        {
+          url: "/_next/static/media/heroBadge4.83d78502.webp",
+          revision: "433ae3e8e3cc948aea8b4435439f640c",
+        },
+        {
+          url: "/_next/static/media/marquee1.4bc96dd5.webp",
+          revision: "15c199aa0a1d8b459c108e2e7a04d85c",
+        },
+        {
+          url: "/_next/static/media/marquee2.0e915188.webp",
+          revision: "7b06723c5f2c5e4fb00ad4fa4a30d949",
+        },
+        {
+          url: "/_next/static/media/marquee3.3334691c.webp",
+          revision: "6fb33887d9e9963ffd9ab678bead3721",
+        },
+        {
+          url: "/_next/static/media/marquee4.9e64fcbc.webp",
+          revision: "32f4b07a209b489cb54a1a0e5d7e125f",
+        },
+        {
+          url: "/_next/static/media/mblImg.7c6175bf.webp",
+          revision: "782ccb9970813ccdea1f760db262d030",
+        },
+        {
+          url: "/android-chrome-192x192.png",
+          revision: "fb4cad7aa195f7380b0e601ffafba5e4",
+        },
+        {
+          url: "/android-chrome-512x512.png",
+          revision: "0833a3493438701b5a238ba0be9a05d9",
+        },
+        {
+          url: "/apple-touch-icon.png",
+          revision: "2832eff8cfe36ede51119052073c9885",
+        },
+        {
+          url: "/favicon-16x16.png",
+          revision: "e6a35e4cb3424e749a55405597c4efdf",
+        },
+        {
+          url: "/favicon-32x32.png",
+          revision: "e800cde428286940d07d4bc8e60cf40c",
+        },
+        { url: "/favicon.ico", revision: "a5226852f1952abf45c948ab94035b5e" },
+        { url: "/file.svg", revision: "d09f95206c3fa0bb9bd9fefabfd0ea71" },
+        {
+          url: "/fonts/Garet-Book.otf",
+          revision: "74f42337dda036f6fcf86f282a316b7f",
+        },
+        {
+          url: "/fonts/Garet-Book.ttf",
+          revision: "6aea6bc41f902e6e21db5d54c9f77261",
+        },
+        {
+          url: "/fonts/Garet-Book.woff",
+          revision: "bb4937a2c7a648de7599e81a50423ddc",
+        },
+        {
+          url: "/fonts/Garet-Book.woff2",
+          revision: "b38648a61c4208079adce4e4c40a4e34",
+        },
+        {
+          url: "/fonts/Garet-Heavy.otf",
+          revision: "af54e77faed29b7e00745bd4995889c2",
+        },
+        {
+          url: "/fonts/Garet-Heavy.ttf",
+          revision: "47fe1c58f44f53c78e65712a2581230f",
+        },
+        {
+          url: "/fonts/Garet-Heavy.woff",
+          revision: "2e5e93eaa597cebd24b9c73bdada9c8e",
+        },
+        {
+          url: "/fonts/Garet-Heavy.woff2",
+          revision: "0019a3a88cd6b8459fb73a617dee9166",
+        },
+        {
+          url: "/fonts/gothamnarrowoffice_bold.otf",
+          revision: "f6bdcb85cbb41f610b13cc5c31ab3ffe",
+        },
+        {
+          url: "/fonts/gothamnarrowoffice_bolditalic.otf",
+          revision: "b8858057a69cac82f7d0f6d1ea4febfd",
+        },
+        {
+          url: "/fonts/gothamoffice_bold.otf",
+          revision: "dc317dc28862ef235c26026a07080df7",
+        },
+        {
+          url: "/fonts/gothamoffice_bolditalic.otf",
+          revision: "e9aa6079791f3d83527be6fb52a3a56c",
+        },
+        {
+          url: "/fonts/gothamoffice_italic.otf",
+          revision: "4bd0f3079c6b20d854b9ac5cf18533af",
+        },
+        {
+          url: "/fonts/gothamoffice_regular.otf",
+          revision: "82b3e6c63f2a7d05e9840159c90bb414",
+        },
+        { url: "/globe.svg", revision: "2aaafa6a49b6563925fe440891e32717" },
+        {
+          url: "/images/Blogs/Blog1/MainImage.webp",
+          revision: "836e849861a0a7672d3d813c8577ad18",
+        },
+        {
+          url: "/images/Blogs/Blog1/img1.webp",
+          revision: "be8ddb7cbb8431a8452b31ee10036304",
+        },
+        {
+          url: "/images/Blogs/Blog1/img2.webp",
+          revision: "b6baec254b723b6f5ad5de000ae3345c",
+        },
+        {
+          url: "/images/Blogs/Blog1/img3.webp",
+          revision: "a3e02d7e94833c725065b869aab68b9a",
+        },
+        {
+          url: "/images/Blogs/Blog1/img4.webp",
+          revision: "6f46f10ac584bb62e94a3184a931516a",
+        },
+        {
+          url: "/images/Blogs/Blog1/img5.webp",
+          revision: "68c57d52685731400dffc84180aaf53c",
+        },
+        {
+          url: "/images/Blogs/Blog1/petBlogImage4.webp",
+          revision: "1330b6abfa47d2cf7de0a085711a7a27",
+        },
+        {
+          url: "/images/Blogs/Blog1/petBlogImage5.webp",
+          revision: "023edbc697fd1355ddffaa491b16303e",
+        },
+        {
+          url: "/images/Blogs/Blog1/petBlogImage6.webp",
+          revision: "2f711e9514d150d53aae360d6c89d3d6",
+        },
+        {
+          url: "/images/Blogs/Blog2/MainImage.webp",
+          revision: "b10aa02b546eabb27afe7604ec97a4fa",
+        },
+        {
+          url: "/images/Blogs/Blog2/img1.webp",
+          revision: "c780039e7325aa4460622148b9a2d4a5",
+        },
+        {
+          url: "/images/Blogs/Blog2/img2.webp",
+          revision: "e2b8dc5222af97d02b5afb5464bf8f1a",
+        },
+        {
+          url: "/images/Blogs/Blog2/img3.webp",
+          revision: "5b24524ed0ff756b50caa5192d250b32",
+        },
+        {
+          url: "/images/Blogs/Blog2/img4.webp",
+          revision: "337f6d18a862c6fc2a4871ccc672dd21",
+        },
+        {
+          url: "/images/Blogs/Blog3/MainImage.webp",
+          revision: "84ebdeeb4cce7cfde0aff28cab76a67b",
+        },
+        {
+          url: "/images/Blogs/Blog3/img1.webp",
+          revision: "c326f61fd50c1f66c3d219be32c84f09",
+        },
+        {
+          url: "/images/Blogs/Blog3/img2.webp",
+          revision: "010d471c793d0a3b055c453fb7b8b919",
+        },
+        {
+          url: "/images/Blogs/Blog3/img3.webp",
+          revision: "30bbee5e6a2fddf8bf00e4f1b7d2e707",
+        },
+        {
+          url: "/images/Blogs/BlogsCover.webp",
+          revision: "ec5489301a220df639dbf88ae4a74224",
+        },
+        {
+          url: "/images/Homepage/Burger.webp",
+          revision: "6f1ed38f8059d7735829fc942700eeb9",
+        },
+        {
+          url: "/images/Homepage/ChatBalloon.webp",
+          revision: "dbed9d908a06e6dceb92c56bbcf493dc",
+        },
+        {
+          url: "/images/Homepage/Donateimg1.webp",
+          revision: "f4119b7ec032986c72d1649c822c4150",
+        },
+        {
+          url: "/images/Homepage/Donateimg2.webp",
+          revision: "58da58cce096767b8a63e3506ed1f323",
+        },
+        {
+          url: "/images/Homepage/FriendofRex.webp",
+          revision: "5cdcbdc50e5babad570a77f1b950ca0e",
+        },
+        {
+          url: "/images/Homepage/Hero.webp",
+          revision: "424bec06076acfcadd4ea82f17f42aa4",
+        },
+        {
+          url: "/images/Homepage/Hero2.webp",
+          revision: "16a9afcdfeb4636dff4cb969f189c49e",
+        },
+        {
+          url: "/images/Homepage/Herobadge.webp",
+          revision: "53e37a0d137267c98ad234c51cb9c579",
+        },
+        {
+          url: "/images/Homepage/Logo.svg",
+          revision: "cf21811bf984a6d819299913746d056e",
+        },
+        {
+          url: "/images/Homepage/Logo.webp",
+          revision: "8809e6f68dfaea44a4a7779aad20debb",
+        },
+        {
+          url: "/images/Homepage/LogoBlack.webp",
+          revision: "e828870f42454b4cbdf9eba50c2d2f62",
+        },
+        {
+          url: "/images/Homepage/LogoR.webp",
+          revision: "2d499719ac2ff26112382670f50be2cf",
+        },
+        {
+          url: "/images/Homepage/LogoWhite.webp",
+          revision: "178d0af7e2bc89d291c6eae75812ccdd",
+        },
+        {
+          url: "/images/Homepage/LogoYellow.webp",
+          revision: "561bc54b81ed25626f1113a79dc1fe65",
+        },
+        {
+          url: "/images/Homepage/PawTexture.webp",
+          revision: "f5e3e9a92a157ffef3c5fec11bd1fb7c",
+        },
+        {
+          url: "/images/Homepage/PetStickers/cat1.webp",
+          revision: "8ac3f28a0bc8ded87f6a362196e29a92",
+        },
+        {
+          url: "/images/Homepage/PetStickers/cat2.webp",
+          revision: "4fc5164ed5d793810d80968f0af0b3d8",
+        },
+        {
+          url: "/images/Homepage/PetStickers/catpeeking.webp",
+          revision: "d7d9ab94924e6df4e555350daf782bbb",
+        },
+        {
+          url: "/images/Homepage/PetStickers/dog1.webp",
+          revision: "6f8a24733c2ba74210661a07b4d04ab5",
+        },
+        {
+          url: "/images/Homepage/PetStickers/dog2.webp",
+          revision: "dcce90d41c2efa434d317adeb3fb7778",
+        },
+        {
+          url: "/images/Homepage/PetStickers/dog3.webp",
+          revision: "8cb8cc360a3755c42cf7514a3a8e4228",
+        },
+        {
+          url: "/images/Homepage/PetStickers/dog4.webp",
+          revision: "c38d50ee84a142753d4c425ea4a97708",
+        },
+        {
+          url: "/images/Homepage/VetPhoto.webp",
+          revision: "72414c97fe64a865f306eb0b89a61d70",
+        },
+        {
+          url: "/images/Homepage/VetPhotoHover.webp",
+          revision: "a6080c8b6059199fcc530667296fbcae",
+        },
+        {
+          url: "/images/Homepage/benefitsImage.webp",
+          revision: "63346a6247c8116e0f7e69072e07556c",
+        },
+        {
+          url: "/images/Homepage/bg1-assets/bg1.webp",
+          revision: "4279eba9ad59450cb6dfa8cf95fc8415",
+        },
+        {
+          url: "/images/Homepage/bg1.webp",
+          revision: "3475676ff3faf89c7c71149aca8d5a9b",
+        },
+        {
+          url: "/images/Homepage/bgDonate.webp",
+          revision: "19b7541b040cfb194522cb49b58c3777",
+        },
+        {
+          url: "/images/Homepage/bgPrescribe.webp",
+          revision: "85aae6f3d116e8bc926960968b3d1844",
+        },
+        {
+          url: "/images/Homepage/bgSupport.webp",
+          revision: "b82fdb6d4a299a212f71741d372fdb58",
+        },
+        {
+          url: "/images/Homepage/bgwidget.webp",
+          revision: "60bd4c0fafbdc65d7a1be071171c4b62",
+        },
+        {
+          url: "/images/Homepage/championBadge3.webp",
+          revision: "354274548772bd41abca12c0e3973eca",
+        },
+        {
+          url: "/images/Homepage/championbadge.webp",
+          revision: "644015006e5697d2fb70869c838100c2",
+        },
+        {
+          url: "/images/Homepage/chicle-blue-2.webp",
+          revision: "8ec673f096a7e28ec8cdceba2ac23c77",
+        },
+        {
+          url: "/images/Homepage/circle-dots.webp",
+          revision: "9b689f3a07db2da7661a03bce45717cf",
+        },
+        {
+          url: "/images/Homepage/circle-orange-2.webp",
+          revision: "e4e1b5c4d70b8fed1a0de520b041432b",
+        },
+        {
+          url: "/images/Homepage/circle-orange.webp",
+          revision: "cc9cbeff985e0ee045a094720bd29346",
+        },
+        {
+          url: "/images/Homepage/circle-small-blue.webp",
+          revision: "6656aa59eff253e3043e83fd4d7584a8",
+        },
+        {
+          url: "/images/Homepage/doc1.webp",
+          revision: "3bab69fa443725f203456773e497a108",
+        },
+        {
+          url: "/images/Homepage/doc2.webp",
+          revision: "00bde15cb707354097aac49db48150d5",
+        },
+        {
+          url: "/images/Homepage/doctor.webp",
+          revision: "cb22f8f484634f66154cd5271f5ef746",
+        },
+        {
+          url: "/images/Homepage/donatenow.webp",
+          revision: "a2a7c5c3fb65ea7dbf94213b060912fa",
+        },
+        {
+          url: "/images/Homepage/ext-blue.webp",
+          revision: "737d874bca9a7948dcc8aa4837677cdc",
+        },
+        {
+          url: "/images/Homepage/ext-orange.webp",
+          revision: "6f483f0c18bc8d04380ef8f047e19b59",
+        },
+        {
+          url: "/images/Homepage/featureImage1-1.webp",
+          revision: "1477a694e6d0fad3cb7eb15170b3fcdb",
+        },
+        {
+          url: "/images/Homepage/featureImage2-2.webp",
+          revision: "09286587ca8b056ee6e55cc090ce2cfc",
+        },
+        {
+          url: "/images/Homepage/featureImage3-3.webp",
+          revision: "66083e40ad9a3d758f274eecfbb0d095",
+        },
+        {
+          url: "/images/Homepage/footer-line.webp",
+          revision: "b2771f54c377281690baf26b0aae8a4b",
+        },
+        {
+          url: "/images/Homepage/friendBadge3.webp",
+          revision: "da0d6d0d3161e7e45be5cc0187a0886e",
+        },
+        {
+          url: "/images/Homepage/heroBadge4.webp",
+          revision: "433ae3e8e3cc948aea8b4435439f640c",
+        },
+        {
+          url: "/images/Homepage/hiw1.webp",
+          revision: "87a8772fe66f4b3eb7629d1c7b1db209",
+        },
+        {
+          url: "/images/Homepage/hiw2.webp",
+          revision: "54d52b7f0d0971e0b8e81b166bd7caec",
+        },
+        {
+          url: "/images/Homepage/hiw3.webp",
+          revision: "cdb4295c529a8e69da8d8124a373a6a6",
+        },
+        {
+          url: "/images/Homepage/image1.webp",
+          revision: "d64c7c4caff08f86b94a3a41edc5418a",
+        },
+        {
+          url: "/images/Homepage/imgShop.webp",
+          revision: "4c1e3524d0e7ed7c8badd2e06fe133d5",
+        },
+        {
+          url: "/images/Homepage/imgShop2.webp",
+          revision: "7169e81ba0f883f5e77764cf732dde4e",
+        },
+        {
+          url: "/images/Homepage/line-circle-blue.webp",
+          revision: "7389bb9d714de6007831c1d85d3efa71",
+        },
+        {
+          url: "/images/Homepage/loaderR.webp",
+          revision: "5007ccb62b381213461c4b8c086c507c",
+        },
+        {
+          url: "/images/Homepage/marquee1.webp",
+          revision: "15c199aa0a1d8b459c108e2e7a04d85c",
+        },
+        {
+          url: "/images/Homepage/marquee2.webp",
+          revision: "7b06723c5f2c5e4fb00ad4fa4a30d949",
+        },
+        {
+          url: "/images/Homepage/marquee3.webp",
+          revision: "6fb33887d9e9963ffd9ab678bead3721",
+        },
+        {
+          url: "/images/Homepage/marquee4.webp",
+          revision: "32f4b07a209b489cb54a1a0e5d7e125f",
+        },
+        {
+          url: "/images/Homepage/mblImg.webp",
+          revision: "782ccb9970813ccdea1f760db262d030",
+        },
+        {
+          url: "/images/Homepage/membershipsbg1.webp",
+          revision: "21de8a74f2ed9b455b883da17fcb3907",
+        },
+        {
+          url: "/images/Homepage/mobilerex.webp",
+          revision: "58c8c36cda69be3d1ba7f6637267a4e3",
+        },
+        {
+          url: "/images/Homepage/par-1.webp",
+          revision: "8e664846cde22a7af00989102853e2ce",
+        },
+        {
+          url: "/images/Homepage/pattern1.webp",
+          revision: "d7f3fd500b0d1a0debf6122bba1199f1",
+        },
+        {
+          url: "/images/Homepage/pattern2.webp",
+          revision: "28b7576147ab528747dc371dc0be37ab",
+        },
+        {
+          url: "/images/Homepage/pattern3.webp",
+          revision: "b3174f8b7149e9c53781843770c45b6a",
+        },
+        {
+          url: "/images/Homepage/pattern4-1.webp",
+          revision: "e67d48e34e74679f34e36cab483a32ac",
+        },
+        {
+          url: "/images/Homepage/pattern4-2.webp",
+          revision: "80c97bc829ba87e7986c0fd326476dcf",
+        },
+        {
+          url: "/images/Homepage/plus-blue.webp",
+          revision: "03e20ebc8f51058bcce436eca71e14c0",
+        },
+        {
+          url: "/images/Homepage/plus-orange.webp",
+          revision: "22912a59ddaf1540dbf9f35f68606e0f",
+        },
+        {
+          url: "/images/Homepage/product1.webp",
+          revision: "2f376381af883e092ac0cbc99e87172b",
+        },
+        {
+          url: "/images/Homepage/product2.webp",
+          revision: "88720e9f7d799910c444cddb80af34fa",
+        },
+        {
+          url: "/images/Homepage/product3.webp",
+          revision: "115ec138df60e9217019ef4d0e5e738a",
+        },
+        {
+          url: "/images/Homepage/product4.webp",
+          revision: "4a56fb1de422e21987db11a573ff8631",
+        },
+        {
+          url: "/images/Homepage/product5.webp",
+          revision: "8faadfc081e3d8ccd5e7e9c01d79be2c",
+        },
+        {
+          url: "/images/Homepage/product6.webp",
+          revision: "2f376381af883e092ac0cbc99e87172b",
+        },
+        {
+          url: "/images/Homepage/profile1.webp",
+          revision: "59e0dc9ce7c7f9b3aaab2a11830e9c48",
+        },
+        {
+          url: "/images/Homepage/profile2.webp",
+          revision: "545e3e11b3f44e72ef2939f27dd16945",
+        },
+        {
+          url: "/images/Homepage/profile3.webp",
+          revision: "4861c0cb0135d5576e9401e2e5113a5c",
+        },
+        {
+          url: "/images/Homepage/profile4.webp",
+          revision: "c97d32e832e2c51926f0e8c31c658c12",
+        },
+        {
+          url: "/images/Homepage/profile5.webp",
+          revision: "898861a825a022a959e00dd95d55490f",
+        },
+        {
+          url: "/images/Homepage/profile6.webp",
+          revision: "a3e8a58b76d212237deb2e70e3356047",
+        },
+        {
+          url: "/images/Homepage/profileDoc.webp",
+          revision: "55e88ed44e08141ec2a4d0f0691c92b8",
+        },
+        {
+          url: "/images/Homepage/shape1.webp",
+          revision: "e7e00bc22dbc5d79d514cc01f4ca1d96",
+        },
+        {
+          url: "/images/Homepage/square-blue.webp",
+          revision: "a8669bcf3621788e5f3dda078ca9db82",
+        },
+        {
+          url: "/images/Homepage/square-dots-orange.webp",
+          revision: "d2e580eb280ae7571ceb361163cea6bd",
+        },
+        {
+          url: "/images/Homepage/square-rotate.webp",
+          revision: "a750a886fb510bea00f317218eafd319",
+        },
+        {
+          url: "/images/Homepage/svg13.svg",
+          revision: "de78952a6078051f3c7f9f11f8ab6960",
+        },
+        {
+          url: "/images/Homepage/test1.webp",
+          revision: "712c14b722050409b360bfc08f57b671",
+        },
+        {
+          url: "/images/Homepage/test2.webp",
+          revision: "299d1c1ea51735d0e0520c2bf88501b1",
+        },
+        {
+          url: "/images/Homepage/test3.webp",
+          revision: "60694e2ccd3bf8c2b8ca8557c5bd3bdb",
+        },
+        {
+          url: "/images/Homepage/trangle-orange.webp",
+          revision: "6b29dfa99c7ddae29e0af2741c75a179",
+        },
+        {
+          url: "/images/Homepage/twoPuppy.webp",
+          revision: "768bc172962827d4f2a4b7b20a381bfb",
+        },
+        {
+          url: "/images/Homepage/user.png",
+          revision: "7fbb50941e0b4d36fd04b172d071bc81",
+        },
+        {
+          url: "/images/Homepage/user_icon.png",
+          revision: "c5d1f8d475be7a5d7139e06114a3fb66",
+        },
+        {
+          url: "/images/Homepage/waiting_room.webp",
+          revision: "a25cb05c6982ffb7ef4e9324d9da1623",
+        },
+        {
+          url: "/images/Homepage/wave-blue.webp",
+          revision: "14133b9ade9f85c46346b8dafb894dd9",
+        },
+        {
+          url: "/images/Homepage/wave-orange.webp",
+          revision: "60ecf72c00dd985437d929c9bd2818ee",
+        },
+        {
+          url: "/images/Logo.svg",
+          revision: "61d53793098d89f1bb55f1e680901428",
+        },
+        {
+          url: "/images/about/About1.webp",
+          revision: "a187ee16a8a8c2412f591a58c8ebb644",
+        },
+        {
+          url: "/images/about/About2.webp",
+          revision: "35ee71f70b1847693e9d0e2b111456c7",
+        },
+        {
+          url: "/images/about/AboutUsCover.webp",
+          revision: "662351c415d293d8dc9913ddd932e07d",
+        },
+        {
+          url: "/images/about/CEO.webp",
+          revision: "bd0182f98f960ce1d2f2cda66f09bc20",
+        },
+        {
+          url: "/images/about/Founder.webp",
+          revision: "e9fc8cbb0cd594af84fd415da8dc4504",
+        },
+        {
+          url: "/images/about/PawHeart.webp",
+          revision: "4257658570d207bd2a57b6a54a71514c",
+        },
+        {
+          url: "/images/become-a-rex-vet/control-your-availability.svg",
+          revision: "74e3eb082400821a17a72f1fd21991af",
+        },
+        {
+          url: "/images/become-a-rex-vet/create-manage-medical-records.webp",
+          revision: "3543a25f6a07b3a424b6846c9369cb1f",
+        },
+        {
+          url: "/images/become-a-rex-vet/secure-client.webp",
+          revision: "5184c1fd487426c7457810571ef83bd1",
+        },
+        {
+          url: "/images/donate-page/Cover2.webp",
+          revision: "132ffe820a2f9a7bac531cbed708a857",
+        },
+        {
+          url: "/images/donate-page/DocIcon.webp",
+          revision: "3c403360f5705fa62eb77408a331711d",
+        },
+        {
+          url: "/images/donate-page/Stripe.webp",
+          revision: "79916de74994051e1e478ad2c4657326",
+        },
+        {
+          url: "/images/donate-page/Texture.webp",
+          revision: "e8ed323d7061b836493abba3ca1266f4",
+        },
+        {
+          url: "/images/donate-page/vet.webp",
+          revision: "6aaabdd85a9cbf3ab497f8aae95d08e6",
+        },
+        {
+          url: "/images/donate-page/vet2.webp",
+          revision: "fbda8e8aaa88263779638a949623cc52",
+        },
+        {
+          url: "/images/get-a-prescription/imgShop2.webp",
+          revision: "7169e81ba0f883f5e77764cf732dde4e",
+        },
+        {
+          url: "/images/get-a-prescription/prescription.webp",
+          revision: "3b053d4ef93cc5ff617988dc8266b8f4",
+        },
+        {
+          url: "/images/how-it-works/HowitsWork1.svg",
+          revision: "a19d4924259429f2a1d44a71814b8d67",
+        },
+        {
+          url: "/images/how-it-works/HowitsWork2.svg",
+          revision: "0c1d23e162a8d00688b8e77e31a5e4f3",
+        },
+        {
+          url: "/images/how-it-works/HowitsWork3.webp",
+          revision: "c45ceeac403799374f577b48831f5961",
+        },
+        {
+          url: "/images/how-it-works/HowitsWork4.webp",
+          revision: "1e9d3b27277f53cc85bff257d7f83cef",
+        },
+        {
+          url: "/images/how-it-works/PrincipalImgWorks.webp",
+          revision: "18ed074081d4cc4cbe0c7b082fc6827b",
+        },
+        {
+          url: "/images/how-it-works/SecondImg.webp",
+          revision: "1fe468dfb3bc0d0c0e09f0722f50e3ed",
+        },
+        {
+          url: "/images/how-it-works/mblIm.webp",
+          revision: "782ccb9970813ccdea1f760db262d030",
+        },
+        {
+          url: "/images/how-it-works/principal.webp",
+          revision: "360cd0f2be62371d3909d6fce4d800b6",
+        },
+        {
+          url: "/images/legal-support/Privacy_Policy.webp",
+          revision: "a7786df539001feb3769a19462b50144",
+        },
+        {
+          url: "/images/legal-support/Refund_Policy.webp",
+          revision: "5a1027678537e5add0eecc9a7da8b98c",
+        },
+        {
+          url: "/images/legal-support/TermsConditions.webp",
+          revision: "1ec61d03c4e01184ceff372ed529ddde",
+        },
+        {
+          url: "/images/legal-support/nonprofitimage.webp",
+          revision: "a0c90dec1bfa61d9f2126ff56e5a0485",
+        },
+        {
+          url: "/images/legal-support/ourmissionbg.webp",
+          revision: "9bccd2efe31c51c077897994d83fd2aa",
+        },
+        {
+          url: "/images/legal-support/support.webp",
+          revision: "bbb4c3a3829f954690c27f860cb9acd3",
+        },
+        {
+          url: "/images/mission/dog.webp",
+          revision: "fc05113a6a7bd66e860708a6682b7b2c",
+        },
+        {
+          url: "/images/mission/image1.webp",
+          revision: "5184c1fd487426c7457810571ef83bd1",
+        },
+        {
+          url: "/images/our-team/About1.webp",
+          revision: "a187ee16a8a8c2412f591a58c8ebb644",
+        },
+        {
+          url: "/images/our-team/About2.webp",
+          revision: "35ee71f70b1847693e9d0e2b111456c7",
+        },
+        {
+          url: "/images/our-team/AboutUsCover.webp",
+          revision: "662351c415d293d8dc9913ddd932e07d",
+        },
+        {
+          url: "/images/our-team/CEO.webp",
+          revision: "bd0182f98f960ce1d2f2cda66f09bc20",
+        },
+        {
+          url: "/images/our-team/Founder.webp",
+          revision: "e9fc8cbb0cd594af84fd415da8dc4504",
+        },
+        {
+          url: "/images/our-team/PawHeart.webp",
+          revision: "4257658570d207bd2a57b6a54a71514c",
+        },
+        {
+          url: "/images/pet-parents/dogimage.webp",
+          revision: "141779c3b5aaf26f635f5faff294e3c4",
+        },
+        {
+          url: "/images/pet-parents/membershipsbg1.webp",
+          revision: "21de8a74f2ed9b455b883da17fcb3907",
+        },
+        {
+          url: "/images/pet-parents/profileDoc.webp",
+          revision: "55e88ed44e08141ec2a4d0f0691c92b8",
+        },
+        {
+          url: "/images/support/support.webp",
+          revision: "bbb4c3a3829f954690c27f860cb9acd3",
+        },
+        {
+          url: "/images/what-we-treat/anxiety.webp",
+          revision: "7df3e7af152d1f8ad76899910b2e8cd3",
+        },
+        {
+          url: "/images/what-we-treat/cough.webp",
+          revision: "e5a8848aae41dd49afca3e6c2703fc1c",
+        },
+        {
+          url: "/images/what-we-treat/dai.webp",
+          revision: "0b3c578255ad74a1c606354a4fa37bbb",
+        },
+        {
+          url: "/images/what-we-treat/diet.webp",
+          revision: "f4e66ba47c2b978cd04cfbf0800bf53a",
+        },
+        {
+          url: "/images/what-we-treat/dogd.png",
+          revision: "fc05113a6a7bd66e860708a6682b7b2c",
+        },
+        {
+          url: "/images/what-we-treat/dogd.webp",
+          revision: "2608a90b794f97a9f61a39646b316726",
+        },
+        {
+          url: "/images/what-we-treat/health.webp",
+          revision: "d322c73e3ceef258c4f28d6b1e5a8640",
+        },
+        {
+          url: "/images/what-we-treat/joint.webp",
+          revision: "936ef2f0df0abc20bd96b79e353488fa",
+        },
+        {
+          url: "/images/what-we-treat/mission.webp",
+          revision: "b4857b26399a60044634b289d236a7ab",
+        },
+        {
+          url: "/images/what-we-treat/support.webp",
+          revision: "bbb4c3a3829f954690c27f860cb9acd3",
+        },
+        {
+          url: "/images/what-we-treat/whyChoose.webp",
+          revision: "865110e338b9416194d6152421135960",
+        },
+        { url: "/next.svg", revision: "8e061864f388b47f33a1c3780831193e" },
+        {
+          url: "/site.webmanifest",
+          revision: "ce7ba918a05fcb1ec7af12b8676a26e8",
+        },
+        { url: "/vercel.svg", revision: "c0af2f507b369b085b35ef4bbe3bcf1e" },
+        { url: "/window.svg", revision: "a2760511c65806022ad20adf74370ff3" },
+      ],
+      { ignoreURLParametersMatching: [] }
+    ),
+    e.cleanupOutdatedCaches(),
+    e.registerRoute(
+      "/",
+      new e.NetworkFirst({
+        cacheName: "start-url",
+        plugins: [
+          {
+            cacheWillUpdate: async ({
+              request: e,
+              response: a,
+              event: i,
+              state: c,
+            }) =>
+              a && "opaqueredirect" === a.type
+                ? new Response(a.body, {
+                    status: 200,
+                    statusText: "OK",
+                    headers: a.headers,
+                  })
+                : a,
+          },
+        ],
+      }),
+      "GET"
+    ),
+    e.registerRoute(
+      /^https:\/\/fonts\.(?:gstatic)\.com\/.*/i,
+      new e.CacheFirst({
+        cacheName: "google-fonts-webfonts",
+        plugins: [
+          new e.ExpirationPlugin({ maxEntries: 4, maxAgeSeconds: 31536e3 }),
+        ],
+      }),
+      "GET"
+    ),
+    e.registerRoute(
+      /^https:\/\/fonts\.(?:googleapis)\.com\/.*/i,
+      new e.StaleWhileRevalidate({
+        cacheName: "google-fonts-stylesheets",
+        plugins: [
+          new e.ExpirationPlugin({ maxEntries: 4, maxAgeSeconds: 604800 }),
+        ],
+      }),
+      "GET"
+    ),
+    e.registerRoute(
+      /\.(?:eot|otf|ttc|ttf|woff|woff2|font.css)$/i,
+      new e.StaleWhileRevalidate({
+        cacheName: "static-font-assets",
+        plugins: [
+          new e.ExpirationPlugin({ maxEntries: 4, maxAgeSeconds: 604800 }),
+        ],
+      }),
+      "GET"
+    ),
+    e.registerRoute(
+      /\.(?:jpg|jpeg|gif|png|svg|ico|webp)$/i,
+      new e.StaleWhileRevalidate({
+        cacheName: "static-image-assets",
+        plugins: [
+          new e.ExpirationPlugin({ maxEntries: 64, maxAgeSeconds: 86400 }),
+        ],
+      }),
+      "GET"
+    ),
+    e.registerRoute(
+      /\/_next\/image\?url=.+$/i,
+      new e.StaleWhileRevalidate({
+        cacheName: "next-image",
+        plugins: [
+          new e.ExpirationPlugin({ maxEntries: 64, maxAgeSeconds: 86400 }),
+        ],
+      }),
+      "GET"
+    ),
+    e.registerRoute(
+      /\.(?:mp3|wav|ogg)$/i,
+      new e.CacheFirst({
+        cacheName: "static-audio-assets",
+        plugins: [
+          new e.RangeRequestsPlugin(),
+          new e.ExpirationPlugin({ maxEntries: 32, maxAgeSeconds: 86400 }),
+        ],
+      }),
+      "GET"
+    ),
+    e.registerRoute(
+      /\.(?:mp4)$/i,
+      new e.CacheFirst({
+        cacheName: "static-video-assets",
+        plugins: [
+          new e.RangeRequestsPlugin(),
+          new e.ExpirationPlugin({ maxEntries: 32, maxAgeSeconds: 86400 }),
+        ],
+      }),
+      "GET"
+    ),
+    e.registerRoute(
+      /\.(?:js)$/i,
+      new e.StaleWhileRevalidate({
+        cacheName: "static-js-assets",
+        plugins: [
+          new e.ExpirationPlugin({ maxEntries: 32, maxAgeSeconds: 86400 }),
+        ],
+      }),
+      "GET"
+    ),
+    e.registerRoute(
+      /\.(?:css|less)$/i,
+      new e.StaleWhileRevalidate({
+        cacheName: "static-style-assets",
+        plugins: [
+          new e.ExpirationPlugin({ maxEntries: 32, maxAgeSeconds: 86400 }),
+        ],
+      }),
+      "GET"
+    ),
+    e.registerRoute(
+      /\/_next\/data\/.+\/.+\.json$/i,
+      new e.StaleWhileRevalidate({
+        cacheName: "next-data",
+        plugins: [
+          new e.ExpirationPlugin({ maxEntries: 32, maxAgeSeconds: 86400 }),
+        ],
+      }),
+      "GET"
+    ),
+    e.registerRoute(
+      /\.(?:json|xml|csv)$/i,
+      new e.NetworkFirst({
+        cacheName: "static-data-assets",
+        plugins: [
+          new e.ExpirationPlugin({ maxEntries: 32, maxAgeSeconds: 86400 }),
+        ],
+      }),
+      "GET"
+    ),
+    e.registerRoute(
+      ({ url: e }) => {
+        if (!(self.origin === e.origin)) return !1;
+        const a = e.pathname;
+        return !a.startsWith("/api/auth/") && !!a.startsWith("/api/");
+      },
+      new e.NetworkFirst({
+        cacheName: "apis",
+        networkTimeoutSeconds: 10,
+        plugins: [
+          new e.ExpirationPlugin({ maxEntries: 16, maxAgeSeconds: 86400 }),
+        ],
+      }),
+      "GET"
+    ),
+    e.registerRoute(
+      ({ url: e }) => {
+        if (!(self.origin === e.origin)) return !1;
+        return !e.pathname.startsWith("/api/");
+      },
+      new e.NetworkFirst({
+        cacheName: "others",
+        networkTimeoutSeconds: 10,
+        plugins: [
+          new e.ExpirationPlugin({ maxEntries: 32, maxAgeSeconds: 86400 }),
+        ],
+      }),
+      "GET"
+    ),
+    e.registerRoute(
+      ({ url: e }) => !(self.origin === e.origin),
+      new e.NetworkFirst({
+        cacheName: "cross-origin",
+        networkTimeoutSeconds: 10,
+        plugins: [
+          new e.ExpirationPlugin({ maxEntries: 32, maxAgeSeconds: 3600 }),
+        ],
+      }),
+      "GET"
+    );
+});
