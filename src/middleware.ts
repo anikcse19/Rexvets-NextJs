@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 
 const protectedRoutes = [
   "/dashboard",
-  "/api/appointments", 
+  // "/api/appointments",
   // "/api/pet",
   "/api/test",
 ];
@@ -40,12 +40,12 @@ export default withAuth(
     callbacks: {
       authorized: ({ token, req }) => {
         const { pathname } = req.nextUrl;
-        
+
         // Allow access to protected routes only if user has a token
         if (protectedRoutes.some((route) => pathname.startsWith(route))) {
           return !!token;
         }
-        
+
         // Allow access to non-protected routes
         return true;
       },

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-interface SendResponse<T> {
+export interface ISendResponse<T> {
   statusCode: number;
   success: boolean;
   message: string;
@@ -15,7 +15,7 @@ interface SendResponse<T> {
 /**
  * The function `sendResponse` in TypeScript is used to send a JSON response with status code, message,
  * success status, data, and optional meta information.
- * @param  - The `sendResponse` function takes in an object of type `SendResponse<T>` with the
+ * @param  - The `sendResponse` function takes in an object of type `ISendResponse<T>` with the
  * following parameters:
  * @returns The `sendResponse` function is returning a JSON response using `NextResponse.json`. The
  * response includes the `success`, `message`, and `data` properties. If the `meta` property is
@@ -28,7 +28,7 @@ export const sendResponse = <T>({
   success,
   data,
   meta,
-}: SendResponse<T>) => {
+}: ISendResponse<T>) => {
   return NextResponse.json(
     {
       success,
