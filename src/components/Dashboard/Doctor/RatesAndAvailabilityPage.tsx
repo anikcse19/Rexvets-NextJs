@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -16,6 +16,8 @@ import {
   Save,
   Info,
 } from "lucide-react";
+import { Doctor } from "@/lib/types";
+import { updateVet } from "./Service/update-vet";
 
 interface TimeSlot {
   id: string;
@@ -29,63 +31,92 @@ interface DaySchedule {
   timeSlots: TimeSlot[];
 }
 
-const initialSchedule: DaySchedule[] = [
-  {
-    day: "Monday",
-    enabled: true,
-    timeSlots: [
-      { id: "1", startTime: "09:00", endTime: "12:00" },
-      { id: "2", startTime: "14:00", endTime: "18:00" },
-    ],
-  },
-  {
-    day: "Tuesday",
-    enabled: true,
-    timeSlots: [
-      { id: "3", startTime: "09:00", endTime: "12:00" },
-      { id: "4", startTime: "14:00", endTime: "18:00" },
-    ],
-  },
-  {
-    day: "Wednesday",
-    enabled: true,
-    timeSlots: [
-      { id: "5", startTime: "09:00", endTime: "12:00" },
-      { id: "6", startTime: "14:00", endTime: "18:00" },
-    ],
-  },
-  {
-    day: "Thursday",
-    enabled: true,
-    timeSlots: [
-      { id: "7", startTime: "09:00", endTime: "12:00" },
-      { id: "8", startTime: "14:00", endTime: "18:00" },
-    ],
-  },
-  {
-    day: "Friday",
-    enabled: true,
-    timeSlots: [
-      { id: "9", startTime: "09:00", endTime: "12:00" },
-      { id: "10", startTime: "14:00", endTime: "18:00" },
-    ],
-  },
-  {
-    day: "Saturday",
-    enabled: true,
-    timeSlots: [{ id: "11", startTime: "10:00", endTime: "14:00" }],
-  },
-  {
-    day: "Sunday",
-    enabled: false,
-    timeSlots: [],
-  },
-];
+// const initialSchedule: DaySchedule[] = [
+//   {
+//     day: "Monday",
+//     enabled: true,
+//     timeSlots: [
+//       { id: "1", startTime: "09:00", endTime: "12:00" },
+//       { id: "2", startTime: "14:00", endTime: "18:00" },
+//     ],
+//   },
+//   {
+//     day: "Tuesday",
+//     enabled: true,
+//     timeSlots: [
+//       { id: "3", startTime: "09:00", endTime: "12:00" },
+//       { id: "4", startTime: "14:00", endTime: "18:00" },
+//     ],
+//   },
+//   {
+//     day: "Wednesday",
+//     enabled: true,
+//     timeSlots: [
+//       { id: "5", startTime: "09:00", endTime: "12:00" },
+//       { id: "6", startTime: "14:00", endTime: "18:00" },
+//     ],
+//   },
+//   {
+//     day: "Thursday",
+//     enabled: true,
+//     timeSlots: [
+//       { id: "7", startTime: "09:00", endTime: "12:00" },
+//       { id: "8", startTime: "14:00", endTime: "18:00" },
+//     ],
+//   },
+//   {
+//     day: "Friday",
+//     enabled: true,
+//     timeSlots: [
+//       { id: "9", startTime: "09:00", endTime: "12:00" },
+//       { id: "10", startTime: "14:00", endTime: "18:00" },
+//     ],
+//   },
+//   {
+//     day: "Saturday",
+//     enabled: true,
+//     timeSlots: [{ id: "11", startTime: "10:00", endTime: "14:00" }],
+//   },
+//   {
+//     day: "Sunday",
+//     enabled: false,
+//     timeSlots: [],
+//   },
+// ];
 
-export default function RatesAndAvailabilityPage() {
+export default function RatesAndAvailabilityPage({
+  vetData,
+}: {
+  vetData: Doctor;
+}) {
   const [bookingNotice, setBookingNotice] = useState<15 | 30>(15);
-  const [schedule, setSchedule] = useState<DaySchedule[]>(initialSchedule);
+  const [schedule, setSchedule] = useState<DaySchedule[]>([]);
   const [hasChanges, setHasChanges] = useState(false);
+
+  const capitalize = (str: string) =>
+    str.charAt(0).toUpperCase() + str.slice(1);
+
+  let idCounter = 1;
+
+  const initialSchedule: DaySchedule[] = Object.entries(vetData?.schedule).map(
+    ([day, { start, end, available }]) => ({
+      day: capitalize(day),
+      enabled: available,
+      timeSlots: available
+        ? [
+            {
+              id: String(idCounter++),
+              startTime: start,
+              endTime: end,
+            },
+          ]
+        : [],
+    })
+  );
+
+  useEffect(() => {
+    setSchedule(initialSchedule);
+  }, [vetData]);
 
   const handleBookingNoticeChange = (minutes: 15 | 30) => {
     setBookingNotice(minutes);
@@ -140,9 +171,10 @@ export default function RatesAndAvailabilityPage() {
     }
   };
 
-  const saveChanges = () => {
+  const saveChanges = async () => {
     // Here you would make API call to save the changes
     console.log("Saving changes:", { bookingNotice, schedule });
+    await updateVet(schedule);
     setHasChanges(false);
     // Show success message
   };

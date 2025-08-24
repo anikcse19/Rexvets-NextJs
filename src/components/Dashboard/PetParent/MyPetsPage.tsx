@@ -22,8 +22,7 @@ import {
 import AddPetModal from "./Pets/AddPetModal";
 import { getPetsByParent } from "./Service/pet";
 
-// Mock pets data - this would come from your API  
-
+// Mock pets data - this would come from your API
 
 export default function MyPetsPage() {
   const [isAddPetModalOpen, setIsAddPetModalOpen] = useState(false);
@@ -32,7 +31,7 @@ export default function MyPetsPage() {
 
   const fetchPets = async () => {
     const data = await getPetsByParent();
-    setPets(data?.pets);
+    setPets(data?.data);
     console.log("pet data", data);
   };
 
@@ -169,7 +168,7 @@ export default function MyPetsPage() {
               </div>
               <div>
                 <p className="text-2xl font-bold text-blue-900">
-                  {pets.length}
+                  {pets?.length}
                 </p>
                 <p className="text-blue-700 text-sm">Total Pets</p>
               </div>
@@ -185,7 +184,10 @@ export default function MyPetsPage() {
               </div>
               <div>
                 <p className="text-2xl font-bold text-green-900">
-                  {pets.filter((pet) => pet?.healthStatus === "Healthy").length}
+                  {
+                    pets.filter((pet) => pet?.healthStatus === "Healthy")
+                      ?.length
+                  }
                 </p>
                 <p className="text-green-700 text-sm">Healthy Pets</p>
               </div>
@@ -220,7 +222,7 @@ export default function MyPetsPage() {
               </div>
               <div>
                 <p className="text-2xl font-bold text-purple-900">
-                  {pets.filter((pet) => pet.microchipId).length}
+                  {pets.filter((pet) => pet.microchipId)?.length}
                 </p>
                 <p className="text-purple-700 text-sm">Microchipped</p>
               </div>
@@ -333,7 +335,7 @@ export default function MyPetsPage() {
                 )}
 
                 {/* Allergies */}
-                {pet.allergies && pet.allergies.length > 0 && (
+                {pet?.allergies && pet?.allergies?.length > 0 && (
                   <div>
                     <div className="flex items-center gap-2 mb-2">
                       <AlertTriangle className="w-4 h-4 text-red-600" />
@@ -357,8 +359,8 @@ export default function MyPetsPage() {
                 )}
 
                 {/* Current Medications */}
-                {pet.currentMedications &&
-                  pet.currentMedications.length > 0 && (
+                {pet?.currentMedications &&
+                  pet?.currentMedications?.length > 0 && (
                     <div>
                       <div className="flex items-center gap-2 mb-2">
                         <Pill className="w-4 h-4 text-orange-600" />
