@@ -45,11 +45,21 @@ export async function POST(request: NextRequest) {
       phone: formData.get("phone") as string,
       password: formData.get("password") as string,
       confirmPassword: formData.get("confirmPassword") as string,
+      // New fields
+      dob: formData.get("dob") as string,
+      address: formData.get("address") as string,
+      zipCode: formData.get("zipCode") as string,
+      country: formData.get("country") as string,
+      yearsOfExperience: formData.get("yearsOfExperience") as string,
     };
 
     // Extract schedule
     const scheduleData = formData.get("schedule") as string;
     const schedule = scheduleData ? JSON.parse(scheduleData) : {};
+
+    // Extract clinic data
+    const clinicData = formData.get("clinic") as string;
+    const clinic = clinicData ? JSON.parse(clinicData) : null;
 
     // Convert schedule payload into model schedule
     const convertToSchedule = (scheduleData: any) => {
@@ -113,6 +123,11 @@ export async function POST(request: NextRequest) {
         phone: true,
         password: true,
         confirmPassword: true,
+        dob: true,
+        address: true,
+        zipCode: true,
+        country: true,
+        yearsOfExperience: true,
       })
       .safeParse(basicInfo);
 
@@ -365,6 +380,18 @@ export async function POST(request: NextRequest) {
       researchAreas: [],
       monthlyGoal: 0,
       experienceYears: "",
+      // Additional new fields
+      firstName: basicInfo.firstName,
+      lastName: basicInfo.lastName,
+      gender: basicInfo.gender,
+      dob: basicInfo.dob ? new Date(basicInfo.dob) : undefined,
+      address: basicInfo.address,
+      city: basicInfo.city,
+      state: basicInfo.state,
+      zipCode: basicInfo.zipCode ? parseInt(basicInfo.zipCode) : undefined,
+      country: basicInfo.country,
+      yearsOfExperience: basicInfo.yearsOfExperience,
+      clinic: clinic,
       isEmailVerified: false,
       isActive: true,
       isApproved: false,
