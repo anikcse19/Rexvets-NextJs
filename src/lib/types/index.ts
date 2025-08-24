@@ -132,6 +132,8 @@ export interface Doctor {
   isActive: boolean;
   isDeleted: boolean;
   isApproved: boolean;
+  rating: number; // average rating
+  reviewsCount: number;
   locale: string;
   createdAt: string; // ISO date
   updatedAt: string; // ISO date

@@ -16,6 +16,9 @@ import { formatDate } from "./lib/utils";
 import { mockDoctor } from "./data";
 import { Doctor } from "./type";
 import BookingCard from "./BookingCard";
+import DonationFormWrapper from "../Donation/DonationFormWrapper";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 export default function DoctorProfilePage({
   doctorData,
@@ -24,65 +27,73 @@ export default function DoctorProfilePage({
 }) {
   const [showAllReviews, setShowAllReviews] = useState(false);
   const [selectedDate, setSelectedDate] = useState("2025-01-16");
+  const [selectedSlot, setSelectedSlot] = useState("");
 
-  const [showDonationModal, setShowDonationModal] = useState(false);
+  const [showForm, setShowForm] = useState(false);
+  const router = useRouter();
 
-
+  const handleDonationComplete = (amount: number) => {
+    localStorage.setItem("doctorData", JSON.stringify(doctorData));
+    console.log("Donation completed:", amount);
+    router.push(
+      "/appointment-confirmation?date=" + selectedDate + "&time=" + selectedSlot
+    );
+    toast.success("Donation successful! Thank you for your support.");
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 p-4 lg:p-6">
-      <div className="max-w-[1366px] mx-auto space-y-8">
-        {/* Back Button */}
-        <Link href="/find-a-vet">
-          <Button
-            variant="outline"
-            className="border-gray-300 hover:bg-gray-50"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Find Vet
-          </Button>
-        </Link>
+      {/* Donation Modal */}
+      {showForm ? (
+        <div className="max-w-2xl mx-auto">
+          <DonationFormWrapper onDonationComplete={handleDonationComplete} />
+        </div>
+      ) : (
+        <div className="max-w-[1366px] mx-auto space-y-8">
+          {/* Back Button */}
+          <Link href="/find-a-vet">
+            <Button
+              variant="outline"
+              className="border-gray-300 hover:bg-gray-50"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Find Vet
+            </Button>
+          </Link>
 
-        {/* Doctor Header */}
-        <DoctorHeader doctor={doctorData} />
+          {/* Doctor Header */}
+          <DoctorHeader doctor={doctorData} />
 
-        {/* Main Content */}
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-          <div className="xl:col-span-2 space-y-8">
-            <AboutDoctor doctor={doctorData} />
-            <ClinicAddress doctor={doctorData} />
-            <Specialties doctor={doctorData} />
-            <SpeciesTreated doctor={doctorData} />
-            <ReviewsSection
-              doctor={mockDoctor}
-              showAll={showAllReviews}
-              setShowAll={setShowAllReviews}
-            />
-          </div>
+          {/* Main Content */}
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+            <div className="xl:col-span-2 space-y-8">
+              <AboutDoctor doctor={doctorData} />
+              <ClinicAddress doctor={doctorData} />
+              <Specialties doctor={doctorData} />
+              <SpeciesTreated doctor={doctorData} />
+              <ReviewsSection
+                doctor={mockDoctor}
+                showAll={showAllReviews}
+                setShowAll={setShowAllReviews}
+              />
+            </div>
 
-          {/* Booking */}
-          <div className="xl:col-span-1">
-            <BookingCard
-              doctorName={mockDoctor.name}
-              doctorData={doctorData}
-              onConfirm={(date: string, time: string) => {
-                console.log(`Booking appointment for ${date} at ${time}`);
-                setShowDonationModal(true);
-                setSelectedDate(date);
-              }}
-            />
+            {/* Booking */}
+            <div className="xl:col-span-1">
+              <BookingCard
+                doctorName={mockDoctor.name}
+                doctorData={doctorData}
+                onConfirm={(date: string, time: string) => {
+                  console.log(`Booking appointment for ${date} at ${time}`);
+                  setShowForm(true);
+                  setSelectedDate(date);
+                  setSelectedSlot(time);
+                }}
+              />
+            </div>
           </div>
         </div>
-      </div>
-
-      {/* Donation Modal */}
-      <DonationModal
-        isOpen={showDonationModal}
-        onClose={() => setShowDonationModal(false)}
-        doctorName={mockDoctor.name}
-        appointmentDate={formatDate(selectedDate)}
-        // appointmentTime={selectedSlot ? formatTime(selectedSlot) : ""}
-      />
+      )}
     </div>
   );
 }
