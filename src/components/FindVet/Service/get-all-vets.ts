@@ -9,7 +9,7 @@ export const getAllVets = async (
       new URLSearchParams(queryParams as Record<string, string>).toString()
     : "";
 
-  console.log("config.BASE_URL", config.BASE_URL);
+ console.log("config.BASE_URL", config.BASE_URL);
   const res = await fetch(`${config.BASE_URL}/api/veterinarian${query}`, {
    
     method: "GET",
