@@ -2,6 +2,7 @@ import { sameAs, siteName, siteUrl } from "@/lib";
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
+import { Toaster } from "sonner";
 
 const garet = localFont({
   src: [
@@ -408,6 +409,7 @@ export default function RootLayout({
         className={`${garet.variable} antialiased`}
         suppressHydrationWarning
       >
+        <Toaster richColors position="top-right" />
         {children}
       </body>
     </html>

@@ -44,6 +44,7 @@ import {
 import { calculatePetAge } from "@/lib/utils";
 import { colorOptions, speciesWithBreeds } from "@/lib";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 interface AddPetModalProps {
   isOpen: boolean;
@@ -67,6 +68,8 @@ export default function AddPetModal({
   const [newAllergy, setNewAllergy] = useState("");
   const [newCondition, setNewCondition] = useState("");
   const [newMedication, setNewMedication] = useState("");
+
+  const router = useRouter();
 
   const {
     register,
@@ -141,16 +144,22 @@ export default function AddPetModal({
         body: formData,
       });
 
+      console.log("Response from API:", response);
       if (!response.ok) {
-        throw new Error("Failed to register pet");
+        throw new Error();
       }
 
       const result = await response.json();
-      console.log("result", result);
-      toast.success("Added Pet Successfully");
+      if (result.success) {
+        toast.success(result.message || "Added Pet Successfully");
+        router.refresh();
+      } else {
+        toast.error(result.message || "Added Pet Failed");
+      }
       // onSuccess?.(result);
       handleClose();
     } catch (error) {
+      toast.error(error instanceof Error ? error.message : "An error occurred");
       console.error("Error registering pet:", error);
     } finally {
       setIsSubmitting(false);

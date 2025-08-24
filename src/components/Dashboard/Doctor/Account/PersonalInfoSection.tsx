@@ -36,6 +36,7 @@ import {
 import { mockDoctorData } from "@/lib";
 import { Doctor } from "@/lib/types";
 import { updateVet } from "../Service/update-vet";
+import { toast } from "sonner";
 
 export default function PersonalInfoSection({
   doctorData,
@@ -65,8 +66,6 @@ export default function PersonalInfoSection({
 
   const personalInfoData = extractPersonalInfo(doctorData);
 
-  console.log(doctorData, "doctor in professional component");
-
   const {
     register,
     handleSubmit,
@@ -85,11 +84,9 @@ export default function PersonalInfoSection({
   const onSubmit = async (data: PersonalInfoFormData) => {
     setIsLoading(true);
     try {
-      // API call would go here
-      console.log("Updating personal info:", data);
-      await updateVet(data); // Replace with actual API call
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate API call
+      await updateVet(data);
       setIsEditing(false);
+      toast.success("Personal information updated successfully!");
     } catch (error) {
       console.error("Error updating personal info:", error);
     } finally {

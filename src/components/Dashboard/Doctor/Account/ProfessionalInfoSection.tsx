@@ -81,14 +81,10 @@ export default function ProfessionalInfoSection({
     },
   });
 
-  console.log(errors, "form errors");
-
   const onSubmit = async (data: ProfessionalInfoFormData) => {
-    console.log("function trigerred");
     setIsLoading(true);
     try {
       const submitData = { ...data, certifications, licenses };
-      console.log("Updating professional info:", submitData);
       await updateVet(submitData);
       await new Promise((resolve) => setTimeout(resolve, 1000));
       setIsEditing(false);
