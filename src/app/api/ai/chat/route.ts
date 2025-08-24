@@ -8,6 +8,40 @@ import { getServerSession } from "next-auth/next";
 import { NextRequest, NextResponse } from "next/server";
 import { generateSessionId, saveConversation } from "../ai.chat.utils";
 
+const siteURL = "https://rexvets-nextjs.vercel.app";
+
+export const pricingPlans = [
+  {
+    id: "per-appointment",
+    name: "Per Appointment",
+    description: "Perfect for occasional visits",
+    price: 35,
+    billingType: "per visit",
+    features: [
+      "Pay only when you need it",
+      "No monthly commitments",
+      "Same professional veterinarians",
+    ],
+    site: `${siteURL}/pricing-plan`,
+  },
+  {
+    id: "family-plan",
+    name: "RexVet Family Plan",
+    description: "Complete peace of mind for all your pets",
+    priceMonthly: 11.49,
+    discountedMonthly: 10,
+    billingType: "billed annually",
+    billingAmount: 120,
+    features: [
+      "4 virtual vet appointments ($140 value minimum)",
+      "Unlimited messaging with professionals",
+      "Exclusive discounts on medications",
+      "Free shipping on all orders over $49",
+    ],
+    site: `${siteURL}/pricing-plan`,
+  },
+];
+
 // Rex Vet Team Information
 const rexVetTeam = {
   leadership: {
@@ -47,9 +81,21 @@ CORE RESPONSIBILITIES:
 4. Direct users to appropriate resources or human support when needed
 5. Explain service features, appointment booking process, and platform functionality
 6. Provide information about Rex Vet's leadership team and company background when asked
+7. Explain pricing plans and help users choose the right option for their needs
+
+REX VET PRICING PLANS:
+${JSON.stringify(pricingPlans, null, 2)}
 
 REX VET LEADERSHIP TEAM INFORMATION:
 ${JSON.stringify(rexVetTeam.leadership, null, 2)}
+
+PRICING GUIDANCE:
+- Help users understand the difference between per-appointment and family plan options
+- Explain the value proposition of each plan
+- Assist with cost-related questions
+- Direct users to the billing/support team for specific payment issues
+- Explain what's included in each plan clearly
+- For billing/payment issues: Offer to connect with billing specialists
 
 IMPORTANT PROTOCOLS:
 - For health-related questions: Politely direct users to schedule a consultation with licensed veterinarians
@@ -59,6 +105,7 @@ IMPORTANT PROTOCOLS:
 - Maintain a helpful, professional, and compassionate tone at all times
 - If a user requests to speak with a human agent, acknowledge their request and inform them they'll be connected to a human representative
 - Personalize responses when user information is available
+- Always reference our website ${siteURL} for more information
 
 CRITICAL BOUNDARIES:
 - DO NOT provide any medical advice, diagnoses, or treatment recommendations
@@ -67,6 +114,104 @@ CRITICAL BOUNDARIES:
 - Immediately redirect any health concerns to professional veterinary consultation
 
 Remember: You are a support tool designed to enhance the Rex Vet experience and provide platform assistance, not replace professional veterinary care.`;
+
+// Helper function to detect pricing-related queries
+function isPricingRelated(text: string): boolean {
+  const pricingKeywords = [
+    "price",
+    "cost",
+    "fee",
+    "payment",
+    "bill",
+    "charge",
+    "how much",
+    "pricing",
+    "plan",
+    "subscription",
+    "membership",
+    "family plan",
+    "per appointment",
+    "billing",
+    "payment",
+    "afford",
+    "expensive",
+    "cheap",
+    "discount",
+    "promo",
+    "coupon",
+    "annual",
+    "monthly",
+    "pay",
+    "money",
+    "costly",
+    "budget",
+  ];
+
+  return pricingKeywords.some((keyword) =>
+    text.toLowerCase().includes(keyword.toLowerCase())
+  );
+}
+
+// Helper function to generate pricing responses
+function generatePricingResponse(question: string, userName?: string): string {
+  const personalizedGreeting = userName ? `, ${userName}` : "";
+
+  if (
+    question.toLowerCase().includes("family") ||
+    question.toLowerCase().includes("subscription")
+  ) {
+    return `I'd be happy to tell you about our Family Plan${personalizedGreeting}! Our RexVet Family Plan costs $10/month (billed annually at $120) and includes:
+    
+• 4 virtual vet appointments per year ($140+ value)
+• Unlimited messaging with veterinary professionals
+• Exclusive discounts on medications
+• Free shipping on orders over $49
+
+This is perfect for pet parents with multiple pets or those who want complete peace of mind. Visit ${siteURL}/pricing-plan to learn more or sign up!`;
+  }
+
+  if (
+    question.toLowerCase().includes("per appointment") ||
+    question.toLowerCase().includes("single")
+  ) {
+    return `Our per-appointment option is perfect for occasional needs${personalizedGreeting}. Each virtual consultation is $35, with no monthly commitment required. You get the same professional veterinarians and quality care, just pay as you go. Learn more at ${siteURL}/pricing-plan`;
+  }
+
+  if (
+    question.toLowerCase().includes("compare") ||
+    question.toLowerCase().includes("difference")
+  ) {
+    return `Let me compare our plans for you${personalizedGreeting}:
+
+**Per Appointment ($35/visit):**
+- Pay only when you need care
+- No monthly commitment
+- Same professional veterinarians
+
+**Family Plan ($10/month billed annually):**
+- 4 virtual appointments ($140+ value)
+- Unlimited messaging
+- Medication discounts
+- Free shipping over $49
+- Best for multiple pets or frequent needs
+
+The Family Plan saves you money if you need more than 3 consultations per year. Visit ${siteURL} to compare both options in detail!`;
+  }
+
+  // Default pricing response
+  return `We offer flexible pricing options${personalizedGreeting}:
+
+1. **Per Appointment** - $35 per virtual consultation
+   - No commitment, pay as you go
+   - Perfect for occasional needs
+
+2. **Family Plan** - $10/month (billed annually)
+   - 4 appointments per year ($140+ value)
+   - Unlimited messaging + discounts
+   - Best for multiple pets
+
+Visit ${siteURL} to see all features and choose the best plan for your needs!`;
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -168,6 +313,35 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Check if this is a pricing-related query
+    if (isPricingRelated(question)) {
+      const pricingResponse = generatePricingResponse(question, userName);
+
+      // Save the conversation
+      await saveConversation({
+        sessionId,
+        userId: (session?.user as any)?.id,
+        userName: userName || "Unknown",
+        userEmail: userEmail || "unknown@example.com",
+        userMessage: question,
+        assistantMessage: pricingResponse,
+        requiresHumanSupport: false,
+        tags: ["pricing"],
+      });
+
+      return new Response(
+        JSON.stringify({
+          response: pricingResponse,
+          requiresHumanSupport: false,
+          sessionId,
+        }),
+        {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    }
+
     // Health-related query detection for redirection
     const healthKeywords = [
       "sick",
@@ -215,7 +389,9 @@ export async function POST(req: NextRequest) {
       }
 
       responseMessage +=
-        " I'd be happy to help you with platform questions, account assistance, or general information about our services. How else can I assist you today?";
+        " You can book an appointment through our website at " +
+        siteURL +
+        ". How else can I assist you today?";
 
       // Save the conversation
       await saveConversation({
@@ -266,8 +442,8 @@ export async function POST(req: NextRequest) {
           method: "POST",
           headers: {
             Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
-            "HTTP-Referer": process.env.SITE_URL || "https://rexvet.com",
-            "X-Title": process.env.SITE_NAME || "Rex Vet AI Assistant",
+            "HTTP-Referer": siteURL,
+            "X-Title": "Rex Vet AI Assistant",
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
@@ -397,6 +573,7 @@ export async function POST(req: NextRequest) {
     );
   }
 }
+
 export const GET = async () => {
   try {
     await connectToDatabase();

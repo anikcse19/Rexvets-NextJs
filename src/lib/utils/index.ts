@@ -1,4 +1,6 @@
 import { type ClassValue, clsx } from "clsx";
+import { format } from "date-fns";
+import moment from "moment-timezone";
 import { twMerge } from "tailwind-merge";
 
 /**
@@ -62,3 +64,10 @@ export function formatDate(date: string): string {
     day: "numeric",
   });
 }
+export const formatDateTime = (
+  dateString: string,
+  timeZone = "Asia/Dhaka"
+): string => {
+  const formattedDate = format(dateString, "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+  return formattedDate;
+};

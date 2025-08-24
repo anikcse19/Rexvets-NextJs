@@ -1,20 +1,20 @@
 import { connectToDatabase } from "@/lib/mongoose";
 import { sendResponse, throwAppError } from "@/lib/utils/send.response";
-import { Prescription } from "@/models/Prescription";
+import { PrescriptionModel } from "@/models/Prescription";
 import { NextRequest } from "next/server";
 
-// CREATE Prescription
+// CREATE PrescriptionModel
 export async function POST(req: NextRequest) {
   try {
     await connectToDatabase();
     const body = await req.json();
 
-    const prescription = await Prescription.create(body);
+    const prescription = await PrescriptionModel.create(body);
 
     return sendResponse({
       statusCode: 201,
       success: true,
-      message: "Prescription created successfully",
+      message: "PrescriptionModel created successfully",
       data: prescription,
     });
   } catch (error: any) {
@@ -41,16 +41,15 @@ export async function GET(req: NextRequest) {
     const skip = (page - 1) * limit;
 
     // Count total documents
-    const totalDocs = await Prescription.countDocuments();
+    const totalDocs = await PrescriptionModel.countDocuments();
 
     // Fetch prescriptions with pagination
-    const prescriptions = await Prescription.find()
+    const prescriptions = await PrescriptionModel.find()
       .populate("pet")
-      .populate("parent")
-      .populate("doctor")
       .skip(skip)
       .limit(limit)
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .exec();
 
     const totalPages = Math.ceil(totalDocs / limit);
 

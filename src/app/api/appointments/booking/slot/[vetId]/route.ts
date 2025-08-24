@@ -1,13 +1,14 @@
 import { connectToDatabase } from "@/lib/mongoose";
+import { formatDateTime } from "@/lib/utils";
 import {
   ISendResponse,
   sendResponse,
   throwAppError,
 } from "@/lib/utils/send.response";
-import { AppointmentSlot } from "@/models/AppointmentSlot";
-import { endOfDay, startOfDay } from "date-fns";
+import { SlotStatus } from "@/models/AppointmentSlot";
 import mongoose from "mongoose";
 import { NextRequest } from "next/server";
+import { getVeterinarianSlots } from "../slot.util";
 
 export async function GET(
   req: NextRequest,
@@ -15,11 +16,9 @@ export async function GET(
 ) {
   try {
     await connectToDatabase();
-    console.log("date", new Date());
+    // const timeZone: string = "Asia/Dhaka";
     const { vetId } = await params;
     const { searchParams } = new URL(req.url);
-
-    // Validate vetId
     if (!mongoose.Types.ObjectId.isValid(vetId)) {
       return throwAppError(
         {
@@ -28,53 +27,36 @@ export async function GET(
           errorCode: "INVALID_VET_ID",
           errors: null,
         },
-        500
+        400
       );
     }
-
-    // Filters
-    const date = searchParams.get("date"); // optional
-    const search = searchParams.get("search"); // optional
-
-    // Pagination
-    const page = parseInt(searchParams.get("page") || "1", 10);
-    const limit = parseInt(searchParams.get("limit") || "10", 10);
-    const skip = (page - 1) * limit;
-
-    // Use today if date is not provided
-    const filterDate = date ? new Date(date) : new Date();
-    const start = startOfDay(filterDate);
-    const end = endOfDay(filterDate);
-
-    // Build MongoDB query
-    const query: any = {
-      vetId: new mongoose.Types.ObjectId(vetId),
-      date: { $gte: start, $lte: end },
-    };
-
-    if (search) {
-      query.notes = { $regex: search, $options: "i" };
-    }
-
-    const total = await AppointmentSlot.countDocuments(query);
-    const slots = await AppointmentSlot.find(query)
-      // .populate("vetId")
-      .sort({ date: 1, startTime: 1 })
-      .skip(skip)
-      .limit(limit);
-
-    const response: ISendResponse<any[]> = {
+    const status = searchParams.get("status") || "all";
+    console.log("STATUS", status);
+    const formattedDate = formatDateTime(
+      searchParams.get("date") || new Date().toUTCString()
+    ); // Fix: Pass string directly
+    const response = await getVeterinarianSlots(vetId, {
+      date: formattedDate as any,
+      page: parseInt(searchParams.get("page") || "1", 10),
+      limit: parseInt(searchParams.get("limit") || "10", 10),
+      status: status as SlotStatus | "all",
+      timezone: searchParams.get("timezone") || "UTC",
+    });
+    console.log("response.slots", response.slots.length);
+    const responseFormat: ISendResponse<any[]> = {
       success: true,
-      data: slots,
+      data: response.slots,
       statusCode: 200,
-      message: "Appointment slots retrieved successfully",
+      message: response.slots.length
+        ? "Appointment slots retrieved successfully"
+        : "No appointment slots found for the specified date range and vetId",
       meta: {
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit),
+        page: response.meta.page,
+        limit: response.meta.limit,
+        totalPages: response.meta.totalPages,
       },
     };
-    return sendResponse(response);
+    return sendResponse(responseFormat);
   } catch (error: any) {
     console.error("GET /appointment-slots/[vetId] error:", error);
     return throwAppError(
