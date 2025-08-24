@@ -1,8 +1,8 @@
-const baseUrl = "http://localhost:3000";
+import config from "@/config/env.config";
 
 export const getVetByIdDashboard = async (id: string) => {
   console.log("Fetching vet with id:", id); // Add this line
-  const res = await fetch(`${baseUrl}/api/veterinarian/${id}`, {
+  const res = await fetch(`${config.BASE_URL}/api/veterinarian/${id}`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",

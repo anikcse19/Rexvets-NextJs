@@ -30,7 +30,7 @@ const basicInfoSchema = z.object({
   monthlyGoal: z.number().min(0).optional(),
   experienceYears: z.string().optional(),
   // Additional new fields
-  dob: z.string().datetime().optional(),
+  dob: z.coerce.date().optional(),
   address: z.string().min(1).max(200).optional(),
   zipCode: z.number().min(0).optional(),
   country: z.string().min(2).max(100).optional(),
@@ -50,8 +50,8 @@ const educationSchema = z.object({
 const experienceSchema = z.object({
   position: z.string().min(2),
   institution: z.string().min(2),
-  startDate: z.string().datetime(),
-  endDate: z.string().datetime().optional(),
+  startDate: z.coerce.date(),
+  endDate: z.coerce.date().optional(),
   description: z.string().optional(),
 });
 

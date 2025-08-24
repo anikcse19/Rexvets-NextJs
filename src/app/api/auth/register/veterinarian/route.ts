@@ -45,12 +45,12 @@ export async function POST(request: NextRequest) {
       phone: formData.get("phone") as string,
       password: formData.get("password") as string,
       confirmPassword: formData.get("confirmPassword") as string,
-      // New fields
-      dob: formData.get("dob") as string,
-      address: formData.get("address") as string,
-      zipCode: formData.get("zipCode") as string,
-      country: formData.get("country") as string,
-      yearsOfExperience: formData.get("yearsOfExperience") as string,
+      // New fields (convert null to undefined for optional validation)
+      dob: formData.get("dob") as string || undefined,
+      address: formData.get("address") as string || undefined,
+      zipCode: formData.get("zipCode") as string || undefined,
+      country: formData.get("country") as string || undefined,
+      yearsOfExperience: formData.get("yearsOfExperience") as string || undefined,
     };
 
     // Extract schedule
@@ -132,6 +132,8 @@ export async function POST(request: NextRequest) {
       .safeParse(basicInfo);
 
     if (!basicInfoValidation.success) {
+      console.error("Validation failed:", basicInfoValidation.error.issues);
+      console.error("basicInfo data:", basicInfo);
       return NextResponse.json(
         {
           error: "Validation failed",

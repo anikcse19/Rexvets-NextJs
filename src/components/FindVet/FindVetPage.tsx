@@ -130,6 +130,8 @@ export default function FindVetPage({
   const selectedState = searchParams.get("state") || "";
 
   console.log("doctors in find a vet page component", doctors);
+  console.log("veterinarians array:", doctors?.veterinarians);
+  console.log("first veterinarian:", doctors?.veterinarians?.[0]);
 
   const bangladeshStates = [
     "All States",
