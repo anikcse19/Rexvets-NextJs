@@ -1,607 +1,487 @@
-import { IVeterinarian } from "@/models";
 import { AppointmentSlot, SlotStatus } from "@/models/AppointmentSlot";
-import Veterinarian from "@/models/Veterinarian";
-import moment from "moment-timezone";
-import mongoose from "mongoose";
+import moment from "moment";
+import { Types } from "mongoose";
 
-export interface GenerateSlotsOptions {
-  startDate?: Date; // Start date for slot generation (inclusive)
-  endDate?: Date; // End date for slot generation (inclusive)
-  slotDuration?: number; // in minutes
-  bufferBetweenSlots?: number; // in minutes
-  excludeDates?: Date[];
-  includeDates?: Date[];
-  forceRegenerate?: boolean; // If true, will regenerate slots even if they exist
-}
-
-export interface DaySchedule {
-  start: string;
-  end: string;
-  available: boolean;
-}
-
-export interface SlotGenerationResult {
-  veterinarianId: string;
-  veterinarianName: string;
-  totalDaysProcessed: number;
-  totalSlotsGenerated: number;
-  totalSlotsSkipped: number;
+export interface IGenerateAppointmentSlots {
+  vetId: string;
+  slotPeriods: {
+    start: Date;
+    end: Date;
+  }[];
   dateRange: {
     start: Date;
     end: Date;
-    timezone: string;
   };
-  days: Array<{
-    date: Date;
-    day: string;
-    slotsGenerated: number;
-    slotsSkipped: number;
-  }>;
+  bufferBetweenSlots?: number;
+  slotDuration?: number;
 }
 
-/**
- * Get date range for slot generation - if no range provided, use next 7 days
- */
-function getDateRange(
-  options: GenerateSlotsOptions,
-  timezone: string = "UTC"
-): { start: Date; end: Date } {
-  let startDate: moment.Moment;
-  let endDate: moment.Moment;
-
-  if (options.startDate && options.endDate) {
-    // Use provided date range
-    startDate = moment(options.startDate).tz(timezone).startOf("day");
-    endDate = moment(options.endDate).tz(timezone).endOf("day");
-  } else {
-    // Default to next 7 days (including today)
-    startDate = moment().tz(timezone).startOf("day");
-    endDate = startDate.clone().add(6, "days").endOf("day"); // 7 days total
-  }
-
-  return {
-    start: startDate.toDate(),
-    end: endDate.toDate(),
-  };
-}
-
-/**
- * Enhanced function to check for existing slots in bulk for better performance
- */
-async function checkExistingSlotsBulk(
-  vetId: mongoose.Types.ObjectId,
-  slotsToCheck: Array<{ utcDate: Date; startTime: string; endTime: string }>
-): Promise<Set<string>> {
-  if (slotsToCheck.length === 0) {
-    return new Set();
-  }
+export const generateAppointmentSlots = async (
+  data: IGenerateAppointmentSlots
+) => {
+  const {
+    vetId,
+    slotPeriods,
+    dateRange,
+    bufferBetweenSlots = 5,
+    slotDuration = 30,
+  } = data;
 
   try {
-    const existingSlotsQuery = {
-      vetId,
-      $or: slotsToCheck.map((slot) => ({
-        date: slot.utcDate,
-        startTime: slot.startTime,
-        endTime: slot.endTime,
-      })),
-    };
+    // Convert date range to UTC
+    const startDate = moment(dateRange.start).utc().startOf("day");
+    const endDate = moment(dateRange.end).utc().startOf("day");
 
-    const existingSlots = await AppointmentSlot.find(existingSlotsQuery)
-      .select("date startTime endTime")
-      .lean();
-
-    const existingSlotIdentifiers = new Set(
-      existingSlots.map(
-        (slot) =>
-          `${moment(slot.date).format("YYYY-MM-DD")}_${slot.startTime}_${
-            slot.endTime
-          }`
-      )
-    );
-
-    return existingSlotIdentifiers;
-  } catch (error) {
-    console.error("Error checking existing slots in bulk:", error);
-    return new Set();
-  }
-}
-
-/**
- * Generate time slots for a specific available day
- */
-export function generateSlotsForDay(
-  veterinarian: IVeterinarian,
-  date: Date,
-  daySchedule: DaySchedule,
-  slotDuration: number = 30,
-  bufferBetweenSlots: number = 0
-): { startTime: string; endTime: string; utcDate: Date }[] {
-  const timezone = veterinarian.timezone || "UTC";
-  const dateMoment = moment(date).tz(timezone).startOf("day");
-
-  const slots: { startTime: string; endTime: string; utcDate: Date }[] = [];
-
-  // Parse schedule times
-  const [startHours, startMinutes] = daySchedule.start.split(":").map(Number);
-  const [endHours, endMinutes] = daySchedule.end.split(":").map(Number);
-
-  let currentSlotStart = dateMoment.clone().set({
-    hour: startHours,
-    minute: startMinutes,
-    second: 0,
-    millisecond: 0,
-  });
-
-  const dayEnd = dateMoment.clone().set({
-    hour: endHours,
-    minute: endMinutes,
-    second: 0,
-    millisecond: 0,
-  });
-
-  while (currentSlotStart.isBefore(dayEnd)) {
-    const slotEnd = currentSlotStart.clone().add(slotDuration, "minutes");
-
-    if (slotEnd.isAfter(dayEnd)) {
-      break;
+    // Validate date range
+    if (endDate.isBefore(startDate)) {
+      throw new Error("Invalid date range: end date must be after start date");
     }
 
-    const utcDate = currentSlotStart.clone().utc();
-    const startTime = currentSlotStart.clone().utc().format("HH:mm");
-    const endTime = slotEnd.clone().utc().format("HH:mm");
+    // Calculate number of days in the range
+    const numberOfDays = endDate.diff(startDate, "days") + 1;
 
-    slots.push({
-      startTime,
-      endTime,
-      utcDate: utcDate.toDate(),
+    // Check for existing slots for this vet in the date range
+    const existingSlots = await AppointmentSlot.find({
+      vetId: new Types.ObjectId(vetId),
+      date: {
+        $gte: startDate.toDate(),
+        $lte: endDate.toDate(),
+      },
     });
 
-    currentSlotStart = slotEnd.clone().add(bufferBetweenSlots, "minutes");
-  }
-
-  return slots;
-}
-
-/**
- * Check if a specific day is available in veterinarian's schedule
- */
-export function checkDayAvailability(
-  veterinarian: IVeterinarian,
-  date: Date
-): { isAvailable: boolean; schedule: DaySchedule; day: string } {
-  const timezone = veterinarian.timezone || "UTC";
-  const dateMoment = moment(date).tz(timezone);
-  const dayOfWeek = dateMoment
-    .format("dddd")
-    .toLowerCase() as keyof typeof veterinarian.schedule;
-
-  const daySchedule = veterinarian.schedule[dayOfWeek] as DaySchedule;
-
-  if (!veterinarian.available || !daySchedule.available) {
-    return {
-      isAvailable: false,
-      schedule: daySchedule,
-      day: dayOfWeek,
-    };
-  }
-
-  return {
-    isAvailable: true,
-    schedule: daySchedule,
-    day: dayOfWeek,
-  };
-}
-
-/**
- * Get all available days within a date range
- */
-export function getAvailableDaysInRange(
-  veterinarian: IVeterinarian,
-  startDate: Date,
-  endDate: Date
-): { date: Date; day: string; schedule: DaySchedule }[] {
-  const availableDays: { date: Date; day: string; schedule: DaySchedule }[] =
-    [];
-  const timezone = veterinarian.timezone || "UTC";
-
-  let currentDate = moment(startDate).tz(timezone).startOf("day");
-  const endDateMoment = moment(endDate).tz(timezone).endOf("day");
-
-  while (currentDate.isSameOrBefore(endDateMoment)) {
-    const availability = checkDayAvailability(
-      veterinarian,
-      currentDate.toDate()
-    );
-
-    if (availability.isAvailable) {
-      availableDays.push({
-        date: currentDate.toDate(),
-        day: availability.day,
-        schedule: availability.schedule,
-      });
+    // If slots already exist, return early without generating new ones
+    if (existingSlots.length > 0) {
+      return {
+        success: false,
+        message: `Appointment slots already exist for this vet between ${startDate.format(
+          "YYYY-MM-DD"
+        )} and ${endDate.format(
+          "YYYY-MM-DD"
+        )}. Please delete existing slots first.`,
+        existingSlotsCount: existingSlots.length,
+      };
     }
 
-    currentDate = currentDate.add(1, "day");
-  }
+    const slotsToCreate = [];
 
-  return availableDays;
-}
+    // Process each day in the date range
+    for (let day = 0; day < numberOfDays; day++) {
+      const currentDate = startDate.clone().add(day, "days");
+      const utcDate = currentDate.toDate();
 
-/**
- * Enhanced slot generation with date range support
- */
-export async function generateSlotsForVeterinarian(
-  veterinarian: IVeterinarian,
-  options: GenerateSlotsOptions = {}
-): Promise<SlotGenerationResult> {
-  const {
-    slotDuration = 30,
-    bufferBetweenSlots = 0,
-    excludeDates = [],
-    includeDates = [],
-    forceRegenerate = false,
-  } = options;
+      // Process each slot period for this day
+      for (const period of slotPeriods) {
+        const periodStart = moment(period.start).utc();
+        const periodEnd = moment(period.end).utc();
 
-  const timezone = veterinarian.timezone || "UTC";
-
-  // Get date range - if not provided, default to next 7 days
-  const dateRange = getDateRange(options, timezone);
-
-  const result: SlotGenerationResult = {
-    veterinarianId: (veterinarian as any)._id.toString(),
-    veterinarianName: veterinarian.name,
-    totalDaysProcessed: 0,
-    totalSlotsGenerated: 0,
-    totalSlotsSkipped: 0,
-    dateRange: {
-      start: dateRange.start,
-      end: dateRange.end,
-      timezone,
-    },
-    days: [],
-  };
-
-  console.log(
-    `🔍 Checking availability for ${veterinarian.name} from ${moment(
-      dateRange.start
-    ).format("YYYY-MM-DD")} to ${moment(dateRange.end).format("YYYY-MM-DD")}...`
-  );
-
-  // First, check if veterinarian is globally available
-  if (!veterinarian.available) {
-    console.log(`❌ Skipping ${veterinarian.name} - not available globally`);
-    return result;
-  }
-
-  // Get all available days in the range
-  const availableDays = getAvailableDaysInRange(
-    veterinarian,
-    dateRange.start,
-    dateRange.end
-  );
-
-  console.log(
-    `📅 Found ${availableDays.length} available days for ${veterinarian.name} in the date range`
-  );
-
-  // Filter by include/exclude dates if specified
-  let filteredDays = availableDays;
-
-  if (excludeDates.length > 0) {
-    filteredDays = filteredDays.filter(
-      (day) =>
-        !excludeDates.some((excludeDate) =>
-          moment(excludeDate).tz(timezone).isSame(day.date, "day")
-        )
-    );
-  }
-
-  if (includeDates.length > 0) {
-    filteredDays = filteredDays.filter((day) =>
-      includeDates.some((includeDate) =>
-        moment(includeDate).tz(timezone).isSame(day.date, "day")
-      )
-    );
-  }
-
-  result.totalDaysProcessed = filteredDays.length;
-
-  // Process each available day
-  for (const dayInfo of filteredDays) {
-    const dayResult = {
-      date: dayInfo.date,
-      day: dayInfo.day,
-      slotsGenerated: 0,
-      slotsSkipped: 0,
-    };
-
-    try {
-      // Generate potential slots for this day
-      const potentialSlots = generateSlotsForDay(
-        veterinarian,
-        dayInfo.date,
-        dayInfo.schedule,
-        slotDuration,
-        bufferBetweenSlots
-      );
-
-      console.log(
-        `⏰ Found ${potentialSlots.length} potential slots for ${
-          veterinarian.name
-        } on ${moment(dayInfo.date).format("YYYY-MM-DD")} (${dayInfo.day})`
-      );
-
-      if (potentialSlots.length === 0) {
-        result.days.push(dayResult);
-        continue;
-      }
-
-      // Check for existing slots in bulk
-      let existingSlotIdentifiers: Set<string>;
-
-      if (!forceRegenerate) {
-        existingSlotIdentifiers = await checkExistingSlotsBulk(
-          (veterinarian as any)._id,
-          potentialSlots.map((slot) => ({
-            utcDate: slot.utcDate,
-            startTime: slot.startTime,
-            endTime: slot.endTime,
-          }))
-        );
-      } else {
-        existingSlotIdentifiers = new Set();
-      }
-
-      const slotsToCreate: typeof potentialSlots = [];
-
-      for (const slot of potentialSlots) {
-        const slotIdentifier = `${moment(slot.utcDate).format("YYYY-MM-DD")}_${
-          slot.startTime
-        }_${slot.endTime}`;
-
-        if (existingSlotIdentifiers.has(slotIdentifier)) {
-          dayResult.slotsSkipped++;
-          result.totalSlotsSkipped++;
-        } else {
-          slotsToCreate.push(slot);
+        // Validate that the period is valid
+        if (periodEnd.isSameOrBefore(periodStart)) {
+          throw new Error(
+            `Invalid time period: end time must be after start time`
+          );
         }
-      }
 
-      console.log(
-        `📊 Creating ${slotsToCreate.length} new slots, skipping ${dayResult.slotsSkipped} existing slots`
-      );
+        // Calculate total time needed per slot (duration + buffer)
+        const totalTimePerSlot = slotDuration + bufferBetweenSlots;
 
-      // Create new slots
-      if (slotsToCreate.length > 0) {
-        const bulkOperations = slotsToCreate.map((slot) => ({
-          insertOne: {
-            document: {
-              vetId: veterinarian._id,
-              date: slot.utcDate,
-              startTime: slot.startTime,
-              endTime: slot.endTime,
-              status: SlotStatus.AVAILABLE,
-              notes: `Auto-generated slot for ${veterinarian.name} on ${moment(
-                dayInfo.date
-              ).format("YYYY-MM-DD")}`,
-              createdAt: new Date(),
-              updatedAt: new Date(),
-            },
-          },
-        }));
+        // Generate slots within this period with buffer consideration
+        let currentSlotStart = periodStart.clone();
 
-        try {
-          const bulkResult = await AppointmentSlot.bulkWrite(bulkOperations, {
-            ordered: false,
-          });
-          dayResult.slotsGenerated = bulkResult.insertedCount;
-          result.totalSlotsGenerated += bulkResult.insertedCount;
+        while (currentSlotStart.isBefore(periodEnd)) {
+          const currentSlotEnd = currentSlotStart
+            .clone()
+            .add(slotDuration, "minutes");
 
-          console.log(
-            `✅ Successfully created ${
-              bulkResult.insertedCount
-            } slots for ${moment(dayInfo.date).format("YYYY-MM-DD")}`
-          );
-        } catch (bulkError) {
-          console.error(
-            `❌ Bulk insert error for ${moment(dayInfo.date).format(
-              "YYYY-MM-DD"
-            )}:`,
-            bulkError
-          );
-          // Fallback to individual inserts
-          for (const slot of slotsToCreate) {
-            try {
-              const newSlot = new AppointmentSlot({
-                vetId: veterinarian._id,
-                date: slot.utcDate,
-                startTime: slot.startTime,
-                endTime: slot.endTime,
-                status: SlotStatus.AVAILABLE,
-                notes: `Auto-generated slot for ${
-                  veterinarian.name
-                } on ${moment(dayInfo.date).format("YYYY-MM-DD")}`,
-              });
+          // If the slot would extend beyond the period end, break
+          if (currentSlotEnd.isAfter(periodEnd)) {
+            break;
+          }
 
-              await newSlot.save();
-              dayResult.slotsGenerated++;
-              result.totalSlotsGenerated++;
-            } catch (slotError) {
-              console.error("Error creating individual slot:", slotError);
-            }
+          // Create slot data with ISO 8601 UTC format for times
+          const slotData = {
+            vetId: new Types.ObjectId(vetId),
+            date: utcDate,
+            startTime: currentSlotStart.toISOString(),
+            endTime: currentSlotEnd.toISOString(),
+            status: SlotStatus.AVAILABLE,
+            createdAt: new Date(),
+          };
+
+          slotsToCreate.push(slotData);
+
+          // Move to next slot, considering buffer time
+          currentSlotStart = currentSlotEnd
+            .clone()
+            .add(bufferBetweenSlots, "minutes");
+
+          // If next slot start would be beyond period end, break
+          if (currentSlotStart.isSameOrAfter(periodEnd)) {
+            break;
           }
         }
       }
-    } catch (dayError) {
-      console.error(
-        `❌ Error processing day ${moment(dayInfo.date).format(
-          "YYYY-MM-DD"
-        )} for ${veterinarian.name}:`,
-        dayError
-      );
-    } finally {
-      result.days.push(dayResult);
     }
+
+    // Insert all generated slots in bulk
+    if (slotsToCreate.length > 0) {
+      await AppointmentSlot.insertMany(slotsToCreate);
+    }
+
+    return {
+      success: true,
+      message: `Generated ${
+        slotsToCreate.length
+      } appointment slots between ${startDate.format(
+        "YYYY-MM-DD"
+      )} and ${endDate.format("YYYY-MM-DD")}`,
+      slotsCount: slotsToCreate.length,
+      dateRange: {
+        start: startDate.toDate(),
+        end: endDate.toDate(),
+      },
+      slotDuration: slotDuration,
+      bufferBetweenSlots: bufferBetweenSlots,
+    };
+  } catch (error: any) {
+    console.error("Error generating appointment slots:", error);
+    throw new Error(`Failed to generate appointment slots: ${error.message}`);
   }
-
-  console.log(
-    `🎯 Completed for ${veterinarian.name}: ${result.totalSlotsGenerated} slots generated, ${result.totalSlotsSkipped} slots skipped for ${result.totalDaysProcessed} days`
-  );
-
-  return result;
+};
+export interface IUpdateAppointmentSlots {
+  vetId: string;
+  slotPeriods: {
+    start: Date;
+    end: Date;
+  }[];
+  dateRange: {
+    start: Date;
+    end: Date;
+  };
+  bufferBetweenSlots?: number;
+  slotDuration?: number;
 }
 
-/**
- * Get all available veterinarians
- */
-export async function getAllAvailableVeterinarians(): Promise<IVeterinarian[]> {
+export const updateAppointmentSlots = async (data: IUpdateAppointmentSlots) => {
   try {
-    const veterinarians = await Veterinarian.find({
-      // available: true,
-      // isActive: true,
-      // isApproved: true,
-      // isDeleted: false,
-    }).exec();
+    const {
+      vetId,
+      slotPeriods,
+      dateRange,
+      bufferBetweenSlots = 5,
+      slotDuration = 30,
+    } = data;
 
-    return veterinarians;
-  } catch (error) {
-    console.error("Error fetching veterinarians:", error);
-    throw new Error("Failed to fetch veterinarians");
+    // Convert date range to UTC
+    const startDate = moment(dateRange.start).utc().startOf("day");
+    const endDate = moment(dateRange.end).utc().startOf("day");
+
+    // Validate date range
+    if (endDate.isBefore(startDate)) {
+      throw new Error("Invalid date range: end date must be after start date");
+    }
+
+    // Validate slot periods
+    for (const period of slotPeriods) {
+      const periodStart = moment(period.start).utc();
+      const periodEnd = moment(period.end).utc();
+
+      if (periodEnd.isSameOrBefore(periodStart)) {
+        throw new Error(
+          `Invalid time period: end time must be after start time`
+        );
+      }
+    }
+
+    // Get all existing slots for this vet in the date range
+    const existingSlots = await AppointmentSlot.find({
+      vetId: new Types.ObjectId(vetId),
+      date: {
+        $gte: startDate.toDate(),
+        $lte: endDate.toDate(),
+      },
+    });
+
+    // Separate booked and available slots
+    const bookedSlots = existingSlots.filter(
+      (slot) => slot.status !== SlotStatus.AVAILABLE
+    );
+    const availableSlots = existingSlots.filter(
+      (slot) => slot.status === SlotStatus.AVAILABLE
+    );
+
+    // Calculate number of days in the range
+    const numberOfDays = endDate.diff(startDate, "days") + 1;
+
+    // Generate new available slots based on the updated configuration
+    const newAvailableSlots = [];
+
+    // Process each day in the date range
+    for (let day = 0; day < numberOfDays; day++) {
+      const currentDate = startDate.clone().add(day, "days");
+      const utcDate = currentDate.toDate();
+
+      // Process each slot period for this day
+      for (const period of slotPeriods) {
+        const periodStart = moment(period.start).utc();
+        const periodEnd = moment(period.end).utc();
+
+        // Generate slots within this period with buffer consideration
+        let currentSlotStart = periodStart.clone();
+
+        while (currentSlotStart.isBefore(periodEnd)) {
+          const currentSlotEnd = currentSlotStart
+            .clone()
+            .add(slotDuration, "minutes");
+
+          // If the slot would extend beyond the period end, break
+          if (currentSlotEnd.isAfter(periodEnd)) {
+            break;
+          }
+
+          // Create slot data
+          const slotData = {
+            vetId: new Types.ObjectId(vetId),
+            date: utcDate,
+            startTime: currentSlotStart.toISOString(),
+            endTime: currentSlotEnd.toISOString(),
+            status: SlotStatus.AVAILABLE,
+            createdAt: new Date(),
+          };
+
+          newAvailableSlots.push(slotData);
+
+          // Move to next slot, considering buffer time
+          currentSlotStart = currentSlotEnd
+            .clone()
+            .add(bufferBetweenSlots, "minutes");
+
+          // If next slot start would be beyond period end, break
+          if (currentSlotStart.isSameOrAfter(periodEnd)) {
+            break;
+          }
+        }
+      }
+    }
+
+    // Start a session for transaction
+    const session = await AppointmentSlot.startSession();
+    session.startTransaction();
+
+    try {
+      // Delete only the available slots (keep booked slots)
+      if (availableSlots.length > 0) {
+        await AppointmentSlot.deleteMany(
+          {
+            _id: { $in: availableSlots.map((slot) => slot._id) },
+          },
+          { session }
+        );
+      }
+
+      // Insert the new available slots
+      let createdSlotsCount = 0;
+      if (newAvailableSlots.length > 0) {
+        const insertResult = await AppointmentSlot.insertMany(
+          newAvailableSlots,
+          { session }
+        );
+        createdSlotsCount = insertResult.length;
+      }
+
+      // Commit the transaction
+      await session.commitTransaction();
+      session.endSession();
+
+      return {
+        success: true,
+        message: `Updated appointment slots for vet ${vetId} between ${startDate.format(
+          "YYYY-MM-DD"
+        )} and ${endDate.format("YYYY-MM-DD")}`,
+        preservedBookedSlots: bookedSlots.length,
+        deletedAvailableSlots: availableSlots.length,
+        createdSlotsCount: createdSlotsCount,
+        totalSlots: bookedSlots.length + createdSlotsCount,
+        dateRange: {
+          start: startDate.toDate(),
+          end: endDate.toDate(),
+        },
+        slotDuration: slotDuration,
+        bufferBetweenSlots: bufferBetweenSlots,
+      };
+    } catch (transactionError: any) {
+      // If anything goes wrong, abort the transaction
+      await session.abortTransaction();
+      session.endSession();
+      throw transactionError;
+    }
+  } catch (error: any) {
+    console.error("Error updating appointment slots:", error);
+    throw new Error(`Failed to update appointment slots: ${error.message}`);
   }
+};
+export enum SortOrder {
+  ASC = "asc",
+  DESC = "desc",
+}
+export interface IGetAppointmentSlots {
+  vetId: string;
+  dateRange: {
+    start: Date;
+    end: Date;
+  };
+  page?: number;
+  limit?: number;
+  status?: SlotStatus | "ALL";
+  search?: string;
+  sortBy?: string;
+  sortOrder?: SortOrder;
 }
 
-/**
- * Enhanced function to generate slots for all veterinarians with date range support
- */
-export async function generateSlotsForAllVeterinarians(
-  options?: GenerateSlotsOptions
-): Promise<{
-  results: { [vetId: string]: SlotGenerationResult };
-  summary: {
-    totalVeterinarians: number;
-    totalSlotsGenerated: number;
-    totalSlotsSkipped: number;
-    totalDaysProcessed: number;
-    successfulVeterinarians: number;
-    failedVeterinarians: number;
+export interface IGetAppointmentSlotsResponse {
+  data: any[];
+  meta: {
+    page?: number;
+    limit?: number;
+    totalPages?: number;
+    totalItems: number;
+  };
+  filters: {
     dateRange: {
       start: Date;
       end: Date;
-      timezone: string;
     };
+    status?: SlotStatus | "ALL";
+    search?: string;
   };
-}> {
-  const results: { [vetId: string]: SlotGenerationResult } = {};
-  let totalSlotsGenerated = 0;
-  let totalSlotsSkipped = 0;
-  let totalDaysProcessed = 0;
-  let successfulVeterinarians = 0;
-  let failedVeterinarians = 0;
+}
 
-  // Get all available veterinarians
-  const veterinarians: any = await getAllAvailableVeterinarians();
+export const getAppointmentSlots = async (
+  params: IGetAppointmentSlots
+): Promise<IGetAppointmentSlotsResponse> => {
+  try {
+    const {
+      vetId,
+      dateRange,
+      page = 1,
+      limit = 10,
+      status = "ALL",
+      search = "",
+      sortBy = "date",
+      sortOrder = "asc",
+    } = params;
 
-  console.log(`👥 Found ${veterinarians.length} available veterinarians`);
+    // Validate date range
+    const startDate = moment(dateRange.start).utc().startOf("day");
+    const endDate = moment(dateRange.end).utc().startOf("day");
 
-  // Use first vet's timezone for date range consistency (or default to UTC)
-  const defaultTimezone = veterinarians[0]?.timezone || "UTC";
-  const dateRange = getDateRange(options || {}, defaultTimezone);
-
-  for (const vet of veterinarians) {
-    try {
-      console.log(`\n🚀 Processing veterinarian: ${vet.name}`);
-      const result = await generateSlotsForVeterinarian(vet, options);
-
-      results[vet._id.toString()] = result;
-      totalSlotsGenerated += result.totalSlotsGenerated;
-      totalSlotsSkipped += result.totalSlotsSkipped;
-      totalDaysProcessed += result.totalDaysProcessed;
-      successfulVeterinarians++;
-
-      console.log(
-        `✅ Completed ${vet.name}: ${result.totalSlotsGenerated} slots generated`
-      );
-    } catch (error) {
-      console.error(
-        `❌ Error generating slots for veterinarian ${vet.name}:`,
-        error
-      );
-      failedVeterinarians++;
-
-      results[vet._id.toString()] = {
-        veterinarianId: vet._id.toString(),
-        veterinarianName: vet.name,
-        totalDaysProcessed: 0,
-        totalSlotsGenerated: 0,
-        totalSlotsSkipped: 0,
-        dateRange: {
-          start: dateRange.start,
-          end: dateRange.end,
-          timezone: vet.timezone || defaultTimezone,
-        },
-        days: [],
-      };
+    if (endDate.isBefore(startDate)) {
+      throw new Error("Invalid date range: end date must be after start date");
     }
-  }
 
-  return {
-    results,
-    summary: {
-      totalVeterinarians: veterinarians.length,
-      totalSlotsGenerated,
-      totalSlotsSkipped,
-      totalDaysProcessed,
-      successfulVeterinarians,
-      failedVeterinarians,
-      dateRange: {
-        start: dateRange.start,
-        end: dateRange.end,
-        timezone: defaultTimezone,
+    // Build the base query
+    const baseQuery: any = {
+      vetId: new Types.ObjectId(vetId),
+      date: {
+        $gte: startDate.toDate(),
+        $lte: endDate.toDate(),
       },
-    },
-  };
-}
+    };
 
-/**
- * Generate slots for a specific date range (main entry point)
- */
-export async function generateSlotsForDateRange(
-  startDate: Date,
-  endDate: Date,
-  options: Omit<GenerateSlotsOptions, "startDate" | "endDate"> = {}
-): Promise<{
-  results: { [vetId: string]: SlotGenerationResult };
-  summary: {
-    totalVeterinarians: number;
-    totalSlotsGenerated: number;
-    totalSlotsSkipped: number;
-    totalDaysProcessed: number;
-    successfulVeterinarians: number;
-    failedVeterinarians: number;
-  };
-}> {
-  return generateSlotsForAllVeterinarians({
-    ...options,
-    startDate,
-    endDate,
+    // Add status filter
+    if (status !== "ALL") {
+      baseQuery.status = status;
+    }
+
+    // Add search functionality
+    if (search.trim()) {
+      const searchRegex = new RegExp(search, "i");
+
+      // Search across multiple fields using $or
+      baseQuery.$or = [
+        { status: searchRegex },
+        { vetId: searchRegex }, // If you want to search by vet details
+        // Add other searchable fields as needed
+      ];
+    }
+
+    // Calculate pagination
+    const skip = (page - 1) * limit;
+
+    // Build sort object
+    const sort: any = {};
+    sort[sortBy] = sortOrder === SortOrder.ASC ? 1 : -1;
+
+    // Execute queries in parallel for better performance
+    const [slots, totalCount] = await Promise.all([
+      // Get paginated results
+      AppointmentSlot.find(baseQuery).sort(sort).skip(skip).limit(limit).lean(), // Use lean for better performance
+
+      // Get total count for pagination
+      AppointmentSlot.countDocuments(baseQuery),
+    ]);
+
+    // Calculate total pages
+    const totalPages = Math.ceil(totalCount / limit);
+
+    // Format the response data
+    const formattedSlots = slots.map((slot) => ({
+      ...slot,
+      // Add any additional formatting here
+      formattedDate: moment(slot.date).format("YYYY-MM-DD"),
+      formattedStartTime: moment(slot.startTime).format("HH:mm"),
+      formattedEndTime: moment(slot.endTime).format("HH:mm"),
+    }));
+
+    return {
+      data: formattedSlots,
+      meta: {
+        page: page,
+        limit: limit,
+        totalPages: totalPages,
+        totalItems: totalCount,
+      },
+      filters: {
+        dateRange: {
+          start: startDate.toDate(),
+          end: endDate.toDate(),
+        },
+        status: status !== "ALL" ? status : undefined,
+        search: search.trim() || undefined,
+      },
+    };
+  } catch (error: any) {
+    console.error("Error fetching appointment slots:", error);
+    throw new Error(`Failed to fetch appointment slots: ${error.message}`);
+  }
+};
+export interface IGetSlotsParams {
+  vetId: string;
+  dateRange: { start: Date; end: Date };
+  limit?: number;
+  sortBy?: string;
+  sortOrder?: SortOrder;
+  page?: number;
+  status?: SlotStatus;
+  search?: string;
+}
+export const getSlotsByVetId = async ({
+  vetId,
+  dateRange,
+  limit = 100,
+  sortBy = "startTime",
+  sortOrder = SortOrder.ASC,
+  page,
+  search = "",
+  status = SlotStatus.AVAILABLE,
+}: IGetSlotsParams) => {
+  return getAppointmentSlots({
+    vetId,
+    dateRange,
+    status,
+    limit,
+    page,
+    sortBy,
+    sortOrder,
+    search,
   });
-}
-
-/**
- * Generate slots for next 7 days (backward compatibility)
- */
-export async function generateSlotsForNextWeek(
-  options: Omit<GenerateSlotsOptions, "startDate" | "endDate"> = {}
-): Promise<{
-  results: { [vetId: string]: SlotGenerationResult };
-  summary: {
-    totalVeterinarians: number;
-    totalSlotsGenerated: number;
-    totalSlotsSkipped: number;
-    totalDaysProcessed: number;
-    successfulVeterinarians: number;
-    failedVeterinarians: number;
-  };
-}> {
-  return generateSlotsForAllVeterinarians(options);
-}
+};

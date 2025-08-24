@@ -1,10 +1,11 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { connectToDatabase } from '@/lib/mongoose';
-import { VeterinarianModel } from '@/models';
+import { connectToDatabase } from "@/lib/mongoose";
+import { ISendResponse, sendResponse } from "@/lib/utils/send.response";
+import { VeterinarianModel } from "@/models";
+import { NextRequest, NextResponse } from "next/server";
 
 /**
  * GET /api/veterinarian
- * 
+ *
  * Returns a paginated list of veterinarians.
  * Query params:
  * - page: number (default 1)
@@ -16,20 +17,23 @@ import { VeterinarianModel } from '@/models';
 export async function GET(req: NextRequest) {
   try {
     await connectToDatabase();
-
+    console.log("HELLO");
     const { searchParams } = new URL(req.url);
-    const page = Math.max(parseInt(searchParams.get('page') || '1', 10), 1);
-    const limit = Math.min(Math.max(parseInt(searchParams.get('limit') || '20', 10), 1), 100);
-    const q = (searchParams.get('q') || searchParams.get('name') || '').trim();
-    const specialization = (searchParams.get('specialization') || '').trim();
-    const availableParam = searchParams.get('available');
-    const approvedParam = searchParams.get('approved');
-    const speciality = (searchParams.get('speciality') || '').trim();
-    const treatedSpecies = (searchParams.get('treatedSpecies') || '').trim();
-    const interest = (searchParams.get('interest') || '').trim();
-    const researchArea = (searchParams.get('researchArea') || '').trim();
-    const monthlyGoal = searchParams.get('monthlyGoal');
-    const experienceYears = (searchParams.get('experienceYears') || '').trim();
+    const page = Math.max(parseInt(searchParams.get("page") || "1", 10), 1);
+    const limit = Math.min(
+      Math.max(parseInt(searchParams.get("limit") || "20", 10), 1),
+      100
+    );
+    const q = (searchParams.get("q") || searchParams.get("name") || "").trim();
+    const specialization = (searchParams.get("specialization") || "").trim();
+    const availableParam = searchParams.get("available");
+    const approvedParam = searchParams.get("approved");
+    const speciality = (searchParams.get("speciality") || "").trim();
+    const treatedSpecies = (searchParams.get("treatedSpecies") || "").trim();
+    const interest = (searchParams.get("interest") || "").trim();
+    const researchArea = (searchParams.get("researchArea") || "").trim();
+    const monthlyGoal = searchParams.get("monthlyGoal");
+    const experienceYears = (searchParams.get("experienceYears") || "").trim();
 
     const filter: Record<string, any> = {
       isActive: true,
@@ -37,21 +41,21 @@ export async function GET(req: NextRequest) {
     };
 
     // Do not force approval by default; allow optional filtering via `approved`
-    if (approvedParam === 'true') {
+    if (approvedParam === "true") {
       filter.isApproved = true;
-    } else if (approvedParam === 'false') {
+    } else if (approvedParam === "false") {
       filter.isApproved = false;
     }
 
     if (q) {
-      filter.name = { $regex: q, $options: 'i' };
+      filter.name = { $regex: q, $options: "i" };
     }
     if (specialization) {
       filter.specialization = specialization;
     }
-    if (availableParam === 'true') {
+    if (availableParam === "true") {
       filter.available = true;
-    } else if (availableParam === 'false') {
+    } else if (availableParam === "false") {
       filter.available = false;
     }
     if (speciality) {
@@ -70,11 +74,13 @@ export async function GET(req: NextRequest) {
       filter.monthlyGoal = { $gte: parseInt(monthlyGoal) };
     }
     if (experienceYears) {
-      filter.experienceYears = { $regex: experienceYears, $options: 'i' };
+      filter.experienceYears = { $regex: experienceYears, $options: "i" };
     }
 
     const query = VeterinarianModel.find(filter)
-      .select('-password -emailVerificationToken -passwordResetToken -googleAccessToken -googleRefreshToken')
+      .select(
+        "-password -emailVerificationToken -passwordResetToken -googleAccessToken -googleRefreshToken"
+      )
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(limit);
@@ -83,29 +89,37 @@ export async function GET(req: NextRequest) {
       query,
       VeterinarianModel.countDocuments(filter),
     ]);
-
-    return NextResponse.json({
+    const responseData: ISendResponse<any> = {
+      statusCode: 200,
       success: true,
       message: "Veterinarians retrieved successfully",
-      data: {
-        veterinarians: items,
-        pagination: {
-          page,
-          limit,
-          total,
-          pages: Math.ceil(total / limit),
-        }
-      }
-    });
+      data: items,
+    };
+
+    return sendResponse(responseData);
+    // return NextResponse.json({
+    //   success: true,
+    //   message: "Veterinarians retrieved successfully",
+    //   data: {
+    //     veterinarians: items,
+    //     pagination: {
+    //       page,
+    //       limit,
+    //       total,
+    //       pages: Math.ceil(total / limit),
+    //     },
+    //   },
+    // });
   } catch (error: any) {
-    console.error('GET /api/veterinarian error:', error);
-    return NextResponse.json({
-      success: false,
-      message: 'Failed to fetch veterinarians',
-      errorCode: 'FETCH_ERROR',
-      errors: null
-    }, { status: 500 });
+    console.error("GET /api/veterinarian error:", error);
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Failed to fetch veterinarians",
+        errorCode: "FETCH_ERROR",
+        errors: null,
+      },
+      { status: 500 }
+    );
   }
 }
-
-
