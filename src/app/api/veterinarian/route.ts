@@ -15,7 +15,10 @@ import { VeterinarianModel } from '@/models';
  */
 export async function GET(req: NextRequest) {
   try {
+    console.log('Connecting to database...');
+    console.log('MongoDB URI (first 20 chars):', process.env.MONGODB_URI?.substring(0, 20) + '...');
     await connectToDatabase();
+    console.log('Database connected successfully');
 
     const { searchParams } = new URL(req.url);
     const page = Math.max(parseInt(searchParams.get('page') || '1', 10), 1);
@@ -37,8 +40,9 @@ export async function GET(req: NextRequest) {
     const yearsOfExperience = (searchParams.get('yearsOfExperience') || '').trim();
 
     const filter: Record<string, any> = {
-      isActive: true,
-      isDeleted: { $ne: true },
+      // Temporarily removed filters to debug
+      // isActive: true,
+      // isDeleted: { $ne: true },
     };
 
     // Do not force approval by default; allow optional filtering via `approved`
@@ -103,6 +107,15 @@ export async function GET(req: NextRequest) {
       query,
       VeterinarianModel.countDocuments(filter),
     ]);
+
+    // Debug logging
+    console.log('Filter applied:', JSON.stringify(filter, null, 2));
+    console.log('Total veterinarians found:', total);
+    console.log('Items returned:', items.length);
+    
+    // Check total count without filters
+    const totalWithoutFilters = await VeterinarianModel.countDocuments({});
+    console.log('Total veterinarians in database (no filters):', totalWithoutFilters);
 
     return NextResponse.json({
       success: true,
