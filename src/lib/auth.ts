@@ -17,6 +17,7 @@ const signInSchema = z.object({
 });
 
 export const authOptions = {
+  secret: process.env.NEXTAUTH_SECRET,
   providers: [
     GoogleProvider({
       clientId: config.GOOGLE_CLIENT_ID!,
@@ -26,7 +27,16 @@ export const authOptions = {
           prompt: "consent",
           access_type: "offline",
           response_type: "code",
+          scope: "openid email profile",
         },
+      },
+      profile(profile) {
+        return {
+          id: profile.sub,
+          name: profile.name,
+          email: profile.email,
+          image: profile.picture,
+        };
       },
     }),
     CredentialsProvider({
@@ -265,7 +275,7 @@ export const authOptions = {
       console.log("User signed out:", session?.user?.email);
     },
   },
-  debug: process.env.NODE_ENV === "development",
+  debug: false,
 };
 
 // export default NextAuth(authOptions);

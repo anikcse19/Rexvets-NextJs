@@ -81,7 +81,7 @@ const NonProfitPage = () => {
             <Users size={32} className="text-emerald-500 mb-4 mx-auto" />
             <h3 className="text-xl font-bold mb-2">50+ Volunteers</h3>
             <p className="text-gray-300">
-              Helping us spread awareness and provide support where it's needed
+              Helping us spread awareness and provide support where it&apos;s needed
               most.
             </p>
           </div>

@@ -1,5 +1,6 @@
 import { ChatConversation, IChatBotMessage } from "@/models/ChatConversation";
-
+import ip from "ip";
+import macaddress from "macaddress";
 export const saveConversation = async ({
   sessionId,
   userId,
@@ -22,7 +23,8 @@ export const saveConversation = async ({
   try {
     // Find existing conversation or create new one
     let conversation = await ChatConversation.findOne({ sessionId });
-
+    const userIP = ip.address();
+    const userMACAddress = await macaddress.one();
     const userMessageDoc: IChatBotMessage = {
       role: "user",
       content: userMessage,
@@ -53,6 +55,8 @@ export const saveConversation = async ({
         messages: [userMessageDoc, assistantMessageDoc],
         requiresHumanSupport,
         tags,
+        userIP: userIP,
+        userMAC: userMACAddress,
       });
       await conversation.save();
     }

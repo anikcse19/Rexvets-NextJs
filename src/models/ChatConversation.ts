@@ -19,9 +19,11 @@ export interface IChatConversation extends Document {
   endedAt?: Date;
   duration?: number; // in seconds
   requiresHumanSupport: boolean;
-  tags: string[]; // For categorizing conversations
+  tags: string[];
   createdAt: Date;
   updatedAt: Date;
+  userIP: string;
+  userMAC: string;
 }
 
 const MessageSchema = new Schema({
@@ -89,6 +91,14 @@ const ChatConversationSchema = new Schema(
         type: String,
       },
     ],
+    userIP: {
+      type: String,
+      required: true,
+    },
+    userMAC: {
+      type: String,
+      required: true,
+    },
   },
   {
     timestamps: true,

@@ -1,10 +1,11 @@
 // app/api/ai/chat/route.ts
 import { authOptions } from "@/lib/auth";
-import { getServerSession } from "next-auth/next";
-import type { Session } from "next-auth";
 import { faqData } from "@/lib/data";
 import { connectToDatabase } from "@/lib/mongoose";
-import { NextRequest } from "next/server";
+import { ChatConversation } from "@/models/ChatConversation";
+import type { Session } from "next-auth";
+import { getServerSession } from "next-auth/next";
+import { NextRequest, NextResponse } from "next/server";
 import { generateSessionId, saveConversation } from "../ai.chat.utils";
 
 // Rex Vet Team Information
@@ -396,3 +397,13 @@ export async function POST(req: NextRequest) {
     );
   }
 }
+export const GET = async () => {
+  try {
+    await connectToDatabase();
+    const conv = await ChatConversation.find({});
+    return NextResponse.json({ conv });
+  } catch (error) {
+    console.error("Error fetching chat conversations:", error);
+    return NextResponse.json({ error: "Failed to fetch conversations" });
+  }
+};

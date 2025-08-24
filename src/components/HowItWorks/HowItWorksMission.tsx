@@ -53,15 +53,15 @@ const HowItWorksMission = () => {
             </h3>
             <p className="text-gray-600 mb-4 text-base md:text-lg">
               At Rex Vets, our mission is to increase access to veterinary care
-              for all pets—regardless of their family's financial or geographic
+              for all pets—regardless of their families financial or geographic
               limitations. Too often, animals end up in shelters or suffer from
               preventable, late-stage medical conditions simply because timely
-              care wasn't available.
+              care wasn&apos;t available.
             </p>
             <p className="text-gray-600 mb-6 text-base md:text-lg">
               We believe that early and consistent veterinary care is not only
               essential for animal health but also critical to strengthening the
-              human-animal bond. By making care more accessible, we're improving
+              human-animal bond. By making care more accessible, we&apos;re improving
               the lives of pets—and the people who love them.
             </p>
             <div className="flex items-center gap-3 mb-6">
