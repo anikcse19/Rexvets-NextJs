@@ -26,6 +26,8 @@ import {
   MapPin,
   Mail,
   Calendar,
+  BookImageIcon,
+  Phone,
 } from "lucide-react";
 import {
   PersonalInfoFormData,
@@ -33,6 +35,8 @@ import {
 } from "@/lib/validation/account";
 import { mockDoctorData } from "@/lib";
 import { Doctor } from "@/lib/types";
+import { updateVet } from "../Service/update-vet";
+import { toast } from "sonner";
 
 export default function PersonalInfoSection({
   doctorData,
@@ -42,7 +46,25 @@ export default function PersonalInfoSection({
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  console.log(doctorData, "doctor in professional component");
+  function extractPersonalInfo(doctorData: any) {
+    return {
+      firstName: doctorData?.firstName || "",
+      lastName: doctorData?.lastName || "",
+      email: doctorData?.email || "",
+      phone: doctorData?.phoneNumber || "",
+      dob: doctorData?.dob || doctorData.dob || "",
+      gender: doctorData?.gender || "",
+      address: doctorData?.address || "",
+      city: doctorData?.city || "",
+      state: doctorData?.state || "",
+      zipCode: doctorData?.zipCode || "",
+      country: doctorData?.country || "",
+      profileImage: doctorData?.profileImage || "",
+      name: doctorData?.name || "",
+    };
+  }
+
+  const personalInfoData = extractPersonalInfo(doctorData);
 
   const {
     register,
@@ -50,18 +72,21 @@ export default function PersonalInfoSection({
     formState: { errors },
     reset,
     setValue,
+    watch,
   } = useForm<PersonalInfoFormData>({
     resolver: zodResolver(personalInfoSchema),
-    defaultValues: mockDoctorData.personalInfo,
+    defaultValues: personalInfoData,
   });
+
+  const bioValue = watch("bio") || "";
+  const bioCharCount = bioValue.length;
 
   const onSubmit = async (data: PersonalInfoFormData) => {
     setIsLoading(true);
     try {
-      // API call would go here
-      console.log("Updating personal info:", data);
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate API call
+      await updateVet(data);
       setIsEditing(false);
+      toast.success("Personal information updated successfully!");
     } catch (error) {
       console.error("Error updating personal info:", error);
     } finally {
@@ -70,7 +95,7 @@ export default function PersonalInfoSection({
   };
 
   const handleCancel = () => {
-    reset(mockDoctorData.personalInfo);
+    reset(personalInfoData);
     setIsEditing(false);
   };
 
@@ -154,6 +179,11 @@ export default function PersonalInfoSection({
                     mockDoctorData.personalInfo.gender.slice(1)
                   }
                 />
+                <InfoItem
+                  icon={<Phone className="w-5 h-5 text-green-600" />}
+                  label="Phone Number"
+                  value={doctorData?.phoneNumber}
+                />
               </div>
 
               <div className="mt-6">
@@ -161,6 +191,14 @@ export default function PersonalInfoSection({
                   icon={<MapPin className="w-5 h-5 text-red-600" />}
                   label="Address"
                   value={`${doctorData?.address}, ${doctorData?.city}, ${doctorData?.state} ${doctorData?.zipCode}, ${doctorData?.country}`}
+                  fullWidth
+                />
+              </div>
+              <div className="mt-6">
+                <InfoItem
+                  icon={<BookImageIcon className="w-5 h-5 text-red-600" />}
+                  label="Bio"
+                  value={`${doctorData?.bio}`}
                   fullWidth
                 />
               </div>
@@ -214,13 +252,9 @@ export default function PersonalInfoSection({
           {/* Profile Image Section */}
           <div className="flex flex-col items-center gap-4">
             <Avatar className="w-32 h-32 border-4 border-emerald-100 shadow-lg">
-              <AvatarImage
-                src={mockDoctorData.personalInfo.profileImage}
-                alt="Profile"
-              />
+              <AvatarImage src={doctorData?.profileImage} alt="Profile" />
               <AvatarFallback className="text-2xl font-bold text-gray-800 bg-gradient-to-br from-emerald-100 to-teal-100">
-                {mockDoctorData.personalInfo.firstName.charAt(0)}
-                {mockDoctorData.personalInfo.lastName.charAt(0)}
+                {doctorData?.name.charAt(0)}
               </AvatarFallback>
             </Avatar>
             <Button
@@ -293,13 +327,11 @@ export default function PersonalInfoSection({
               <Input
                 id="dateOfBirth"
                 type="date"
-                {...register("dateOfBirth")}
+                {...register("dob")}
                 className="border-gray-300 focus:border-emerald-500 focus:ring-emerald-500"
               />
-              {errors.dateOfBirth && (
-                <p className="text-sm text-red-600">
-                  {errors.dateOfBirth.message}
-                </p>
+              {errors.dob && (
+                <p className="text-sm text-red-600">{errors.dob.message}</p>
               )}
             </div>
 
@@ -396,6 +428,29 @@ export default function PersonalInfoSection({
                   </p>
                 )}
               </div>
+            </div>
+          </div>
+
+          {/* Bio */}
+          <div className="space-y-6">
+            <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2">
+              About Me
+            </h3>
+            <div className="space-y-2">
+              <Label htmlFor="bio">Bio</Label>
+              <Label htmlFor="bio">Bio</Label>
+              <Textarea
+                id="bio"
+                {...register("bio")}
+                className="border-gray-300 focus:border-emerald-500 focus:ring-emerald-500"
+                rows={4}
+              />
+              <div className="text-right text-xs text-gray-500">
+                {bioCharCount} character{bioCharCount !== 1 ? "s" : ""}
+              </div>
+              {errors.bio && (
+                <p className="text-sm text-red-600">{errors.bio.message}</p>
+              )}
             </div>
           </div>
         </form>

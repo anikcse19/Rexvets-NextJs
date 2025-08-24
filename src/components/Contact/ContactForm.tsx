@@ -118,7 +118,7 @@ const ContactForm: React.FC = () => {
                   Send us a Message
                 </h1>
                 <p className=" text-center md:text-start text-gray-500 text-lg">
-                  Fill out the form below and we'll get back to you as soon as
+                  Fill out the form below and we&apos;ll get back to you as soon as
                   possible
                 </p>
               </div>
@@ -134,7 +134,7 @@ const ContactForm: React.FC = () => {
                       Message sent successfully!
                     </p>
                     <p className="text-green-600 text-sm">
-                      We'll get back to you soon.
+                      We&apos;ll get back to you soon.
                     </p>
                   </div>
                 </div>

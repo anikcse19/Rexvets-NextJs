@@ -63,11 +63,11 @@ export const basicInfoSchema = z.object({
   
   postNominalLetters: z.string().optional(),
   
-  gender: z.enum(["male", "female", "other"]),
+  gender: z.enum(["male", "female"]),
   
   email: z.string()
-    .email("Invalid email address")
-    .min(1, "Email is required"),
+    .min(1, "Email is required")
+    .regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, "Invalid email address"),
   
   city: z.string()
     .min(2, "City must be at least 2 characters")
@@ -95,6 +95,18 @@ export const basicInfoSchema = z.object({
   
   confirmPassword: z.string()
     .min(1, "Please confirm your password"),
+  
+  // Additional new fields
+  dob: z.coerce.date().optional(),
+  address: z.string().min(1).max(200).optional(),
+  zipCode: z.number().min(0).optional(),
+  country: z.string().min(2).max(100).optional(),
+  yearsOfExperience: z.string().optional(),
+  noticePeriod: z.number().min(0).optional(),
+  clinic: z.object({
+    name: z.string().min(1).max(100),
+    address: z.string().min(1).max(200),
+  }).optional(),
 }).refine(
   (data) => data.password === data.confirmPassword,
   {

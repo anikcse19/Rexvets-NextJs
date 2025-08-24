@@ -65,6 +65,8 @@ const config = {
   EMAIL_USER: process.env.EMAIL_USER,
   EMAIL_PASS: process.env.EMAIL_PASS,
 
+  BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL,
+
 
 
 

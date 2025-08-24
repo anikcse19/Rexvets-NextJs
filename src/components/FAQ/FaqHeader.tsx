@@ -20,7 +20,7 @@ const FaqHeader = () => {
             Frequently Asked Questions
           </h1>
           <p className="text-lg md:text-xl text-gray-600 max-w-2xl mt-1">
-            Find answers to common questions about Rex Vets' telehealth services
+            Find answers to common questions about Rex Vets&apos; telehealth services
             and how we can help you and your pet.
           </p>
         </motion.div>

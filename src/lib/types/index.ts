@@ -120,6 +120,9 @@ export interface Doctor {
   };
   licenses: License[];
   bio: string;
+  specialties: string[];
+  interests: string[];
+  researchAreas: string[];
   education: any[]; // if you know structure, replace `any[]` with proper type
   experience: any[]; // same here
   certifications: any[]; // same here
@@ -135,6 +138,7 @@ export interface Doctor {
   __v: number;
   lastLogin: string; // ISO date
   isLocked: boolean;
+  noticePeriod?: number;
   id: string;
 }
 
@@ -166,4 +170,20 @@ export interface DonationAmount {
   value: number;
   label: string;
   description: string;
+}
+
+export interface Help {
+  _id: string;
+  role: 'pet_parent' | 'veterinarian' | 'technician' | 'admin';
+  name: string;
+  email: string;
+  phone: string;
+  state: string;
+  subject: string;
+  details: string;
+  isActive: boolean;
+  isDeleted?: boolean;
+  createdAt: string;
+  updatedAt: string;
+  id: string;
 }

@@ -37,12 +37,7 @@ export interface IVeterinarian extends Document {
   researchAreas?: string[];
   monthlyGoal?: number;
   experienceYears?: string;
-  certifications: Array<{
-    name: string;
-    issuingOrganization: string;
-    issueDate: Date;
-    expiryDate?: Date;
-  }>;
+  certifications: string[];
   languages: string[];
   timezone: string;
   schedule: {
@@ -65,6 +60,19 @@ export interface IVeterinarian extends Document {
   firstName?: string;
   lastName?: string;
   locale?: string;
+  dob?: Date;
+  address?: string;
+  city?: string;
+  state?: string;
+  zipCode?: number;
+  country?: string;
+  yearsOfExperience?: string;
+  clinic?: {
+    name: string;
+    address: string;
+  };
+  gender?: "male" | "female";
+  noticePeriod?: number;
 
   // Reviews reference - veterinarians receive reviews from pet parents
   reviews?: mongoose.Types.ObjectId[];
@@ -259,23 +267,8 @@ const veterinarianSchema = new Schema<IVeterinarian>(
     },
     certifications: [
       {
-        name: {
-          type: String,
-          required: true,
-          trim: true,
-        },
-        issuingOrganization: {
-          type: String,
-          required: true,
-          trim: true,
-        },
-        issueDate: {
-          type: Date,
-          required: true,
-        },
-        expiryDate: {
-          type: Date,
-        },
+        type: String,
+        trim: true,
       },
     ],
     languages: [
@@ -375,6 +368,52 @@ const veterinarianSchema = new Schema<IVeterinarian>(
       type: String,
       default: "en",
     },
+    dob: {
+      type: Date,
+    },
+    address: {
+      type: String,
+      trim: true,
+    },
+    city: {
+      type: String,
+      trim: true,
+    },
+    state: {
+      type: String,
+      trim: true,
+    },
+    zipCode: {
+      type: Number,
+      min: [0, "Zip code cannot be negative"],
+    },
+    country: {
+      type: String,
+      trim: true,
+    },
+    yearsOfExperience: {
+      type: String,
+      trim: true,
+    },
+    clinic: {
+      name: {
+        type: String,
+        trim: true,
+      },
+      address: {
+        type: String,
+        trim: true,
+      },
+    },
+    gender: {
+      type: String,
+      enum: ["male", "female"],
+      lowercase: true,
+    },
+    noticePeriod: {
+      type: Number,
+      min: [0, "Notice period cannot be negative"],
+    },
     // need all reviews for a veterinarian: now make a api:
     // Reviews reference - veterinarians receive reviews from pet parents
     reviews: [
@@ -412,6 +451,11 @@ veterinarianSchema.index({ researchAreas: 1 });
 veterinarianSchema.index({ isDeleted: 1 });
 veterinarianSchema.index({ name: "text" }); // Text search index
 veterinarianSchema.index({ reviews: 1 }); // Index for reviews queries
+veterinarianSchema.index({ city: 1 }); // Index for location-based queries
+veterinarianSchema.index({ state: 1 }); // Index for state-based queries
+veterinarianSchema.index({ country: 1 }); // Index for country-based queries
+veterinarianSchema.index({ gender: 1 }); // Index for gender-based queries
+veterinarianSchema.index({ zipCode: 1 }); // Index for zip code-based queries
 
 // Unique index for license numbers to prevent duplicates
 veterinarianSchema.index(

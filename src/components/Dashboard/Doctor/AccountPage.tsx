@@ -24,7 +24,7 @@ export default function AccountPage({ doctorData }: { doctorData: Doctor }) {
       <div className="space-y-8">
         <PersonalInfoSection doctorData={doctorData} />
         <ProfessionalInfoSection doctorData={doctorData} />
-        <AreasOfInterestSection />
+        <AreasOfInterestSection doctorData={doctorData} />
       </div>
     </div>
   );

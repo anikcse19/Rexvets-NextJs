@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
@@ -8,15 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import {
-  Heart,
-  Edit3,
-  Save,
-  X,
-  Lightbulb,
-  Search,
-  Plus,
-} from "lucide-react";
+import { Heart, Edit3, Save, X, Lightbulb, Search, Plus } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
 import { availableSpecialties, mockDoctorData } from "@/lib";
@@ -24,41 +16,69 @@ import {
   AreasOfInterestFormData,
   areasOfInterestSchema,
 } from "@/lib/validation/account";
+import { updateVet } from "../Service/update-vet";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
-export default function AreasOfInterestSection() {
+export default function AreasOfInterestSection({
+  doctorData,
+}: {
+  doctorData: any;
+}) {
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedSpecialties, setSelectedSpecialties] = useState<string[]>(
-    mockDoctorData.areasOfInterest.specialties
+    doctorData?.specialities || []
   );
   const [interests, setInterests] = useState<string[]>(
-    mockDoctorData.areasOfInterest.interests || []
+    doctorData?.interests || []
   );
   const [researchAreas, setResearchAreas] = useState<string[]>(
-    mockDoctorData.areasOfInterest.researchAreas || []
+    doctorData?.researchAreas || []
   );
   const [newInterest, setNewInterest] = useState("");
   const [newResearchArea, setNewResearchArea] = useState("");
 
+  const router = useRouter();
+
   const {
     handleSubmit,
+    setValue,
+    formState: { errors },
   } = useForm<AreasOfInterestFormData>({
     resolver: zodResolver(areasOfInterestSchema),
-    defaultValues: mockDoctorData.areasOfInterest,
+    defaultValues: {
+      specialties: doctorData?.specialities || [],
+      interests: doctorData?.interests || [],
+      researchAreas: doctorData?.researchAreas || [],
+    },
   });
+
+  console.log(doctorData, "form errors");
+
+  useEffect(() => {
+    setValue("specialties", selectedSpecialties);
+  }, [selectedSpecialties, setValue]);
 
   const onSubmit = async () => {
     setIsLoading(true);
     try {
       const data = {
-        specialties: selectedSpecialties,
+        specialities: selectedSpecialties,
         interests,
         researchAreas,
       };
       console.log("Updating areas of interest:", data);
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await updateVet(data);
       setIsEditing(false);
+      toast.success("Areas of interest updated successfully!");
+      router.refresh(); // Refresh the current route to fetch updated data
     } catch (error) {
+      toast.error(
+        "Error updating areas of interest: " +
+          (error instanceof Error ? error.message : String(error))
+      );
+
       console.error("Error updating areas of interest:", error);
     } finally {
       setIsLoading(false);
@@ -66,9 +86,9 @@ export default function AreasOfInterestSection() {
   };
 
   const handleCancel = () => {
-    setSelectedSpecialties(mockDoctorData.areasOfInterest.specialties);
-    setInterests(mockDoctorData.areasOfInterest.interests || []);
-    setResearchAreas(mockDoctorData.areasOfInterest.researchAreas || []);
+    setSelectedSpecialties(doctorData?.specialities || []);
+    setInterests(doctorData?.interests || []);
+    setResearchAreas(doctorData?.researchAreas || []);
     setNewInterest("");
     setNewResearchArea("");
     setIsEditing(false);
@@ -128,7 +148,7 @@ export default function AreasOfInterestSection() {
             <Button
               onClick={() => setIsEditing(true)}
               variant="secondary"
-              className="bg-white/20 hover:bg-white/30 text-white border-white/30"
+              className="bg-white/20 hover:bg-white/30 text-white border-white/30 cursor-pointer"
             >
               <Edit3 className="w-4 h-4 mr-2" />
               Edit
@@ -145,71 +165,64 @@ export default function AreasOfInterestSection() {
                 Medical Specialties
               </h3>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                {mockDoctorData.areasOfInterest.specialties.map(
-                  (specialty, index) => (
-                    <Badge
-                      key={index}
-                      className="bg-gradient-to-r from-pink-100 to-rose-100 text-pink-700 border-pink-300 justify-center py-2 px-4 text-sm font-medium"
-                    >
-                      {specialty}
-                    </Badge>
-                  )
-                )}
+                {doctorData?.specialities?.map((specialty: any, index: any) => (
+                  <Badge
+                    key={index}
+                    className="bg-gradient-to-r from-pink-100 to-rose-100 text-pink-700 border-pink-300 justify-center py-2 px-4 text-sm font-medium"
+                  >
+                    {specialty}
+                  </Badge>
+                ))}
               </div>
             </div>
 
             {/* Interests */}
-            {mockDoctorData.areasOfInterest.interests &&
-              mockDoctorData.areasOfInterest.interests.length > 0 && (
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                    <Lightbulb className="w-5 h-5 text-yellow-600" />
-                    Professional Interests
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {mockDoctorData.areasOfInterest.interests.map(
-                      (interest, index) => (
-                        <div
-                          key={index}
-                          className="flex items-center gap-3 p-4 bg-gradient-to-r from-yellow-50 to-amber-50 rounded-xl border border-yellow-200"
-                        >
-                          <div className="bg-yellow-500 text-white rounded-full p-2 flex-shrink-0">
-                            <Lightbulb className="w-4 h-4" />
-                          </div>
-                          <span className="font-medium text-gray-900">
-                            {interest}
-                          </span>
-                        </div>
-                      )
-                    )}
-                  </div>
+            {doctorData?.interests && doctorData?.interests?.length > 0 && (
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                  <Lightbulb className="w-5 h-5 text-yellow-600" />
+                  Professional Interests
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {doctorData?.interests?.map((interest: any, index: any) => (
+                    <div
+                      key={index}
+                      className="flex items-center gap-3 p-4 bg-gradient-to-r from-yellow-50 to-amber-50 rounded-xl border border-yellow-200"
+                    >
+                      <div className="bg-yellow-500 text-white rounded-full p-2 flex-shrink-0">
+                        <Lightbulb className="w-4 h-4" />
+                      </div>
+                      <span className="font-medium text-gray-900">
+                        {interest}
+                      </span>
+                    </div>
+                  ))}
                 </div>
-              )}
+              </div>
+            )}
 
             {/* Research Areas */}
-            {mockDoctorData.areasOfInterest.researchAreas &&
-              mockDoctorData.areasOfInterest.researchAreas.length > 0 && (
+            {doctorData?.researchAreas &&
+              doctorData?.researchAreas?.length > 0 && (
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
                     <Search className="w-5 h-5 text-blue-600" />
                     Research Areas
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {mockDoctorData.areasOfInterest.researchAreas.map(
-                      (area, index) => (
-                        <div
-                          key={index}
-                          className="flex items-center gap-3 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200"
-                        >
-                          <div className="bg-blue-500 text-white rounded-full p-2 flex-shrink-0">
-                            <Search className="w-4 h-4" />
-                          </div>
-                          <span className="font-medium text-gray-900">
-                            {area}
-                          </span>
+                    {doctorData?.researchAreas?.map((area: any, index: any) => (
+                      <div
+                        key={index}
+                        className="flex items-center gap-3 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200"
+                      >
+                        <div className="bg-blue-500 text-white rounded-full p-2 flex-shrink-0">
+                          <Search className="w-4 h-4" />
                         </div>
-                      )
-                    )}
+                        <span className="font-medium text-gray-900">
+                          {area}
+                        </span>
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}
@@ -275,7 +288,7 @@ export default function AreasOfInterestSection() {
                 >
                   <Checkbox
                     id={specialty}
-                    checked={selectedSpecialties.includes(specialty)}
+                    checked={(selectedSpecialties || []).includes(specialty)}
                     onCheckedChange={() => toggleSpecialty(specialty)}
                     className="data-[state=checked]:bg-indigo-600 data-[state=checked]:border-indigo-600"
                   />

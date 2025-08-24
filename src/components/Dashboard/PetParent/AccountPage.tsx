@@ -3,7 +3,9 @@
 import React from "react";
 import PersonalInfoSection from "./Account/PersonalInfoSection";
 
-export default function AccountPage() {
+import { Doctor } from "@/lib/types";
+
+export default function AccountPage({ doctorData }: { doctorData: Doctor }) {
   return (
     <div className="space-y-8">
       {/* Header */}

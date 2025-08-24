@@ -17,6 +17,7 @@ const signInSchema = z.object({
 });
 
 export const authOptions = {
+  secret: process.env.NEXTAUTH_SECRET,
   providers: [
     GoogleProvider({
       clientId: config.GOOGLE_CLIENT_ID!,
@@ -26,7 +27,16 @@ export const authOptions = {
           prompt: "consent",
           access_type: "offline",
           response_type: "code",
+          scope: "openid email profile",
         },
+      },
+      profile(profile) {
+        return {
+          id: profile.sub,
+          name: profile.name,
+          email: profile.email,
+          image: profile.picture,
+        };
       },
     }),
     CredentialsProvider({
@@ -112,6 +122,11 @@ export const authOptions = {
             name: fullUserData?.name || (user as any).name,
             image: fullUserData?.profileImage || (user as any).profileImage,
             role: (user as any).role,
+            refId: (user as any).role === 'pet_parent' 
+              ? (user as any).petParentRef?.toString()
+              : (user as any).role === 'veterinarian'
+              ? (user as any).veterinarianRef?.toString()
+              : (user as any).vetTechRef?.toString(),
           } as any;
         } catch (error) {
           console.error("Authentication error:", error);
@@ -147,6 +162,16 @@ export const authOptions = {
         token.id = user.id;
         token.emailVerified = Boolean(user.emailVerified);
         token.image = user.image;
+        token.refId = user.refId;
+        
+        // Console log the JWT token data on initial sign in
+        console.log("🔑 JWT Token Data (Initial Sign In):", {
+          role: token.role,
+          id: token.id,
+          emailVerified: token.emailVerified,
+          image: token.image,
+          refId: token.refId
+        });
       }
 
       // Return previous token if the access token has not expired yet
@@ -160,8 +185,16 @@ export const authOptions = {
           role: token.role as string,
           emailVerified: token.emailVerified as boolean,
           image: token.image as string,
+          refId: token.refId as string,
         };
       }
+      
+      // Console log the session data
+      console.log("🔍 Session Data:", {
+        user: session.user,
+        expires: session.expires
+      });
+      
       return session;
     },
     async signIn({ user, account, profile }: any) {
@@ -224,6 +257,16 @@ export const authOptions = {
             user.emailVerified = existingUser.isEmailVerified;
             user.name = existingUser.name;
             user.image = existingUser.profileImage;
+            
+            // Add reference to veterinarian profile if user is a veterinarian
+            if (existingUser.role === 'veterinarian' && existingUser.veterinarianRef) {
+              user.veterinarianRef = existingUser.veterinarianRef.toString();
+            }
+            user.refId = existingUser.role === 'pet_parent' 
+              ? existingUser.petParentRef?.toString()
+              : existingUser.role === 'veterinarian'
+              ? existingUser.veterinarianRef?.toString()
+              : existingUser.vetTechRef?.toString();
           } else {
             // Create new user with Google OAuth
             const newUser = await createOrUpdateUserAuth(
@@ -239,6 +282,11 @@ export const authOptions = {
             user.emailVerified = true;
             user.name = newUser.name;
             user.image = newUser.profileImage;
+            user.refId = newUser.role === 'pet_parent' 
+              ? newUser.petParentRef?.toString()
+              : newUser.role === 'veterinarian'
+              ? newUser.veterinarianRef?.toString()
+              : newUser.vetTechRef?.toString();
           }
 
           return true;
@@ -265,7 +313,7 @@ export const authOptions = {
       console.log("User signed out:", session?.user?.email);
     },
   },
-  debug: process.env.NODE_ENV === "development",
+  debug: false,
 };
 
 // export default NextAuth(authOptions);

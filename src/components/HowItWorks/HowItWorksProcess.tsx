@@ -85,7 +85,7 @@ const HowItWorksProcess = () => {
               variants={textVariants}
               className="text-lg md:text-xl text-white/80 mb-8"
             >
-              Here's how it works:
+              Here&apos;s how it works:
             </motion.p>
             <div className="space-y-6 mb-8">
               {processSteps.map((step, index) => (
