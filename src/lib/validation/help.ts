@@ -1,16 +1,39 @@
 import { z } from "zod";
 
-// Help form validation schema
-export const helpFormSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  email: z.string().email("Please enter a valid email address"),
-  phone: z.string().min(10, "Phone number must be at least 10 digits"),
-  state: z.string().min(2, "State is required"),
-  subject: z.string().min(5, "Subject must be at least 5 characters"),
-  details: z
-    .string()
-    .min(20, "Please provide more details (minimum 20 characters)"),
+// Help request validation schema
+export const helpRequestSchema = z.object({
+  role: z.enum(['pet_parent', 'veterinarian', 'technician', 'admin']),
+  name: z.string()
+    .min(2, "Name must be at least 2 characters")
+    .max(100, "Name cannot exceed 100 characters")
+    .regex(/^[a-zA-Z\s]+$/, "Name can only contain letters and spaces"),
+  email: z.string()
+    .min(1, "Email is required")
+    .regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, "Invalid email address"),
+  phone: z.string()
+    .min(10, "Phone number must be at least 10 digits")
+    .max(15, "Phone number cannot exceed 15 digits")
+    .regex(/^[\+]?[1-9][\d]{0,15}$/, "Invalid phone number format"),
+  state: z.string()
+    .min(2, "State must be at least 2 characters")
+    .max(100, "State cannot exceed 100 characters"),
+  subject: z.string()
+    .min(5, "Subject must be at least 5 characters")
+    .max(200, "Subject cannot exceed 200 characters"),
+  details: z.string()
+    .min(10, "Details must be at least 10 characters")
+    .max(2000, "Details cannot exceed 2000 characters"),
 });
 
-// Type export
-export type HelpFormData = z.infer<typeof helpFormSchema>;
+// Help filter validation schema
+export const helpFilterSchema = z.object({
+  page: z.coerce.number().min(1).default(1),
+  limit: z.coerce.number().min(1).max(100).default(20),
+  role: z.enum(['pet_parent', 'veterinarian', 'technician', 'admin']).optional().nullable(),
+  email: z.string().regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, "Invalid email address").optional().nullable(),
+  q: z.string().optional().nullable(), // Text search
+});
+
+// Type exports
+export type HelpRequestData = z.infer<typeof helpRequestSchema>;
+export type HelpFilterData = z.infer<typeof helpFilterSchema>;

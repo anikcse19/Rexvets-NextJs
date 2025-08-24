@@ -59,6 +59,7 @@ export interface Veterinarian {
   signatureImage?: string;
   workingHours?: Schedule;
   isLocked?: boolean;
+  noticePeriod?: number;
   id: string;
 }
 

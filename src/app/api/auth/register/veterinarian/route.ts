@@ -51,6 +51,7 @@ export async function POST(request: NextRequest) {
       zipCode: formData.get("zipCode") as string || undefined,
       country: formData.get("country") as string || undefined,
       yearsOfExperience: formData.get("yearsOfExperience") as string || undefined,
+      noticePeriod: formData.get("noticePeriod") as string || undefined,
     };
 
     // Extract schedule
@@ -128,6 +129,7 @@ export async function POST(request: NextRequest) {
         zipCode: true,
         country: true,
         yearsOfExperience: true,
+        noticePeriod: true,
       })
       .safeParse(basicInfo);
 
@@ -393,6 +395,7 @@ export async function POST(request: NextRequest) {
       zipCode: basicInfo.zipCode ? parseInt(basicInfo.zipCode) : undefined,
       country: basicInfo.country,
       yearsOfExperience: basicInfo.yearsOfExperience,
+      noticePeriod: basicInfo.noticePeriod,
       clinic: clinic,
       isEmailVerified: false,
       isActive: true,

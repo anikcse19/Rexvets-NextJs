@@ -72,6 +72,7 @@ export interface IVeterinarian extends Document {
     address: string;
   };
   gender?: 'male' | 'female';
+  noticePeriod?: number;
   
   // Reviews reference - veterinarians receive reviews from pet parents
   reviews?: mongoose.Types.ObjectId[];
@@ -386,6 +387,10 @@ const veterinarianSchema = new Schema<IVeterinarian>({
     type: String,
     enum: ['male', 'female'],
     lowercase: true
+  },
+  noticePeriod: {
+    type: Number,
+    min: [0, 'Notice period cannot be negative']
   },
   // need all reviews for a veterinarian: now make a api: 
   // Reviews reference - veterinarians receive reviews from pet parents

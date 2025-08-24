@@ -35,6 +35,7 @@ const basicInfoSchema = z.object({
   zipCode: z.number().min(0).optional(),
   country: z.string().min(2).max(100).optional(),
   yearsOfExperience: z.string().optional(),
+  noticePeriod: z.number().min(0).optional(),
   clinic: z.object({
     name: z.string().min(1).max(100),
     address: z.string().min(1).max(200),
