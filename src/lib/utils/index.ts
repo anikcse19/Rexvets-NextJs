@@ -2,6 +2,7 @@ import { type ClassValue, clsx } from "clsx";
 import { format } from "date-fns";
 import moment from "moment-timezone";
 import { twMerge } from "tailwind-merge";
+import { addDays, startOfDay, endOfDay, parseISO, addMinutes } from "date-fns";
 
 /**
  * The function `cn` in TypeScript merges multiple class values using `clsx` and `twMerge`.
@@ -70,4 +71,43 @@ export const formatDateTime = (
 ): string => {
   const formattedDate = format(dateString, "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
   return formattedDate;
+};
+
+export const formatDateForAPI = (date: Date): string => {
+  return date.toISOString();
+};
+
+export const formatDateRange = (start: Date, end: Date) => {
+  return {
+    start: startOfDay(start).toISOString(),
+    end: endOfDay(end).toISOString(),
+  };
+};
+
+export const formatTimeSlot = (date: Date, timeString: string): string => {
+  const [hours, minutes] = timeString.split(":").map(Number);
+  const slotDate = new Date(date);
+  slotDate.setHours(hours, minutes, 0, 0);
+  return slotDate.toISOString();
+};
+
+export const generateTimeOptions = (): string[] => {
+  const times: string[] = [];
+  for (let hour = 0; hour < 24; hour++) {
+    for (let minute = 0; minute < 60; minute += 30) {
+      const timeString = `${hour.toString().padStart(2, "0")}:${minute
+        .toString()
+        .padStart(2, "0")}`;
+      times.push(timeString);
+    }
+  }
+  return times;
+};
+
+export const formatDisplayTime = (time: string): string => {
+  const [hours, minutes] = time.split(":");
+  const hour = parseInt(hours);
+  const ampm = hour >= 12 ? "PM" : "AM";
+  const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+  return `${displayHour}:${minutes} ${ampm}`;
 };

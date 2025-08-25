@@ -111,6 +111,8 @@ export default function BookingSystem({
   const availableDays = getNextFewDays();
   const availableTimeSlots = generateSlots(selectedDate);
 
+  console.log("selectedDate", selectedDate, selectedSlot);
+
   return (
     <Card className="shadow-xl border-0 bg-white sticky top-6">
       <div className="bg-gradient-to-r from-green-600 to-emerald-600 p-6 text-white">
@@ -249,9 +251,10 @@ export default function BookingSystem({
 
           {/* Confirm Button */}
           <Button
-            onClick={() =>
-              selectedSlot && onConfirm(selectedDate, selectedSlot)
-            }
+            onClick={() => {
+              selectedSlot && onConfirm(selectedDate, selectedSlot);
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
             disabled={!selectedSlot}
             className="w-full cursor-pointer bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
           >

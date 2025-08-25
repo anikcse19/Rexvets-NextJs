@@ -1,10 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
-import { connectToDatabase } from "@/lib/mongoose";
-import { HelpModel } from "@/models";
-import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
-import mongoose from "mongoose";
+import { connectToDatabase } from "@/lib/mongoose";
 import { helpUpdateSchema } from "@/lib/validation/help";
+import { HelpModel } from "@/models";
+import mongoose from "mongoose";
+import { getServerSession } from "next-auth/next";
+import { NextRequest, NextResponse } from "next/server";
 
 /**
  * GET /api/help/[id]
@@ -122,7 +122,7 @@ export async function DELETE(
     }
 
     // Check if user is admin
-    if ((session as any).user.role !== 'admin') {
+    if ((session as any).user.role !== "admin") {
       return NextResponse.json(
         {
           success: false,
@@ -185,12 +185,12 @@ export async function DELETE(
     // Soft delete the help request
     const deletedHelpRequest = await HelpModel.findByIdAndUpdate(
       id,
-      { 
-        $set: { 
-          isDeleted: true, 
+      {
+        $set: {
+          isDeleted: true,
           isActive: false,
-          updatedAt: new Date()
-        } 
+          updatedAt: new Date(),
+        },
       },
       { new: true }
     );
@@ -304,7 +304,7 @@ export async function PUT(
           message: "Validation failed",
           errorCode: "VALIDATION_ERROR",
           errors: validatedData.error.issues.reduce((acc, issue) => {
-            const field = issue.path.join('.');
+            const field = issue.path.join(".");
             acc[field] = issue.message;
             return acc;
           }, {} as Record<string, string>),
@@ -334,9 +334,11 @@ export async function PUT(
 
     // Check if user is authorized to update this help request
     // Allow admin to update any help request, or user to update their own
-    const isAdmin = (session as any).user.role === 'admin';
-    const isOwner = existingHelpRequest.email.toLowerCase() === (session as any).user.email.toLowerCase();
-    
+    const isAdmin = (session as any).user.role === "admin";
+    const isOwner =
+      existingHelpRequest.email.toLowerCase() ===
+      (session as any).user.email.toLowerCase();
+
     if (!isAdmin && !isOwner) {
       return NextResponse.json(
         {
@@ -352,11 +354,11 @@ export async function PUT(
     // Update the help request
     const updatedHelpRequest = await HelpModel.findByIdAndUpdate(
       id,
-      { 
-        $set: { 
+      {
+        $set: {
           ...validatedData.data,
-          updatedAt: new Date()
-        } 
+          updatedAt: new Date(),
+        },
       },
       { new: true, runValidators: true }
     );

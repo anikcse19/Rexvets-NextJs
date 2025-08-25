@@ -61,16 +61,13 @@ export const US_STATES = [
 ];
 
 export const COUNTRY_CODES = [
-  { value: "+1", label: "US (+1)", country: "US" },
-  { value: "+44", label: "UK (+44)", country: "UK" },
+  { value: "+1", label: "United States (+1)", country: "US" },
+  { value: "+1", label: "Canada (+1)", country: "CA" },
+  { value: "+1-242", label: "Bahamas (+1-242)", country: "BS" },
   { value: "+91", label: "India (+91)", country: "IN" },
-  { value: "+86", label: "China (+86)", country: "CN" },
+  { value: "+44", label: "United Kingdom (+44)", country: "GB" },
   { value: "+49", label: "Germany (+49)", country: "DE" },
-  { value: "+33", label: "France (+33)", country: "FR" },
-  { value: "+81", label: "Japan (+81)", country: "JP" },
-  { value: "+82", label: "South Korea (+82)", country: "KR" },
-  { value: "+61", label: "Australia (+61)", country: "AU" },
-  { value: "+55", label: "Brazil (+55)", country: "BR" },
+  { value: "+880", label: "Bangladesh (+880)", country: "BD" },
 ];
 
 export const DAYS_OF_WEEK = [
