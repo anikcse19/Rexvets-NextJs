@@ -3,6 +3,8 @@ export enum SlotStatus {
   AVAILABLE = "available",
   BOOKED = "booked",
   BLOCKED = "blocked",
+  PENDING = "pending",
+  ALL = "all",
 }
 
 export interface IAvailabilitySlot {

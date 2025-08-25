@@ -26,32 +26,32 @@ const appointmentSchema = z.object({
   }),
 
   notes: z.string().optional(),
-  reasonForVisit: z.string().min(1, "Reason for visit is required"),
-  feeUSD: z.number().min(0),
+  feeUSD: z.number().min(0).default(0),
   status: z.string().optional(),
-  isFollowUp: z.string().optional(),
+  isFollowUp: z.boolean().optional(),
   appointmentType: z.string().optional(),
   paymentStatus: z.string().optional(),
   reminderSent: z.boolean().optional(),
   slotId: z.string().refine((val) => Types.ObjectId.isValid(val), {
     message: "Invalid slot ID",
   }),
+  concerns: z.array(z.string()).min(1, "At least one concern is required"),
 });
 
 export async function POST(req: NextRequest) {
   try {
     await connectToDatabase();
 
-    // const session = await getServerSession(authOptions);
-    // if (!session?.user) {
-    //   const errResp: IErrorResponse = {
-    //     success: false,
-    //     message: "Unauthorized",
-    //     errorCode: "UNAUTHORIZED",
-    //     errors: null,
-    //   };
-    //   return throwAppError(errResp, 401);
-    // }
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      const errResp: IErrorResponse = {
+        success: false,
+        message: "Unauthorized",
+        errorCode: "UNAUTHORIZED",
+        errors: null,
+      };
+      return throwAppError(errResp, 401);
+    }
 
     const body = await req.json();
     const parsed = appointmentSchema.safeParse(body);
@@ -114,13 +114,13 @@ export async function POST(req: NextRequest) {
       petParent,
       pet,
       notes,
-      reasonForVisit,
       feeUSD,
       isFollowUp,
       appointmentType,
       paymentStatus,
       reminderSent,
       slotId: appointmentSlotId,
+      concerns,
     } = parsed.data;
     // Create appointment document
     const appointment = new AppointmentModel({
@@ -129,13 +129,13 @@ export async function POST(req: NextRequest) {
       pet: new Types.ObjectId(pet),
       appointmentDate: existingSlot.date,
       notes,
-      reasonForVisit,
       feeUSD,
       isFollowUp,
       appointmentType,
       paymentStatus,
       reminderSent,
       slotId: new Types.ObjectId(appointmentSlotId),
+      concerns,
     });
     await appointment.validate();
     const newAppointment = await appointment.save();
@@ -201,7 +201,7 @@ export async function GET(req: NextRequest) {
     const vet = searchParams.get("veterinarian");
     const owner = searchParams.get("petParent");
     const isFollowUp = searchParams.get("isFollowUp");
-    const search = searchParams.get("search"); // reasonForVisit partial search
+    const search = searchParams.get("search");
     const minFee = parseFloat(searchParams.get("minFee") || "0");
     const maxFee = parseFloat(searchParams.get("maxFee") || "3000");
 
@@ -218,7 +218,7 @@ export async function GET(req: NextRequest) {
     if (owner) query.petParent = owner;
     if (isFollowUp !== null && isFollowUp !== undefined)
       query.isFollowUp = isFollowUp === "true";
-    if (search) query.reasonForVisit = { $regex: search, $options: "i" };
+    if (search) query.concerns = { $regex: search, $options: "i" };
 
     // Fetch data with pagination and sorting
     const [appointments, total] = await Promise.all([
