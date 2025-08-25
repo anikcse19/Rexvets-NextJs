@@ -24,3 +24,8 @@ export {
   type IVetTech,
   type IVetTechModel,
 } from "./VetTech";
+export {
+  default as HelpModel,
+  type IHelp,
+  type IHelpModel,
+} from "./Help";

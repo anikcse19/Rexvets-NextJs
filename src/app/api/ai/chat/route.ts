@@ -10,7 +10,7 @@ import { generateSessionId, saveConversation } from "../ai.chat.utils";
 
 const siteURL = "https://rexvets-nextjs.vercel.app";
 
-export const pricingPlans = [
+const pricingPlans = [
   {
     id: "per-appointment",
     name: "Per Appointment",
