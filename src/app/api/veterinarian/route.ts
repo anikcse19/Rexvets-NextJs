@@ -38,6 +38,7 @@ export async function GET(req: NextRequest) {
     const country = (searchParams.get('country') || '').trim();
     const gender = (searchParams.get('gender') || '').trim();
     const yearsOfExperience = (searchParams.get('yearsOfExperience') || '').trim();
+    const noticePeriod = searchParams.get('noticePeriod');
 
     const filter: Record<string, any> = {
       // Temporarily removed filters to debug
@@ -95,6 +96,9 @@ export async function GET(req: NextRequest) {
     }
     if (yearsOfExperience) {
       filter.yearsOfExperience = { $regex: yearsOfExperience, $options: 'i' };
+    }
+    if (noticePeriod) {
+      filter.noticePeriod = parseInt(noticePeriod);
     }
 
     const query = VeterinarianModel.find(filter)

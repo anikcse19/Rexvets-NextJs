@@ -1,4 +1,4 @@
-import mongoose, { Document, Schema, Model } from "mongoose";
+import mongoose, { Document, Model, Schema } from "mongoose";
 
 export interface IVeterinarian extends Document {
   name: string;
@@ -41,15 +41,14 @@ export interface IVeterinarian extends Document {
   languages: string[];
   timezone: string;
   schedule: {
-    monday: { available: boolean; slots: { start: string; end: string }[] };
-    tuesday: { available: boolean; slots: { start: string; end: string }[] };
-    wednesday: { available: boolean; slots: { start: string; end: string }[] };
-    thursday: { available: boolean; slots: { start: string; end: string }[] };
-    friday: { available: boolean; slots: { start: string; end: string }[] };
-    saturday: { available: boolean; slots: { start: string; end: string }[] };
-    sunday: { available: boolean; slots: { start: string; end: string }[] };
+    monday: { start: string; end: string; available: boolean };
+    tuesday: { start: string; end: string; available: boolean };
+    wednesday: { start: string; end: string; available: boolean };
+    thursday: { start: string; end: string; available: boolean };
+    friday: { start: string; end: string; available: boolean };
+    saturday: { start: string; end: string; available: boolean };
+    sunday: { start: string; end: string; available: boolean };
   };
-
   isActive: boolean;
   isApproved: boolean;
   approvalDate?: Date;
@@ -73,6 +72,7 @@ export interface IVeterinarian extends Document {
     address: string;
   };
   gender?: "male" | "female";
+  noticePeriod?: number;
 
   // Reviews reference - veterinarians receive reviews from pet parents
   reviews?: mongoose.Types.ObjectId[];
@@ -101,22 +101,6 @@ export interface IVeterinarianModel extends Model<IVeterinarian> {
   // findByEmailVerificationToken(token: string): Promise<IVeterinarian | null>;
   // findByPasswordResetToken(token: string): Promise<IVeterinarian | null>;
 }
-
-const slotSchema = new Schema(
-  {
-    start: { type: String, required: true },
-    end: { type: String, required: true },
-  },
-  { _id: false }
-);
-
-const dayScheduleSchema = new Schema(
-  {
-    available: { type: Boolean, default: false },
-    slots: { type: [slotSchema], default: [] },
-  },
-  { _id: false }
-);
 
 const veterinarianSchema = new Schema<IVeterinarian>(
   {
@@ -299,32 +283,39 @@ const veterinarianSchema = new Schema<IVeterinarian>(
     },
     schedule: {
       monday: {
-        type: dayScheduleSchema,
-        default: { available: false, slots: [] },
+        start: { type: String, default: "09:00" },
+        end: { type: String, default: "17:00" },
+        available: { type: Boolean, default: false },
       },
       tuesday: {
-        type: dayScheduleSchema,
-        default: { available: false, slots: [] },
+        start: { type: String, default: "09:00" },
+        end: { type: String, default: "17:00" },
+        available: { type: Boolean, default: false },
       },
       wednesday: {
-        type: dayScheduleSchema,
-        default: { available: false, slots: [] },
+        start: { type: String, default: "09:00" },
+        end: { type: String, default: "17:00" },
+        available: { type: Boolean, default: false },
       },
       thursday: {
-        type: dayScheduleSchema,
-        default: { available: false, slots: [] },
+        start: { type: String, default: "09:00" },
+        end: { type: String, default: "17:00" },
+        available: { type: Boolean, default: false },
       },
       friday: {
-        type: dayScheduleSchema,
-        default: { available: false, slots: [] },
+        start: { type: String, default: "09:00" },
+        end: { type: String, default: "17:00" },
+        available: { type: Boolean, default: false },
       },
       saturday: {
-        type: dayScheduleSchema,
-        default: { available: false, slots: [] },
+        start: { type: String, default: "09:00" },
+        end: { type: String, default: "17:00" },
+        available: { type: Boolean, default: false },
       },
       sunday: {
-        type: dayScheduleSchema,
-        default: { available: false, slots: [] },
+        start: { type: String, default: "09:00" },
+        end: { type: String, default: "17:00" },
+        available: { type: Boolean, default: false },
       },
     },
     // Authentication fields removed - now handled by User model
@@ -418,6 +409,10 @@ const veterinarianSchema = new Schema<IVeterinarian>(
       type: String,
       enum: ["male", "female"],
       lowercase: true,
+    },
+    noticePeriod: {
+      type: Number,
+      min: [0, "Notice period cannot be negative"],
     },
     // need all reviews for a veterinarian: now make a api:
     // Reviews reference - veterinarians receive reviews from pet parents

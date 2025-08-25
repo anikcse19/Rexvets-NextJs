@@ -11,11 +11,11 @@ export default function SessionDebugger() {
       status,
       session: session ? {
         user: {
-          id: session.user?.id,
+          id: (session.user as any)?.id,
           email: session.user?.email,
           name: session.user?.name,
-          role: session.user?.role,
-          emailVerified: session.user?.emailVerified,
+          role: (session.user as any)?.role,
+          emailVerified: (session.user as any)?.emailVerified,
           image: session.user?.image,
           refId: (session.user as any)?.refId,
         },

@@ -140,6 +140,7 @@ export interface Doctor {
   __v: number;
   lastLogin: string; // ISO date
   isLocked: boolean;
+  noticePeriod?: number;
   id: string;
 }
 
@@ -171,4 +172,20 @@ export interface DonationAmount {
   value: number;
   label: string;
   description: string;
+}
+
+export interface Help {
+  _id: string;
+  role: 'pet_parent' | 'veterinarian' | 'technician' | 'admin';
+  name: string;
+  email: string;
+  phone: string;
+  state: string;
+  subject: string;
+  details: string;
+  isActive: boolean;
+  isDeleted?: boolean;
+  createdAt: string;
+  updatedAt: string;
+  id: string;
 }

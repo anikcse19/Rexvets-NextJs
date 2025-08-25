@@ -257,6 +257,11 @@ export const authOptions = {
             user.emailVerified = existingUser.isEmailVerified;
             user.name = existingUser.name;
             user.image = existingUser.profileImage;
+            
+            // Add reference to veterinarian profile if user is a veterinarian
+            if (existingUser.role === 'veterinarian' && existingUser.veterinarianRef) {
+              user.veterinarianRef = existingUser.veterinarianRef.toString();
+            }
             user.refId = existingUser.role === 'pet_parent' 
               ? existingUser.petParentRef?.toString()
               : existingUser.role === 'veterinarian'

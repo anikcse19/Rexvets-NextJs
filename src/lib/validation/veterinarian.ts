@@ -95,7 +95,7 @@ export const basicInfoSchema = z
     countryCode: z
       .string()
       .min(2, "Country code is required")
-      .max(6, "Country code cannot exceed 6 characters"),
+      .max(3, "Country code cannot exceed 3 characters"),
 
     phone: z
       .string()
@@ -119,6 +119,7 @@ export const basicInfoSchema = z
     zipCode: z.number().min(0).optional(),
     country: z.string().min(2).max(100).optional(),
     yearsOfExperience: z.string().optional(),
+    noticePeriod: z.number().min(0).optional(),
     clinic: z
       .object({
         name: z.string().min(1).max(100),

@@ -27,7 +27,7 @@ import {
   User,
   FileText,
 } from "lucide-react";
-import { HelpFormData, helpFormSchema } from "@/lib/validation/help";
+import { HelpRequestData, helpRequestSchema } from "@/lib/validation/help";
 import { mockDoctorData } from "@/lib";
 
 const bangladeshStates = [
@@ -51,8 +51,8 @@ export default function HelpPage() {
     formState: { errors },
     setValue,
     reset,
-  } = useForm<HelpFormData>({
-    resolver: zodResolver(helpFormSchema),
+  } = useForm<HelpRequestData>({
+    resolver: zodResolver(helpRequestSchema),
     defaultValues: {
       name: `${mockDoctorData.personalInfo.firstName} ${mockDoctorData.personalInfo.lastName}`,
       email: mockDoctorData.personalInfo.email,
@@ -63,7 +63,7 @@ export default function HelpPage() {
     },
   });
 
-  const onSubmit = async (data: HelpFormData) => {
+  const onSubmit = async (data: HelpRequestData) => {
     setIsSubmitting(true);
     try {
       // API call would go here
