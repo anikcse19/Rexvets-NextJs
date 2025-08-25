@@ -4,6 +4,7 @@ export {
   type IDonation,
   type IDonationModel,
 } from "./Donation";
+export { default as HelpModel, type IHelp, type IHelpModel } from "./Help";
 export {
   default as PetParentModel,
   type IPetParent,
