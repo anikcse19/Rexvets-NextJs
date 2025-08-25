@@ -5,6 +5,7 @@ import { CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import { Heart, Shield } from "lucide-react";
 import { DonationAmount } from "@/lib/types";
 import { donationAmounts } from "@/lib";
+import { useRouter } from "next/navigation";
 
 interface DonationFormProps {
   onDonationComplete: (amount: number) => void;
@@ -12,14 +13,14 @@ interface DonationFormProps {
 
 /**
  * DonationForm Component
- * 
+ *
  * Handles both one-time and recurring donations using Stripe.
  * Based on the working implementation from the old project.
- * 
+ *
  * Payment Flows:
  * 1. One-time donations: Uses Stripe Payment Intents with CardElement
  * 2. Recurring donations: Creates subscription with dynamic pricing
- * 
+ *
  * Stripe Integration:
  * - CardElement: For secure payment input
  * - createPaymentMethod: Creates payment method from card data
@@ -29,7 +30,7 @@ interface DonationFormProps {
 const DonationForm: React.FC<DonationFormProps> = ({ onDonationComplete }) => {
   const stripe = useStripe();
   const elements = useElements();
-  
+
   const [selectedAmount, setSelectedAmount] = useState<DonationAmount | null>(
     null
   );
@@ -42,6 +43,8 @@ const DonationForm: React.FC<DonationFormProps> = ({ onDonationComplete }) => {
     email: "",
   });
   const [error, setError] = useState<string | null>(null);
+
+  const router = useRouter();
 
   const handleAmountSelect = (amount: DonationAmount) => {
     setSelectedAmount(amount);
@@ -99,37 +102,40 @@ const DonationForm: React.FC<DonationFormProps> = ({ onDonationComplete }) => {
       }
 
       // Create payment method
-      const { error: paymentMethodError, paymentMethod } = await stripe.createPaymentMethod({
-        type: "card",
-        card: cardElement,
-      });
+      const { error: paymentMethodError, paymentMethod } =
+        await stripe.createPaymentMethod({
+          type: "card",
+          card: cardElement,
+        });
 
       if (paymentMethodError) {
-        throw new Error(paymentMethodError.message || "Payment method creation failed");
+        throw new Error(
+          paymentMethodError.message || "Payment method creation failed"
+        );
       }
 
       // Create payment intent or subscription via API
-      const res = await fetch('/api/donations/create-payment-intent', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
+      const res = await fetch("/api/donations/create-payment-intent", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
           donationAmount: amount * 100, // Convert to cents
-          donorName: donorData.name, 
+          donorName: donorData.name,
           donorEmail: donorData.email,
-          donationType: 'donation',
+          donationType: "donation",
           isRecurring,
         }),
       });
 
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.error || 'Failed to create payment');
+        throw new Error(data.error || "Failed to create payment");
       }
 
       console.log("[DEBUG] API Response:", data);
-      
+
       if (!data.clientSecret) {
-        throw new Error('No client secret received from server');
+        throw new Error("No client secret received from server");
       }
 
       // Confirm the payment
@@ -147,7 +153,7 @@ const DonationForm: React.FC<DonationFormProps> = ({ onDonationComplete }) => {
       }
 
       if (confirmResult.error) {
-        throw new Error(confirmResult.error.message || 'Payment failed');
+        throw new Error(confirmResult.error.message || "Payment failed");
       }
 
       setCompleted(true);
@@ -160,22 +166,6 @@ const DonationForm: React.FC<DonationFormProps> = ({ onDonationComplete }) => {
       setProcessing(false);
     }
   };
-
-  if (completed) {
-    return (
-      <div className="bg-white rounded-xl shadow-lg p-6">
-        <div className="text-center">
-          <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
-            <Heart className="w-6 h-6 text-green-600" />
-          </div>
-          <h3 className="text-xl font-bold text-gray-900 mb-2">Thank You!</h3>
-          <p className="text-gray-600">
-            Your donation of ${getCurrentAmount()}{isRecurring ? '/month' : ''} has been processed successfully.
-          </p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="bg-white rounded-xl shadow-lg p-6">
@@ -214,7 +204,7 @@ const DonationForm: React.FC<DonationFormProps> = ({ onDonationComplete }) => {
               </button>
             ))}
           </div>
-          
+
           {/* Custom Amount Input */}
           <div className="relative">
             <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
@@ -261,7 +251,7 @@ const DonationForm: React.FC<DonationFormProps> = ({ onDonationComplete }) => {
               required
             />
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Email Address
@@ -288,14 +278,14 @@ const DonationForm: React.FC<DonationFormProps> = ({ onDonationComplete }) => {
                 options={{
                   style: {
                     base: {
-                      fontSize: '16px',
-                      color: '#424770',
-                      '::placeholder': {
-                        color: '#aab7c4',
+                      fontSize: "16px",
+                      color: "#424770",
+                      "::placeholder": {
+                        color: "#aab7c4",
                       },
                     },
                     invalid: {
-                      color: '#9e2146',
+                      color: "#9e2146",
                     },
                   },
                 }}
@@ -309,7 +299,10 @@ const DonationForm: React.FC<DonationFormProps> = ({ onDonationComplete }) => {
           <Shield className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
           <div className="text-sm text-blue-800">
             <p className="font-medium">Secure Payment</p>
-            <p>Your payment information is encrypted and secure. We never store your card details.</p>
+            <p>
+              Your payment information is encrypted and secure. We never store
+              your card details.
+            </p>
           </div>
         </div>
 
@@ -323,7 +316,12 @@ const DonationForm: React.FC<DonationFormProps> = ({ onDonationComplete }) => {
         {/* Submit Button */}
         <button
           type="submit"
-          disabled={processing || !donorData.name || !donorData.email || getCurrentAmount() < 5}
+          disabled={
+            processing ||
+            !donorData.name ||
+            !donorData.email ||
+            getCurrentAmount() < 5
+          }
           className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors duration-200"
         >
           {processing ? (
@@ -332,7 +330,9 @@ const DonationForm: React.FC<DonationFormProps> = ({ onDonationComplete }) => {
               <span>Processing...</span>
             </div>
           ) : (
-            `${isRecurring ? 'Start Monthly' : 'Donate'} $${getCurrentAmount()}${isRecurring ? '/month' : ''}`
+            `${
+              isRecurring ? "Start Monthly" : "Donate"
+            } $${getCurrentAmount()}${isRecurring ? "/month" : ""}`
           )}
         </button>
       </form>

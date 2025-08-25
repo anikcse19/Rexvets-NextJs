@@ -21,16 +21,30 @@ import {
 } from "lucide-react";
 import AddPetModal from "./Pets/AddPetModal";
 import { getPetsByParent } from "./Service/pet";
+import { useSession } from "next-auth/react";
 
 // Mock pets data - this would come from your API
 
+interface SessionUserWithId {
+  refId: string;
+  name: string;
+  email: string;
+  image?: string;
+}
+
 export default function MyPetsPage() {
+  const { data: session } = useSession();
+
+  console.log("session", session);
+
   const [isAddPetModalOpen, setIsAddPetModalOpen] = useState(false);
   const [editingPet, setEditingPet] = useState<any>(null);
   const [pets, setPets] = useState<any[]>([]);
 
   const fetchPets = async () => {
-    const data = await getPetsByParent();
+    const user = session?.user as SessionUserWithId | undefined;
+    if (!user?.refId) return;
+    const data = await getPetsByParent(user.refId);
     setPets(data?.data);
     console.log("pet data", data);
   };
