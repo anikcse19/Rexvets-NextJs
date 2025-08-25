@@ -29,17 +29,17 @@ export async function GET(
     // Find all pets for the given parentId, only those not deleted
     const pets = await PetModel.find({ parentId, isDeleted: false });
 
-    if (!pets || pets.length === 0) {
-      return throwAppError(
-        {
-          success: false,
-          message: "No pets found for this parent",
-          errorCode: "NOT_FOUND",
-          errors: null,
-        },
-        404
-      );
-    }
+    // if (!pets || pets.length === 0) {
+    //   return throwAppError(
+    //     {
+    //       success: false,
+    //       message: "No pets found for this parent",
+    //       errorCode: "NOT_FOUND",
+    //       errors: null,
+    //     },
+    //     404
+    //   );
+    // }
 
     return sendResponse({
       statusCode: 200,

@@ -1,4 +1,4 @@
-import mongoose, { Document, Schema, Model } from 'mongoose';
+import mongoose, { Document, Model, Schema } from "mongoose";
 
 export interface IVeterinarian extends Document {
   name: string;
@@ -55,7 +55,7 @@ export interface IVeterinarian extends Document {
   approvedBy?: string;
   // Soft delete flag
   isDeleted?: boolean;
-  
+
   // Additional profile fields
   firstName?: string;
   lastName?: string;
@@ -71,19 +71,19 @@ export interface IVeterinarian extends Document {
     name: string;
     address: string;
   };
-  gender?: 'male' | 'female';
+  gender?: "male" | "female";
   noticePeriod?: number;
-  
+
   // Reviews reference - veterinarians receive reviews from pet parents
   reviews?: mongoose.Types.ObjectId[];
-  
+
   fcmTokens: {
     web?: string;
     mobile?: string;
   };
   createdAt: Date;
   updatedAt: Date;
-  
+
   // Authentication methods removed - now handled by User model
   // comparePassword(candidatePassword: string): Promise<boolean>;
   // generateEmailVerificationToken(): string;
@@ -102,312 +102,338 @@ export interface IVeterinarianModel extends Model<IVeterinarian> {
   // findByPasswordResetToken(token: string): Promise<IVeterinarian | null>;
 }
 
-const veterinarianSchema = new Schema<IVeterinarian>({
-  name: {
-    type: String,
-    required: [true, 'Name is required'],
-    trim: true,
-    maxlength: [50, 'Name cannot be more than 50 characters']
-  },
-  email: {
-    type: String,
-    required: [true, 'Email is required'],
-    unique: true,
-    lowercase: true,
-    trim: true,
-    match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Please enter a valid email']
-  },
-  // Password field removed - now handled by User model
-  // password: { ... },
-  phoneNumber: {
-    type: String,
-    required: [true, 'Phone number is required'],
-    trim: true,
-    match: [/^[\+]?[1-9][\d]{0,15}$/, 'Please enter a valid phone number']
-  },
-  specialization: {
-    type: String,
-    required: [true, 'Specialization is required'],
-    trim: true
-  },
-
-  consultationFee: {
-    type: Number,
-    required: [false, 'Consultation fee is required'],
-    min: [0, 'Consultation fee cannot be negative']
-  },
-  available: {
-    type: Boolean,
-    default: true
-  },
-  profileImage: {
-    type: String,
-    trim: true
-  },
-  cv: {
-    type: String,
-    trim: true
-  },
-  signatureImage: {
-    type: String,
-    trim: true
-  },
-  signature: {
-    type: String,
-    trim: true
-  },
-  licenses: [{
-    licenseNumber: {
-      type: String,
-      required: true,
-      trim: true
-    },
-    deaNumber: {
-      type: String,
-      trim: true
-    },
-    state: {
-      type: String,
-      required: true,
-      trim: true
-    },
-    licenseFile: {
-      type: String,
-      trim: true
-    }
-  }],
-  bio: {
-    type: String,
-    trim: true,
-    maxlength: [1000, 'Bio cannot exceed 1000 characters']
-  },
-  education: [{
-    degree: {
-      type: String,
-      required: true,
-      trim: true
-    },
-    institution: {
-      type: String,
-      required: true,
-      trim: true
-    },
-    year: {
-      type: Number,
-      required: true,
-      min: 1900,
-      max: new Date().getFullYear()
-    }
-  }],
-  experience: [{
-    position: {
-      type: String,
-      required: true,
-      trim: true
-    },
-    institution: {
-      type: String,
-      required: true,
-      trim: true
-    },
-    startDate: {
-      type: Date,
-      required: true
-    },
-    endDate: {
-      type: Date
-    },
-    description: {
-      type: String,
-      trim: true
-    }
-  }],
-  // New optional fields
-  treatedSpecies: [{
-    type: String,
-    trim: true
-  }],
-  specialities: [{
-    type: String,
-    trim: true
-  }],
-  interests: [{
-    type: String,
-    trim: true
-  }],
-  researchAreas: [{
-    type: String,
-    trim: true
-  }],
-  monthlyGoal: {
-    type: Number,
-    min: [0, 'Monthly goal cannot be negative']
-  },
-  experienceYears: {
-    type: String,
-    trim: true
-  },
-  certifications: [{
-    type: String,
-    trim: true
-  }],
-  languages: [{
-    type: String,
-    trim: true
-  }],
-  timezone: {
-    type: String,
-    default: 'UTC'
-  },
-  schedule: {
-    monday: {
-      start: { type: String, default: '09:00' },
-      end: { type: String, default: '17:00' },
-      available: { type: Boolean, default: false }
-    },
-    tuesday: {
-      start: { type: String, default: '09:00' },
-      end: { type: String, default: '17:00' },
-      available: { type: Boolean, default: false }
-    },
-    wednesday: {
-      start: { type: String, default: '09:00' },
-      end: { type: String, default: '17:00' },
-      available: { type: Boolean, default: false }
-    },
-    thursday: {
-      start: { type: String, default: '09:00' },
-      end: { type: String, default: '17:00' },
-      available: { type: Boolean, default: false }
-    },
-    friday: {
-      start: { type: String, default: '09:00' },
-      end: { type: String, default: '17:00' },
-      available: { type: Boolean, default: false }
-    },
-    saturday: {
-      start: { type: String, default: '09:00' },
-      end: { type: String, default: '17:00' },
-      available: { type: Boolean, default: false }
-    },
-    sunday: {
-      start: { type: String, default: '09:00' },
-      end: { type: String, default: '17:00' },
-      available: { type: Boolean, default: false }
-    }
-  },
-  // Authentication fields removed - now handled by User model
-  // isEmailVerified: { ... },
-  // emailVerificationToken: { ... },
-  // emailVerificationExpires: { ... },
-  // passwordResetToken: { ... },
-  // passwordResetExpires: { ... },
-  // lastLogin: { ... },
-  // loginAttempts: { ... },
-  // lockUntil: { ... },
-  isActive: {
-    type: Boolean,
-    default: true
-  },
-  isDeleted: {
-    type: Boolean,
-    default: false
-  },
-  isApproved: {
-    type: Boolean,
-    default: false
-  },
-  approvalDate: {
-    type: Date
-  },
-  approvedBy: {
-    type: String,
-    trim: true
-  },
-  
-  // Google OAuth fields removed - now handled by User model
-  // googleId: { ... },
-  // googleAccessToken: { ... },
-  // googleRefreshToken: { ... },
-  // googleExpiresAt: { ... },
-  // googleTokenType: { ... },
-  // googleScope: { ... },
-  
-  // Additional profile fields
-  firstName: {
-    type: String,
-    trim: true
-  },
-  lastName: {
-    type: String,
-    trim: true
-  },
-  locale: {
-    type: String,
-    default: 'en'
-  },
-  dob: {
-    type: Date
-  },
-  address: {
-    type: String,
-    trim: true
-  },
-  city: {
-    type: String,
-    trim: true
-  },
-  state: {
-    type: String,
-    trim: true
-  },
-  zipCode: {
-    type: Number,
-    min: [0, 'Zip code cannot be negative']
-  },
-  country: {
-    type: String,
-    trim: true
-  },
-  yearsOfExperience: {
-    type: String,
-    trim: true
-  },
-  clinic: {
+const veterinarianSchema = new Schema<IVeterinarian>(
+  {
     name: {
       type: String,
-      trim: true
+      required: [true, "Name is required"],
+      trim: true,
+      maxlength: [50, "Name cannot be more than 50 characters"],
+    },
+    email: {
+      type: String,
+      required: [true, "Email is required"],
+      unique: true,
+      lowercase: true,
+      trim: true,
+      match: [
+        /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
+        "Please enter a valid email",
+      ],
+    },
+    // Password field removed - now handled by User model
+    // password: { ... },
+    phoneNumber: {
+      type: String,
+      required: [true, "Phone number is required"],
+      trim: true,
+      match: [/^[\+]?[1-9][\d]{0,15}$/, "Please enter a valid phone number"],
+    },
+    specialization: {
+      type: String,
+      required: [true, "Specialization is required"],
+      trim: true,
+    },
+
+    consultationFee: {
+      type: Number,
+      required: [false, "Consultation fee is required"],
+      min: [0, "Consultation fee cannot be negative"],
+    },
+    available: {
+      type: Boolean,
+      default: true,
+    },
+    profileImage: {
+      type: String,
+      trim: true,
+    },
+    cv: {
+      type: String,
+      trim: true,
+    },
+    signatureImage: {
+      type: String,
+      trim: true,
+    },
+    signature: {
+      type: String,
+      trim: true,
+    },
+    licenses: [
+      {
+        licenseNumber: {
+          type: String,
+          required: true,
+          trim: true,
+        },
+        deaNumber: {
+          type: String,
+          trim: true,
+        },
+        state: {
+          type: String,
+          required: true,
+          trim: true,
+        },
+        licenseFile: {
+          type: String,
+          trim: true,
+        },
+      },
+    ],
+    bio: {
+      type: String,
+      trim: true,
+      maxlength: [1000, "Bio cannot exceed 1000 characters"],
+    },
+    education: [
+      {
+        degree: {
+          type: String,
+          required: true,
+          trim: true,
+        },
+        institution: {
+          type: String,
+          required: true,
+          trim: true,
+        },
+        year: {
+          type: Number,
+          required: true,
+          min: 1900,
+          max: new Date().getFullYear(),
+        },
+      },
+    ],
+    experience: [
+      {
+        position: {
+          type: String,
+          required: true,
+          trim: true,
+        },
+        institution: {
+          type: String,
+          required: true,
+          trim: true,
+        },
+        startDate: {
+          type: Date,
+          required: true,
+        },
+        endDate: {
+          type: Date,
+        },
+        description: {
+          type: String,
+          trim: true,
+        },
+      },
+    ],
+    // New optional fields
+    treatedSpecies: [
+      {
+        type: String,
+        trim: true,
+      },
+    ],
+    specialities: [
+      {
+        type: String,
+        trim: true,
+      },
+    ],
+    interests: [
+      {
+        type: String,
+        trim: true,
+      },
+    ],
+    researchAreas: [
+      {
+        type: String,
+        trim: true,
+      },
+    ],
+    monthlyGoal: {
+      type: Number,
+      min: [0, "Monthly goal cannot be negative"],
+    },
+    experienceYears: {
+      type: String,
+      trim: true,
+    },
+    certifications: [
+      {
+        type: String,
+        trim: true,
+      },
+    ],
+    languages: [
+      {
+        type: String,
+        trim: true,
+      },
+    ],
+    timezone: {
+      type: String,
+      default: "UTC",
+    },
+    schedule: {
+      monday: {
+        start: { type: String, default: "09:00" },
+        end: { type: String, default: "17:00" },
+        available: { type: Boolean, default: false },
+      },
+      tuesday: {
+        start: { type: String, default: "09:00" },
+        end: { type: String, default: "17:00" },
+        available: { type: Boolean, default: false },
+      },
+      wednesday: {
+        start: { type: String, default: "09:00" },
+        end: { type: String, default: "17:00" },
+        available: { type: Boolean, default: false },
+      },
+      thursday: {
+        start: { type: String, default: "09:00" },
+        end: { type: String, default: "17:00" },
+        available: { type: Boolean, default: false },
+      },
+      friday: {
+        start: { type: String, default: "09:00" },
+        end: { type: String, default: "17:00" },
+        available: { type: Boolean, default: false },
+      },
+      saturday: {
+        start: { type: String, default: "09:00" },
+        end: { type: String, default: "17:00" },
+        available: { type: Boolean, default: false },
+      },
+      sunday: {
+        start: { type: String, default: "09:00" },
+        end: { type: String, default: "17:00" },
+        available: { type: Boolean, default: false },
+      },
+    },
+    // Authentication fields removed - now handled by User model
+    // isEmailVerified: { ... },
+    // emailVerificationToken: { ... },
+    // emailVerificationExpires: { ... },
+    // passwordResetToken: { ... },
+    // passwordResetExpires: { ... },
+    // lastLogin: { ... },
+    // loginAttempts: { ... },
+    // lockUntil: { ... },
+    isActive: {
+      type: Boolean,
+      default: true,
+    },
+    isDeleted: {
+      type: Boolean,
+      default: false,
+    },
+    isApproved: {
+      type: Boolean,
+      default: false,
+    },
+    approvalDate: {
+      type: Date,
+    },
+    approvedBy: {
+      type: String,
+      trim: true,
+    },
+
+    // Google OAuth fields removed - now handled by User model
+    // googleId: { ... },
+    // googleAccessToken: { ... },
+    // googleRefreshToken: { ... },
+    // googleExpiresAt: { ... },
+    // googleTokenType: { ... },
+    // googleScope: { ... },
+
+    // Additional profile fields
+    firstName: {
+      type: String,
+      trim: true,
+    },
+    lastName: {
+      type: String,
+      trim: true,
+    },
+    locale: {
+      type: String,
+      default: "en",
+    },
+    dob: {
+      type: Date,
     },
     address: {
       type: String,
-      trim: true
-    }
+      trim: true,
+    },
+    city: {
+      type: String,
+      trim: true,
+    },
+    state: {
+      type: String,
+      trim: true,
+    },
+    zipCode: {
+      type: Number,
+      min: [0, "Zip code cannot be negative"],
+    },
+    country: {
+      type: String,
+      trim: true,
+    },
+    yearsOfExperience: {
+      type: String,
+      trim: true,
+    },
+    clinic: {
+      name: {
+        type: String,
+        trim: true,
+      },
+      address: {
+        type: String,
+        trim: true,
+      },
+    },
+    gender: {
+      type: String,
+      enum: ["male", "female"],
+      lowercase: true,
+    },
+    noticePeriod: {
+      type: Number,
+      min: [0, "Notice period cannot be negative"],
+    },
+    // need all reviews for a veterinarian: now make a api:
+    // Reviews reference - veterinarians receive reviews from pet parents
+    reviews: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Review",
+      },
+    ],
+
+    fcmTokens: {
+      web: String,
+      mobile: String,
+    },
   },
-  gender: {
-    type: String,
-    enum: ['male', 'female'],
-    lowercase: true
-  },
-  noticePeriod: {
-    type: Number,
-    min: [0, 'Notice period cannot be negative']
-  },
-  // need all reviews for a veterinarian: now make a api: 
-  // Reviews reference - veterinarians receive reviews from pet parents
-  reviews: [{
-    type: Schema.Types.ObjectId,
-    ref: 'Review'
-  }],
-  
-  fcmTokens: {
-    web: String,
-    mobile: String
+  {
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
   }
-}, {
-  timestamps: true,
-  toJSON: { virtuals: true },
-  toObject: { virtuals: true }
-});
+);
 
 // Indexes (email is auto-created by unique)
 veterinarianSchema.index({ isActive: 1 });
@@ -423,7 +449,7 @@ veterinarianSchema.index({ treatedSpecies: 1 });
 veterinarianSchema.index({ interests: 1 });
 veterinarianSchema.index({ researchAreas: 1 });
 veterinarianSchema.index({ isDeleted: 1 });
-veterinarianSchema.index({ name: 'text' }); // Text search index
+veterinarianSchema.index({ name: "text" }); // Text search index
 veterinarianSchema.index({ reviews: 1 }); // Index for reviews queries
 veterinarianSchema.index({ city: 1 }); // Index for location-based queries
 veterinarianSchema.index({ state: 1 }); // Index for state-based queries
@@ -432,7 +458,10 @@ veterinarianSchema.index({ gender: 1 }); // Index for gender-based queries
 veterinarianSchema.index({ zipCode: 1 }); // Index for zip code-based queries
 
 // Unique index for license numbers to prevent duplicates
-veterinarianSchema.index({ 'licenses.licenseNumber': 1 }, { unique: true, sparse: true });
+veterinarianSchema.index(
+  { "licenses.licenseNumber": 1 },
+  { unique: true, sparse: true }
+);
 
 // Authentication methods removed - now handled by User model
 // veterinarianSchema.virtual('isLocked').get(function() { ... });
@@ -449,4 +478,8 @@ veterinarianSchema.index({ 'licenses.licenseNumber': 1 }, { unique: true, sparse
 // veterinarianSchema.statics.findByEmailVerificationToken = function(token: string) { ... };
 // veterinarianSchema.statics.findByPasswordResetToken = function(token: string) { ... };
 
-export default mongoose.models.Veterinarian || mongoose.model<IVeterinarian, IVeterinarianModel>('Veterinarian', veterinarianSchema);
+export default mongoose.models.Veterinarian ||
+  mongoose.model<IVeterinarian, IVeterinarianModel>(
+    "Veterinarian",
+    veterinarianSchema
+  );

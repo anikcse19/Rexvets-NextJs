@@ -1,6 +1,6 @@
 import { connectToDatabase } from "@/lib/mongoose";
 import { sendResponse, throwAppError } from "@/lib/utils/send.response";
-import { Prescription } from "@/models/Prescription";
+import { PrescriptionModel } from "@/models/Prescription";
 import { NextRequest } from "next/server";
 
 // GET one
@@ -12,16 +12,15 @@ export async function GET(
     const { id } = await params;
     await connectToDatabase();
 
-    const prescription = await Prescription.findById(id)
+    const prescription = await PrescriptionModel.findById(id)
       .populate("pet")
-      .populate("parent")
-      .populate("doctor");
+      .exec();
 
     if (!prescription) {
       return throwAppError(
         {
           success: false,
-          message: "Prescription not found",
+          message: "PrescriptionModel not found",
           errorCode: "NOT_FOUND",
           errors: null,
         },
@@ -32,7 +31,7 @@ export async function GET(
     return sendResponse({
       statusCode: 200,
       success: true,
-      message: "Prescription fetched successfully",
+      message: "PrescriptionModel fetched successfully",
       data: prescription,
     });
   } catch (error: any) {
@@ -58,7 +57,7 @@ export async function PUT(
     await connectToDatabase();
     const body = await req.json();
     // partial update
-    const prescription = await Prescription.findByIdAndUpdate(id, body, {
+    const prescription = await PrescriptionModel.findByIdAndUpdate(id, body, {
       new: true,
       runValidators: true,
     });
@@ -67,7 +66,7 @@ export async function PUT(
       return throwAppError(
         {
           success: false,
-          message: "Prescription not found",
+          message: "PrescriptionModel not found",
           errorCode: "NOT_FOUND",
           errors: null,
         },
@@ -78,7 +77,7 @@ export async function PUT(
     return sendResponse({
       statusCode: 200,
       success: true,
-      message: "Prescription updated successfully",
+      message: "PrescriptionModel updated successfully",
       data: prescription,
     });
   } catch (error: any) {
@@ -103,13 +102,13 @@ export async function DELETE(
     const { id } = await params;
     await connectToDatabase();
 
-    const prescription = await Prescription.findByIdAndDelete(id);
+    const prescription = await PrescriptionModel.findByIdAndDelete(id);
 
     if (!prescription) {
       return throwAppError(
         {
           success: false,
-          message: "Prescription not found",
+          message: "PrescriptionModel not found",
           errorCode: "NOT_FOUND",
           errors: null,
         },
@@ -120,7 +119,7 @@ export async function DELETE(
     return sendResponse({
       statusCode: 200,
       success: true,
-      message: "Prescription deleted successfully",
+      message: "PrescriptionModel deleted successfully",
       data: null,
     });
   } catch (error: any) {

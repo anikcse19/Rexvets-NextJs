@@ -1,5 +1,6 @@
 import { connectToDatabase } from "@/lib/mongoose";
 import { DoctorModel, IDoctorDocument } from "@/models/Doctor";
+const siteURL = "https://rexvets-nextjs.vercel.app";
 
 export interface IVeterinaryMedicalReport {
   petInformation: {

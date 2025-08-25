@@ -1,4 +1,3 @@
-// src/models/AppointmentSlot.ts
 import mongoose, { Document, Model, Schema, Types, models } from "mongoose";
 export enum SlotStatus {
   AVAILABLE = "available",
@@ -6,7 +5,6 @@ export enum SlotStatus {
   BLOCKED = "blocked",
 }
 
-// TypeScript interface
 export interface IAvailabilitySlot {
   vetId: Types.ObjectId;
   date: Date;
