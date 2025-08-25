@@ -176,7 +176,7 @@ export interface DonationAmount {
 
 export interface Help {
   _id: string;
-  role: 'pet_parent' | 'veterinarian' | 'technician' | 'admin';
+  role: "pet_parent" | "veterinarian" | "technician" | "admin";
   name: string;
   email: string;
   phone: string;
@@ -188,4 +188,37 @@ export interface Help {
   createdAt: string;
   updatedAt: string;
   id: string;
+}
+
+export interface DateRange {
+  start: Date;
+  end: Date;
+}
+
+export interface SlotPeriod {
+  start: Date;
+  end: Date;
+}
+
+export interface AvailabilitySlot {
+  dateRange: DateRange;
+  slotPeriods: SlotPeriod[];
+}
+
+export interface ExistsingAvailability {
+  id: string;
+  date: Date;
+  dateRange?: DateRange;
+  slots: SlotPeriod[];
+}
+
+export interface CreateAvailabilityRequest {
+  dateRange: {
+    start: string;
+    end: string;
+  };
+  slotPeriods: {
+    start: string;
+    end: string;
+  }[];
 }
