@@ -51,7 +51,7 @@ const AvailabilityScheduler: React.FC = () => {
   const getData = async () => {
     try {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/appointments/slots/slot-summary/68a9477e0cc6dcbf64cbaf5c?startDate=2025-08-24&endDate=2025-08-30`
+        `/api/appointments/slots/slot-summary/68a9477e0cc6dcbf64cbaf5c?startDate=2025-08-24&endDate=2025-08-30`
       );
 
       if (!res.ok) {

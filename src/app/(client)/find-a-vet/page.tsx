@@ -3,7 +3,7 @@ import { getAllVets } from "@/components/FindVet/Service/get-all-vets";
 import React from "react";
 
 // Make this page dynamic to avoid build-time API calls
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 const page = async () => {
   try {
@@ -19,15 +19,17 @@ const page = async () => {
     // Return empty data if API fails
     return (
       <div>
-        <FindVetPage doctors={{
-          veterinarians: [],
-          pagination: {
-            page: 1,
-            limit: 10,
-            total: 0,
-            pages: 0
-          }
-        }} />
+        <FindVetPage
+          doctors={{
+            veterinarians: [],
+            pagination: {
+              page: 1,
+              limit: 10,
+              total: 0,
+              pages: 0,
+            },
+          }}
+        />
       </div>
     );
   }

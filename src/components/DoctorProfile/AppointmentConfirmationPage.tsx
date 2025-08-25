@@ -9,20 +9,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   User,
   MapPin,
   Clock,
@@ -40,9 +26,11 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Doctor } from "@/lib/types";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { getPetsByParent } from "../Dashboard/PetParent/Service/pet";
 import AddPetModal from "../Dashboard/PetParent/Pets/AddPetModal";
+import { useSession } from "next-auth/react";
+import { toast } from "sonner";
 
 interface Pet {
   _id: string;
@@ -98,21 +86,39 @@ export default function AppointmentConfirmation() {
   const [veterinarian, setVeterinarian] = useState<Doctor | null>(null);
   const [isAddPetModalOpen, setIsAddPetModalOpen] = useState(false);
 
+  const router = useRouter();
+  const { data: session } = useSession();
+
+  console.log("session in appointment confirmation page", session);
+
   const searchParams = useSearchParams();
   const date = searchParams.get("date");
   const time = searchParams.get("time");
+  const slot = searchParams.get("slot");
 
   const fetchPets = async () => {
-    const data = await getPetsByParent("68a4597b6fbe5d3c548c215d");
+    if (!session) {
+      setPets([]);
+      return;
+    }
+    const data = await getPetsByParent(
+      (session.user as typeof session.user & { refId?: string })?.refId || ""
+    );
     setPets(data.data || []);
+    if (data.data.length === 1) {
+      setSelectedPet(data.data[0]._id);
+    }
   };
+
+  useEffect(() => {
+    fetchPets();
+  }, [session]);
 
   useEffect(() => {
     const storedDoctor = localStorage.getItem("doctorData");
     if (storedDoctor) {
       setVeterinarian(JSON.parse(storedDoctor));
     }
-    fetchPets();
   }, []);
 
   const handlePetSelection = (id: string) => {
@@ -144,17 +150,18 @@ export default function AppointmentConfirmation() {
   const handleCloseModal = () => {
     setIsAddPetModalOpen(false);
     // setEditingPet(null);
+    fetchPets();
   };
 
-  const completeAppointment = () => {
+  const completeAppointment = async () => {
     if (!selectedPet) {
-      alert("Please select at least one pet for the appointment.");
+      toast.error("Please select at least one pet for the appointment.");
       return;
     }
 
     const allConcerns = [...selectedConcerns, ...customConcerns];
     if (allConcerns.length === 0) {
-      alert("Please select or add at least one concern.");
+      toast.error("Please select or add at least one concern.");
       return;
     }
 
@@ -165,7 +172,36 @@ export default function AppointmentConfirmation() {
       details: moreDetails,
     });
 
-    alert("Appointment confirmed successfully!");
+    const appointmentCreateData = {
+      veterinarian: veterinarian?._id,
+      petParent: session
+        ? (session.user as typeof session.user & { refId?: string })?.refId
+        : undefined,
+      pet: selectedPet,
+      notes: moreDetails,
+      feeUSD: 0,
+      reasonForVisit: "",
+      reminderSent: true,
+      slotId: slot,
+      appointmentType: "",
+      isFollowUp: false,
+    };
+
+    const res = await fetch("/api/appointments", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(appointmentCreateData),
+    });
+
+    if (!res.ok) {
+      toast.error("Failed to create appointment. Please try again.");
+      return;
+    }
+
+    const data = await res.json();
+    console.log("Appointment created:", data);
+
+    // alert("Appointment confirmed successfully!");
   };
 
   function calculatePetAge(dob: string) {
