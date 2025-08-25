@@ -1,190 +1,72 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Search,
+  Loader2,
+  AlertCircle,
+  RefreshCw,
 } from "lucide-react";
 import AppointmentCard from "./Appointments/AppointmentCard";
 import { Appointment } from "@/lib/types";
 import { Input } from "@/components/ui/input";
+import { appointmentsService, TransformedAppointment } from "./Service/appointments.service";
+import { useVeterinarian } from "@/hooks/useVeterinarian";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
-const mockAppointments: Record<string, Appointment[]> = {
-  upcoming: [
-    {
-      id: "1",
-      petName: "Max",
-      petImage:
-        "https://images.pexels.com/photos/1108099/pexels-photo-1108099.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop",
-      petType: "Golden Retriever",
-      parentName: "Sarah Johnson",
-      parentImage:
-        "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop&crop=face",
-      appointmentDate: "2025-01-15",
-      appointmentTime: "10:30 AM",
-      timezone: "GMT+6",
-      status: "confirmed",
-      bookingTime: "2025-01-10 2:15 PM",
-      seenBefore: true,
-      service: "Routine Checkup",
-    },
-    {
-      id: "2",
-      petName: "Bella",
-      petImage:
-        "https://images.pexels.com/photos/45201/kitty-cat-kitten-pet-45201.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop",
-      petType: "Persian Cat",
-      parentName: "Mike Chen",
-      parentImage:
-        "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop&crop=face",
-      appointmentDate: "2025-01-15",
-      appointmentTime: "2:00 PM",
-      timezone: "GMT+6",
-      status: "pending",
-      bookingTime: "2025-01-12 9:30 AM",
-      seenBefore: false,
-      service: "Vaccination",
-    },
-    {
-      id: "3",
-      petName: "Charlie",
-      petImage:
-        "https://images.pexels.com/photos/1805164/pexels-photo-1805164.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop",
-      petType: "Beagle",
-      parentName: "Emma Davis",
-      parentImage:
-        "https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop&crop=face",
-      appointmentDate: "2025-01-16",
-      appointmentTime: "11:15 AM",
-      timezone: "GMT+6",
-      status: "confirmed",
-      bookingTime: "2025-01-11 4:45 PM",
-      seenBefore: true,
-      service: "Dental Cleaning",
-    },
-    {
-      id: "4",
-      petName: "Luna",
-      petImage:
-        "https://images.pexels.com/photos/1170986/pexels-photo-1170986.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop",
-      petType: "Siamese Cat",
-      parentName: "James Wilson",
-      parentImage:
-        "https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop&crop=face",
-      appointmentDate: "2025-01-17",
-      appointmentTime: "3:30 PM",
-      timezone: "GMT+6",
-      status: "confirmed",
-      bookingTime: "2025-01-08 11:20 AM",
-      seenBefore: false,
-      service: "Surgery Consultation",
-    },
-  ],
-  past: [
-    {
-      id: "5",
-      petName: "Rocky",
-      petImage:
-        "https://images.pexels.com/photos/1254140/pexels-photo-1254140.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop",
-      petType: "German Shepherd",
-      parentName: "Lisa Brown",
-      parentImage:
-        "https://images.pexels.com/photos/733872/pexels-photo-733872.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop&crop=face",
-      appointmentDate: "2025-01-10",
-      appointmentTime: "9:00 AM",
-      timezone: "GMT+6",
-      status: "completed",
-      bookingTime: "2025-01-05 3:30 PM",
-      seenBefore: true,
-      service: "Emergency Check",
-      // notes: "Minor injury treated successfully",
-    },
-    {
-      id: "6",
-      petName: "Milo",
-      petImage:
-        "https://images.pexels.com/photos/1404819/pexels-photo-1404819.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop",
-      petType: "Tabby Cat",
-      parentName: "David Kim",
-      parentImage:
-        "https://images.pexels.com/photos/1043471/pexels-photo-1043471.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop&crop=face",
-      appointmentDate: "2025-01-08",
-      appointmentTime: "1:45 PM",
-      timezone: "GMT+6",
-      status: "completed",
-      bookingTime: "2025-01-03 10:15 AM",
-      seenBefore: false,
-      service: "Health Checkup",
-    },
-    {
-      id: "7",
-      petName: "Buddy",
-      petImage:
-        "https://images.pexels.com/photos/1851164/pexels-photo-1851164.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop",
-      petType: "Labrador",
-      parentName: "Anna Martinez",
-      parentImage:
-        "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop&crop=face",
-      appointmentDate: "2025-01-05",
-      appointmentTime: "4:20 PM",
-      timezone: "GMT+6",
-      status: "no-show",
-      bookingTime: "2024-12-30 2:10 PM",
-      seenBefore: true,
-      service: "Vaccination",
-    },
-  ],
-  actionNeeded: [
-    {
-      id: "8",
-      petName: "Whiskers",
-      petImage:
-        "https://images.pexels.com/photos/1741205/pexels-photo-1741205.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop",
-      petType: "Maine Coon",
-      parentName: "Robert Taylor",
-      parentImage:
-        "https://images.pexels.com/photos/1681010/pexels-photo-1681010.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop&crop=face",
-      appointmentDate: "2025-01-14",
-      appointmentTime: "10:00 AM",
-      timezone: "GMT+6",
-      status: "pending",
-      bookingTime: "2025-01-13 5:45 PM",
-      seenBefore: false,
-      service: "Emergency Consultation",
-      // notes: "Requires immediate attention - not eating for 2 days",
-    },
-    {
-      id: "9",
-      petName: "Daisy",
-      petImage:
-        "https://images.pexels.com/photos/1490908/pexels-photo-1490908.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop",
-      petType: "Border Collie",
-      parentName: "Jennifer White",
-      parentImage:
-        "https://images.pexels.com/photos/1130626/pexels-photo-1130626.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop&crop=face",
-      appointmentDate: "2025-01-13",
-      appointmentTime: "2:30 PM",
-      timezone: "GMT+6",
-      status: "cancelled",
-      bookingTime: "2025-01-09 1:20 PM",
-      seenBefore: true,
-      service: "Follow-up Checkup",
-      // notes: "Needs rescheduling - owner cancelled last minute",
-    },
-  ],
-};
+
 
 export default function AppointmentsPage() {
   const [activeTab, setActiveTab] = useState("upcoming");
   const [searchTerm, setSearchTerm] = useState("");
   const [filterDate, setFilterDate] = useState("");
+  const [appointments, setAppointments] = useState<Record<string, TransformedAppointment[]>>({
+    upcoming: [],
+    past: [],
+    actionNeeded: [],
+  });
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const { veterinarian, isLoading: isVetLoading, error: vetError } = useVeterinarian();
+
+  // Fetch appointments function
+  const fetchAppointments = async () => {
+    if (!veterinarian?.refId) {
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      const categorizedAppointments = await appointmentsService.getVeterinarianAppointmentsByCategory(
+        veterinarian.refId
+      );
+      
+      setAppointments(categorizedAppointments);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to fetch appointments");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Fetch appointments when veterinarian data is available
+  useEffect(() => {
+    if (veterinarian?.refId) {
+      fetchAppointments();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [veterinarian?.refId]);
 
   // Function to filter appointments based on search and date
-  const filterAppointments = (appointments: Appointment[]) => {
-    return appointments.filter((appointment) => {
+  const filterAppointments = (appointmentList: TransformedAppointment[]) => {
+    return appointmentList.filter((appointment) => {
       const matchesSearch =
         appointment.petName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         appointment.parentName.toLowerCase().includes(searchTerm.toLowerCase());
@@ -196,6 +78,39 @@ export default function AppointmentsPage() {
       return matchesSearch && matchesDate;
     });
   };
+
+  // Show loading state while fetching veterinarian data or appointments
+  if (isVetLoading || isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+          <p className="text-gray-600">Loading appointments...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (vetError || error) {
+    return (
+      <div className="space-y-6">
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            {vetError || error || "Failed to load appointments"}
+          </AlertDescription>
+        </Alert>
+        <Button 
+          onClick={() => window.location.reload()} 
+          variant="outline"
+          className="w-full"
+        >
+          Try Again
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -209,6 +124,16 @@ export default function AppointmentsPage() {
             Manage your clinic appointments and schedule.
           </p>
         </div>
+        <Button
+          onClick={fetchAppointments}
+          variant="outline"
+          size="sm"
+          disabled={isLoading}
+          className="flex items-center gap-2"
+        >
+          <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+          Refresh
+        </Button>
       </div>
 
       {/* Search and Date Filter */}
@@ -242,9 +167,30 @@ export default function AppointmentsPage() {
         ) : null}
       </div>
 
+      {/* Show message if no appointments at all */}
+      {appointments.upcoming.length === 0 && 
+       appointments.past.length === 0 && 
+       appointments.actionNeeded.length === 0 && 
+       !isLoading && (
+        <Card className="p-8 text-center">
+          <div className="space-y-4">
+            <div className="text-gray-400">
+              <Search className="h-12 w-12 mx-auto mb-4" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900">No appointments yet</h3>
+              <p className="text-gray-600 mt-2">
+                You don't have any appointments scheduled. Appointments will appear here once patients book with you.
+              </p>
+            </div>
+          </div>
+        </Card>
+      )}
+
       {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3 lg:w-auto lg:grid-cols-3">
+      {(appointments.upcoming.length > 0 || appointments.past.length > 0 || appointments.actionNeeded.length > 0) && (
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-3 lg:w-auto lg:grid-cols-3">
           <TabsTrigger
             value="upcoming"
             className="flex items-center gap-2 cursor-pointer"
@@ -254,7 +200,7 @@ export default function AppointmentsPage() {
               variant="secondary"
               className="bg-blue-100 text-blue-700 text-xs"
             >
-              {mockAppointments.upcoming.length}
+              {appointments.upcoming.length}
             </Badge>
           </TabsTrigger>
           <TabsTrigger
@@ -266,7 +212,7 @@ export default function AppointmentsPage() {
               variant="secondary"
               className="bg-gray-100 text-gray-700 text-xs"
             >
-              {mockAppointments.past.length}
+              {appointments.past.length}
             </Badge>
           </TabsTrigger>
           <TabsTrigger
@@ -278,29 +224,36 @@ export default function AppointmentsPage() {
               variant="secondary"
               className="bg-red-100 text-red-700 text-xs"
             >
-              {mockAppointments.actionNeeded.length}
+              {appointments.actionNeeded.length}
             </Badge>
           </TabsTrigger>
         </TabsList>
 
         {/* Tab Contents */}
-        {Object.entries(mockAppointments).map(([tabKey, appointments]) => {
-          const filtered = filterAppointments(appointments);
+        {Object.entries(appointments).map(([tabKey, appointmentList]) => {
+          const filtered = filterAppointments(appointmentList);
 
           return (
             <TabsContent key={tabKey} value={tabKey} className="mt-6">
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {filtered.length === 0 ? (
-                  <Card className="p-8 text-center">
-                    <p className="text-gray-500">
-                      No appointments found in this category.
-                    </p>
-                  </Card>
+                  <div className="col-span-full">
+                    <Card className="p-8 text-center">
+                      <p className="text-gray-500">
+                        No appointments found in this category.
+                      </p>
+                      {(searchTerm || filterDate) && (
+                        <p className="text-gray-400 text-sm mt-2">
+                          Try adjusting your search or date filter.
+                        </p>
+                      )}
+                    </Card>
+                  </div>
                 ) : (
                   filtered.map((appointment) => (
                     <AppointmentCard
                       key={appointment.id}
-                      appointment={appointment}
+                      appointment={appointment as Appointment}
                     />
                   ))
                 )}
@@ -308,7 +261,8 @@ export default function AppointmentsPage() {
             </TabsContent>
           );
         })}
-      </Tabs>
+        </Tabs>
+      )}
     </div>
   );
 }

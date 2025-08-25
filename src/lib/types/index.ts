@@ -187,3 +187,6 @@ export interface Help {
   updatedAt: string;
   id: string;
 }
+
+// Re-export appointment types
+export * from './appointment';

@@ -145,7 +145,7 @@ const donationSchema = new Schema<IDonation>(
 // Useful for donation reports and analytics
 donationSchema.index({ timestamp: -1, isRecurring: 1, status: 1 });
 
-export default (mongoose.models.Donation as IDonationModel) ||
+export default mongoose.models.Donation ||
   mongoose.model<IDonation, IDonationModel>('Donation', donationSchema);
 
 

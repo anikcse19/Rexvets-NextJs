@@ -1,24 +1,16 @@
 import mongoose, { Document, model, Schema, Types } from "mongoose";
+import {
+  AppointmentStatus,
+  AppointmentType,
+  PaymentStatus,
+} from "@/lib/types/appointment";
 
-export enum AppointmentStatus {
-  SCHEDULED = "scheduled",
-  COMPLETED = "completed",
-  CANCELLED = "cancelled",
-  RESCHEDULED = "rescheduled",
-}
-export enum AppointmentType {
-  GENERAL_CHECKUP = "general_checkup",
-  VACCINATION = "vaccination",
-  EMERGENCY = "emergency",
-  SURGERY_CONSULTATION = "surgery_consultation",
-  FOLLOW_UP = "follow_up",
-}
-export enum PaymentStatus {
-  PENDING = "pending",
-  PAID = "paid",
-  REFUNDED = "refunded",
-  FAILED = "failed",
-}
+// Re-export from shared types to maintain backward compatibility
+export {
+  AppointmentStatus,
+  AppointmentType,
+  PaymentStatus,
+};
 
 export interface IAppointment extends Document {
   veterinarian: Types.ObjectId;
@@ -45,12 +37,13 @@ const AppointmentSchema = new Schema<IAppointment>(
   {
     veterinarian: {
       type: Schema.Types.ObjectId,
-      ref: "User",
+      // ref: "User",
+      ref: "Veterinarian",
       required: true,
     },
     petParent: {
       type: Schema.Types.ObjectId,
-      ref: "User",
+      ref: "PetParent",
       required: true,
     },
     pet: {

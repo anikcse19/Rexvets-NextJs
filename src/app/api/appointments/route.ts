@@ -231,6 +231,8 @@ export async function GET(req: NextRequest) {
       AppointmentModel.countDocuments(query),
     ]);
 
+
+
     return sendResponse({
       statusCode: 200,
       success: true,
