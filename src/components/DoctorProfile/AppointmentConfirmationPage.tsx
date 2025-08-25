@@ -45,49 +45,16 @@ import { getPetsByParent } from "../Dashboard/PetParent/Service/pet";
 import AddPetModal from "../Dashboard/PetParent/Pets/AddPetModal";
 
 interface Pet {
-  id: string;
+  _id: string;
   name: string;
   type: string;
+  species: String;
   breed: string;
   age: string;
   image?: string;
   color?: string;
+  dateOfBirth: string;
 }
-
-const mockDoctor: Doctor = {
-  id: "1",
-  name: "Dr. Sarah Johnson",
-  specialty: "Veterinary Internal Medicine",
-  image:
-    "https://images.pexels.com/photos/5452293/pexels-photo-5452293.jpeg?auto=compress&cs=tinysrgb&w=400",
-  location: "Pet Care Center, Downtown",
-  experience: "12 years experience",
-  rating: 4.9,
-  certifications: ["Board Certified", "Emergency Care", "Surgery Specialist"],
-};
-
-const mockPets: Pet[] = [
-  {
-    id: "1",
-    name: "Max",
-    type: "Dog",
-    breed: "Golden Retriever",
-    age: "3 years",
-    image:
-      "https://images.pexels.com/photos/1108099/pexels-photo-1108099.jpeg?auto=compress&cs=tinysrgb&w=400",
-    color: "from-amber-400 to-orange-500",
-  },
-  {
-    id: "2",
-    name: "Luna",
-    type: "Cat",
-    breed: "Persian",
-    age: "2 years",
-    image:
-      "https://images.pexels.com/photos/45201/kitty-cat-kitten-pet-45201.jpeg?auto=compress&cs=tinysrgb&w=400",
-    color: "from-purple-400 to-pink-500",
-  },
-];
 
 const predefinedConcerns = [
   { name: "General Checkup", icon: "🩺", color: "from-blue-500 to-cyan-500" },
@@ -115,7 +82,7 @@ const predefinedConcerns = [
 ];
 
 export default function AppointmentConfirmation() {
-  const [selectedPets, setSelectedPets] = useState<string[]>([]);
+  const [selectedPet, setSelectedPet] = useState<string | null>(null);
   const [pets, setPets] = useState<Pet[]>([]);
   const [selectedConcerns, setSelectedConcerns] = useState<string[]>([]);
   const [customConcern, setCustomConcern] = useState("");
@@ -136,8 +103,8 @@ export default function AppointmentConfirmation() {
   const time = searchParams.get("time");
 
   const fetchPets = async () => {
-    const data = await getPetsByParent("68a95dead652a98b123bf4b3");
-    setPets(data || []);
+    const data = await getPetsByParent("68a4597b6fbe5d3c548c215d");
+    setPets(data.data || []);
   };
 
   useEffect(() => {
@@ -148,14 +115,8 @@ export default function AppointmentConfirmation() {
     fetchPets();
   }, []);
 
-  console.log("pets", pets);
-
-  const handlePetSelection = (petId: string) => {
-    setSelectedPets((prev) =>
-      prev.includes(petId)
-        ? prev.filter((id) => id !== petId)
-        : [...prev, petId]
-    );
+  const handlePetSelection = (id: string) => {
+    setSelectedPet((prev) => (prev === id ? null : id));
   };
 
   const handleConcernSelection = (concern: string) => {
@@ -186,7 +147,7 @@ export default function AppointmentConfirmation() {
   };
 
   const completeAppointment = () => {
-    if (selectedPets.length === 0) {
+    if (!selectedPet) {
       alert("Please select at least one pet for the appointment.");
       return;
     }
@@ -198,8 +159,8 @@ export default function AppointmentConfirmation() {
     }
 
     console.log({
-      doctor: mockDoctor,
-      selectedPets: selectedPets,
+      doctor: veterinarian,
+      selectedPets: selectedPet,
       concerns: allConcerns,
       details: moreDetails,
     });
@@ -207,6 +168,31 @@ export default function AppointmentConfirmation() {
     alert("Appointment confirmed successfully!");
   };
 
+  function calculatePetAge(dob: string) {
+    const birthDate = new Date(dob);
+    const today = new Date();
+
+    let years = today.getFullYear() - birthDate.getFullYear();
+    let months = today.getMonth() - birthDate.getMonth();
+    let days = today.getDate() - birthDate.getDate();
+
+    if (days < 0) {
+      months--;
+      days += new Date(today.getFullYear(), today.getMonth(), 0).getDate();
+    }
+    if (months < 0) {
+      years--;
+      months += 12;
+    }
+
+    if (years > 0) {
+      return `${years} year${years > 1 ? "s" : ""}`;
+    } else if (months > 0) {
+      return `${months} month${months > 1 ? "s" : ""}`;
+    } else {
+      return `${days} day${days > 1 ? "s" : ""}`;
+    }
+  }
   return (
     <div className="min-h-screen relative overflow-hidden">
       {/* Animated Background */}
@@ -258,7 +244,7 @@ export default function AppointmentConfirmation() {
                 <Avatar className="w-24 h-24 ring-4 ring-white shadow-xl">
                   <AvatarImage
                     src={veterinarian?.profileImage}
-                    alt={mockDoctor.name}
+                    alt={veterinarian?.name}
                   />
                   <AvatarFallback className="bg-gradient-to-r from-blue-500 to-purple-500 text-white text-xl">
                     {veterinarian?.name
@@ -372,7 +358,7 @@ export default function AppointmentConfirmation() {
                 </div>
                 Choose Your Pets
                 <Badge className="bg-blue-600 text-white">
-                  {selectedPets.length} selected
+                  {selectedPet ? "1 selected" : "0 selected"}
                 </Badge>
               </CardTitle>
               <Button
@@ -388,11 +374,11 @@ export default function AppointmentConfirmation() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {(Array.isArray(pets) ? pets : [])?.map((pet) => (
                 <div
-                  key={pet.id}
-                  onClick={() => handlePetSelection(pet.id)}
+                  key={pet._id}
+                  onClick={() => handlePetSelection(pet._id)}
                   className={cn(
                     "relative p-6 rounded-2xl cursor-pointer transition-all duration-300 transform hover:scale-105 hover:shadow-2xl group",
-                    selectedPets.includes(pet.id)
+                    selectedPet === pet._id
                       ? "bg-blue-600 text-white shadow-2xl scale-105"
                       : "bg-white hover:bg-gray-50 shadow-lg border border-gray-100"
                   )}
@@ -410,7 +396,7 @@ export default function AppointmentConfirmation() {
                           {pet.name[0]}
                         </AvatarFallback>
                       </Avatar>
-                      {selectedPets.includes(pet.id) && (
+                      {selectedPet === pet._id && (
                         <div className="p-2 bg-white/20 rounded-full">
                           <CheckCircle className="w-6 h-6 text-white animate-pulse" />
                         </div>
@@ -419,9 +405,7 @@ export default function AppointmentConfirmation() {
                     <h4
                       className={cn(
                         "text-xl font-bold mb-2",
-                        selectedPets.includes(pet.id)
-                          ? "text-white"
-                          : "text-gray-900"
+                        selectedPet === pet._id ? "text-white" : "text-gray-900"
                       )}
                     >
                       {pet.name}
@@ -429,23 +413,23 @@ export default function AppointmentConfirmation() {
                     <div className="space-y-1">
                       <p
                         className={cn(
-                          "text-sm font-medium",
-                          selectedPets.includes(pet.id)
+                          "text-sm font-medium capitalize",
+                          selectedPet === pet._id
                             ? "text-white/90"
                             : "text-gray-600"
                         )}
                       >
-                        {pet.type} • {pet.breed}
+                        {pet.species} • {pet.breed}
                       </p>
                       <p
                         className={cn(
                           "text-sm",
-                          selectedPets.includes(pet.id)
+                          selectedPet === pet._id
                             ? "text-white/80"
                             : "text-gray-500"
                         )}
                       >
-                        {pet.age} old
+                        {calculatePetAge(pet?.dateOfBirth)} old
                       </p>
                     </div>
                   </div>

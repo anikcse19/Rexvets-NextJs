@@ -43,14 +43,15 @@ export default function ScheduleStep({
   const addTimeSlot = (day: keyof Schedule) => {
     setSchedule((prev) => ({
       ...prev,
-      [day]: [...(prev[day] as any || []), { startTime: "", endTime: "" }],
+      [day]: [...((prev[day] as any) || []), { startTime: "", endTime: "" }],
     }));
   };
 
   const removeTimeSlot = (day: keyof Schedule, index: number) => {
     setSchedule((prev) => ({
       ...prev,
-      [day]: (prev[day] as any)?.filter((_: any, i: number) => i !== index) || [],
+      [day]:
+        (prev[day] as any)?.filter((_: any, i: number) => i !== index) || [],
     }));
   };
 
@@ -70,11 +71,13 @@ export default function ScheduleStep({
   };
 
   const validateSchedule = (): boolean => {
-    const hasValidSlots = Object.values(schedule).some((daySlots: any) =>
-      Array.isArray(daySlots) && daySlots.some(
-        (slot: any) =>
-          slot.startTime && slot.endTime && slot.startTime < slot.endTime
-      )
+    const hasValidSlots = Object.values(schedule).some(
+      (daySlots: any) =>
+        Array.isArray(daySlots) &&
+        daySlots.some(
+          (slot: any) =>
+            slot.startTime && slot.endTime && slot.startTime < slot.endTime
+        )
     );
     return hasValidSlots;
   };
@@ -96,6 +99,8 @@ export default function ScheduleStep({
         return acc;
       }, {} as Schedule);
 
+      console.log("Submitting schedule:", cleanedSchedule);
+
       onNext(cleanedSchedule);
     }
   };
@@ -106,13 +111,13 @@ export default function ScheduleStep({
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.5 }}
     >
-      <Card className="backdrop-blur-sm bg-white/95 shadow-xl border-0">
+      <Card className="backdrop-blur-xl bg-white/10 border-white/20 shadow-2xl border-0">
         <CardHeader>
           <CardTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent flex items-center gap-2">
             <Calendar className="w-6 h-6 text-blue-600" />
             Set Your Schedule
           </CardTitle>
-          <p className="text-muted-foreground">
+          <p className="text-gray-300 ">
             Define your available consultation hours
           </p>
         </CardHeader>
@@ -121,7 +126,7 @@ export default function ScheduleStep({
           {DAYS_OF_WEEK.map((day) => (
             <div key={day} className="border rounded-lg p-4 space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="font-semibold text-lg flex items-center gap-2">
+                <h3 className="font-semibold text-lg flex items-center gap-2 text-white">
                   <Clock className="w-5 h-5" />
                   {day}
                 </h3>
@@ -138,72 +143,85 @@ export default function ScheduleStep({
 
               {(schedule as any)[day]?.length ? (
                 <div className="space-y-3">
-                  {(schedule as any)[day].map((timeSlot: any, index: number) => (
-                    <motion.div
-                      key={index}
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"
-                    >
-                      <div className="flex-1">
-                        <Label className="text-sm text-white">
-                          From
-                        </Label>
-                        <Select
-                          value={timeSlot.startTime}
-                          onValueChange={(value) =>
-                            updateTimeSlot(day as keyof Schedule, index, "startTime", value)
-                          }
-                        >
-                          <SelectTrigger className="mt-1">
-                            <SelectValue placeholder="Start time" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {TIME_SLOTS.map((slot) => (
-                              <SelectItem key={slot.value} value={slot.value}>
-                                {slot.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <div className="flex-1">
-                        <Label className="text-sm text-white">
-                          To
-                        </Label>
-                        <Select
-                          value={timeSlot.endTime}
-                          onValueChange={(value) =>
-                            updateTimeSlot(day as keyof Schedule, index, "endTime", value)
-                          }
-                        >
-                          <SelectTrigger className="mt-1">
-                            <SelectValue placeholder="End time" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {TIME_SLOTS.filter(
-                              (slot) => slot.value > timeSlot.startTime
-                            ).map((slot) => (
-                              <SelectItem key={slot.value} value={slot.value}>
-                                {slot.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeTimeSlot(day as keyof Schedule, index)}
-                        className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                  {(schedule as any)[day].map(
+                    (timeSlot: any, index: number) => (
+                      <motion.div
+                        key={index}
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className="flex items-center gap-3 p-3 backdrop-blur-xl bg-white/20 border-white/20 rounded-lg"
                       >
-                        <X className="w-4 h-4" />
-                      </Button>
-                    </motion.div>
-                  ))}
+                        <div className="flex-1">
+                          <Label className="text-sm text-white">From</Label>
+                          <Select
+                            value={timeSlot.startTime}
+                            onValueChange={(value) =>
+                              updateTimeSlot(
+                                day as keyof Schedule,
+                                index,
+                                "startTime",
+                                value
+                              )
+                            }
+                          >
+                            <SelectTrigger className="mt-1 text-white placeholder:text-white">
+                              <SelectValue
+                                placeholder="Start time"
+                                className="placeholder:text-white"
+                              />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {TIME_SLOTS.map((slot) => (
+                                <SelectItem key={slot.value} value={slot.value}>
+                                  {slot.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="flex-1">
+                          <Label className="text-sm text-white">To</Label>
+                          <Select
+                            value={timeSlot.endTime}
+                            onValueChange={(value) =>
+                              updateTimeSlot(
+                                day as keyof Schedule,
+                                index,
+                                "endTime",
+                                value
+                              )
+                            }
+                          >
+                            <SelectTrigger className="mt-1">
+                              <SelectValue placeholder="End time" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {TIME_SLOTS.filter(
+                                (slot) => slot.value > timeSlot.startTime
+                              ).map((slot) => (
+                                <SelectItem key={slot.value} value={slot.value}>
+                                  {slot.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() =>
+                            removeTimeSlot(day as keyof Schedule, index)
+                          }
+                          className="text-red-500 hover:text-red-700 bg-red-50 cursor-pointer"
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </motion.div>
+                    )
+                  )}
                 </div>
               ) : (
                 <p className="text-muted-foreground text-sm italic text-center py-4">

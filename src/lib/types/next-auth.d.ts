@@ -7,6 +7,7 @@ declare module "next-auth" {
     role: string;
     emailVerified?: boolean;
     image?: string;
+    refId?: string;
     // Enhanced user data for better experience
     phoneNumber?: string;
     state?: string;
@@ -46,6 +47,7 @@ declare module "next-auth" {
       role: string;
       emailVerified?: boolean;
       image?: string;
+      refId?: string;
       // Enhanced session data
       phoneNumber?: string;
       state?: string;
@@ -83,6 +85,7 @@ declare module "next-auth" {
     id: string;
     emailVerified?: boolean;
     image?: string;
+    refId?: string;
     // Enhanced JWT data
     phoneNumber?: string;
     state?: string;
@@ -121,5 +124,6 @@ declare module "next-auth/jwt" {
     id: string;
     emailVerified?: boolean;
     image?: string;
+    refId?: string;
   }
 }

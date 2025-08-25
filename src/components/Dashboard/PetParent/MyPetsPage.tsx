@@ -26,7 +26,7 @@ import { useSession } from "next-auth/react";
 // Mock pets data - this would come from your API
 
 interface SessionUserWithId {
-  id: string;
+  refId: string;
   name: string;
   email: string;
   image?: string;
@@ -35,14 +35,16 @@ interface SessionUserWithId {
 export default function MyPetsPage() {
   const { data: session } = useSession();
 
+  console.log("session", session);
+
   const [isAddPetModalOpen, setIsAddPetModalOpen] = useState(false);
   const [editingPet, setEditingPet] = useState<any>(null);
   const [pets, setPets] = useState<any[]>([]);
 
   const fetchPets = async () => {
     const user = session?.user as SessionUserWithId | undefined;
-    if (!user?.id) return;
-    const data = await getPetsByParent(user.id);
+    if (!user?.refId) return;
+    const data = await getPetsByParent(user.refId);
     setPets(data?.data);
     console.log("pet data", data);
   };

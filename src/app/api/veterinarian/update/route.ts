@@ -11,7 +11,7 @@ const basicInfoSchema = z.object({
   firstName: z.string().min(2).max(50).optional(),
   lastName: z.string().min(2).max(50).optional(),
   postNominalLetters: z.string().optional(),
-  gender: z.enum(["male", "female", "other"]).optional(),
+  gender: z.enum(["male", "female"]).optional(),
   city: z.string().min(2).max(100).optional(),
   state: z.string().min(2).max(100).optional(),
   countryCode: z.string().min(2).max(3).optional(),
@@ -29,6 +29,16 @@ const basicInfoSchema = z.object({
   researchAreas: z.array(z.string()).optional(),
   monthlyGoal: z.number().min(0).optional(),
   experienceYears: z.string().optional(),
+  // Additional new fields
+  dob: z.coerce.date().optional(),
+  address: z.string().min(1).max(200).optional(),
+  zipCode: z.number().min(0).optional(),
+  country: z.string().min(2).max(100).optional(),
+  yearsOfExperience: z.string().optional(),
+  clinic: z.object({
+    name: z.string().min(1).max(100),
+    address: z.string().min(1).max(200),
+  }).optional(),
 });
 
 const educationSchema = z.object({
@@ -40,17 +50,13 @@ const educationSchema = z.object({
 const experienceSchema = z.object({
   position: z.string().min(2),
   institution: z.string().min(2),
-  startDate: z.string().datetime(),
-  endDate: z.string().datetime().optional(),
+  startDate: z.coerce.date(),
+  endDate: z.coerce.date().optional(),
   description: z.string().optional(),
 });
 
-const certificationSchema = z.object({
-  name: z.string().min(2),
-  issuingOrganization: z.string().min(2),
-  issueDate: z.string().datetime(),
-  expiryDate: z.string().datetime().optional(),
-});
+// Certifications is now a simple string array
+const certificationSchema = z.string().min(1);
 
 const licenseSchema = z.object({
   licenseNumber: z.string().min(1),

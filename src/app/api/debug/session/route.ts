@@ -101,7 +101,8 @@ export async function GET() {
           email: (session as any).user.email,
           name: (session as any).user.name,
           role: (session as any).user.role,
-          emailVerified: (session as any).user.emailVerified
+          emailVerified: (session as any).user.emailVerified,
+          refId: (session as any).user.refId
         },
         expires: (session as any).expires
       },
