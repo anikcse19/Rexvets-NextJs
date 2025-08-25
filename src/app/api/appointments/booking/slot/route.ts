@@ -50,17 +50,6 @@ export async function GET(req: NextRequest) {
       },
     };
     return sendResponse(response);
-
-    // return NextResponse.json({
-    //   success: true,
-    //   data: slots,
-    //   meta: {
-    //     total,
-    //     page,
-    //     limit,
-    //     totalPages: Math.ceil(total / limit),
-    //   },
-    // });
   } catch (error: any) {
     console.error("GET /appointment-slots error:", error);
     return throwAppError(

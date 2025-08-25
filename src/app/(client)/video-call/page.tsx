@@ -5,16 +5,8 @@ import VideoCallPreview from "@/components/VideoCall/VideoCallPreview";
 import React, { Suspense } from "react";
 
 function VideoCallContent() {
-
   return (
     <div className="min-h-screen ">
-      {/* <VideoCallInterface
-        channel={CHANNEL}
-        uid={uid}
-        appId={APP_ID}
-        isPublisher={isPublisher}
-      /> */}
-      {/* <VideoCallVersantParents mode="access" /> */}
       <VideoCallPreview />
     </div>
   );

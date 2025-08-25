@@ -1,10 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { connectToDatabase } from '@/lib/mongoose';
-import { VeterinarianModel } from '@/models';
+import { connectToDatabase } from "@/lib/mongoose";
+import { VeterinarianModel } from "@/models";
+import { NextRequest, NextResponse } from "next/server";
 
 /**
  * GET /api/veterinarian
- * 
+ *
  * Returns a paginated list of veterinarians.
  * Query params:
  * - page: number (default 1)
@@ -15,30 +15,38 @@ import { VeterinarianModel } from '@/models';
  */
 export async function GET(req: NextRequest) {
   try {
-    console.log('Connecting to database...');
-    console.log('MongoDB URI (first 20 chars):', process.env.MONGODB_URI?.substring(0, 20) + '...');
+    console.log("Connecting to database...");
+    console.log(
+      "MongoDB URI (first 20 chars):",
+      process.env.MONGODB_URI?.substring(0, 20) + "..."
+    );
     await connectToDatabase();
-    console.log('Database connected successfully');
+    console.log("Database connected successfully");
 
     const { searchParams } = new URL(req.url);
-    const page = Math.max(parseInt(searchParams.get('page') || '1', 10), 1);
-    const limit = Math.min(Math.max(parseInt(searchParams.get('limit') || '20', 10), 1), 100);
-    const q = (searchParams.get('q') || searchParams.get('name') || '').trim();
-    const specialization = (searchParams.get('specialization') || '').trim();
-    const availableParam = searchParams.get('available');
-    const approvedParam = searchParams.get('approved');
-    const speciality = (searchParams.get('speciality') || '').trim();
-    const treatedSpecies = (searchParams.get('treatedSpecies') || '').trim();
-    const interest = (searchParams.get('interest') || '').trim();
-    const researchArea = (searchParams.get('researchArea') || '').trim();
-    const monthlyGoal = searchParams.get('monthlyGoal');
-    const experienceYears = (searchParams.get('experienceYears') || '').trim();
-    const city = (searchParams.get('city') || '').trim();
-    const state = (searchParams.get('state') || '').trim();
-    const country = (searchParams.get('country') || '').trim();
-    const gender = (searchParams.get('gender') || '').trim();
-    const yearsOfExperience = (searchParams.get('yearsOfExperience') || '').trim();
-    const noticePeriod = searchParams.get('noticePeriod');
+    const page = Math.max(parseInt(searchParams.get("page") || "1", 10), 1);
+    const limit = Math.min(
+      Math.max(parseInt(searchParams.get("limit") || "20", 10), 1),
+      100
+    );
+    const q = (searchParams.get("q") || searchParams.get("name") || "").trim();
+    const specialization = (searchParams.get("specialization") || "").trim();
+    const availableParam = searchParams.get("available");
+    const approvedParam = searchParams.get("approved");
+    const speciality = (searchParams.get("speciality") || "").trim();
+    const treatedSpecies = (searchParams.get("treatedSpecies") || "").trim();
+    const interest = (searchParams.get("interest") || "").trim();
+    const researchArea = (searchParams.get("researchArea") || "").trim();
+    const monthlyGoal = searchParams.get("monthlyGoal");
+    const experienceYears = (searchParams.get("experienceYears") || "").trim();
+    const city = (searchParams.get("city") || "").trim();
+    const state = (searchParams.get("state") || "").trim();
+    const country = (searchParams.get("country") || "").trim();
+    const gender = (searchParams.get("gender") || "").trim();
+    const yearsOfExperience = (
+      searchParams.get("yearsOfExperience") || ""
+    ).trim();
+    const noticePeriod = searchParams.get("noticePeriod");
 
     const filter: Record<string, any> = {
       // Temporarily removed filters to debug
@@ -47,21 +55,21 @@ export async function GET(req: NextRequest) {
     };
 
     // Do not force approval by default; allow optional filtering via `approved`
-    if (approvedParam === 'true') {
+    if (approvedParam === "true") {
       filter.isApproved = true;
-    } else if (approvedParam === 'false') {
+    } else if (approvedParam === "false") {
       filter.isApproved = false;
     }
 
     if (q) {
-      filter.name = { $regex: q, $options: 'i' };
+      filter.name = { $regex: q, $options: "i" };
     }
     if (specialization) {
       filter.specialization = specialization;
     }
-    if (availableParam === 'true') {
+    if (availableParam === "true") {
       filter.available = true;
-    } else if (availableParam === 'false') {
+    } else if (availableParam === "false") {
       filter.available = false;
     }
     if (speciality) {
@@ -80,29 +88,31 @@ export async function GET(req: NextRequest) {
       filter.monthlyGoal = { $gte: parseInt(monthlyGoal) };
     }
     if (experienceYears) {
-      filter.experienceYears = { $regex: experienceYears, $options: 'i' };
+      filter.experienceYears = { $regex: experienceYears, $options: "i" };
     }
     if (city) {
-      filter.city = { $regex: city, $options: 'i' };
+      filter.city = { $regex: city, $options: "i" };
     }
     if (state) {
-      filter.state = { $regex: state, $options: 'i' };
+      filter.state = { $regex: state, $options: "i" };
     }
     if (country) {
-      filter.country = { $regex: country, $options: 'i' };
+      filter.country = { $regex: country, $options: "i" };
     }
     if (gender) {
       filter.gender = gender.toLowerCase();
     }
     if (yearsOfExperience) {
-      filter.yearsOfExperience = { $regex: yearsOfExperience, $options: 'i' };
+      filter.yearsOfExperience = { $regex: yearsOfExperience, $options: "i" };
     }
     if (noticePeriod) {
       filter.noticePeriod = parseInt(noticePeriod);
     }
 
     const query = VeterinarianModel.find(filter)
-      .select('-password -emailVerificationToken -passwordResetToken -googleAccessToken -googleRefreshToken')
+      .select(
+        "-password -emailVerificationToken -passwordResetToken -googleAccessToken -googleRefreshToken"
+      )
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(limit);
@@ -113,36 +123,46 @@ export async function GET(req: NextRequest) {
     ]);
 
     // Debug logging
-    console.log('Filter applied:', JSON.stringify(filter, null, 2));
-    console.log('Total veterinarians found:', total);
-    console.log('Items returned:', items.length);
-    
+    console.log("Filter applied:", JSON.stringify(filter, null, 2));
+    console.log("Total veterinarians found:", total);
+    console.log("Items returned:", items.length);
+
     // Check total count without filters
     const totalWithoutFilters = await VeterinarianModel.countDocuments({});
-    console.log('Total veterinarians in database (no filters):', totalWithoutFilters);
+    console.log(
+      "Total veterinarians in database (no filters):",
+      totalWithoutFilters
+    );
 
     return NextResponse.json({
       success: true,
       message: "Veterinarians retrieved successfully",
-      data: {
-        veterinarians: items,
-        pagination: {
-          page,
-          limit,
-          total,
-          pages: Math.ceil(total / limit),
-        }
-      }
+      data: items,
     });
+
+    // return NextResponse.json({
+    //   success: true,
+    //   message: "Veterinarians retrieved successfully",
+    //   data: {
+    //     veterinarians: items,
+    //     pagination: {
+    //       page,
+    //       limit,
+    //       total,
+    //       pages: Math.ceil(total / limit),
+    //     },
+    //   },
+    // });
   } catch (error: any) {
-    console.error('GET /api/veterinarian error:', error);
-    return NextResponse.json({
-      success: false,
-      message: 'Failed to fetch veterinarians',
-      errorCode: 'FETCH_ERROR',
-      errors: null
-    }, { status: 500 });
+    console.error("GET /api/veterinarian error:", error);
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Failed to fetch veterinarians",
+        errorCode: "FETCH_ERROR",
+        errors: null,
+      },
+      { status: 500 }
+    );
   }
 }
-
-

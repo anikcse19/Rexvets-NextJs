@@ -1455,7 +1455,7 @@ export const faqData = [
         question:
           "I am a licensed veterinarian. How can I become a part of the Rex Vet team?",
         answer: [
-          "We are continually seeking licensed veterinarians to join us. If you possess a valid veterinary license in one or more states, we are eager to discuss potential opportunities with you. In states where we provide prescription services, you will also need a valid DEA license to prescribe gabapentin. To gather more information and get in touch with our recruitment team, please visit https://www.rexVet.com/VetandTechs or initiate a conversation by emailing support@rexvet.org.",
+          "We are continually seeking licensed veterinarians to join us. If you possess a valid veterinary license in one or more states, we are eager to discuss potential opportunities with you. In states where we provide prescription services, you will also need a valid DEA license to prescribe gabapentin. To gather more information and get in touch with our recruitment team, please visit https://rexvets-nextjs.vercel.app or initiate a conversation by emailing support@rexvet.org.",
         ],
       },
     ],

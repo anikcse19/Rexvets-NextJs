@@ -1,11 +1,17 @@
 import { connectToDatabase } from "@/lib/mongoose";
-import { NextResponse } from "next/server";
-import { generateVeterinarianSlots } from "./utils.appointment-slot";
+import { NextRequest, NextResponse } from "next/server";
+import { generateSlotsForDateRange } from "./utils.appointment-slot";
 
-export const GET = async () => {
+export const GET = async (req: NextRequest) => {
   try {
     await connectToDatabase();
-    const result = await generateVeterinarianSlots();
+    const { searchParams } = new URL(req.url);
+    const startDate = searchParams.get("startDate");
+    const endDate = searchParams.get("endDate");
+    const result = await generateSlotsForDateRange(
+      startDate as any,
+      endDate as any
+    );
     return NextResponse.json(result, {
       status: 200,
       statusText: "Success",
