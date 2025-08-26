@@ -30,8 +30,9 @@ export default function TimeSlotCreator({
   selectedRange,
   onSaveSlots,
 }: TimeSlotCreatorProps) {
+  // start with one empty slot
   const [slots, setSlots] = useState<TimeSlot[]>([
-    { id: "1", startTime: "10:00", endTime: "17:00" },
+    { id: "1", startTime: "", endTime: "" },
   ]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -40,8 +41,8 @@ export default function TimeSlotCreator({
   const addSlot = () => {
     const newSlot: TimeSlot = {
       id: Date.now().toString(),
-      startTime: "09:00",
-      endTime: "17:00",
+      startTime: "",
+      endTime: "",
     };
     setSlots([...slots, newSlot]);
   };
@@ -73,12 +74,21 @@ export default function TimeSlotCreator({
 
     setIsLoading(true);
 
-    const slotPeriods: SlotPeriod[] = slots.map((slot) => ({
-      start: new Date(
-        `${selectedRange.start.toDateString()} ${slot.startTime}`
-      ),
-      end: new Date(`${selectedRange.start.toDateString()} ${slot.endTime}`),
-    }));
+    const slotPeriods: SlotPeriod[] = slots.map((slot) => {
+      const [startH, startM] = slot.startTime.split(":").map(Number);
+      const [endH, endM] = slot.endTime.split(":").map(Number);
+
+      const start = new Date(selectedRange.start);
+      start.setHours(startH, startM, 0, 0);
+
+      const end = new Date(selectedRange.start);
+      end.setHours(endH, endM, 0, 0);
+
+      return { start, end };
+    });
+
+    console.log("Saving slots:", slots);
+    console.log("Slot periods:", slotPeriods);
 
     onSaveSlots(slotPeriods);
     setIsLoading(false);
@@ -97,8 +107,22 @@ export default function TimeSlotCreator({
   const getTotalHours = (): number => {
     return slots.reduce((total, slot) => {
       if (!isValidSlot(slot)) return total;
-      const start = new Date(`2000-01-01 ${slot.startTime}`);
-      const end = new Date(`2000-01-01 ${slot.endTime}`);
+      const [sh, sm] = slot.startTime.split(":").map(Number);
+      const [eh, em] = slot.endTime.split(":").map(Number);
+
+      const start = new Date(
+        `2000-01-01T${String(sh).padStart(2, "0")}:${String(sm).padStart(
+          2,
+          "0"
+        )}:00`
+      );
+      const end = new Date(
+        `2000-01-01T${String(eh).padStart(2, "0")}:${String(em).padStart(
+          2,
+          "0"
+        )}:00`
+      );
+
       return total + (end.getTime() - start.getTime()) / (1000 * 60 * 60);
     }, 0);
   };
@@ -158,7 +182,7 @@ export default function TimeSlotCreator({
                           <SelectValue placeholder="Select start time" />
                         </SelectTrigger>
                         <SelectContent>
-                          {timeOptions.slice(0, 40).map((time) => (
+                          {timeOptions.map((time) => (
                             <SelectItem key={time} value={time}>
                               {formatDisplayTime(time)}
                             </SelectItem>
@@ -180,7 +204,7 @@ export default function TimeSlotCreator({
                           <SelectValue placeholder="Select end time" />
                         </SelectTrigger>
                         <SelectContent>
-                          {timeOptions.slice(8).map((time) => (
+                          {timeOptions.map((time) => (
                             <SelectItem key={time} value={time}>
                               {formatDisplayTime(time)}
                             </SelectItem>

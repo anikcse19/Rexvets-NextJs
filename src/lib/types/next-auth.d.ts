@@ -1,14 +1,13 @@
-// next-auth.d.ts
-
+// src/types/next-auth.d.ts
+import NextAuth, { DefaultSession, DefaultUser } from "next-auth";
+import { JWT as DefaultJWT } from "next-auth/jwt";
 
 declare module "next-auth" {
-  interface User {
+  interface User extends DefaultUser {
     id: string;
     role: string;
-    emailVerified?: boolean;
-    image?: string;
     refId?: string;
-    // Enhanced user data for better experience
+    emailVerified?: boolean;
     phoneNumber?: string;
     state?: string;
     city?: string;
@@ -40,53 +39,16 @@ declare module "next-auth" {
   }
 
   interface Session {
-    user: {
-      id: string;
-      name?: string | null;
-      email?: string | null;
-      role: string;
-      emailVerified?: boolean;
-      image?: string;
-      refId?: string;
-      // Enhanced session data
-      phoneNumber?: string;
-      state?: string;
-      city?: string;
-      address?: string;
-      zipCode?: string;
-      firstName?: string;
-      lastName?: string;
-      locale?: string;
-      isApproved?: boolean;
-      specialization?: string;
-      licenseNumber?: string;
-      consultationFee?: number;
-      available?: boolean;
-      pets?: any[];
-      emergencyContact?: {
-        name: string;
-        phone: string;
-        relationship: string;
-      };
-      preferences?: {
-        notifications: {
-          email: boolean;
-          sms: boolean;
-          push: boolean;
-        };
-        language: string;
-        timezone: string;
-      };
-    };
+    user: User & DefaultSession["user"]; // ✅ reuse User here
   }
+}
 
-  interface JWT {
-    role: string;
+declare module "next-auth/jwt" {
+  interface JWT extends DefaultJWT {
     id: string;
-    emailVerified?: boolean;
-    image?: string;
+    role: string;
     refId?: string;
-    // Enhanced JWT data
+    emailVerified?: boolean;
     phoneNumber?: string;
     state?: string;
     city?: string;
@@ -115,15 +77,5 @@ declare module "next-auth" {
       language: string;
       timezone: string;
     };
-  }
-}
-
-declare module "next-auth/jwt" {
-  interface JWT {
-    role: string;
-    id: string;
-    emailVerified?: boolean;
-    image?: string;
-    refId?: string;
   }
 }

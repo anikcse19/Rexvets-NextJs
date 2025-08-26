@@ -49,9 +49,11 @@ export default function AvailabilityManager() {
 
   const user = session?.user as SessionUserWithRefId | undefined;
 
+  console.log("Session user:", user);
+
   const handleSaveSlots = async (slotPeriods: SlotPeriod[]) => {
     if (!selectedRange) return;
-
+    console.log("slots from final save", slotPeriods);
     try {
       // Prepare the API request data
       const requestData: CreateAvailabilityRequest = {
@@ -126,6 +128,7 @@ export default function AvailabilityManager() {
     setExistingAvailabilities((prev) => prev.filter((item) => item.id !== id));
     toast.success("Availability deleted successfully!");
   };
+
   // GET available slots based on selected range
   const getAvailableSlots = useCallback(async () => {
     setAvailableSlotsApiResponse((prev) => ({
@@ -141,7 +144,7 @@ export default function AvailabilityManager() {
       const formattedStartDate = format(selectedRange.start, "yyyy-MM-dd");
       const formattedEndDate = format(selectedRange.end, "yyyy-MM-dd");
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/appointments/slots/slot-summary/68a9477e0cc6dcbf64cbaf5c?startDate=${formattedStartDate}&endDate=${formattedEndDate}`
+        `${process.env.NEXT_PUBLIC_API_URL}/api/appointments/slots/slot-summary/${user?.refId}?startDate=${formattedStartDate}&endDate=${formattedEndDate}`
       );
 
       if (!res.ok) {
@@ -173,10 +176,11 @@ export default function AvailabilityManager() {
       }));
     }
   }, [selectedRange]);
+
   // console.log("selectedRange", selectedRange);
-  useEffect(() => {
-    getAvailableSlots();
-  }, [getAvailableSlots]);
+  // useEffect(() => {
+  //   getAvailableSlots();
+  // }, [getAvailableSlots]);
 
   console.log("availablke slots api responser", availableSlotsApiResponse);
   return (
