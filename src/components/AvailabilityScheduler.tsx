@@ -67,6 +67,9 @@ const AvailabilityScheduler: React.FC<Props> = ({
   const [filterStatus, setFilterStatus] = useState<SlotStatus>(
     SlotStatus.AVAILABLE
   );
+  // if (!data) {
+  //   return null;
+  // }
   const handleSlotSelect = (slot: Slot) => {
     setSelectedSlotIds((prev) => [...prev, slot._id]);
     // Handle booking logic here
@@ -324,10 +327,10 @@ const AvailabilityScheduler: React.FC<Props> = ({
               with {data[0]?.numberOfPeriods || 0} time slots per day
               {data[0]?.periods && (
                 <span className="ml-1">
-                  ({formatTime(data[0].periods[0].startTime)} -{" "}
-                  {formatTime(data[0].periods[0].endTime)},{" "}
-                  {formatTime(data[0].periods[1].startTime)} -{" "}
-                  {formatTime(data[0].periods[1].endTime)})
+                  ({formatTime(data[0].periods[0]?.startTime)} -{" "}
+                  {formatTime(data[0].periods[0]?.endTime)},{" "}
+                  {formatTime(data[0].periods[1]?.startTime)} -{" "}
+                  {formatTime(data[0].periods[1]?.endTime)})
                 </span>
               )}
             </div>

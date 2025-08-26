@@ -48,15 +48,22 @@ export const generateAppointmentSlots = async (
 
     // If slots already exist, return early without generating new ones
     if (existingSlots.length > 0) {
-      return {
-        success: false,
-        message: `Appointment slots already exist for this vet between ${startDate.format(
+      throw new Error(
+        `Appointment slots already exist for this vet between ${startDate.format(
           "YYYY-MM-DD"
         )} and ${endDate.format(
           "YYYY-MM-DD"
-        )}. Please delete existing slots first.`,
-        existingSlotsCount: existingSlots.length,
-      };
+        )}. Please delete existing slots first.`
+      );
+      // return {
+      //   success: false,
+      //   message: `Appointment slots already exist for this vet between ${startDate.format(
+      //     "YYYY-MM-DD"
+      //   )} and ${endDate.format(
+      //     "YYYY-MM-DD"
+      //   )}. Please delete existing slots first.`,
+      //   existingSlotsCount: existingSlots.length,
+      // };
     }
 
     const slotsToCreate: any[] = [];

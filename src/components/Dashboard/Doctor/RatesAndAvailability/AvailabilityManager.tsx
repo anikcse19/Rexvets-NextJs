@@ -83,7 +83,14 @@ export default function AvailabilityManager() {
       );
 
       console.log("API Response:", response);
-
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("API Error:", errorData);
+        toast.error("Failed to create availability", {
+          description: errorData.message || "Unknown error",
+        });
+        return;
+      }
       // For now, simulate success and add to existing availabilities
       const newAvailability: ExistingAvailabilityType = {
         id: Date.now().toString(),
