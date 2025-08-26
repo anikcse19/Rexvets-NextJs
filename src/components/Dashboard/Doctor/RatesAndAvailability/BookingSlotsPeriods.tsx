@@ -5,10 +5,16 @@ import { useDashboardContext } from "@/hooks/DashboardContext";
 import { Slot, SlotStatus } from "@/lib";
 import { Check, ChevronDown } from "lucide-react";
 import moment from "moment";
+import { useSession } from "next-auth/react";
 import React, { useState } from "react";
 
 interface BookingSlotsProps {
   className?: string;
+}
+
+interface SessionUserWithRefId {
+  refId: string;
+  // other user properties can be added here
 }
 
 const BookingSlotsPeriods: React.FC<BookingSlotsProps> = ({
@@ -17,12 +23,15 @@ const BookingSlotsPeriods: React.FC<BookingSlotsProps> = ({
   const {
     selectedSlot,
     slotStatus,
+    setSlotStatus,
     setSelectedSlotIds,
     selectedSlotIds,
     onUpdateSelectedSlotStatus,
     isUpdating,
-    setSlotStatus,
   } = useDashboardContext();
+
+  const { data: session } = useSession();
+  const user = session?.user as SessionUserWithRefId | undefined;
 
   const [selectedStatus, setSelectedStatus] = useState<SlotStatus | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -116,6 +125,11 @@ const BookingSlotsPeriods: React.FC<BookingSlotsProps> = ({
       return;
     }
 
+    if (!user?.refId) {
+      console.error("User refId is missing");
+      return;
+    }
+
     try {
       // Get current date range from the selectedSlot data
       let startDate: string | undefined;
@@ -133,7 +147,7 @@ const BookingSlotsPeriods: React.FC<BookingSlotsProps> = ({
         endDate = startDate;
       }
 
-      await onUpdateSelectedSlotStatus(selectedStatus, startDate, endDate);
+      await onUpdateSelectedSlotStatus(selectedStatus, user.refId, startDate, endDate);
       setSelectedStatus(null);
       setSelectedSlotIds([]);
     } catch (error) {

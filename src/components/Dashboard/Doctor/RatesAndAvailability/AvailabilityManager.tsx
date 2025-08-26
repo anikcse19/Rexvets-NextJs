@@ -125,10 +125,14 @@ export default function AvailabilityManager() {
         alert("Please select a valid date range");
         return;
       }
+      if (!user?.refId) {
+        console.error("User refId is missing");
+        return;
+      }
       const formattedStartDate = format(selectedRange.start, "yyyy-MM-dd");
       const formattedEndDate = format(selectedRange.end, "yyyy-MM-dd");
 
-      await getAvailableSlots(formattedStartDate, formattedEndDate);
+      await getAvailableSlots(formattedStartDate, formattedEndDate, user.refId);
 
       const diff = getDaysBetween(selectedRange);
       console.log("DIFF", diff);

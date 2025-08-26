@@ -28,6 +28,11 @@ const todayDateRange: DateRange = {
   end: new Date(),
 };
 
+interface SessionUserWithRefId {
+  refId: string;
+  // other user properties can be added here
+}
+
 type DashboardContextType = {
   slotStatus: SlotStatus;
   setSlotStatus: React.Dispatch<React.SetStateAction<SlotStatus>>;
@@ -37,6 +42,7 @@ type DashboardContextType = {
   setSelectedSlotIds: React.Dispatch<React.SetStateAction<string[]>>;
   onUpdateSelectedSlotStatus: (
     status: SlotStatus,
+    refId: string,
     startDate?: string,
     endDate?: string
   ) => Promise<void>;
@@ -50,7 +56,7 @@ type DashboardContextType = {
   setAvailableSlotsApiResponse: React.Dispatch<
     React.SetStateAction<IAvailableApiResponseState>
   >;
-  getAvailableSlots: (startDate: string, endDate: string) => Promise<void>;
+  getAvailableSlots: (startDate: string, endDate: string, refId: string) => Promise<void>;
   selectedRange: DateRange | null;
   setSelectedRange: React.Dispatch<React.SetStateAction<DateRange | null>>;
 };
@@ -64,18 +70,13 @@ const DashboardContext = createContext<DashboardContextType | undefined>(
 type DashboardProviderProps = {
   children: ReactNode;
 };
-interface SessionUserWithRefId {
-  refId: string;
-  // other user properties can be added here
-}
+
 export const DashboardProvider: React.FC<DashboardProviderProps> = ({
   children,
 }) => {
   const [slotStatus, setSlotStatus] = useState<SlotStatus>(
     SlotStatus.AVAILABLE
   );
-  const { data: session } = useSession();
-  console.log("user", session?.user);
   const [enabled, setEnabled] = useState(true);
   const [open, setOpen] = useState(false);
   const [selectedSlotIds, setSelectedSlotIds] = useState<string[]>([]);
@@ -86,16 +87,15 @@ export const DashboardProvider: React.FC<DashboardProviderProps> = ({
   const [selectedRange, setSelectedRange] = useState<DateRange | null>(
     todayDateRange
   );
-  const user = session?.user as SessionUserWithRefId | undefined;
 
   const getAvailableSlots = useCallback(
-    async (startDate: string, endDate: string) => {
+    async (startDate: string, endDate: string, refId: string) => {
       setAvailableSlotsApiResponse((prev) => ({
         ...prev,
         loading: true,
         error: null,
       }));
-      if (!user?.refId) {
+      if (!refId) {
         setAvailableSlotsApiResponse((prev) => ({
           ...prev,
           loading: false,
@@ -106,7 +106,7 @@ export const DashboardProvider: React.FC<DashboardProviderProps> = ({
       }
       try {
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/appointments/slots/slot-summary/${user?.refId}?startDate=${startDate}&endDate=${endDate}&status=${SlotStatus.AVAILABLE}`
+          `${process.env.NEXT_PUBLIC_API_URL}/api/appointments/slots/slot-summary/${refId}?startDate=${startDate}&endDate=${endDate}&status=${SlotStatus.AVAILABLE}`
         );
 
         if (!res.ok) {
@@ -135,11 +135,12 @@ export const DashboardProvider: React.FC<DashboardProviderProps> = ({
         }));
       }
     },
-    [user?.refId]
+    []
   );
 
   const onUpdateSelectedSlotStatus = async (
     status: SlotStatus,
+    refId: string,
     startDate?: string,
     endDate?: string
   ) => {
@@ -147,10 +148,14 @@ export const DashboardProvider: React.FC<DashboardProviderProps> = ({
       console.error("No slots selected");
       return;
     }
+    if (!refId) {
+      toast.error("User refId is missing");
+      return;
+    }
     setIsUpdating(true);
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/appointments/slots/slot-summary/${user?.refId}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/api/appointments/slots/slot-summary/${refId}`,
         {
           method: "PUT",
           headers: {
@@ -182,12 +187,12 @@ export const DashboardProvider: React.FC<DashboardProviderProps> = ({
 
       // Re-fetch available slots after successful update
       if (startDate && endDate) {
-        await getAvailableSlots(startDate, endDate);
+        await getAvailableSlots(startDate, endDate, refId);
       } else {
         // Fallback to current date if no date range provided
         const currentDate = new Date();
         const formattedCurrentDate = currentDate.toISOString().split("T")[0];
-        await getAvailableSlots(formattedCurrentDate, formattedCurrentDate);
+        await getAvailableSlots(formattedCurrentDate, formattedCurrentDate, refId);
       }
     } catch (error: any) {
       console.error("Error updating slot status:", error);
