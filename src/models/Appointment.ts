@@ -85,7 +85,7 @@ const AppointmentSchema = new Schema<IAppointment>(
     status: {
       type: String,
       enum: Object.values(AppointmentStatus),
-      default: AppointmentStatus.SCHEDULED,
+      default: AppointmentStatus.UPCOMING,
     },
     isFollowUp: {
       type: Boolean,
