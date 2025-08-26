@@ -1,8 +1,11 @@
 import { type ClassValue, clsx } from "clsx";
-import { format } from "date-fns";
-import moment from "moment-timezone";
+import {
+  differenceInCalendarDays,
+  endOfDay,
+  format,
+  startOfDay,
+} from "date-fns";
 import { twMerge } from "tailwind-merge";
-import { addDays, startOfDay, endOfDay, parseISO, addMinutes } from "date-fns";
 
 /**
  * The function `cn` in TypeScript merges multiple class values using `clsx` and `twMerge`.
@@ -110,4 +113,13 @@ export const formatDisplayTime = (time: string): string => {
   const ampm = hour >= 12 ? "PM" : "AM";
   const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
   return `${displayHour}:${minutes} ${ampm}`;
+};
+export const getDaysBetween = (dateRange: {
+  start: Date;
+  end: Date;
+}): string => {
+  const days = differenceInCalendarDays(dateRange.end, dateRange.start);
+  const totalDays = days === 0 ? 1 : days + 1;
+
+  return totalDays === 1 ? "1 day" : `${totalDays} days`;
 };

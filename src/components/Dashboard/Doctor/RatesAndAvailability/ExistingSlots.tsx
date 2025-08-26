@@ -1,25 +1,25 @@
 "use client";
 
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import {
-  Calendar,
-  Clock,
-  Edit,
-  Trash2,
-  ChevronDown,
-  ChevronUp,
-} from "lucide-react";
-import { format, differenceInDays } from "date-fns";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { ExistsingAvailability, SlotPeriod } from "@/lib/types";
+import { differenceInDays, format } from "date-fns";
+import {
+  Calendar,
+  ChevronDown,
+  ChevronUp,
+  Clock,
+  Edit,
+  Trash2,
+} from "lucide-react";
+import { useState } from "react";
 
 interface ExistingAvailabilityProps {
   availabilities: ExistsingAvailability[];
@@ -58,7 +58,6 @@ export default function ExistingAvailability({
       return total + hours;
     }, 0);
   };
-
   if (availabilities.length === 0) {
     return (
       <Card className="w-full shadow-lg border-0 bg-gradient-to-br from-white to-gray-50/50">
