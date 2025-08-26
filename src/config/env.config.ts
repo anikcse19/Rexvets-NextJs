@@ -67,8 +67,9 @@ const config = {
 
   BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL,
 
-
-
+  // Google Analytics Configuration
+  GOOGLE_ANALYTICS_ID: process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID,
+  GOOGLE_TAG_MANAGER_ID: process.env.NEXT_PUBLIC_GOOGLE_TAG_MANAGER_ID,
 
 } as const;
 
