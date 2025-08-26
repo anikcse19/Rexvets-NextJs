@@ -28,4 +28,4 @@ export type { IAppointment } from "./Appointment";
 export { PetModel } from "./Pet";
 
 export { default as UserModel } from "./User";
-export type { UserRole, IUser, IUserModel } from "./User";
+export type { IUser, IUserModel, UserRole } from "./User";

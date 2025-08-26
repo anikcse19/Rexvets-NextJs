@@ -191,4 +191,36 @@ export interface Help {
 }
 
 // Re-export appointment types
-export * from './appointment';
+export * from "./appointment";
+export interface DateRange {
+  start: Date;
+  end: Date;
+}
+
+export interface SlotPeriod {
+  start: Date;
+  end: Date;
+}
+
+export interface AvailabilitySlot {
+  dateRange: DateRange;
+  slotPeriods: SlotPeriod[];
+}
+
+export interface ExistsingAvailability {
+  id: string;
+  date: Date;
+  dateRange?: DateRange;
+  slots: SlotPeriod[];
+}
+
+export interface CreateAvailabilityRequest {
+  dateRange: {
+    start: string;
+    end: string;
+  };
+  slotPeriods: {
+    start: string;
+    end: string;
+  }[];
+}
