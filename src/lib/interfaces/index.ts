@@ -158,3 +158,25 @@ export interface IMessage {
   createdAt?: Date;
   updatedAt?: Date;
 }
+
+export interface Slot {
+  _id: string;
+  vetId: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  status: string;
+  createdAt: string;
+  __v: number;
+  updatedAt: string;
+  formattedDate: string;
+  formattedStartTime: string;
+  formattedEndTime: string;
+}
+export enum SlotStatus {
+  AVAILABLE = "available",
+  BOOKED = "booked",
+  BLOCKED = "blocked",
+  PENDING = "pending",
+  ALL = "all",
+}

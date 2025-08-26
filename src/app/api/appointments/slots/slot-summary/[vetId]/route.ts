@@ -1,3 +1,4 @@
+import { authOptions } from "@/lib/auth";
 import { connectToDatabase } from "@/lib/mongoose";
 import {
   IErrorResponse,
@@ -8,12 +9,17 @@ import {
 import { SlotStatus } from "@/models/AppointmentSlot";
 import Veterinarian from "@/models/Veterinarian";
 import { Types } from "mongoose";
+import { getServerSession } from "next-auth/next";
 import { NextRequest } from "next/server";
 import {
   getSlotsByVetId,
   IGetSlotsParams,
 } from "../../../generate-appointment-slot/utils.appointment-slot";
-import { groupSlotsIntoPeriods } from "../util.slot.summary";
+import {
+  groupSlotsIntoPeriods,
+  updateSlotStatus,
+  updateSlotStatusBulk,
+} from "../util.slot.summary";
 
 export const GET = async (
   req: NextRequest,
@@ -88,6 +94,93 @@ export const GET = async (
       success: false,
       message: "Failed to retrieve veterinarian slots",
       errorCode: "FAILED_TO_RETRIEVE_SLOTS",
+      errors: null,
+    };
+    return throwAppError(errResp);
+  }
+};
+export const PATCH = async (
+  req: NextRequest,
+  { params }: { params: Promise<{ vetId: string }> }
+) => {
+  try {
+    const { vetId } = await params;
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      const errResp: IErrorResponse = {
+        success: false,
+        message: "Unauthorized",
+        errorCode: "UNAUTHORIZED",
+        errors: null,
+      };
+      return throwAppError(errResp, 401);
+    }
+    const body = await req.json();
+    const { dateRange, status } = body;
+    if (!vetId || !new Types.ObjectId(vetId)) {
+      const errResp: IErrorResponse = {
+        success: false,
+        message: "Invalid vetId",
+        errorCode: "INVALID_VET_ID",
+        errors: null,
+      };
+      return throwAppError(errResp, 400);
+    }
+    if (!dateRange || !dateRange.start || !dateRange.end || !status) {
+      const errResp: IErrorResponse = {
+        success: false,
+        message: "Invalid request body",
+        errorCode: "INVALID_REQUEST_BODY",
+        errors: null,
+      };
+      return throwAppError(errResp, 400);
+    }
+    const response = await updateSlotStatus({
+      vetId,
+      dateRange,
+      status,
+    });
+    const responseFormat: ISendResponse<any> = {
+      statusCode: 200,
+      success: true,
+      message: "Slot status updated successfully",
+      data: response,
+    };
+  } catch (error) {
+    const errResp: IErrorResponse = {
+      success: false,
+      message: "Failed to update slot status",
+      errorCode: "FAILED_TO_UPDATE_SLOT_STATUS",
+      errors: null,
+    };
+    return throwAppError(errResp);
+  }
+};
+export const PUT = async (
+  req: NextRequest,
+  { params }: { params: Promise<{ vetId: string }> }
+) => {
+  try {
+    const { vetId } = await params;
+    const body = await req.json();
+    const { status, slotIds } = body;
+    const response = await updateSlotStatusBulk({
+      vetId,
+      slotIds,
+      status,
+    });
+    const responseFormat: ISendResponse<any> = {
+      statusCode: 200,
+      success: true,
+      message: "Slot status updated successfully",
+      data: response,
+    };
+    return sendResponse(responseFormat);
+  } catch (error) {
+    const errResp: IErrorResponse = {
+      success: false,
+      message: "Failed to update slot status",
+      errorCode: "FAILED_TO_UPDATE_SLOT_STATUS",
       errors: null,
     };
     return throwAppError(errResp);

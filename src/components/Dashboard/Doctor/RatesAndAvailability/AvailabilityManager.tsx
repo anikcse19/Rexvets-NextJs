@@ -1,27 +1,46 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 
+import AvailabilityScheduler from "@/components/AvailabilityScheduler";
 import {
-  DateRange,
-  SlotPeriod,
   CreateAvailabilityRequest,
+  DateRange,
   ExistsingAvailability as ExistingAvailabilityType,
+  SlotPeriod,
 } from "@/lib/types";
-import { formatDateRange, formatTimeSlot } from "@/lib/utils";
-import DateRangeCalendar from "./DateRangeCalender";
-import TimeSlotCreator from "./TimeSlotCreator";
-import ExistingAvailability from "./ExistingSlots";
+import { formatDateRange, formatTimeSlot, getDaysBetween } from "@/lib/utils";
+import { format } from "date-fns";
 import { useSession } from "next-auth/react";
+import DateRangeCalendar from "./DateRangeCalender";
+import ExistingAvailability from "./ExistingSlots";
+import TimeSlotCreator from "./TimeSlotCreator";
 
 interface SessionUserWithRefId {
   refId: string;
   // other user properties can be added here
 }
-
+const todayDateRange: DateRange = {
+  start: new Date(),
+  end: new Date(),
+};
+interface IAvailableApiResponseState {
+  data: any[] | null;
+  error: string | null;
+  loading: boolean;
+}
+const initialApiResponseState: IAvailableApiResponseState = {
+  data: null,
+  error: null,
+  loading: false,
+};
 export default function AvailabilityManager() {
-  const [selectedRange, setSelectedRange] = useState<DateRange | null>(null);
+  const [selectedRange, setSelectedRange] = useState<DateRange | null>(
+    todayDateRange
+  );
+  const [availableSlotsApiResponse, setAvailableSlotsApiResponse] =
+    useState<IAvailableApiResponseState>(initialApiResponseState);
   const [existingAvailabilities, setExistingAvailabilities] = useState<
     ExistingAvailabilityType[]
   >([]);
@@ -100,7 +119,59 @@ export default function AvailabilityManager() {
     setExistingAvailabilities((prev) => prev.filter((item) => item.id !== id));
     toast.success("Availability deleted successfully!");
   };
+  // GET available slots based on selected range
+  const getAvailableSlots = useCallback(async () => {
+    setAvailableSlotsApiResponse((prev) => ({
+      ...prev,
+      loading: true,
+      error: null,
+    }));
+    try {
+      if (!selectedRange?.end || !selectedRange?.start) {
+        alert("Please select a valid date range");
+        return [];
+      }
+      const formattedStartDate = format(selectedRange.start, "yyyy-MM-dd");
+      const formattedEndDate = format(selectedRange.end, "yyyy-MM-dd");
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/appointments/slots/slot-summary/68a9477e0cc6dcbf64cbaf5c?startDate=${formattedStartDate}&endDate=${formattedEndDate}`
+      );
 
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+
+      const responseData = await res.json();
+      console.log(responseData);
+      setAvailableSlotsApiResponse((prev) => ({
+        ...prev,
+        loading: false,
+        data: responseData.data,
+        error: null,
+      }));
+
+      const diff = getDaysBetween(selectedRange);
+      console.log("DIFF", diff);
+    } catch (error: any) {
+      setAvailableSlotsApiResponse((prev) => ({
+        ...prev,
+        loading: false,
+        data: null,
+        error: error.message,
+      }));
+    } finally {
+      setAvailableSlotsApiResponse((prev) => ({
+        ...prev,
+        loading: false,
+      }));
+    }
+  }, [selectedRange]);
+  // console.log("selectedRange", selectedRange);
+  useEffect(() => {
+    getAvailableSlots();
+  }, [getAvailableSlots]);
+
+  console.log("availablke slots api responser", availableSlotsApiResponse);
   return (
     <div className="container mx-auto p-6 space-y-6">
       <div className="space-y-2">
@@ -126,11 +197,16 @@ export default function AvailabilityManager() {
         </div>
 
         <div>
-          <ExistingAvailability
+          <AvailabilityScheduler
+            data={availableSlotsApiResponse.data}
+            error={availableSlotsApiResponse.error}
+            loading={availableSlotsApiResponse.loading}
+          />
+          {/* <ExistingAvailability
             availabilities={existingAvailabilities}
             onEdit={handleEditAvailability}
             onDelete={handleDeleteAvailability}
-          />
+          /> */}
         </div>
       </div>
     </div>
