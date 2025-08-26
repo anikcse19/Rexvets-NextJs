@@ -30,9 +30,11 @@ export default function AvailabilityManager() {
 
   const user = session?.user as SessionUserWithRefId | undefined;
 
+  console.log("Session user:", user);
+
   const handleSaveSlots = async (slotPeriods: SlotPeriod[]) => {
     if (!selectedRange) return;
-
+    console.log("slots from final save", slotPeriods);
     try {
       // Prepare the API request data
       const requestData: CreateAvailabilityRequest = {

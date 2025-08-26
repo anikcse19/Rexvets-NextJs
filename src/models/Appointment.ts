@@ -6,11 +6,7 @@ import {
 } from "@/lib/types/appointment";
 
 // Re-export from shared types to maintain backward compatibility
-export {
-  AppointmentStatus,
-  AppointmentType,
-  PaymentStatus,
-};
+export { AppointmentStatus, AppointmentType, PaymentStatus };
 
 export interface IAppointment extends Document {
   veterinarian: Types.ObjectId;
@@ -89,7 +85,7 @@ const AppointmentSchema = new Schema<IAppointment>(
     status: {
       type: String,
       enum: Object.values(AppointmentStatus),
-      default: AppointmentStatus.SCHEDULED,
+      default: AppointmentStatus.UPCOMING,
     },
     isFollowUp: {
       type: Boolean,
