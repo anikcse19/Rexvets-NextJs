@@ -164,6 +164,8 @@ export const PUT = async (
     const { vetId } = await params;
     const body = await req.json();
     const { status, slotIds } = body;
+    console.log("status", status);
+    console.log("slotIds", slotIds);
     const response = await updateSlotStatusBulk({
       vetId,
       slotIds,
@@ -176,10 +178,10 @@ export const PUT = async (
       data: response,
     };
     return sendResponse(responseFormat);
-  } catch (error) {
+  } catch (error: any) {
     const errResp: IErrorResponse = {
       success: false,
-      message: "Failed to update slot status",
+      message: error.message || "Failed to update slot status",
       errorCode: "FAILED_TO_UPDATE_SLOT_STATUS",
       errors: null,
     };

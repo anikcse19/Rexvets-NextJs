@@ -1,17 +1,58 @@
-import React, { createContext, ReactNode, useContext, useState } from "react";
+"use client";
+import { Slot, SlotStatus } from "@/lib";
+import { DateRange } from "@/lib/types";
+import { useSession } from "next-auth/react";
+import React, {
+  createContext,
+  ReactNode,
+  useCallback,
+  useContext,
+  useState,
+} from "react";
+import { toast } from "sonner";
 
-// 1. Define types
-type Slot = {
-  id: string;
-  time: string;
-  isBooked: boolean;
+interface IAvailableApiResponseState {
+  data: any[] | null;
+  error: string | null;
+  loading: boolean;
+}
+
+const initialApiResponseState: IAvailableApiResponseState = {
+  data: null,
+  error: null,
+  loading: false,
+};
+
+const todayDateRange: DateRange = {
+  start: new Date(),
+  end: new Date(),
 };
 
 type DashboardContextType = {
-  slotStatus: string;
-  setSlotStatus: (status: string) => void;
-  slots: Slot[];
-  setSlots: React.Dispatch<React.SetStateAction<Slot[]>>;
+  slotStatus: SlotStatus;
+  setSlotStatus: React.Dispatch<React.SetStateAction<SlotStatus>>;
+  selectedSlot: Slot[] | null;
+  setSelectedSlot: React.Dispatch<React.SetStateAction<Slot[] | null>>;
+  selectedSlotIds: string[];
+  setSelectedSlotIds: React.Dispatch<React.SetStateAction<string[]>>;
+  onUpdateSelectedSlotStatus: (
+    status: SlotStatus,
+    startDate?: string,
+    endDate?: string
+  ) => Promise<void>;
+  isUpdating: boolean;
+  setIsUpdating: React.Dispatch<React.SetStateAction<boolean>>;
+  enabled: boolean;
+  setEnabled: React.Dispatch<React.SetStateAction<boolean>>;
+  open: boolean;
+  setOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  availableSlotsApiResponse: IAvailableApiResponseState;
+  setAvailableSlotsApiResponse: React.Dispatch<
+    React.SetStateAction<IAvailableApiResponseState>
+  >;
+  getAvailableSlots: (startDate: string, endDate: string) => Promise<void>;
+  selectedRange: DateRange | null;
+  setSelectedRange: React.Dispatch<React.SetStateAction<DateRange | null>>;
 };
 
 // 2. Create context with default values
@@ -23,16 +64,161 @@ const DashboardContext = createContext<DashboardContextType | undefined>(
 type DashboardProviderProps = {
   children: ReactNode;
 };
-
+interface SessionUserWithRefId {
+  refId: string;
+  // other user properties can be added here
+}
 export const DashboardProvider: React.FC<DashboardProviderProps> = ({
   children,
 }) => {
-  const [slotStatus, setSlotStatus] = useState<string>("available");
-  const [slots, setSlots] = useState<Slot[]>([]);
+  const [slotStatus, setSlotStatus] = useState<SlotStatus>(
+    SlotStatus.AVAILABLE
+  );
+  const { data: session } = useSession();
+  console.log("user", session?.user);
+  const [enabled, setEnabled] = useState(true);
+  const [open, setOpen] = useState(false);
+  const [selectedSlotIds, setSelectedSlotIds] = useState<string[]>([]);
+  const [selectedSlot, setSelectedSlot] = useState<Slot[] | null>(null);
+  const [isUpdating, setIsUpdating] = useState<boolean>(false);
+  const [availableSlotsApiResponse, setAvailableSlotsApiResponse] =
+    useState<IAvailableApiResponseState>(initialApiResponseState);
+  const [selectedRange, setSelectedRange] = useState<DateRange | null>(
+    todayDateRange
+  );
+  const user = session?.user as SessionUserWithRefId | undefined;
+
+  const getAvailableSlots = useCallback(
+    async (startDate: string, endDate: string) => {
+      setAvailableSlotsApiResponse((prev) => ({
+        ...prev,
+        loading: true,
+        error: null,
+      }));
+      if (!user?.refId) {
+        setAvailableSlotsApiResponse((prev) => ({
+          ...prev,
+          loading: false,
+          data: null,
+          error: "User refId is missing",
+        }));
+        return;
+      }
+      try {
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/appointments/slots/slot-summary/${user?.refId}?startDate=${startDate}&endDate=${endDate}&status=${SlotStatus.AVAILABLE}`
+        );
+
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+
+        const responseData = await res.json();
+        console.log("responseData", responseData);
+        setAvailableSlotsApiResponse((prev) => ({
+          ...prev,
+          loading: false,
+          data: responseData.data,
+          error: null,
+        }));
+      } catch (error: any) {
+        setAvailableSlotsApiResponse((prev) => ({
+          ...prev,
+          loading: false,
+          data: null,
+          error: error.message,
+        }));
+      } finally {
+        setAvailableSlotsApiResponse((prev) => ({
+          ...prev,
+          loading: false,
+        }));
+      }
+    },
+    [user?.refId]
+  );
+
+  const onUpdateSelectedSlotStatus = async (
+    status: SlotStatus,
+    startDate?: string,
+    endDate?: string
+  ) => {
+    if (selectedSlotIds.length === 0) {
+      console.error("No slots selected");
+      return;
+    }
+    setIsUpdating(true);
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/appointments/slots/slot-summary/${user?.refId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            slotIds: selectedSlotIds,
+            status: status,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        // throw new Error(errorData.message || "Failed to update slot status");
+        toast.error(errorData.message || "Failed to update slot status");
+        return;
+      }
+
+      const result = await response.json();
+      toast.success(
+        result?.data?.message || "Successfully updated slot status"
+      );
+      setOpen(false);
+      // Clear selection after successful update
+      setSelectedSlotIds([]);
+
+      console.log("Successfully updated slots:", result);
+
+      // Re-fetch available slots after successful update
+      if (startDate && endDate) {
+        await getAvailableSlots(startDate, endDate);
+      } else {
+        // Fallback to current date if no date range provided
+        const currentDate = new Date();
+        const formattedCurrentDate = currentDate.toISOString().split("T")[0];
+        await getAvailableSlots(formattedCurrentDate, formattedCurrentDate);
+      }
+    } catch (error: any) {
+      console.error("Error updating slot status:", error);
+      toast.error(error.message || "Error updating slot status");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
 
   return (
     <DashboardContext.Provider
-      value={{ slotStatus, setSlotStatus, slots, setSlots }}
+      value={{
+        slotStatus,
+        setSlotStatus,
+        selectedSlot,
+        setSelectedSlot,
+        selectedSlotIds,
+        setSelectedSlotIds,
+        onUpdateSelectedSlotStatus,
+        isUpdating,
+        setIsUpdating,
+        enabled,
+        setEnabled,
+        open,
+        setOpen,
+        availableSlotsApiResponse,
+        setAvailableSlotsApiResponse,
+        getAvailableSlots,
+        selectedRange,
+        setSelectedRange,
+      }}
     >
       {children}
     </DashboardContext.Provider>

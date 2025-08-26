@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 
-import AvailabilityScheduler from "@/components/AvailabilityScheduler";
+import AvailabilityScheduler from "@/components/Dashboard/Doctor/RatesAndAvailability/AvailabilityScheduler";
+import { useDashboardContext } from "@/hooks/DashboardContext";
 import {
   CreateAvailabilityRequest,
   DateRange,
@@ -21,31 +22,19 @@ interface SessionUserWithRefId {
   refId: string;
   // other user properties can be added here
 }
-const todayDateRange: DateRange = {
-  start: new Date(),
-  end: new Date(),
-};
-interface IAvailableApiResponseState {
-  data: any[] | null;
-  error: string | null;
-  loading: boolean;
-}
-const initialApiResponseState: IAvailableApiResponseState = {
-  data: null,
-  error: null,
-  loading: false,
-};
+
 export default function AvailabilityManager() {
-  const [selectedRange, setSelectedRange] = useState<DateRange | null>(
-    todayDateRange
-  );
-  const [availableSlotsApiResponse, setAvailableSlotsApiResponse] =
-    useState<IAvailableApiResponseState>(initialApiResponseState);
   const [existingAvailabilities, setExistingAvailabilities] = useState<
     ExistingAvailabilityType[]
   >([]);
 
   const { data: session } = useSession();
+  const { 
+    availableSlotsApiResponse, 
+    getAvailableSlots, 
+    selectedRange, 
+    setSelectedRange 
+  } = useDashboardContext();
 
   const user = session?.user as SessionUserWithRefId | undefined;
 
@@ -130,59 +119,30 @@ export default function AvailabilityManager() {
   };
 
   // GET available slots based on selected range
-  const getAvailableSlots = useCallback(async () => {
-    setAvailableSlotsApiResponse((prev) => ({
-      ...prev,
-      loading: true,
-      error: null,
-    }));
+  const fetchAvailableSlots = async () => {
     try {
       if (!selectedRange?.end || !selectedRange?.start) {
         alert("Please select a valid date range");
-        return [];
+        return;
       }
       const formattedStartDate = format(selectedRange.start, "yyyy-MM-dd");
       const formattedEndDate = format(selectedRange.end, "yyyy-MM-dd");
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/appointments/slots/slot-summary/${user?.refId}?startDate=${formattedStartDate}&endDate=${formattedEndDate}`
-      );
 
-      if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`);
-      }
-
-      const responseData = await res.json();
-      console.log(responseData);
-      setAvailableSlotsApiResponse((prev) => ({
-        ...prev,
-        loading: false,
-        data: responseData.data,
-        error: null,
-      }));
+      await getAvailableSlots(formattedStartDate, formattedEndDate);
 
       const diff = getDaysBetween(selectedRange);
       console.log("DIFF", diff);
     } catch (error: any) {
-      setAvailableSlotsApiResponse((prev) => ({
-        ...prev,
-        loading: false,
-        data: null,
-        error: error.message,
-      }));
-    } finally {
-      setAvailableSlotsApiResponse((prev) => ({
-        ...prev,
-        loading: false,
-      }));
+      console.error("Error fetching available slots:", error);
     }
-  }, [selectedRange]);
+  };
 
   // console.log("selectedRange", selectedRange);
-  // useEffect(() => {
-  //   getAvailableSlots();
-  // }, [getAvailableSlots]);
+  useEffect(() => {
+    fetchAvailableSlots();
+  }, [selectedRange]);
 
-  console.log("availablke slots api responser", availableSlotsApiResponse);
+  console.log("available slots api response", availableSlotsApiResponse);
   return (
     <div className="container mx-auto p-6 space-y-6">
       <div className="space-y-2">

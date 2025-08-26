@@ -2,6 +2,7 @@
 
 import Sidebar from "@/components/shared/Layouts/DoctorDashboardSidebar";
 import Topbar from "@/components/shared/Layouts/Topbar";
+import { DashboardProvider } from "@/hooks/DashboardContext";
 import { SessionProvider } from "next-auth/react";
 import React, { useState } from "react";
 
@@ -44,7 +45,9 @@ export default function DoctorDashboardLayout({
           sidebarOpen={sidebarOpen}
         />
         <main className="flex-1 p-4 lg:p-6 overflow-y-auto bg-gray-50">
-          <SessionProvider>{children}</SessionProvider>
+          <SessionProvider>
+            <DashboardProvider>{children}</DashboardProvider>
+          </SessionProvider>
         </main>
       </div>
     </div>

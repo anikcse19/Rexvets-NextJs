@@ -1,3 +1,4 @@
+import { useDashboardContext } from "@/hooks/DashboardContext";
 import { Slot, SlotStatus } from "@/lib";
 import { cn } from "@/lib/utils";
 import moment from "moment";
@@ -10,15 +11,14 @@ import {
   FiLoader,
   FiTrash2,
 } from "react-icons/fi";
-import BookingSlots from "./BookingSlots";
-import { Button } from "./ui/button";
+import { Button } from "../../../ui/button";
 import {
   Drawer,
   DrawerContent,
   DrawerFooter,
   DrawerHeader,
   DrawerTitle,
-} from "./ui/drawer";
+} from "../../../ui/drawer";
 import {
   Sheet,
   SheetContent,
@@ -27,8 +27,9 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "./ui/sheet";
-import { Switch } from "./ui/switch";
+} from "../../../ui/sheet";
+import { Switch } from "../../../ui/switch";
+import BookingSlotsPeriods from "./BookingSlotsPeriods";
 
 interface Period {
   startTime: string;
@@ -60,18 +61,21 @@ const AvailabilityScheduler: React.FC<Props> = ({
   loading = false,
   error = null,
 }) => {
-  const [enabled, setEnabled] = useState(true);
-  const [open, setOpen] = useState(false);
   const [selectedSlotIds, setSelectedSlotIds] = useState<string[]>([]);
-  const [selectedSlot, setSelectedSlot] = useState<Slot[] | null>(null);
-  const [filterStatus, setFilterStatus] = useState<SlotStatus>(
-    SlotStatus.AVAILABLE
-  );
-  // if (!data) {
-  //   return null;
-  // }
+  // const [selectedSlot, setSelectedSlot] = useState<Slot[] | null>(null);
+
+  const {
+    setSelectedSlot,
+    setSlotStatus,
+    slotStatus,
+    enabled,
+    setEnabled,
+    open,
+    setOpen,
+  } = useDashboardContext();
+  // console.log("slotStatus", slotStatus);
   const handleSlotSelect = (slot: Slot) => {
-    setSelectedSlotIds((prev) => [...prev, slot._id]);
+    // setSelectedSlotIds((prev) => [...prev, slot._id]);
     // Handle booking logic here
   };
   // Helper functions
@@ -187,21 +191,7 @@ const AvailabilityScheduler: React.FC<Props> = ({
             <span className="font-medium">{summary.totalDays} days</span>
           </div>
         </div>
-        <div className="flex flex-wrap gap-2 mb-6 mt-1 px-3">
-          {Object.values(SlotStatus).map((status) => (
-            <button
-              key={status}
-              onClick={() => setFilterStatus(status)}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
-                filterStatus === status
-                  ? "bg-blue-500 text-white shadow-md"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
-            >
-              {status.charAt(0).toUpperCase() + status.slice(1)}
-            </button>
-          ))}
-        </div>
+
         {/* Availability Group */}
         <div className="p-4">
           {/* Group Header */}
@@ -338,9 +328,7 @@ const AvailabilityScheduler: React.FC<Props> = ({
         </div>
       </div>
       <RightDrawer
-        slotsStatus={filterStatus}
         open={open}
-        selectedSlots={selectedSlot}
         onOpenChange={(val) => {
           setOpen(val);
           setSelectedSlot(null);
@@ -354,15 +342,9 @@ export default AvailabilityScheduler;
 interface IRightProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  selectedSlots: Slot[] | null;
-  slotsStatus: SlotStatus;
 }
-const RightDrawer: React.FC<IRightProps> = ({
-  open,
-  onOpenChange,
-  selectedSlots,
-  slotsStatus = SlotStatus.AVAILABLE,
-}) => {
+const RightDrawer: React.FC<IRightProps> = ({ open, onOpenChange }) => {
+  const { selectedSlot } = useDashboardContext();
   return (
     <>
       <Sheet open={open} onOpenChange={onOpenChange}>
@@ -379,19 +361,14 @@ const RightDrawer: React.FC<IRightProps> = ({
           </SheetHeader> */}
 
           <div className="flex-1 mt-4">
-            <BookingSlots
-              slots={selectedSlots}
-              // onSlotSelect={handleSlotSelect}
-              // selectedSlotId={selectedSlot}
-              status={slotsStatus}
-            />
+            <BookingSlotsPeriods />
           </div>
 
-          <SheetFooter>
+          {/* <SheetFooter>
             <Button variant="ghost" onClick={() => onOpenChange(false)}>
               Close
             </Button>
-          </SheetFooter>
+          </SheetFooter> */}
         </SheetContent>
       </Sheet>
     </>
