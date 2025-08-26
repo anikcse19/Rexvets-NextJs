@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import { Toaster } from "sonner";
+import GoogleAnalytics, { GoogleTagManagerNoScript, GoogleAnalyticsScript } from "@/components/GoogleAnalytics";
+import PerformanceMonitor from "@/components/PerformanceMonitor";
 
 const garet = localFont({
   src: [
@@ -265,6 +267,9 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://www.google-analytics.com" />
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
 
+        {/* Google Analytics Script */}
+        <GoogleAnalyticsScript />
+
         {/* Enhanced JSON-LD Structured Data */}
         <script
           type="application/ld+json"
@@ -409,8 +414,18 @@ export default function RootLayout({
         className={`${garet.variable} antialiased`}
         suppressHydrationWarning
       >
+        {/* Google Tag Manager NoScript */}
+        <GoogleTagManagerNoScript />
+        
         <Toaster richColors position="top-right" />
-        {children}
+        
+        {/* Performance Monitor */}
+        <PerformanceMonitor>
+          {/* Google Analytics Provider */}
+          <GoogleAnalytics>
+            {children}
+          </GoogleAnalytics>
+        </PerformanceMonitor>
       </body>
     </html>
   );

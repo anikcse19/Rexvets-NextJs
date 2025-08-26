@@ -1,43 +1,12 @@
+import {
+  AppointmentStatus,
+  AppointmentType,
+  PaymentStatus,
+} from "@/lib/types/appointment";
 import mongoose, { Document, model, Schema, Types } from "mongoose";
 
-export enum AppointmentStatus {
-  SCHEDULED = "scheduled",
-  COMPLETED = "completed",
-  CANCELLED = "cancelled",
-  RESCHEDULED = "rescheduled",
-}
-export enum AppointmentType {
-  GENERAL_CHECKUP = "general_checkup",
-  VACCINATION = "vaccination",
-  WELLNESS_EXAM = "wellness_exam",
-  PUPPY_KITTEN_CHECKUP = "puppy_kitten_checkup",
-  SENIOR_PET_CARE = "senior_pet_care",
-  EMERGENCY = "emergency",
-  URGENT_CARE = "urgent_care",
-  DENTAL_CARE = "dental_care",
-  DENTAL_CLEANING = "dental_cleaning",
-  SURGERY_CONSULTATION = "surgery_consultation",
-  SPAY_NEUTER = "spay_neuter",
-  ORTHOPEDIC_SURGERY = "orthopedic_surgery",
-  FOLLOW_UP = "follow_up",
-  PHYSIOTHERAPY = "physiotherapy",
-  PAIN_MANAGEMENT = "pain_management",
-  NUTRITION_CONSULTATION = "nutrition_consultation",
-  BEHAVIORAL_CONSULTATION = "behavioral_consultation",
-  SKIN_DERMATOLOGY = "skin_dermatology",
-  CANCER_ONCOLOGY = "cancer_oncology",
-  CARDIOLOGY = "cardiology",
-  TRAVEL_HEALTH_CERTIFICATE = "travel_health_certificate",
-  VETERINARY_CERTIFICATE = "veterinary_certificate",
-  OTHERS = "others",
-}
-
-export enum PaymentStatus {
-  PENDING = "pending",
-  PAID = "paid",
-  REFUNDED = "refunded",
-  FAILED = "failed",
-}
+// Re-export from shared types to maintain backward compatibility
+export { AppointmentStatus, AppointmentType, PaymentStatus };
 
 export interface IAppointment extends Document {
   veterinarian: Types.ObjectId;
@@ -64,7 +33,8 @@ const AppointmentSchema = new Schema<IAppointment>(
   {
     veterinarian: {
       type: Schema.Types.ObjectId,
-      ref: "User",
+      // ref: "User",
+      ref: "Veterinarian",
       required: true,
     },
     petParent: {

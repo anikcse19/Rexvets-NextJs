@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,6 +13,7 @@ import {
 import { DayPicker } from "react-day-picker";
 import "react-day-picker/dist/style.css";
 import { Doctor } from "./type";
+import { getVetSlots } from "./service/get-vet-slots";
 
 interface Slot {
   time: string;
@@ -21,7 +22,7 @@ interface Slot {
 interface BookingSystemProps {
   doctorName: string;
   doctorData: Doctor;
-  onConfirm: (date: string, time: string) => void;
+  onConfirm: (date: string, time: string, slot: string) => void;
 }
 
 export default function BookingSystem({
@@ -33,7 +34,9 @@ export default function BookingSystem({
     () => new Date().toLocaleDateString("en-CA") // today initially
   );
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
+  const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [showCalendar, setShowCalendar] = useState(false);
+  const [slots, setSlots] = useState<any[]>([]);
 
   const toLocalDateString = (date: Date) => date.toLocaleDateString("en-CA"); // YYYY-MM-DD
 
@@ -112,6 +115,25 @@ export default function BookingSystem({
   const availableTimeSlots = generateSlots(selectedDate);
 
   console.log("selectedDate", selectedDate, selectedSlot);
+
+  const fetchVetSlots = async () => {
+    const data = await getVetSlots({
+      id: doctorData?._id,
+      startDate: selectedDate,
+      endDate: selectedDate,
+    });
+    // Sort by startTime (assumes format 'HH:mm')
+    const sorted = (data || []).slice().sort((a: any, b: any) => {
+      if (!a.formattedStartTime || !b.formattedStartTime) return 0;
+      return a.formattedStartTime.localeCompare(b.formattedStartTime);
+    });
+    setSlots(sorted);
+    console.log("fetched slots", sorted);
+  };
+
+  useEffect(() => {
+    fetchVetSlots();
+  }, [selectedDate]);
 
   return (
     <Card className="shadow-xl border-0 bg-white sticky top-6">
@@ -201,19 +223,22 @@ export default function BookingSystem({
             <Label className="text-sm font-medium text-gray-700 mb-3 block">
               Available Times
             </Label>
-            {availableTimeSlots.length > 0 ? (
+            {slots.length > 0 ? (
               <div className="grid grid-cols-2 gap-2">
-                {availableTimeSlots.map((slot) => (
+                {slots.map((slot) => (
                   <button
-                    key={slot.time}
-                    onClick={() => setSelectedSlot(slot.time)}
+                    key={slot._id}
+                    onClick={() => {
+                      setSelectedSlot(slot._id);
+                      setSelectedTime(slot.formattedStartTime);
+                    }}
                     className={`p-3 rounded-lg border text-center transition-all cursor-pointer ${
-                      selectedSlot === slot.time
+                      selectedSlot === slot._id
                         ? "border-green-500 bg-green-50 text-green-900"
                         : "border-gray-200 hover:border-green-300 hover:bg-green-50"
                     }`}
                   >
-                    <p className="font-medium">{formatTime(slot.time)}</p>
+                    <p className="font-medium">{slot.formattedStartTime}</p>
                     <p className="text-xs text-gray-600">GMT+6</p>
                   </button>
                 ))}
@@ -244,7 +269,7 @@ export default function BookingSystem({
                 </p>
               </div>
               <p className="text-green-700 text-sm">
-                {formatDate(selectedDate)} at {formatTime(selectedSlot)} (GMT+6)
+                {formatDate(selectedDate)} at {selectedTime} (GMT+6)
               </p>
             </div>
           )}
@@ -252,8 +277,10 @@ export default function BookingSystem({
           {/* Confirm Button */}
           <Button
             onClick={() => {
-              selectedSlot && onConfirm(selectedDate, selectedSlot);
-              window.scrollTo({ top: 0, behavior: "smooth" });
+              if (selectedSlot && selectedTime) {
+                onConfirm(selectedDate, selectedTime, selectedSlot);
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }
             }}
             disabled={!selectedSlot}
             className="w-full cursor-pointer bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"

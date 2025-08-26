@@ -45,6 +45,7 @@ import { calculatePetAge } from "@/lib/utils";
 import { colorOptions, speciesWithBreeds } from "@/lib";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 interface AddPetModalProps {
   isOpen: boolean;
@@ -70,6 +71,7 @@ export default function AddPetModal({
   const [newMedication, setNewMedication] = useState("");
 
   const router = useRouter();
+  const { data: session } = useSession();
 
   const {
     register,
@@ -131,7 +133,13 @@ export default function AddPetModal({
       formData.append("allergies", JSON.stringify(allergies));
       formData.append("medicalConditions", JSON.stringify(medicalConditions));
       formData.append("currentMedications", JSON.stringify(currentMedications));
-      formData.append("parentId", "68a4597b6fbe5d3c548c215d");
+      if (session?.user) {
+        formData.append(
+          "parentId",
+          (session.user as typeof session.user & { refId?: string })?.refId ||
+            ""
+        );
+      }
 
       // Append file (if any)
       if (petImage) {
