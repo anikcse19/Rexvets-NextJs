@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +13,7 @@ import {
   Clock,
 } from "lucide-react";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 import PetInfoCard from "./Appointments/PetInfoCard";
 import ParentInfoCard from "./Appointments/ParentInfoCard";
 import DataAssessmentSection from "./Appointments/DataAssessmentSection";
@@ -21,56 +22,84 @@ import ChatBox from "./Appointments/Chatbox";
 import DataAssessmentModal from "./Appointments/DataAssessmentModal";
 import PrescriptionModal from "./Appointments/Prescriptionodal";
 
-// Mock appointment data
-const mockAppointment = {
-  id: "1",
-  appointmentDate: "2025-01-15",
-  appointmentTime: "10:30 AM",
-  timezone: "GMT+6",
-  status: "in-progress" as const,
-  service: "Routine Checkup",
-  meetingLink: "https://meet.google.com/abc-defg-hij",
-
+interface AppointmentData {
+  _id: string;
+  appointmentDate: string;
+  durationMinutes: number;
+  status: string;
+  appointmentType: string;
+  meetingLink?: string;
+  notes?: string;
+  feeUSD: number;
+  veterinarian: {
+    _id: string;
+    name: string;
+    email: string;
+    specialization?: string;
+    profileImage?: string;
+  };
+  petParent: {
+    _id: string;
+    name: string;
+    email: string;
+    phone?: string;
+    address?: string;
+    profileImage?: string;
+  };
   pet: {
-    id: "pet-1",
-    name: "Max",
-    image:
-      "https://images.pexels.com/photos/1108099/pexels-photo-1108099.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop",
-    breed: "Golden Retriever",
-    age: "3 years",
-    weight: "28 kg",
-    gender: "Male",
-    color: "Golden",
-    microchipId: "123456789012345",
-    allergies: ["Chicken", "Dairy"],
-    medications: ["Heartgard Plus"],
-    lastVisit: "2024-12-15",
-    vaccinations: [
-      { name: "Rabies", date: "2024-06-15", nextDue: "2025-06-15" },
-      { name: "DHPP", date: "2024-06-15", nextDue: "2025-06-15" },
-    ],
-  },
-
-  parent: {
-    id: "parent-1",
-    name: "Sarah Johnson",
-    image:
-      "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop&crop=face",
-    email: "sarah.johnson@email.com",
-    phone: "+1 (555) 123-4567",
-    address: "123 Pet Street, Animal City, AC 12345",
-    emergencyContact: "+1 (555) 987-6543",
-    relationshipToPet: "Owner",
-    memberSince: "2022-03-15",
-  },
-};
+    _id: string;
+    name: string;
+    species: string;
+    breed?: string;
+    age?: string;
+    weight?: string;
+    gender?: string;
+    color?: string;
+    image?: string;
+  };
+  concerns: string[];
+  createdAt: string;
+  updatedAt: string;
+}
 
 export default function AppointmentDetailsPage() {
   const [isDataModalOpen, setIsDataModalOpen] = useState(false);
   const [isPrescriptionModalOpen, setIsPrescriptionModalOpen] = useState(false);
+  const [appointment, setAppointment] = useState<AppointmentData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const params = useParams();
+  const appointmentId = params.id as string;
+
+  useEffect(() => {
+    const fetchAppointment = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(`/api/appointments/${appointmentId}`);
+        const data = await response.json();
+        
+        if (data.success) {
+          setAppointment(data.data);
+        } else {
+          setError(data.message || "Failed to fetch appointment");
+        }
+      } catch (err) {
+        setError("Failed to fetch appointment data");
+        console.error("Error fetching appointment:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (appointmentId) {
+      fetchAppointment();
+    }
+  }, [appointmentId]);
 
   const handleJoinMeeting = () => {
-    window.open(mockAppointment.meetingLink, "_blank");
+    if (appointment?.meetingLink) {
+      window.open(appointment.meetingLink, "_blank");
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -83,6 +112,14 @@ export default function AppointmentDetailsPage() {
     });
   };
 
+  const formatTime = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "in-progress":
@@ -91,10 +128,36 @@ export default function AppointmentDetailsPage() {
         return "bg-gradient-to-r from-green-500 to-green-600 text-white";
       case "upcoming":
         return "bg-gradient-to-r from-purple-500 to-purple-600 text-white";
+      case "scheduled":
+        return "bg-gradient-to-r from-purple-500 to-purple-600 text-white";
       default:
         return "bg-gradient-to-r from-gray-500 to-gray-600 text-white";
     }
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading appointment details...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !appointment) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <p className="text-red-600 mb-4">{error || "Appointment not found"}</p>
+          <Link href="/dashboard/doctor/appointments">
+            <Button variant="outline">Back to Appointments</Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -115,8 +178,8 @@ export default function AppointmentDetailsPage() {
               Appointment Details
             </h1>
             <p className="text-gray-600 mt-1">
-              {formatDate(mockAppointment.appointmentDate)} at{" "}
-              {mockAppointment.appointmentTime}
+              {formatDate(appointment.appointmentDate)} at{" "}
+              {formatTime(appointment.appointmentDate)}
             </p>
           </div>
         </div>
@@ -124,18 +187,20 @@ export default function AppointmentDetailsPage() {
         <div className="flex items-center gap-3">
           <Badge
             className={`${getStatusColor(
-              mockAppointment.status
+              appointment.status
             )} px-4 py-2 text-sm font-semibold`}
           >
-            {mockAppointment.status.replace("-", " ").toUpperCase()}
+            {appointment.status.replace("-", " ").toUpperCase()}
           </Badge>
-          <Button
-            onClick={handleJoinMeeting}
-            className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
-          >
-            <Video className="w-4 h-4 mr-2" />
-            Join Meeting
-          </Button>
+          {appointment.meetingLink && (
+            <Button
+              onClick={handleJoinMeeting}
+              className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
+            >
+              <Video className="w-4 h-4 mr-2" />
+              Join Meeting
+            </Button>
+          )}
         </div>
       </div>
 
@@ -147,7 +212,7 @@ export default function AppointmentDetailsPage() {
               <Stethoscope className="w-6 h-6" />
             </div>
             <div>
-              <h2 className="text-xl font-bold">{mockAppointment.service}</h2>
+              <h2 className="text-xl font-bold">{appointment.appointmentType}</h2>
               <p className="text-blue-100">Appointment Overview</p>
             </div>
           </div>
@@ -162,7 +227,7 @@ export default function AppointmentDetailsPage() {
               <div>
                 <p className="font-semibold text-gray-900">Date</p>
                 <p className="text-gray-600">
-                  {formatDate(mockAppointment.appointmentDate)}
+                  {formatDate(appointment.appointmentDate)}
                 </p>
               </div>
             </div>
@@ -174,7 +239,7 @@ export default function AppointmentDetailsPage() {
               <div>
                 <p className="font-semibold text-gray-900">Time</p>
                 <p className="text-gray-600">
-                  {mockAppointment.appointmentTime} ({mockAppointment.timezone})
+                  {formatTime(appointment.appointmentDate)} ({appointment.durationMinutes} min)
                 </p>
               </div>
             </div>
@@ -185,7 +250,7 @@ export default function AppointmentDetailsPage() {
               </div>
               <div>
                 <p className="font-semibold text-gray-900">Service</p>
-                <p className="text-gray-600">{mockAppointment.service}</p>
+                <p className="text-gray-600">{appointment.appointmentType}</p>
               </div>
             </div>
           </div>
@@ -196,18 +261,18 @@ export default function AppointmentDetailsPage() {
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         {/* Left Column - Pet & Parent Info */}
         <div className="xl:col-span-1 space-y-6">
-          <PetInfoCard pet={mockAppointment.pet} />
-          <ParentInfoCard parent={mockAppointment.parent} />
+          <PetInfoCard pet={appointment.pet} />
+          <ParentInfoCard parent={appointment.petParent} />
         </div>
 
         {/* Middle Column - Data Assessment & Prescription */}
         <div className="xl:col-span-1 space-y-6">
           <DataAssessmentSection
-            appointmentId={mockAppointment.id}
+            appointmentId={appointment._id}
             onOpenModal={() => setIsDataModalOpen(true)}
           />
           <PrescriptionSection
-            appointmentId={mockAppointment.id}
+            appointmentId={appointment._id}
             onOpenModal={() => setIsPrescriptionModalOpen(true)}
           />
         </div>
@@ -215,9 +280,9 @@ export default function AppointmentDetailsPage() {
         {/* Right Column - Chat */}
         <div className="xl:col-span-1">
           <ChatBox
-            appointmentId={mockAppointment.id}
-            parentName={mockAppointment.parent.name}
-            parentImage={mockAppointment.parent.image}
+            appointmentId={appointment._id}
+            parentName={appointment.petParent.name}
+            parentImage={appointment.petParent.profileImage}
           />
         </div>
       </div>
@@ -226,19 +291,19 @@ export default function AppointmentDetailsPage() {
       <DataAssessmentModal
         isOpen={isDataModalOpen}
         onClose={() => setIsDataModalOpen(false)}
-        appointmentId={mockAppointment.id}
-        petName={mockAppointment.pet.name}
+        appointmentId={appointment._id}
+        petName={appointment.pet.name}
       />
 
       <PrescriptionModal
         isOpen={isPrescriptionModalOpen}
         onClose={() => setIsPrescriptionModalOpen(false)}
-        appointmentId={mockAppointment.id}
-        petName={mockAppointment.pet.name}
+        appointmentId={appointment._id}
+        petName={appointment.pet.name}
         petDetails={{
-          breed: mockAppointment.pet.breed,
-          age: mockAppointment.pet.age,
-          weight: mockAppointment.pet.weight,
+          breed: appointment.pet.breed || "",
+          age: appointment.pet.age || "",
+          weight: appointment.pet.weight || "",
         }}
       />
     </div>

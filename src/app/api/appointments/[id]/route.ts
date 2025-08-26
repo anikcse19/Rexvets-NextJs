@@ -43,18 +43,22 @@ export async function GET(
       );
     }
 
+    const userIdToMatch = (session.user as any)?.refId ?? session.user.id;
+
     const appointment = await AppointmentModel.findOne({
       _id: id,
       isDeleted: false,
       $or: [
-        { veterinarian: new Types.ObjectId(session.user.id) },
-        { petOwner: new Types.ObjectId(session.user.id) },
+        { veterinarian: new Types.ObjectId(String(userIdToMatch)) },
+        { petParent: new Types.ObjectId(String(userIdToMatch)) },
       ],
     })
-      .populate("veterinarian", "name email")
-      .populate("petOwner", "name email")
-      .populate("pet", "name species")
+      .populate("veterinarian")
+      .populate("petParent")
+      .populate("pet")
       .lean();
+
+    console.log("appointment-------------------", appointment);
 
     if (!appointment) {
       return throwAppError(
@@ -126,7 +130,7 @@ export async function PATCH(
       "durationMinutes",
       "meetingLink",
       "notes",
-      "reasonForVisit",
+      "concerns",
       "feeUSD",
       "status",
       "appointmentType",
@@ -156,12 +160,14 @@ export async function PATCH(
       updates.appointmentDate = new Date(updates.appointmentDate);
     }
 
+    const userIdToMatch = (session.user as any)?.refId ?? session.user.id;
+
     const appointment = await AppointmentModel.findOne({
       _id: id,
       isDeleted: false,
       $or: [
-        { veterinarian: new Types.ObjectId(session.user.id) },
-        { petOwner: new Types.ObjectId(session.user.id) },
+        { veterinarian: new Types.ObjectId(String(userIdToMatch)) },
+        { petParent: new Types.ObjectId(String(userIdToMatch)) },
       ],
     });
 
@@ -181,9 +187,9 @@ export async function PATCH(
     await appointment.save();
 
     const populatedAppointment = await AppointmentModel.findById(id)
-      .populate("veterinarian", "name email")
-      .populate("petOwner", "name email")
-      .populate("pet", "name species")
+      .populate("veterinarian")
+      .populate("petParent")
+      .populate("pet")
       .lean();
 
     return sendResponse({
@@ -238,12 +244,14 @@ export async function DELETE(
       );
     }
 
+    const userIdToMatch = (session.user as any)?.refId ?? session.user.id;
+
     const appointment = await AppointmentModel.findOne({
       _id: id,
       isDeleted: false,
       $or: [
-        { veterinarian: new Types.ObjectId(session.user.id) },
-        { petOwner: new Types.ObjectId(session.user.id) },
+        { veterinarian: new Types.ObjectId(String(userIdToMatch)) },
+        { petParent: new Types.ObjectId(String(userIdToMatch)) },
       ],
     });
 
