@@ -1,155 +1,73 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Search,
-} from "lucide-react";
+import { Search } from "lucide-react";
 import { Appointment } from "@/lib/types";
 import { Input } from "@/components/ui/input";
 import AppointmentCard from "./Appointments/AppointmentCard";
+import { useSession } from "next-auth/react";
+import { toast } from "sonner";
+import { getParentAppointments } from "./Service/get-all-appointments";
 
-const mockAppointments: Record<string, Appointment[]> = {
-  upcoming: [
-    {
-      id: "1",
-      petName: "Max",
-      petImage:
-        "https://images.pexels.com/photos/1108099/pexels-photo-1108099.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop",
-      petType: "Golden Retriever",
-      parentName: "Sarah Johnson",
-      parentImage:
-        "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop&crop=face",
-      appointmentDate: "2025-01-15",
-      appointmentTime: "10:30 AM",
-      timezone: "GMT+6",
-      status: "confirmed",
-      bookingTime: "2025-01-10 2:15 PM",
-      seenBefore: true,
-      service: "Routine Checkup",
-    },
-    {
-      id: "2",
-      petName: "Bella",
-      petImage:
-        "https://images.pexels.com/photos/45201/kitty-cat-kitten-pet-45201.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop",
-      petType: "Persian Cat",
-      parentName: "Mike Chen",
-      parentImage:
-        "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop&crop=face",
-      appointmentDate: "2025-01-15",
-      appointmentTime: "2:00 PM",
-      timezone: "GMT+6",
-      status: "pending",
-      bookingTime: "2025-01-12 9:30 AM",
-      seenBefore: false,
-      service: "Vaccination",
-    },
-    {
-      id: "3",
-      petName: "Charlie",
-      petImage:
-        "https://images.pexels.com/photos/1805164/pexels-photo-1805164.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop",
-      petType: "Beagle",
-      parentName: "Emma Davis",
-      parentImage:
-        "https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop&crop=face",
-      appointmentDate: "2025-01-16",
-      appointmentTime: "11:15 AM",
-      timezone: "GMT+6",
-      status: "confirmed",
-      bookingTime: "2025-01-11 4:45 PM",
-      seenBefore: true,
-      service: "Dental Cleaning",
-    },
-    {
-      id: "4",
-      petName: "Luna",
-      petImage:
-        "https://images.pexels.com/photos/1170986/pexels-photo-1170986.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop",
-      petType: "Siamese Cat",
-      parentName: "James Wilson",
-      parentImage:
-        "https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop&crop=face",
-      appointmentDate: "2025-01-17",
-      appointmentTime: "3:30 PM",
-      timezone: "GMT+6",
-      status: "confirmed",
-      bookingTime: "2025-01-08 11:20 AM",
-      seenBefore: false,
-      service: "Surgery Consultation",
-    },
-  ],
-  past: [
-    {
-      id: "5",
-      petName: "Rocky",
-      petImage:
-        "https://images.pexels.com/photos/1254140/pexels-photo-1254140.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop",
-      petType: "German Shepherd",
-      parentName: "Lisa Brown",
-      parentImage:
-        "https://images.pexels.com/photos/733872/pexels-photo-733872.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop&crop=face",
-      appointmentDate: "2025-01-10",
-      appointmentTime: "9:00 AM",
-      timezone: "GMT+6",
-      status: "completed",
-      bookingTime: "2025-01-05 3:30 PM",
-      seenBefore: true,
-      service: "Emergency Check",
-      // notes: "Minor injury treated successfully",
-    },
-    {
-      id: "6",
-      petName: "Milo",
-      petImage:
-        "https://images.pexels.com/photos/1404819/pexels-photo-1404819.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop",
-      petType: "Tabby Cat",
-      parentName: "David Kim",
-      parentImage:
-        "https://images.pexels.com/photos/1043471/pexels-photo-1043471.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop&crop=face",
-      appointmentDate: "2025-01-08",
-      appointmentTime: "1:45 PM",
-      timezone: "GMT+6",
-      status: "completed",
-      bookingTime: "2025-01-03 10:15 AM",
-      seenBefore: false,
-      service: "Health Checkup",
-    },
-    {
-      id: "7",
-      petName: "Buddy",
-      petImage:
-        "https://images.pexels.com/photos/1851164/pexels-photo-1851164.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop",
-      petType: "Labrador",
-      parentName: "Anna Martinez",
-      parentImage:
-        "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop&crop=face",
-      appointmentDate: "2025-01-05",
-      appointmentTime: "4:20 PM",
-      timezone: "GMT+6",
-      status: "no-show",
-      bookingTime: "2024-12-30 2:10 PM",
-      seenBefore: true,
-      service: "Vaccination",
-    },
-  ],
-};
+type AppointmentCategory = "upcoming" | "past";
 
 export default function PetParentAppointmentsListPage() {
-  const [activeTab, setActiveTab] = useState("upcoming");
+  const [activeTab, setActiveTab] = useState("schedule");
   const [searchTerm, setSearchTerm] = useState("");
   const [filterDate, setFilterDate] = useState("");
+  const [appointmentsData, setAppointmentsData] = useState<
+    Record<AppointmentCategory, Appointment[]>
+  >({
+    upcoming: [],
+    past: [],
+  });
+  const { data: session } = useSession();
+
+  const parentId = session?.user?.refId as string;
+
+  const fetchAppointments = async () => {
+    if (!parentId) return;
+    try {
+      const data = await getParentAppointments(parentId);
+
+      console.log("Fetched appointments:", data);
+
+      const now = new Date();
+      const grouped = {
+        upcoming: data?.data?.filter(
+          (a: Appointment) =>
+            new Date(a.appointmentDate) >= now && a.status !== "completed"
+        ),
+        past: data?.data?.filter(
+          (a: Appointment) =>
+            new Date(a.appointmentDate) < now || a.status === "completed"
+        ),
+      };
+
+      setAppointmentsData(grouped);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "An error occurred");
+      console.error("Error fetching appointments:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchAppointments();
+  }, [session]);
 
   // Function to filter appointments based on search and date
   const filterAppointments = (appointments: Appointment[]) => {
+    console.log("appointments", appointments);
     return appointments.filter((appointment) => {
-      const matchesSearch =
-        appointment.petName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        appointment.parentName.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesSearch = appointment.pet.name
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
+      // ||
+      // appointment.parentName.toLowerCase().includes(searchTerm.toLowerCase());
 
       const matchesDate = filterDate
         ? appointment.appointmentDate === filterDate
@@ -216,7 +134,7 @@ export default function PetParentAppointmentsListPage() {
               variant="secondary"
               className="bg-blue-100 text-blue-700 text-xs"
             >
-              {mockAppointments.upcoming.length}
+              {/* {mockAppointments.upcoming.length} */}
             </Badge>
           </TabsTrigger>
           <TabsTrigger
@@ -228,13 +146,13 @@ export default function PetParentAppointmentsListPage() {
               variant="secondary"
               className="bg-gray-100 text-gray-700 text-xs"
             >
-              {mockAppointments.past.length}
+              {/* {mockAppointments.past.length} */}
             </Badge>
           </TabsTrigger>
         </TabsList>
 
         {/* Tab Contents */}
-        {Object.entries(mockAppointments).map(([tabKey, appointments]) => {
+        {Object.entries(appointmentsData).map(([tabKey, appointments]) => {
           const filtered = filterAppointments(appointments);
 
           return (
@@ -249,7 +167,7 @@ export default function PetParentAppointmentsListPage() {
                 ) : (
                   filtered.map((appointment) => (
                     <AppointmentCard
-                      key={appointment.id}
+                      key={appointment._id}
                       appointment={appointment}
                     />
                   ))

@@ -1,6 +1,6 @@
 // Appointment types that can be safely used on both client and server
 export enum AppointmentStatus {
-  SCHEDULED = "scheduled",
+  UPCOMING = "upcoming",
   COMPLETED = "completed",
   CANCELLED = "cancelled",
   RESCHEDULED = "rescheduled",

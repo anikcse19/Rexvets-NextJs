@@ -152,20 +152,15 @@ export default function AddPetModal({
         body: formData,
       });
 
-      console.log("Response from API:", response);
-      if (!response.ok) {
-        throw new Error();
-      }
-
       const result = await response.json();
       if (result.success) {
         toast.success(result.message || "Added Pet Successfully");
         router.refresh();
+        handleClose();
       } else {
         toast.error(result.message || "Added Pet Failed");
       }
       // onSuccess?.(result);
-      handleClose();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "An error occurred");
       console.error("Error registering pet:", error);
@@ -184,6 +179,7 @@ export default function AddPetModal({
     setNewAllergy("");
     setNewCondition("");
     setNewMedication("");
+    setPetImagePreview(null);
     onClose();
   };
 

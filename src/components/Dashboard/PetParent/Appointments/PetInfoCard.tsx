@@ -14,30 +14,12 @@ import {
   Pill,
   Syringe,
 } from "lucide-react";
+import { Pet } from "@/lib/types";
 
-interface PetInfoCardProps {
-  pet: {
-    id: string;
-    name: string;
-    image: string;
-    breed: string;
-    age: string;
-    weight: string;
-    gender: string;
-    color: string;
-    microchipId: string;
-    allergies: string[];
-    medications: string[];
-    lastVisit: string;
-    vaccinations: Array<{
-      name: string;
-      date: string;
-      nextDue: string;
-    }>;
-  };
+interface PetCardProps {
+  pet: Pet;
 }
-
-export default function PetInfoCard({ pet }: PetInfoCardProps) {
+export const PetInfoCard = ({ pet }: PetCardProps) => {
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
@@ -45,6 +27,32 @@ export default function PetInfoCard({ pet }: PetInfoCardProps) {
       day: "numeric",
     });
   };
+
+  function calculatePetAge(dob: string) {
+    const birthDate = new Date(dob);
+    const today = new Date();
+
+    let years = today.getFullYear() - birthDate.getFullYear();
+    let months = today.getMonth() - birthDate.getMonth();
+    let days = today.getDate() - birthDate.getDate();
+
+    if (days < 0) {
+      months--;
+      days += new Date(today.getFullYear(), today.getMonth(), 0).getDate();
+    }
+    if (months < 0) {
+      years--;
+      months += 12;
+    }
+
+    if (years > 0) {
+      return `${years} year${years > 1 ? "s" : ""}`;
+    } else if (months > 0) {
+      return `${months} month${months > 1 ? "s" : ""}`;
+    } else {
+      return `${days} day${days > 1 ? "s" : ""}`;
+    }
+  }
 
   return (
     <Card className="shadow-lg border-0 bg-white overflow-hidden">
@@ -81,7 +89,7 @@ export default function PetInfoCard({ pet }: PetInfoCardProps) {
             </h3>
             <p className="text-gray-600 mb-3">{pet.breed}</p>
             <Badge className="bg-pink-100 text-pink-700 border-pink-300">
-              Patient ID: {pet.id}
+              Patient ID: {pet._id}
             </Badge>
           </div>
 
@@ -90,12 +98,12 @@ export default function PetInfoCard({ pet }: PetInfoCardProps) {
             <InfoItem
               icon={<Calendar className="w-4 h-4 text-blue-600" />}
               label="Age"
-              value={pet.age}
+              value={calculatePetAge(pet.dateOfBirth)}
             />
             <InfoItem
               icon={<Weight className="w-4 h-4 text-green-600" />}
               label="Weight"
-              value={pet.weight}
+              value={Number(pet.weight).toFixed(1) + pet.weightUnit}
             />
             <InfoItem
               icon={<Heart className="w-4 h-4 text-pink-600" />}
@@ -105,12 +113,12 @@ export default function PetInfoCard({ pet }: PetInfoCardProps) {
             <InfoItem
               icon={<Palette className="w-4 h-4 text-purple-600" />}
               label="Color"
-              value={pet.color}
+              value={pet.primaryColor}
             />
           </div>
 
           {/* Microchip */}
-          <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200">
+          {/* <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200">
             <div className="flex items-center gap-3">
               <div className="bg-blue-500 text-white p-2 rounded-lg">
                 <Shield className="w-4 h-4" />
@@ -122,7 +130,7 @@ export default function PetInfoCard({ pet }: PetInfoCardProps) {
                 </p>
               </div>
             </div>
-          </div>
+          </div> */}
 
           {/* Allergies */}
           {pet.allergies.length > 0 && (
@@ -145,14 +153,14 @@ export default function PetInfoCard({ pet }: PetInfoCardProps) {
           )}
 
           {/* Current Medications */}
-          {pet.medications.length > 0 && (
+          {pet.currentMedications.length > 0 && (
             <div>
               <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
                 <Pill className="w-4 h-4 text-orange-600" />
                 Current Medications
               </h4>
               <div className="space-y-2">
-                {pet.medications.map((medication, index) => (
+                {pet.currentMedications.map((medication, index) => (
                   <div
                     key={index}
                     className="p-3 bg-orange-50 rounded-lg border border-orange-200"
@@ -165,7 +173,7 @@ export default function PetInfoCard({ pet }: PetInfoCardProps) {
           )}
 
           {/* Vaccinations */}
-          <div>
+          {/* <div>
             <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
               <Syringe className="w-4 h-4 text-green-600" />
               Vaccinations
@@ -192,7 +200,7 @@ export default function PetInfoCard({ pet }: PetInfoCardProps) {
                 </div>
               ))}
             </div>
-          </div>
+          </div> */}
 
           {/* Last Visit */}
           <div className="p-4 bg-gradient-to-r from-gray-50 to-slate-50 rounded-xl border border-gray-200">
@@ -202,7 +210,7 @@ export default function PetInfoCard({ pet }: PetInfoCardProps) {
               </div>
               <div>
                 <p className="font-semibold text-gray-900">Last Visit</p>
-                <p className="text-gray-700">{formatDate(pet.lastVisit)}</p>
+                {/* <p className="text-gray-700">{formatDate(pet.lastVisit)}</p> */}
               </div>
             </div>
           </div>
@@ -210,7 +218,7 @@ export default function PetInfoCard({ pet }: PetInfoCardProps) {
       </CardContent>
     </Card>
   );
-}
+};
 
 interface InfoItemProps {
   icon: React.ReactNode;

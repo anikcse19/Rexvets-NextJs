@@ -1,11 +1,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Appointment } from "@/lib/types";
-import {
-  AlertCircle,
-  Calendar,
-  Clock,
-} from "lucide-react";
+import { AlertCircle, Calendar, Clock } from "lucide-react";
 import Link from "next/link";
 import React from "react";
 
@@ -14,7 +10,6 @@ interface AppointmentCardProps {
 }
 
 export default function AppointmentCard({ appointment }: AppointmentCardProps) {
-
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       weekday: "short",
@@ -34,30 +29,30 @@ export default function AppointmentCard({ appointment }: AppointmentCardProps) {
   return (
     <div className="relative  rounded-3xl p-6 bg-white/70 backdrop-blur-lg shadow-lg hover:shadow-2xl transition-all duration-300 border border-white/20">
       {/* Floating Status */}
-      {appointment?.seenBefore && (
+      {/* {appointment?.seenBefore && (
         <div
           className={`absolute top-4 right-4 flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium shadow-sm bg-blue-500/20 text-blue-700 `}
         >
           {appointment?.seenBefore && "Seen Before"}
         </div>
-      )}
+      )} */}
 
       {/* Pet Info */}
       <Link
-        href="/dashboard/pet-parent/appointments/1"
+        href={`/dashboard/pet-parent/appointments/${appointment._id}`}
         className="flex items-center gap-5 cursor-pointer"
       >
         <Avatar className="w-20 h-20 border-4 border-white shadow-md">
-          <AvatarImage src={appointment.petImage} alt={appointment.petName} />
+          <AvatarImage src={appointment.pet.image} alt={appointment.pet.name} />
           <AvatarFallback className="bg-gradient-to-br from-blue-100 to-purple-100 text-blue-800 font-bold">
-            {appointment.petName.charAt(0)}
+            {appointment.pet.name.charAt(0)}
           </AvatarFallback>
         </Avatar>
         <div>
           <h3 className="text-xl font-bold text-gray-900">
-            {appointment.petName}
+            {appointment.pet.name}
           </h3>
-          <p className="text-sm text-gray-500">{appointment.petType}</p>
+          <p className="text-sm text-gray-500">{appointment.pet.species}</p>
         </div>
       </Link>
 
@@ -74,21 +69,21 @@ export default function AppointmentCard({ appointment }: AppointmentCardProps) {
         </div>
         <div className="flex flex-col items-center p-4 rounded-2xl bg-gradient-to-br from-purple-50 to-white shadow-sm">
           <Clock className="w-5 h-5 text-purple-600 mb-1" />
-          <p className="font-semibold">{appointment.appointmentTime}</p>
-          <span className="text-xs text-gray-500">{appointment.timezone}</span>
+          {/* <p className="font-semibold">{appointment.appointmentTime}</p> */}
+          {/* <span className="text-xs text-gray-500">{appointment.timezone}</span> */}
         </div>
       </div>
 
       {/* Booking Time */}
-      {appointment.bookingTime && (
+      {appointment.createdAt && (
         <p className="mt-3 text-xs text-gray-500 text-center">
-          Booked on {formatDateTime(appointment.bookingTime)}
+          Booked on {formatDateTime(appointment.createdAt)}
         </p>
       )}
 
       {/* Owner Info */}
       <div className="flex items-center gap-3 mt-5 p-4 rounded-2xl bg-gray-50/70 shadow-sm">
-        <Avatar className="w-10 h-10 border-2 border-white shadow-sm">
+        {/* <Avatar className="w-10 h-10 border-2 border-white shadow-sm">
           <AvatarImage
             src={appointment.parentImage}
             alt={appointment.parentName}
@@ -99,9 +94,9 @@ export default function AppointmentCard({ appointment }: AppointmentCardProps) {
               .map((n) => n.charAt(0))
               .join("")}
           </AvatarFallback>
-        </Avatar>
+        </Avatar> */}
         <div>
-          <p className="font-semibold">{appointment.parentName}</p>
+          <p className="font-semibold">{appointment.petParent?.name}</p>
           <p className="text-xs text-gray-500">Pet Owner</p>
         </div>
       </div>
@@ -116,11 +111,11 @@ export default function AppointmentCard({ appointment }: AppointmentCardProps) {
         </div>
       )}
 
-      {appointment?.seenBefore && (
+      {/* {appointment?.seenBefore && (
         <Button className="mt-2 bg-[#1C1B36] w-full cursor-pointer">
           See Pet History
         </Button>
-      )}
+      )} */}
     </div>
   );
 }

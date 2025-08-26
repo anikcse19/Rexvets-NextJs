@@ -16,28 +16,15 @@ import {
   Building,
   Shield,
 } from "lucide-react";
+import { Doctor } from "@/lib/types";
 
 interface DoctorInfoCardProps {
-  doctor: {
-    id: string;
-    name: string;
-    image: string;
-    email: string;
-    phone: string;
-    specialties: string[];
-    experience: string;
-    rating: number;
-    totalReviews: number;
-    education: string;
-    clinicName: string;
-    clinicAddress: string;
-    licenseNumber: string;
-  };
+  doctor: Doctor;
 }
 
 export default function DoctorInfoCard({ doctor }: DoctorInfoCardProps) {
   const handleCall = () => {
-    window.open(`tel:${doctor.phone}`, "_self");
+    window.open(`tel:${doctor.phoneNumber}`, "_self");
   };
 
   const handleEmail = () => {
@@ -68,7 +55,7 @@ export default function DoctorInfoCard({ doctor }: DoctorInfoCardProps) {
           <div className="text-center">
             <Avatar className="w-24 h-24 mx-auto mb-4 border-4 border-blue-100 shadow-lg">
               <AvatarImage
-                src={doctor.image}
+                src={doctor.profileImage}
                 alt={doctor.name}
                 className="object-cover"
               />
@@ -98,12 +85,12 @@ export default function DoctorInfoCard({ doctor }: DoctorInfoCardProps) {
                 ))}
               </div>
               <span className="text-sm font-medium text-gray-700">
-                {doctor.rating} ({doctor.totalReviews} reviews)
+                {doctor.rating} ({doctor.reviewsCount} reviews)
               </span>
             </div>
 
             <Badge className="bg-blue-100 text-blue-700 border-blue-300 mb-2">
-              {doctor.experience} Experience
+              {doctor.yearsOfExperience} Experience
             </Badge>
           </div>
 
@@ -114,7 +101,7 @@ export default function DoctorInfoCard({ doctor }: DoctorInfoCardProps) {
               Specialties
             </h4>
             <div className="flex flex-wrap gap-2">
-              {doctor.specialties.map((specialty, index) => (
+              {doctor?.specialties?.map((specialty, index) => (
                 <Badge
                   key={index}
                   className="bg-yellow-100 text-yellow-700 border-yellow-300 text-xs"
@@ -149,7 +136,7 @@ export default function DoctorInfoCard({ doctor }: DoctorInfoCardProps) {
               <div>
                 <p className="font-semibold text-green-900">License Number</p>
                 <p className="text-green-700 font-mono text-sm">
-                  {doctor.licenseNumber}
+                  {/* {doctor.licenseNumber} */}
                 </p>
               </div>
             </div>
@@ -164,9 +151,11 @@ export default function DoctorInfoCard({ doctor }: DoctorInfoCardProps) {
 
             <div className="space-y-3">
               <div className="p-3 bg-teal-50 rounded-lg border border-teal-200">
-                <p className="font-medium text-teal-900">{doctor.clinicName}</p>
+                <p className="font-medium text-teal-900">
+                  {doctor?.clinic?.name}
+                </p>
                 <p className="text-teal-700 text-sm mt-1">
-                  {doctor.clinicAddress}
+                  {doctor?.clinic?.address}
                 </p>
               </div>
             </div>
@@ -207,7 +196,9 @@ export default function DoctorInfoCard({ doctor }: DoctorInfoCardProps) {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-600">Phone</p>
-                  <p className="font-semibold text-gray-900">{doctor.phone}</p>
+                  <p className="font-semibold text-gray-900">
+                    {doctor.phoneNumber}
+                  </p>
                 </div>
               </div>
               <Button

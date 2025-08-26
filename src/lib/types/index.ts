@@ -7,8 +7,25 @@ export interface User {
 }
 
 export interface PetParent extends User {
-  phone?: string;
-  state?: string;
+  preferences: {
+    notifications: {
+      email: boolean;
+      sms: boolean;
+      push: boolean;
+    };
+    language: string;
+    timezone: string;
+  };
+  _id: string;
+  phoneNumber: string;
+  state: string;
+  isActive: boolean;
+  isDeleted: boolean;
+  locale: string;
+  pets: any[]; // you can replace `any[]` with a proper Pet type if you have one
+  createdAt: string; // ISO date string
+  updatedAt: string; // ISO date string
+  __v: number;
 }
 
 export interface License {
@@ -72,27 +89,52 @@ export interface MenuItems {
 }
 
 export interface Appointment {
-  id: string;
-  petName: string;
-  petImage: string;
-  petType: string;
-  parentName: string;
-  parentImage: string;
-  appointmentDate: string;
-  appointmentTime: string;
-  timezone: string;
-  status:
-    | "confirmed"
-    | "completed"
-    | "cancelled"
-    | "pending"
-    | "in-progress"
-    | "no-show"
-    | "rescheduled";
-  bookingTime: string;
-  seenBefore: boolean;
-  service: string;
-  notes?: string;
+  concerns: string[];
+  _id: string;
+  veterinarian: Doctor;
+  petParent?: PetParent;
+  pet: Pet;
+  appointmentDate: string; // ISO date string
+  durationMinutes: number;
+  notes: string;
+  feeUSD: number;
+  status: "upcoming" | "completed" | "cancelled" | "rescheduled"; // extend as needed
+  isFollowUp: boolean;
+  appointmentType: "general_checkup" | string; // extend with known values
+  paymentStatus: "paid" | "unpaid" | "pending"; // extend as needed
+  reminderSent: boolean;
+  isDeleted: boolean;
+  slotId: string;
+  createdAt: string; // ISO date
+  updatedAt: string; // ISO date
+  __v: number;
+  meetingLink: string;
+  id?: string;
+}
+
+export interface Pet {
+  _id: string;
+  name: string;
+  image: string;
+  species: string;
+  breed: string;
+  gender: string;
+  primaryColor: string;
+  spayedNeutered: string;
+  weight: number;
+  weightUnit: string;
+  dateOfBirth: string;
+  parentId: string;
+  allergies: string[];
+  medicalConditions: string[];
+  currentMedications: string[];
+  healthStatus: string;
+  emergencyContact: string;
+  veterinarianNotes: string;
+  lastVisit: string | null;
+  nextVaccination: string | null;
+  isDeleted: boolean;
+  __v: number;
 }
 
 export interface Doctor {

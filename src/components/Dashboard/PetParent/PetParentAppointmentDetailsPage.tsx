@@ -12,11 +12,12 @@ import {
   Clock,
 } from "lucide-react";
 import Link from "next/link";
-import PetInfoCard from "./Appointments/PetInfoCard";
+import { PetInfoCard } from "./Appointments/PetInfoCard";
 import DoctorInfoCard from "./Appointments/DoctorInfoCard";
 import DataAssessmentSection from "./Appointments/DataAssessmentSection";
 import PrescriptionSection from "./Appointments/PetParentPrescriptionSection";
 import ChatBox from "./Appointments/PetParentChatbox";
+import { Appointment } from "@/lib/types";
 
 // Mock appointment data for pet parent view
 const mockAppointment = {
@@ -67,9 +68,14 @@ const mockAppointment = {
   },
 };
 
-export default function PetParentAppointmentDetailsPage() {
+export default function PetParentAppointmentDetailsPage({
+  appointmentDetails,
+}: {
+  appointmentDetails: Appointment;
+}) {
+  console.log("Appointment Details in Page Component:", appointmentDetails);
   const handleJoinMeeting = () => {
-    window.open(mockAppointment.meetingLink, "_blank");
+    window.open(appointmentDetails.meetingLink, "_blank");
   };
 
   const formatDate = (dateString: string) => {
@@ -124,10 +130,10 @@ export default function PetParentAppointmentDetailsPage() {
           <div className="flex items-center gap-3">
             <Badge
               className={`${getStatusColor(
-                mockAppointment.status
-              )} px-4 py-2 text-sm font-semibold`}
+                appointmentDetails.status
+              )} px-4 py-2 text-sm font-semibold capitalize`}
             >
-              {mockAppointment.status.replace("-", " ").toUpperCase()}
+              {appointmentDetails.status}
             </Badge>
             <Button
               onClick={handleJoinMeeting}
@@ -147,7 +153,9 @@ export default function PetParentAppointmentDetailsPage() {
                 <Stethoscope className="w-6 h-6" />
               </div>
               <div>
-                <h2 className="text-xl font-bold">{mockAppointment.service}</h2>
+                <h2 className="text-xl font-bold capitalize">
+                  {appointmentDetails.appointmentType.replace("_", " ")}
+                </h2>
                 <p className="text-blue-100">Appointment Overview</p>
               </div>
             </div>
@@ -162,7 +170,7 @@ export default function PetParentAppointmentDetailsPage() {
                 <div>
                   <p className="font-semibold text-gray-900">Date</p>
                   <p className="text-gray-600">
-                    {formatDate(mockAppointment.appointmentDate)}
+                    {formatDate(appointmentDetails.appointmentDate)}
                   </p>
                 </div>
               </div>
@@ -186,7 +194,9 @@ export default function PetParentAppointmentDetailsPage() {
                 </div>
                 <div>
                   <p className="font-semibold text-gray-900">Service</p>
-                  <p className="text-gray-600">{mockAppointment.service}</p>
+                  <p className="text-gray-600">
+                    {appointmentDetails.appointmentType.replace("_", " ")}
+                  </p>
                 </div>
               </div>
             </div>
@@ -197,8 +207,8 @@ export default function PetParentAppointmentDetailsPage() {
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
           {/* Left Column - Pet & Doctor Info */}
           <div className="xl:col-span-1 space-y-6">
-            <PetInfoCard pet={mockAppointment.pet} />
-            <DoctorInfoCard doctor={mockAppointment.doctor} />
+            <PetInfoCard pet={appointmentDetails.pet} />
+            <DoctorInfoCard doctor={appointmentDetails.veterinarian} />
           </div>
 
           {/* Middle Column - Data Assessment & Prescription */}
