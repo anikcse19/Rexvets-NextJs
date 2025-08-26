@@ -28,6 +28,7 @@ export default function DoctorProfilePage({
   const [showAllReviews, setShowAllReviews] = useState(false);
   const [selectedDate, setSelectedDate] = useState("2025-01-16");
   const [selectedSlot, setSelectedSlot] = useState("");
+  const [selectedTime, setSelectedTime] = useState("");
 
   const [showForm, setShowForm] = useState(false);
   const router = useRouter();
@@ -36,7 +37,12 @@ export default function DoctorProfilePage({
     localStorage.setItem("doctorData", JSON.stringify(doctorData));
     console.log("Donation completed:", amount);
     router.push(
-      "/appointment-confirmation?date=" + selectedDate + "&time=" + selectedSlot
+      "/appointment-confirmation?date=" +
+        selectedDate +
+        "&time=" +
+        selectedTime +
+        "&slot=" +
+        selectedSlot
     );
     toast.success("Donation successful! Thank you for your support.");
   };
@@ -83,11 +89,12 @@ export default function DoctorProfilePage({
               <BookingCard
                 doctorName={mockDoctor.name}
                 doctorData={doctorData}
-                onConfirm={(date: string, time: string) => {
+                onConfirm={(date: string, time: string, slot: string) => {
                   console.log(`Booking appointment for ${date} at ${time}`);
                   setShowForm(true);
                   setSelectedDate(date);
-                  setSelectedSlot(time);
+                  setSelectedSlot(slot);
+                  setSelectedTime(time);
                 }}
               />
             </div>

@@ -1,4 +1,4 @@
-import AppointmentConfirmationPage from "@/components/DoctorProfile/AppointmentConfirmationPage";
+import AppointmentConfirmationPage from "@/components/AppointmentConfirmation/AppointmentConfirmationPage";
 import React from "react";
 
 const page = () => {
