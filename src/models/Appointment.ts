@@ -1,16 +1,12 @@
-import mongoose, { Document, model, Schema, Types } from "mongoose";
 import {
   AppointmentStatus,
   AppointmentType,
   PaymentStatus,
 } from "@/lib/types/appointment";
+import mongoose, { Document, model, Schema, Types } from "mongoose";
 
 // Re-export from shared types to maintain backward compatibility
-export {
-  AppointmentStatus,
-  AppointmentType,
-  PaymentStatus,
-};
+export { AppointmentStatus, AppointmentType, PaymentStatus };
 
 export interface IAppointment extends Document {
   veterinarian: Types.ObjectId;
