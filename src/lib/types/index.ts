@@ -190,10 +190,8 @@ export interface Help {
   id: string;
 }
 
-<<<<<<< HEAD
 // Re-export appointment types
-export * from './appointment';
-=======
+export * from "./appointment";
 export interface DateRange {
   start: Date;
   end: Date;
@@ -226,4 +224,3 @@ export interface CreateAvailabilityRequest {
     end: string;
   }[];
 }
->>>>>>> 03b8514619876345614347ed396e86dcf1b86a68
