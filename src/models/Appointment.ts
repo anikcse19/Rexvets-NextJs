@@ -28,7 +28,6 @@ export interface IAppointment extends Document {
   durationMinutes?: number;
   meetingLink?: string;
   notes?: string;
-  reasonForVisit: string;
   feeUSD: number;
   status: AppointmentStatus;
   createdAt: Date;
@@ -39,6 +38,7 @@ export interface IAppointment extends Document {
   reminderSent: boolean;
   isDeleted: boolean;
   slotId: Types.ObjectId;
+  concerns: string[];
 }
 
 const AppointmentSchema = new Schema<IAppointment>(
@@ -50,7 +50,7 @@ const AppointmentSchema = new Schema<IAppointment>(
     },
     petParent: {
       type: Schema.Types.ObjectId,
-      ref: "User",
+      ref: "PetParent",
       required: true,
     },
     pet: {
@@ -86,12 +86,7 @@ const AppointmentSchema = new Schema<IAppointment>(
       trim: true,
       maxlength: [1000, "Notes cannot exceed 1000 characters"],
     },
-    reasonForVisit: {
-      type: String,
-      // required: [true, "Reason for visit is required"],
-      trim: true,
-      maxlength: [500, "Reason cannot exceed 500 characters"],
-    },
+
     feeUSD: {
       type: Number,
       // required: [true, "Consultation fee is required"],
@@ -131,6 +126,11 @@ const AppointmentSchema = new Schema<IAppointment>(
       type: Schema.Types.ObjectId,
       ref: "AppointmentSlot",
       required: true,
+    },
+    concerns: {
+      type: [String],
+      trim: true,
+      maxlength: [1000, "Concerns cannot exceed 1000 characters"],
     },
   },
 

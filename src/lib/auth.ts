@@ -122,11 +122,12 @@ export const authOptions = {
             name: fullUserData?.name || (user as any).name,
             image: fullUserData?.profileImage || (user as any).profileImage,
             role: (user as any).role,
-            refId: (user as any).role === 'pet_parent' 
-              ? (user as any).petParentRef?.toString()
-              : (user as any).role === 'veterinarian'
-              ? (user as any).veterinarianRef?.toString()
-              : (user as any).vetTechRef?.toString(),
+            refId:
+              (user as any).role === "pet_parent"
+                ? (user as any).petParentRef?.toString()
+                : (user as any).role === "veterinarian"
+                ? (user as any).veterinarianRef?.toString()
+                : (user as any).vetTechRef?.toString(),
           } as any;
         } catch (error) {
           console.error("Authentication error:", error);
@@ -163,14 +164,14 @@ export const authOptions = {
         token.emailVerified = Boolean(user.emailVerified);
         token.image = user.image;
         token.refId = user.refId;
-        
+
         // Console log the JWT token data on initial sign in
         console.log("🔑 JWT Token Data (Initial Sign In):", {
           role: token.role,
           id: token.id,
           emailVerified: token.emailVerified,
           image: token.image,
-          refId: token.refId
+          refId: token.refId,
         });
       }
 
@@ -188,13 +189,13 @@ export const authOptions = {
           refId: token.refId as string,
         };
       }
-      
-      // Console log the session data
-      console.log("🔍 Session Data:", {
-        user: session.user,
-        expires: session.expires
-      });
-      
+
+      // // Console log the session data
+      // console.log("🔍 Session Data:", {
+      //   user: session.user,
+      //   expires: session.expires
+      // });
+
       return session;
     },
     async signIn({ user, account, profile }: any) {
@@ -257,16 +258,20 @@ export const authOptions = {
             user.emailVerified = existingUser.isEmailVerified;
             user.name = existingUser.name;
             user.image = existingUser.profileImage;
-            
+
             // Add reference to veterinarian profile if user is a veterinarian
-            if (existingUser.role === 'veterinarian' && existingUser.veterinarianRef) {
+            if (
+              existingUser.role === "veterinarian" &&
+              existingUser.veterinarianRef
+            ) {
               user.veterinarianRef = existingUser.veterinarianRef.toString();
             }
-            user.refId = existingUser.role === 'pet_parent' 
-              ? existingUser.petParentRef?.toString()
-              : existingUser.role === 'veterinarian'
-              ? existingUser.veterinarianRef?.toString()
-              : existingUser.vetTechRef?.toString();
+            user.refId =
+              existingUser.role === "pet_parent"
+                ? existingUser.petParentRef?.toString()
+                : existingUser.role === "veterinarian"
+                ? existingUser.veterinarianRef?.toString()
+                : existingUser.vetTechRef?.toString();
           } else {
             // Create new user with Google OAuth
             const newUser = await createOrUpdateUserAuth(
@@ -282,11 +287,12 @@ export const authOptions = {
             user.emailVerified = true;
             user.name = newUser.name;
             user.image = newUser.profileImage;
-            user.refId = newUser.role === 'pet_parent' 
-              ? newUser.petParentRef?.toString()
-              : newUser.role === 'veterinarian'
-              ? newUser.veterinarianRef?.toString()
-              : newUser.vetTechRef?.toString();
+            user.refId =
+              newUser.role === "pet_parent"
+                ? newUser.petParentRef?.toString()
+                : newUser.role === "veterinarian"
+                ? newUser.veterinarianRef?.toString()
+                : newUser.vetTechRef?.toString();
           }
 
           return true;

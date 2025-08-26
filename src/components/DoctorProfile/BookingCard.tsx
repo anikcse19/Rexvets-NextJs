@@ -133,7 +133,7 @@ export default function BookingSystem({
 
   useEffect(() => {
     fetchVetSlots();
-  }, []);
+  }, [selectedDate]);
 
   return (
     <Card className="shadow-xl border-0 bg-white sticky top-6">

@@ -1,198 +1,116 @@
-import {
-  AppointmentSlot,
-  IAvailabilitySlot,
-  SlotStatus,
-} from "@/models/AppointmentSlot";
 import moment from "moment";
-import { Types } from "mongoose";
 
-export interface IGetVetSlotPeriodsParams {
+interface Slot {
+  _id: string;
   vetId: string;
-  dateRange: { start: Date; end: Date };
+  date: string;
+  startTime: string;
+  endTime: string;
+  status: string;
+  createdAt: string;
+  __v: number;
+  updatedAt: string;
+  formattedDate: string;
+  formattedStartTime: string;
+  formattedEndTime: string;
 }
 
-export interface ISlotPeriod {
-  start: Date;
-  end: Date;
-  durationHours: number;
-  slotCount: number;
-  availableSlots: number;
-  bookedSlots: number;
+interface Period {
+  startTime: string;
+  endTime: string;
+  totalHours: number;
 }
 
-export interface IPeriods {
+interface DateGroup {
   date: {
     start: Date;
     end: Date;
   };
-  totalDays: number;
-  periods: ISlotPeriod[];
-  totalPeriods: number;
-  totalSlots: number;
-  totalHours: number;
+  periods: Period[];
+  numberOfPeriods: number;
+  numberOfDays: number;
 }
 
-export interface IGetVetSlotPeriodsResponse {
-  periods: IPeriods[];
-  summary: {
-    totalDays: number;
-    daysWithSlots: number;
-    totalPeriods: number;
-    totalSlots: number;
-    totalHours: number;
-    averagePeriodsPerDay: number;
-    utilizationRate: number;
-  };
-}
+export const groupSlotsIntoPeriods = (slots: Slot[]): DateGroup[] => {
+  // Group slots by date
+  const groups: { [key: string]: Slot[] } = {};
 
-export const getVetSlotPeriods = async ({
-  vetId,
-  dateRange,
-}: IGetVetSlotPeriodsParams): Promise<IGetVetSlotPeriodsResponse> => {
-  try {
-    // Validate input
-    if (!Types.ObjectId.isValid(vetId)) {
-      throw new Error("Invalid vetId");
+  slots.forEach((slot) => {
+    const key = moment(slot.date).format("YYYY-MM-DD");
+    if (!groups[key]) {
+      groups[key] = [];
     }
-    if (dateRange.start > dateRange.end) {
-      throw new Error("Invalid date range: start date must be before end date");
-    }
+    groups[key].push(slot);
+  });
 
-    // Fetch slots within the date range
-    const slots = await AppointmentSlot.find({
-      vetId: new Types.ObjectId(vetId),
-      date: {
-        $gte: moment(dateRange.start).startOf("day").toDate(),
-        $lte: moment(dateRange.end).endOf("day").toDate(),
-      },
-    }).sort({ date: 1, startTime: 1 });
+  const result: DateGroup[] = [];
 
-    // Initialize response structure
-    const periodsByDate: { [key: string]: IPeriods } = {};
-    let totalDays = 0;
-    let daysWithSlots = 0;
-    let totalPeriods = 0;
-    let totalSlots = 0;
-    let totalHours = 0;
-    let totalBookedSlots = 0;
+  // Process each date group
+  Object.keys(groups).forEach((date) => {
+    const dateSlots = groups[date];
+    // Sort slots by startTime
+    dateSlots.sort(
+      (a, b) => moment(a.startTime).valueOf() - moment(b.startTime).valueOf()
+    );
 
-    // Group slots by date
-    const slotsByDate: { [key: string]: IAvailabilitySlot[] } = {};
-    slots.forEach((slot) => {
-      const dateKey = moment(slot.date).format("YYYY-MM-DD");
-      if (!slotsByDate[dateKey]) {
-        slotsByDate[dateKey] = [];
-      }
-      slotsByDate[dateKey].push(slot);
-    });
+    const periods: Period[] = [];
+    if (dateSlots.length === 0) return;
 
-    // Define example periods (10:00-16:00, 17:00-22:00) as per requirement
-    const dailyPeriods = [
-      { startTime: "10:00", endTime: "16:00" },
-      { startTime: "17:00", endTime: "22:00" },
-    ];
+    // Initialize first period
+    let currentStart = dateSlots[0].startTime;
+    let currentEnd = dateSlots[0].endTime;
 
-    // Process each date
-    for (const dateKey in slotsByDate) {
-      const dateSlots = slotsByDate[dateKey];
-      const periods: ISlotPeriod[] = [];
+    // Group slots into periods based on 50-minute gap
+    for (let i = 1; i < dateSlots.length; i++) {
+      const nextStart = dateSlots[i].startTime;
+      const gap = moment(nextStart).diff(moment(currentEnd), "minutes");
 
-      // For each predefined period, aggregate slots
-      for (const period of dailyPeriods) {
-        const periodStart = moment(
-          `${dateKey} ${period.startTime}`,
-          "YYYY-MM-DD HH:mm"
+      if (gap > 50) {
+        const totalHours = moment(currentEnd).diff(
+          moment(currentStart),
+          "hours",
+          true
         );
-        const periodEnd = moment(
-          `${dateKey} ${period.endTime}`,
-          "YYYY-MM-DD HH:mm"
-        );
-        const durationHours = periodEnd.diff(periodStart, "hours", true);
-
-        // Find slots within this period
-        const slotsInPeriod = dateSlots.filter((slot) => {
-          const slotStart = moment(
-            `${dateKey} ${slot.startTime}`,
-            "YYYY-MM-DD HH:mm"
-          );
-          const slotEnd = moment(
-            `${dateKey} ${slot.endTime}`,
-            "YYYY-MM-DD HH:mm"
-          );
-          return (
-            slotStart.isSameOrAfter(periodStart) &&
-            slotEnd.isSameOrBefore(periodEnd)
-          );
-        });
-
-        if (slotsInPeriod.length === 0) continue; // Skip empty periods
-
-        const slotCount = slotsInPeriod.length;
-        const availableSlots = slotsInPeriod.filter(
-          (slot) => slot.status === SlotStatus.AVAILABLE
-        ).length;
-        const bookedSlots = slotsInPeriod.filter(
-          (slot) => slot.status === SlotStatus.BOOKED
-        ).length;
-
         periods.push({
-          start: periodStart.toDate(),
-          end: periodEnd.toDate(),
-          durationHours,
-          slotCount,
-          availableSlots,
-          bookedSlots,
+          startTime: currentStart,
+          endTime: currentEnd,
+          totalHours,
         });
+        currentStart = nextStart;
+        currentEnd = dateSlots[i].endTime;
+      } else {
+        currentEnd = dateSlots[i].endTime;
       }
-
-      if (periods.length === 0) continue; // Skip days with no valid periods
-
-      // Calculate periods metrics
-      const dateStart = moment(dateKey).startOf("day").toDate();
-      const dateEnd = moment(dateKey).endOf("day").toDate();
-      const dateTotalSlots = dateSlots.length;
-      const dateTotalHours = periods.reduce(
-        (sum, p) => sum + p.durationHours,
-        0
-      );
-
-      periodsByDate[dateKey] = {
-        date: { start: dateStart, end: dateEnd },
-        totalDays: 1,
-        periods,
-        totalPeriods: periods.length,
-        totalSlots: dateTotalSlots,
-        totalHours: dateTotalHours,
-      };
-
-      // Update summary metrics
-      daysWithSlots += 1;
-      totalPeriods += periods.length;
-      totalSlots += dateTotalSlots;
-      totalHours += dateTotalHours;
-      totalBookedSlots += periods.reduce((sum, p) => sum + p.bookedSlots, 0);
     }
 
-    // Calculate total days in range
-    totalDays = moment(dateRange.end).diff(moment(dateRange.start), "days") + 1;
+    // Add the last period
+    const totalHours = moment(currentEnd).diff(
+      moment(currentStart),
+      "hours",
+      true
+    );
+    periods.push({ startTime: currentStart, endTime: currentEnd, totalHours });
 
-    // Prepare response
-    const response: IGetVetSlotPeriodsResponse = {
-      periods: Object.values(periodsByDate),
-      summary: {
-        totalDays,
-        daysWithSlots,
-        totalPeriods,
-        totalSlots,
-        totalHours,
-        averagePeriodsPerDay: daysWithSlots ? totalPeriods / daysWithSlots : 0,
-        utilizationRate: totalSlots ? totalBookedSlots / totalSlots : 0,
-      },
-    };
+    // Calculate date range for the group
+    const startDate = moment(date).startOf("day").toDate();
+    const endDate = moment(date).endOf("day").toDate();
 
-    return response;
-  } catch (error: any) {
-    console.error("Error fetching vet slot periods:", error);
-    throw new Error(`Failed to fetch vet slot periods: ${error.message}`);
-  }
+    // Calculate number of days (should be 1 since we're grouping by single dates)
+    const numberOfDays = 1;
+
+    // Add to result
+    result.push({
+      date: { start: startDate, end: endDate },
+      periods,
+      numberOfPeriods: periods.length,
+      numberOfDays,
+    });
+  });
+
+  // Sort results by date
+  result.sort(
+    (a, b) => moment(a.date.start).valueOf() - moment(b.date.start).valueOf()
+  );
+
+  return result;
 };

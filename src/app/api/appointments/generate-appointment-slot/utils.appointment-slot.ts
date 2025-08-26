@@ -5,8 +5,8 @@ import { Types } from "mongoose";
 export interface IGenerateAppointmentSlots {
   vetId: string;
   slotPeriods: {
-    start: Date;
-    end: Date;
+    start: string; //HH:mm
+    end: string; //HH:mm
   }[];
   dateRange: {
     start: Date;
@@ -28,17 +28,14 @@ export const generateAppointmentSlots = async (
   } = data;
 
   try {
-    // Convert date range to UTC
+    // Convert date range to UTC and normalize to start/end of day
     const startDate = moment(dateRange.start).utc().startOf("day");
-    const endDate = moment(dateRange.end).utc().startOf("day");
+    const endDate = moment(dateRange.end).utc().endOf("day");
 
     // Validate date range
     if (endDate.isBefore(startDate)) {
       throw new Error("Invalid date range: end date must be after start date");
     }
-
-    // Calculate number of days in the range
-    const numberOfDays = endDate.diff(startDate, "days") + 1;
 
     // Check for existing slots for this vet in the date range
     const existingSlots = await AppointmentSlot.find({
@@ -62,29 +59,37 @@ export const generateAppointmentSlots = async (
       };
     }
 
-    const slotsToCreate = [];
+    const slotsToCreate: any[] = [];
 
     // Process each day in the date range
+    const numberOfDays = endDate.diff(startDate, "days") + 1;
     for (let day = 0; day < numberOfDays; day++) {
       const currentDate = startDate.clone().add(day, "days");
       const utcDate = currentDate.toDate();
 
       // Process each slot period for this day
       for (const period of slotPeriods) {
-        const periodStart = moment(period.start).utc();
-        const periodEnd = moment(period.end).utc();
+        // Parse the time from slotPeriods and combine with current date
+        const periodStart = moment(
+          `${currentDate.format("YYYY-MM-DD")} ${period.start}`,
+          "YYYY-MM-DD HH:mm"
+        ).utc();
+        const periodEnd = moment(
+          `${currentDate.format("YYYY-MM-DD")} ${period.end}`,
+          "YYYY-MM-DD HH:mm"
+        ).utc();
 
         // Validate that the period is valid
         if (periodEnd.isSameOrBefore(periodStart)) {
           throw new Error(
-            `Invalid time period: end time must be after start time`
+            `Invalid time period: end time ${period.end} must be after start time ${period.start}`
           );
         }
 
         // Calculate total time needed per slot (duration + buffer)
         const totalTimePerSlot = slotDuration + bufferBetweenSlots;
 
-        // Generate slots within this period with buffer consideration
+        // Generate slots within this period
         let currentSlotStart = periodStart.clone();
 
         while (currentSlotStart.isBefore(periodEnd)) {
@@ -139,19 +144,20 @@ export const generateAppointmentSlots = async (
         start: startDate.toDate(),
         end: endDate.toDate(),
       },
-      slotDuration: slotDuration,
-      bufferBetweenSlots: bufferBetweenSlots,
+      slotDuration,
+      bufferBetweenSlots,
     };
   } catch (error: any) {
     console.error("Error generating appointment slots:", error);
     throw new Error(`Failed to generate appointment slots: ${error.message}`);
   }
 };
+
 export interface IUpdateAppointmentSlots {
   vetId: string;
   slotPeriods: {
-    start: Date;
-    end: Date;
+    start: string; //HH:mm
+    end: string; //HH:mm
   }[];
   dateRange: {
     start: Date;
@@ -364,7 +370,7 @@ export const getAppointmentSlots = async (
       dateRange,
       page = 1,
       limit = 10,
-      status = "ALL",
+      status = SlotStatus.AVAILABLE,
       search = "",
       sortBy = "date",
       sortOrder = "asc",
@@ -388,7 +394,7 @@ export const getAppointmentSlots = async (
     };
 
     // Add status filter
-    if (status !== "ALL") {
+    if (status !== SlotStatus.ALL) {
       baseQuery.status = status;
     }
 
@@ -470,10 +476,20 @@ export const getSlotsByVetId = async ({
   limit = 100,
   sortBy = "startTime",
   sortOrder = SortOrder.ASC,
-  page,
+  page = 1,
   search = "",
   status = SlotStatus.AVAILABLE,
 }: IGetSlotsParams) => {
+  console.log("getSlotsByVetId params:", {
+    vetId,
+    dateRange,
+    limit,
+    sortBy,
+    sortOrder,
+    page,
+    search,
+    status,
+  });
   return getAppointmentSlots({
     vetId,
     dateRange,
