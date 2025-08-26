@@ -134,9 +134,9 @@ export default function AvailabilityManager() {
       const formattedStartDate = format(selectedRange.start, "yyyy-MM-dd");
       const formattedEndDate = format(selectedRange.end, "yyyy-MM-dd");
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/appointments/slots/slot-summary/68a9477e0cc6dcbf64cbaf5c?startDate=${formattedStartDate}&endDate=${formattedEndDate}`
+        `${process.env.NEXT_PUBLIC_API_URL}/api/appointments/slots/slot-summary/68ad9c2da7c3764aa273445b?startDate=${formattedStartDate}&endDate=${formattedEndDate}`
       );
-
+      console.log("res--------------------------", res);
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`);
       }
