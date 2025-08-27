@@ -52,7 +52,7 @@ TopbarProps) {
         <div className="flex items-center gap-2 lg:gap-3">
           <div className="hidden sm:block text-right">
             <p className="text-sm font-medium">
-              {session?.user?.role !== "pet_parent" && "Dr"}
+              {session?.user?.role !== "pet_parent" && "Dr. "}
               {session?.user?.name}
             </p>
             <p className="text-xs text-muted-foreground capitalize">
