@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
@@ -47,42 +47,23 @@ export default function HelpPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [userData, setUserData] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  
   const pathname = usePathname();
   const { data: session, status } = useSession();
 
   // Determine user type based on the current route
   const userType = pathname.includes("/pet-parent/") ? "pet_parent" : "veterinarian";
 
-  // Fetch user data from API
-  useEffect(() => {
-    const fetchUserData = async () => {
-      if (status === "loading") return;
-      
-      if (status === "unauthenticated") {
-        setIsLoading(false);
-        return;
-      }
-
-      try {
-        const response = await fetch("/api/user/profile");
-        if (response.ok) {
-          const result = await response.json();
-          if (result.success) {
-            setUserData(result.data);
-          }
-        }
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-      } finally {
-        setIsLoading(false);
-      }
+  // Extract user data from session (memoized to avoid new object each render)
+  const userData = useMemo(() => {
+    if (!session?.user) return null;
+    return {
+      role: (session.user as any).role || userType,
+      name: session.user.name || "",
+      email: session.user.email || "",
+      phone: (session.user as any).phoneNumber || "",
+      state: (session.user as any).state || "",
     };
-
-    fetchUserData();
-  }, [status]);
+  }, [session?.user, (session?.user as any)?.role, (session?.user as any)?.phoneNumber, (session?.user as any)?.state, session?.user?.name, session?.user?.email, userType]);
 
   const {
     register,
@@ -90,7 +71,7 @@ export default function HelpPage() {
     formState: { errors },
     setValue,
     reset,
-    watch,
+    getValues,
   } = useForm<HelpRequestData>({
     resolver: zodResolver(helpRequestSchema),
     defaultValues: {
@@ -104,16 +85,70 @@ export default function HelpPage() {
     },
   });
 
-  // Update form values when user data is loaded
+  // Update form values when user data is loaded (single reset to avoid loops)
   useEffect(() => {
-    if (userData) {
-      setValue("role", userData.role);
-      setValue("name", userData.name || "");
-      setValue("email", userData.email || "");
-      setValue("phone", userData.phone || "");
-      setValue("state", userData.state || "");
+    if (!userData) return;
+    // Only reset when we actually have a state to avoid loops on empty
+    const current = getValues();
+    const next = {
+      role: userData.role,
+      name: userData.name || "",
+      email: userData.email || "",
+      phone: userData.phone || "",
+      state: userData.state || "",
+      subject: current.subject || "",
+      details: current.details || "",
+    } as const;
+    // If values are already the same, skip reset
+    if (
+      current.role === next.role &&
+      current.name === next.name &&
+      current.email === next.email &&
+      current.phone === next.phone &&
+      current.state === next.state
+    ) {
+      return;
     }
-  }, [userData, setValue]);
+    reset(next as any);
+  }, [userData, reset, getValues]);
+
+  // Fetch user profile from API to populate/override form values
+  useEffect(() => {
+    let isMounted = true;
+    (async () => {
+      try {
+        const res = await fetch("/api/user/profile", { cache: "no-store" });
+        if (!res.ok) return;
+        const json = await res.json();
+        if (!json?.success || !json?.data) return;
+        if (!isMounted) return;
+        const d = json.data as any;
+        const current = getValues();
+        const next = {
+          role: d.role || userType,
+          name: d.name || "",
+          email: d.email || "",
+          phone: d.phone || "",
+          state: d.state || "",
+          subject: current.subject || "",
+          details: current.details || "",
+        } as const;
+        if (
+          current.role === next.role &&
+          current.name === next.name &&
+          current.email === next.email &&
+          current.phone === next.phone &&
+          current.state === next.state
+        ) {
+          return;
+        }
+        reset(next as any);
+      } catch {}
+    })();
+    return () => {
+      isMounted = false;
+    };
+  }, [reset, userType]);
 
   const onSubmit = async (data: HelpRequestData) => {
     setIsSubmitting(true);
@@ -149,7 +184,7 @@ export default function HelpPage() {
   };
 
   // Show loading state
-  if (isLoading) {
+  if (status === "loading") {
     return (
       <div className="space-y-8">
         <div>
@@ -362,18 +397,13 @@ export default function HelpPage() {
                       <MapPin className="w-4 h-4 text-orange-600" />
                       State/Division
                     </Label>
-                    <Select onValueChange={(value) => setValue("state", value)}>
-                      <SelectTrigger className="border-gray-300 focus:border-blue-500 focus:ring-blue-500">
-                        <SelectValue placeholder="Select your state" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {bangladeshStates.map((state) => (
-                          <SelectItem key={state} value={state}>
-                            {state}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Input
+                      id="state"
+                      value={getValues("state")}
+                      readOnly
+                      className="border-gray-300 focus:border-blue-500 focus:ring-blue-500 bg-gray-50"
+                      placeholder="State from profile"
+                    />
                     {errors.state && (
                       <p className="text-sm text-red-600">
                         {errors.state.message}

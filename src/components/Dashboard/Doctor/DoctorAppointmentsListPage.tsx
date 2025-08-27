@@ -5,26 +5,24 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Search,
-  Loader2,
-  AlertCircle,
-  RefreshCw,
-} from "lucide-react";
+import { Search, Loader2, AlertCircle, RefreshCw } from "lucide-react";
 import AppointmentCard from "./Appointments/AppointmentCard";
 import { Appointment } from "@/lib/types";
 import { Input } from "@/components/ui/input";
-import { appointmentsService, TransformedAppointment } from "./Service/appointments.service";
+import {
+  appointmentsService,
+  TransformedAppointment,
+} from "./Service/appointments.service";
 import { useVeterinarian } from "@/hooks/useVeterinarian";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-
-
 
 export default function AppointmentsPage() {
   const [activeTab, setActiveTab] = useState("upcoming");
   const [searchTerm, setSearchTerm] = useState("");
   const [filterDate, setFilterDate] = useState("");
-  const [appointments, setAppointments] = useState<Record<string, TransformedAppointment[]>>({
+  const [appointments, setAppointments] = useState<
+    Record<string, TransformedAppointment[]>
+  >({
     upcoming: [],
     past: [],
     actionNeeded: [],
@@ -32,7 +30,11 @@ export default function AppointmentsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const { veterinarian, isLoading: isVetLoading, error: vetError } = useVeterinarian();
+  const {
+    veterinarian,
+    isLoading: isVetLoading,
+    error: vetError,
+  } = useVeterinarian();
 
   // Fetch appointments function
   const fetchAppointments = async () => {
@@ -43,14 +45,17 @@ export default function AppointmentsPage() {
     try {
       setIsLoading(true);
       setError(null);
-      
-      const categorizedAppointments = await appointmentsService.getVeterinarianAppointmentsByCategory(
-        veterinarian.refId
-      );
-      
+
+      const categorizedAppointments =
+        await appointmentsService.getVeterinarianAppointmentsByCategory(
+          veterinarian.refId
+        );
+
       setAppointments(categorizedAppointments);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to fetch appointments");
+      setError(
+        err instanceof Error ? err.message : "Failed to fetch appointments"
+      );
     } finally {
       setIsLoading(false);
     }
@@ -101,8 +106,8 @@ export default function AppointmentsPage() {
             {vetError || error || "Failed to load appointments"}
           </AlertDescription>
         </Alert>
-        <Button 
-          onClick={() => window.location.reload()} 
+        <Button
+          onClick={() => window.location.reload()}
           variant="outline"
           className="w-full"
         >
@@ -131,7 +136,7 @@ export default function AppointmentsPage() {
           disabled={isLoading}
           className="flex items-center gap-2"
         >
-          <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+          <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
           Refresh
         </Button>
       </div>
@@ -168,99 +173,104 @@ export default function AppointmentsPage() {
       </div>
 
       {/* Show message if no appointments at all */}
-      {appointments.upcoming.length === 0 && 
-       appointments.past.length === 0 && 
-       appointments.actionNeeded.length === 0 && 
-       !isLoading && (
-        <Card className="p-8 text-center">
-          <div className="space-y-4">
-            <div className="text-gray-400">
-              <Search className="h-12 w-12 mx-auto mb-4" />
+      {appointments.upcoming.length === 0 &&
+        appointments.past.length === 0 &&
+        appointments.actionNeeded.length === 0 &&
+        !isLoading && (
+          <Card className="p-8 text-center">
+            <div className="space-y-4">
+              <div className="text-gray-400">
+                <Search className="h-12 w-12 mx-auto mb-4" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">
+                  No appointments yet
+                </h3>
+                <p className="text-gray-600 mt-2">
+                  You don't have any appointments scheduled. Appointments will
+                  appear here once patients book with you.
+                </p>
+              </div>
             </div>
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900">No appointments yet</h3>
-              <p className="text-gray-600 mt-2">
-                You don't have any appointments scheduled. Appointments will appear here once patients book with you.
-              </p>
-            </div>
-          </div>
-        </Card>
-      )}
+          </Card>
+        )}
 
       {/* Tabs */}
-      {(appointments.upcoming.length > 0 || appointments.past.length > 0 || appointments.actionNeeded.length > 0) && (
+      {(appointments.upcoming.length > 0 ||
+        appointments.past.length > 0 ||
+        appointments.actionNeeded.length > 0) && (
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-3 lg:w-auto lg:grid-cols-3">
-          <TabsTrigger
-            value="upcoming"
-            className="flex items-center gap-2 cursor-pointer"
-          >
-            Upcoming
-            <Badge
-              variant="secondary"
-              className="bg-blue-100 text-blue-700 text-xs"
+            <TabsTrigger
+              value="upcoming"
+              className="flex items-center gap-2 cursor-pointer"
             >
-              {appointments.upcoming.length}
-            </Badge>
-          </TabsTrigger>
-          <TabsTrigger
-            value="past"
-            className="flex items-center gap-2 cursor-pointer"
-          >
-            Past
-            <Badge
-              variant="secondary"
-              className="bg-gray-100 text-gray-700 text-xs"
+              Upcoming
+              <Badge
+                variant="secondary"
+                className="bg-blue-100 text-blue-700 text-xs"
+              >
+                {appointments.upcoming.length}
+              </Badge>
+            </TabsTrigger>
+            <TabsTrigger
+              value="past"
+              className="flex items-center gap-2 cursor-pointer"
             >
-              {appointments.past.length}
-            </Badge>
-          </TabsTrigger>
-          <TabsTrigger
-            value="actionNeeded"
-            className="flex items-center gap-2 cursor-pointer"
-          >
-            Action Needed
-            <Badge
-              variant="secondary"
-              className="bg-red-100 text-red-700 text-xs"
+              Past
+              <Badge
+                variant="secondary"
+                className="bg-gray-100 text-gray-700 text-xs"
+              >
+                {appointments.past.length}
+              </Badge>
+            </TabsTrigger>
+            <TabsTrigger
+              value="actionNeeded"
+              className="flex items-center gap-2 cursor-pointer"
             >
-              {appointments.actionNeeded.length}
-            </Badge>
-          </TabsTrigger>
-        </TabsList>
+              Action Needed
+              <Badge
+                variant="secondary"
+                className="bg-red-100 text-red-700 text-xs"
+              >
+                {appointments.actionNeeded.length}
+              </Badge>
+            </TabsTrigger>
+          </TabsList>
 
-        {/* Tab Contents */}
-        {Object.entries(appointments).map(([tabKey, appointmentList]) => {
-          const filtered = filterAppointments(appointmentList);
+          {/* Tab Contents */}
+          {Object.entries(appointments).map(([tabKey, appointmentList]) => {
+            const filtered = filterAppointments(appointmentList);
 
-          return (
-            <TabsContent key={tabKey} value={tabKey} className="mt-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {filtered.length === 0 ? (
-                  <div className="col-span-full">
-                    <Card className="p-8 text-center">
-                      <p className="text-gray-500">
-                        No appointments found in this category.
-                      </p>
-                      {(searchTerm || filterDate) && (
-                        <p className="text-gray-400 text-sm mt-2">
-                          Try adjusting your search or date filter.
+            return (
+              <TabsContent key={tabKey} value={tabKey} className="mt-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {filtered.length === 0 ? (
+                    <div className="col-span-full">
+                      <Card className="p-8 text-center">
+                        <p className="text-gray-500">
+                          No appointments found in this category.
                         </p>
-                      )}
-                    </Card>
-                  </div>
-                ) : (
-                  filtered.map((appointment) => (
-                    <AppointmentCard
-                      key={appointment.id}
-                      appointment={appointment as Appointment}
-                    />
-                  ))
-                )}
-              </div>
-            </TabsContent>
-          );
-        })}
+                        {(searchTerm || filterDate) && (
+                          <p className="text-gray-400 text-sm mt-2">
+                            Try adjusting your search or date filter.
+                          </p>
+                        )}
+                      </Card>
+                    </div>
+                  ) : (
+                    filtered.map((appointment) => (
+                      <AppointmentCard
+                        key={appointment.id}
+                        appointment={appointment as Appointment}
+                      />
+                    ))
+                  )}
+                </div>
+              </TabsContent>
+            );
+          })}
         </Tabs>
       )}
     </div>

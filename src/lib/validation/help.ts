@@ -10,10 +10,12 @@ export const helpRequestSchema = z.object({
   email: z.string()
     .min(1, "Email is required")
     .regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, "Invalid email address"),
-  phone: z.string()
+  phone: z
+    .string()
     .min(10, "Phone number must be at least 10 digits")
     .max(15, "Phone number cannot exceed 15 digits")
     .regex(/^[\+]?[1-9][\d]{0,15}$/, "Invalid phone number format")
+    .or(z.literal(""))
     .optional(),
   state: z.string()
     .min(2, "State must be at least 2 characters")
@@ -63,6 +65,7 @@ export const helpFilterSchema = z.object({
   limit: z.coerce.number().min(1).max(100).default(20),
   role: z.enum(['pet_parent', 'veterinarian', 'technician', 'admin']).optional().nullable(),
   email: z.string().regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, "Invalid email address").optional().nullable(),
+  status: z.enum(['pending', 'completed']).optional().nullable(),
   q: z.string().optional().nullable(), // Text search
 });
 

@@ -127,7 +127,7 @@ export default function DataAssessmentSection({
           </div>
           <Button
             onClick={onOpenModal}
-            className="bg-white/20 hover:bg-white/30 text-white border-white/30"
+            className="bg-white/20 hover:bg-white/30 text-white border-white/30 cursor-pointer"
           >
             <Plus className="w-4 h-4 mr-2" />
             Add New

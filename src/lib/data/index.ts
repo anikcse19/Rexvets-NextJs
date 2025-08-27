@@ -717,7 +717,7 @@ export const mockDoctorData = {
     firstName: "Anik",
     lastName: "Deb",
     email: "anik@gmail.com",
-    phone: "+8801234567890",
+    phone: "+",
     dateOfBirth: "1985-03-15",
     gender: "male" as const,
     address: "123 Veterinary Street, Medical District",
