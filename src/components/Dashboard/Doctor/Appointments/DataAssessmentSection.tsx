@@ -1,13 +1,28 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FileText, Plus, Calendar, User, Stethoscope } from "lucide-react";
+import {
+  FileText,
+  Plus,
+  Calendar,
+  User,
+  Stethoscope,
+  Edit,
+  Delete,
+  DeleteIcon,
+  Trash2,
+} from "lucide-react";
+import { DataAssessmentPlan } from "@/lib/types/dataAssessmentPlan";
+import { format } from "path";
+import { Dialog } from "@/components/ui/dialog";
+import ConfirmDeleteModal from "@/components/shared/ConfirmDeleteModal";
 
 interface DataAssessmentSectionProps {
   appointmentId: string;
   onOpenModal: () => void;
+  setCurrentAssessment: React.Dispatch<React.SetStateAction<any>>;
 }
 
 // Mock data for existing assessments
@@ -35,14 +50,62 @@ const mockAssessments = [
 ];
 
 export default function DataAssessmentSection({
+  appointmentId,
   onOpenModal,
+  setCurrentAssessment,
 }: DataAssessmentSectionProps) {
+  const [assessments, setAssessments] = useState<DataAssessmentPlan[]>([]);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",
       day: "numeric",
     });
+  };
+  const formatTime = (dateString: string) => {
+    return new Date(dateString).toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  const fetchAssessments = async () => {
+    try {
+      const res = await fetch(
+        `/api/data-assessment-plans/appointment/${appointmentId}`
+      );
+      const data = await res.json();
+      console.log("Fetched assessments:", data);
+      setAssessments(data?.data);
+    } catch (error) {
+      console.error("Error fetching assessments:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchAssessments();
+  }, [onOpenModal]);
+
+  const handleDeleteAssessment = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this assessment?")) return;
+    try {
+      const res = await fetch(`/api/data-assessment-plans/${id}`, {
+        method: "DELETE",
+      });
+      const result = await res.json();
+      if (result.success) {
+        setAssessments((prev) => prev.filter((item) => item._id !== id));
+        alert("Assessment deleted successfully");
+      } else {
+        alert(result.message || "Failed to delete assessment");
+      }
+    } catch (error) {
+      console.error("Error deleting assessment:", error);
+      alert("An error occurred while deleting the assessment");
+    }
   };
 
   return (
@@ -74,7 +137,7 @@ export default function DataAssessmentSection({
 
       <CardContent className="p-6">
         <div className="space-y-6">
-          {mockAssessments.length === 0 ? (
+          {assessments.length === 0 ? (
             <div className="text-center py-12">
               <div className="bg-gray-100 p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
                 <FileText className="w-8 h-8 text-gray-400" />
@@ -96,8 +159,8 @@ export default function DataAssessmentSection({
             </div>
           ) : (
             <div className="space-y-4">
-              {mockAssessments.map((assessment, index) => (
-                <div key={assessment.id} className="group">
+              {assessments.map((assessment, index) => (
+                <div key={assessment._id} className="group">
                   <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-white via-gray-50 to-purple-50/30 border border-gray-200/60 hover:border-purple-300/60 transition-all duration-300 hover:shadow-xl">
                     {/* Header */}
                     <div className="p-4 border-b border-gray-100 bg-gradient-to-r from-purple-50 to-indigo-50">
@@ -108,23 +171,57 @@ export default function DataAssessmentSection({
                           </div>
                           <div>
                             <p className="font-semibold text-gray-900">
-                              Assessment #{mockAssessments.length - index}
+                              Assessment #{assessments.length - index}
                             </p>
                             <div className="flex items-center gap-2 text-sm text-gray-600">
                               <Calendar className="w-3 h-3" />
                               <span>
-                                {formatDate(assessment.date)} at{" "}
-                                {assessment.time}
+                                {formatDate(assessment.createdAt)} at{" "}
+                                {formatTime(assessment.createdAt)}
                               </span>
                             </div>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <User className="w-3 h-3 text-gray-500" />
-                          <span className="text-sm text-gray-600">
-                            {assessment.doctorName}
-                          </span>
+                        <div className="absolute top-4 right-4  transition-opacity">
+                          {assessment.status === "DRAFT" ? (
+                            <div>
+                              <Button
+                                onClick={() => {
+                                  setCurrentAssessment(assessment);
+                                  onOpenModal();
+                                  console.log("Edit", assessment);
+                                }}
+                                variant="ghost"
+                                size="sm"
+                                className="text-gray-900 hover:text-purple-600 cursor-pointer"
+                              >
+                                <Edit />
+                                Edit
+                              </Button>
+                              <Button
+                                onClick={() =>
+                                  handleDeleteAssessment(assessment?._id)
+                                }
+                                variant="destructive"
+                                size="sm"
+                                className=" cursor-pointer"
+                              >
+                                <Trash2 />
+                                Delete
+                              </Button>
+                            </div>
+                          ) : (
+                            <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full border border-green-200">
+                              Finalized
+                            </span>
+                          )}
                         </div>
+                      </div>
+                      <div className="flex items-center gap-2 mt-5">
+                        <User className="w-3 h-3 text-gray-500" />
+                        <span className="text-sm text-gray-600">
+                          Dr. {assessment.veterinarian.name}
+                        </span>
                       </div>
                     </div>
 

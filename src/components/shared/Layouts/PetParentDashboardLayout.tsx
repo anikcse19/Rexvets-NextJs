@@ -4,6 +4,7 @@ import Topbar from "@/components/shared/Layouts/Topbar";
 import React, { useState } from "react";
 import Sidebar from "./PetParentDashboardSidebar";
 import { SessionProvider } from "next-auth/react";
+import { DashboardProvider } from "@/hooks/DashboardContext";
 
 interface DoctorDashboardLayoutProps {
   children: React.ReactNode;
@@ -45,7 +46,7 @@ export default function PetParentDashboardLayout({
             sidebarOpen={sidebarOpen}
           />
           <main className="flex-1 p-4 lg:p-6 overflow-y-auto bg-gray-50">
-            {children}
+            <DashboardProvider> {children}</DashboardProvider>
           </main>
         </div>
       </div>

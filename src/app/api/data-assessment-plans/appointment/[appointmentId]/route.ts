@@ -17,6 +17,7 @@ export async function GET(
       appointment: appointmentId,
       isDeleted: false,
     })
+      .populate("veterinarian", "name email")
       .sort({ createdAt: -1 })
       .lean();
 

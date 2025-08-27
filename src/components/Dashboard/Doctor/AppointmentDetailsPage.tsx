@@ -65,6 +65,8 @@ interface AppointmentData {
 export default function AppointmentDetailsPage() {
   const [isDataModalOpen, setIsDataModalOpen] = useState(false);
   const [isPrescriptionModalOpen, setIsPrescriptionModalOpen] = useState(false);
+  const [currentAssessment, setCurrentAssessment] = useState(null);
+  const [currentPrescription, setCurrentPrescription] = useState(null);
   const [appointment, setAppointment] = useState<AppointmentData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -77,7 +79,7 @@ export default function AppointmentDetailsPage() {
         setLoading(true);
         const response = await fetch(`/api/appointments/${appointmentId}`);
         const data = await response.json();
-        
+
         if (data.success) {
           setAppointment(data.data);
         } else {
@@ -90,7 +92,6 @@ export default function AppointmentDetailsPage() {
         setLoading(false);
       }
     };
-
     if (appointmentId) {
       fetchAppointment();
     }
@@ -150,7 +151,9 @@ export default function AppointmentDetailsPage() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <p className="text-red-600 mb-4">{error || "Appointment not found"}</p>
+          <p className="text-red-600 mb-4">
+            {error || "Appointment not found"}
+          </p>
           <Link href="/dashboard/doctor/appointments">
             <Button variant="outline">Back to Appointments</Button>
           </Link>
@@ -212,7 +215,9 @@ export default function AppointmentDetailsPage() {
               <Stethoscope className="w-6 h-6" />
             </div>
             <div>
-              <h2 className="text-xl font-bold">{appointment.appointmentType}</h2>
+              <h2 className="text-xl font-bold">
+                {appointment.appointmentType}
+              </h2>
               <p className="text-blue-100">Appointment Overview</p>
             </div>
           </div>
@@ -239,7 +244,8 @@ export default function AppointmentDetailsPage() {
               <div>
                 <p className="font-semibold text-gray-900">Time</p>
                 <p className="text-gray-600">
-                  {formatTime(appointment.appointmentDate)} ({appointment.durationMinutes} min)
+                  {formatTime(appointment.appointmentDate)} (
+                  {appointment.durationMinutes} min)
                 </p>
               </div>
             </div>
@@ -270,6 +276,7 @@ export default function AppointmentDetailsPage() {
           <DataAssessmentSection
             appointmentId={appointment._id}
             onOpenModal={() => setIsDataModalOpen(true)}
+            setCurrentAssessment={setCurrentAssessment}
           />
           <PrescriptionSection
             appointmentId={appointment._id}
@@ -293,6 +300,8 @@ export default function AppointmentDetailsPage() {
         onClose={() => setIsDataModalOpen(false)}
         appointmentId={appointment._id}
         petName={appointment.pet.name}
+        vetId={appointment.veterinarian._id}
+        assessment={currentAssessment}
       />
 
       <PrescriptionModal

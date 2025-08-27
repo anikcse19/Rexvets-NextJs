@@ -59,7 +59,7 @@ export default function Sidebar({ onClose }: SidebarProps) {
             isActive={pathname === item.href}
             onClick={() => {
               onClose && onClose();
-              handleSignOut();
+              handleSignOut;
             }}
           />
         ))}
