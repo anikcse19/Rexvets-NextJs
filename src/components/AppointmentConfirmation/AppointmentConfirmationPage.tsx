@@ -46,6 +46,7 @@ export default function AppointmentConfirmation() {
     donationPaid: boolean;
     lastDonationDate?: string;
   } | null>(null);
+  const [isCheckingDonation, setIsCheckingDonation] = useState(true);
 
   const { data: session } = useSession();
 
@@ -61,23 +62,34 @@ export default function AppointmentConfirmation() {
     }
   }, []);
 
-  // Check donation status when session is available
+  // Check access and donation status when session is available
   useEffect(() => {
-    const checkDonationStatus = async () => {
+    const checkAccess = async () => {
       if (session?.user?.refId) {
         try {
-          const response = await fetch(`/api/pet-parent/${session.user.refId}/donation-status`);
-          if (response.ok) {
-            const data = await response.json();
-            setDonationStatus(data.data);
+          const response = await fetch('/api/appointment-confirmation/check-access');
+          const data = await response.json();
+          
+          if (!response.ok) {
+            // Access denied - redirect based on error
+            toast.error(data.message);
+            window.location.href = data.redirectTo || "/donate";
+            return;
           }
+          
+          // Access granted
+          setDonationStatus(data.donationStatus);
         } catch (error) {
-          console.error("Error checking donation status:", error);
+          console.error("Error checking access:", error);
+          toast.error("Error checking access. Please try again.");
+          window.location.href = "/donate";
+          return;
         }
       }
+      setIsCheckingDonation(false);
     };
 
-    checkDonationStatus();
+    checkAccess();
   }, [session?.user?.refId]);
 
   const completeAppointment = async () => {
@@ -177,6 +189,32 @@ export default function AppointmentConfirmation() {
       setIsProcessing(false);
     }
   };
+
+  // Show loading while checking donation status
+  if (isCheckingDonation) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Checking donation status...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error if no session
+  if (!session?.user?.refId) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-600 mb-4">Please sign in to access this page.</p>
+          <Button onClick={() => window.location.href = "/auth/signin"}>
+            Sign In
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen relative overflow-hidden">

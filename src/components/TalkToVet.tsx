@@ -1,4 +1,5 @@
 "use client";
+import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import React from "react";
 
@@ -6,167 +7,106 @@ const TalkToVetButton = () => {
   const navigate = useRouter();
 
   return (
-    <div>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          marginRight: "10px",
+    <div className="flex justify-center mr-2.5">
+      <motion.button
+        onClick={() => navigate.push("/find-a-vet")}
+        className="relative bg-[#113F67] text-white px-3 py-1 my-1 rounded-full font-semibold text-lg shadow-lg border-2 border-cyan-400/50 overflow-hidden cursor-pointer"
+        whileHover={{ 
+          scale: 1.02,
+          boxShadow: "0 15px 35px rgba(34, 211, 238, 0.3)",
+          borderColor: "rgba(34, 211, 238, 0.8)"
+        }}
+        whileTap={{ scale: 0.98 }}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ 
+          duration: 0.6,
+          ease: [0.25, 0.46, 0.45, 0.94]
         }}
       >
-        <button
-          onClick={() => navigate.push("/find-a-vet")}
-          style={{
-            position: "relative",
-            backgroundColor: "#113F67",
-            color: "white",
-            padding: "0.5rem 3rem",
-            borderRadius: "4rem",
-            fontWeight: 600,
-            fontSize: "1.125rem",
-            boxShadow: "0 10px 25px rgba(0, 255, 255, 0.1)",
-            border: "2px solid rgba(34, 211, 238, 0.5)",
-            overflow: "hidden",
-            cursor: "pointer",
-            transition: "all 0.3s ease",
+        {/* Animated overlay */}
+        <motion.div
+          className="absolute inset-0 bg-gradient-to-r from-cyan-400/20 to-blue-400/20 rounded-full opacity-0 z-0"
+          whileHover={{ opacity: 1 }}
+          transition={{ 
+            duration: 0.4,
+            ease: "easeOut"
           }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.boxShadow =
-              "0 10px 25px rgba(34, 211, 238, 0.25)";
-            e.currentTarget.style.transform = "scale(1.05)";
-            e.currentTarget.style.borderColor = "rgba(34, 211, 238, 1)";
+        />
 
-            const overlay = e.currentTarget.querySelector(
-              ".overlay"
-            ) as HTMLElement | null;
-            const text = e.currentTarget.querySelector(
-              ".text"
-            ) as HTMLElement | null;
-            const iconWrapper = e.currentTarget.querySelector(
-              ".icon-wrapper"
-            ) as HTMLElement | null;
-
-            if (overlay) overlay.style.opacity = "1";
-            if (text) text.style.color = "white";
-            if (iconWrapper)
-              iconWrapper.style.boxShadow = "0 0 10px rgba(34, 211, 238, 0.5)";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.boxShadow =
-              "0 10px 25px rgba(0, 255, 255, 0.1)";
-            e.currentTarget.style.transform = "scale(1)";
-            e.currentTarget.style.borderColor = "rgba(34, 211, 238, 0.5)";
-
-            const overlay = e.currentTarget.querySelector(
-              ".overlay"
-            ) as HTMLElement | null;
-            const text = e.currentTarget.querySelector(
-              ".text"
-            ) as HTMLElement | null;
-            const iconWrapper = e.currentTarget.querySelector(
-              ".icon-wrapper"
-            ) as HTMLElement | null;
-
-            if (overlay) overlay.style.opacity = "0";
-            if (text) text.style.color = "#ccfbf1";
-            if (iconWrapper) iconWrapper.style.boxShadow = "none";
-          }}
-        >
-          <div
-            className="overlay"
-            style={{
-              position: "absolute",
-              inset: "0",
-              background:
-                "linear-gradient(to right, rgba(34, 211, 238, 0.2), rgba(96, 165, 250, 0.2))",
-              borderRadius: "1rem",
-              opacity: 0,
-              transition: "opacity 0.3s ease",
-              zIndex: 0,
+        {/* Content container */}
+        <div className="relative flex items-center gap-3 z-10">
+          {/* Icon wrapper */}
+          <motion.div
+            className="w-10 h-10 flex items-center justify-center bg-cyan-400/20 rounded-full border border-cyan-400/50"
+            whileHover={{ 
+              boxShadow: "0 0 15px rgba(34, 211, 238, 0.6)",
+              scale: 1.05,
+              rotate: 5
             }}
-          ></div>
-          <div
-            style={{
-              position: "relative",
-              display: "flex",
-              alignItems: "center",
-              gap: "0.75rem",
-              zIndex: 1,
+            animate={{ 
+              boxShadow: ["0 0 0px rgba(34, 211, 238, 0)", "0 0 8px rgba(34, 211, 238, 0.4)", "0 0 0px rgba(34, 211, 238, 0)"]
+            }}
+            transition={{ 
+              duration: 0.3,
+              ease: "easeOut"
             }}
           >
-            <div
-              className="icon-wrapper"
-              style={{
-                width: "40px",
-                height: "40px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                backgroundColor: "rgba(34, 211, 238, 0.2)",
-                borderRadius: "50%",
-                border: "1px solid rgba(34, 211, 238, 0.5)",
-                transition: "all 0.3s ease",
+            {/* Video Icon */}
+            <motion.svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="w-5 h-5 text-cyan-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              whileHover={{ 
+                scale: 1.15,
+                rotate: -5
+              }}
+              transition={{ 
+                duration: 0.3,
+                ease: "easeOut"
               }}
             >
-              {/* Video Icon (SVG) */}
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="video-icon"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                style={{ width: "20px", height: "20px", color: "#22d3ee" }}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M4 6h8a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V8a2 2 0 012-2z"
-                />
-              </svg>
-            </div>
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M4 6h8a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V8a2 2 0 012-2z"
+              />
+            </motion.svg>
+          </motion.div>
 
-            <span
-              className="text"
-              style={{
-                fontFamily: "'Inter', sans-serif",
-                color: "#ccfbf1",
-                transition: "color 0.3s ease",
-                fontSize: "14px",
-                whiteSpace: "nowrap",
-              }}
-            >
-              Talk to a Vet
-            </span>
+          {/* Text */}
+          <motion.span
+            className="font-inter text-cyan-100 text-sm whitespace-nowrap font-medium"
+            whileHover={{ 
+              color: "#ffffff",
+              x: 2
+            }}
+            transition={{ 
+              duration: 0.3,
+              ease: "easeOut"
+            }}
+          >
+            Talk to a Vet
+          </motion.span>
 
-            <div
-              style={{
-                width: "8px",
-                height: "8px",
-                backgroundColor: "#22d3ee",
-                borderRadius: "9999px",
-                animation: "ping 1.2s infinite",
-              }}
-            ></div>
-          </div>
-        </button>
-      </div>
-
-      {/* Ping Animation */}
-      <style>
-        {`
-          @keyframes ping {
-            0% {
-              transform: scale(1);
-              opacity: 1;
-            }
-            75%, 100% {
-              transform: scale(2);
-              opacity: 0;
-            }
-          }
-        `}
-      </style>
+          {/* Animated ping dot */}
+          <motion.div
+            className="w-2 h-2 bg-cyan-400 rounded-full"
+            animate={{
+              scale: [1, 1.8, 1],
+              opacity: [1, 0.3, 1],
+            }}
+            transition={{
+              duration: 1.5,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+          />
+        </div>
+      </motion.button>
     </div>
   );
 };

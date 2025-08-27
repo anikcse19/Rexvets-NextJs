@@ -7,15 +7,7 @@ export interface User {
 }
 
 export interface PetParent extends User {
-  preferences: {
-    notifications: {
-      email: boolean;
-      sms: boolean;
-      push: boolean;
-    };
-    language: string;
-    timezone: string;
-  };
+  timezone: string;
   _id: string;
   phoneNumber: string;
   state: string;

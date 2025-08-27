@@ -32,7 +32,7 @@ import TalkToVetButton from "../TalkToVet";
 import IconWrapper from "./IconWrapper";
 
 const menuItems = {
-  "For pet parents": ["Donate", "What we treat", "Get a prescription"],
+  "For pet parents": ["Donate", "What we treat"],
   "For Vet & techs": ["Become a Rex Vet", "Rex Health Hub", "Support"],
   About: ["Our Mission", "Our Team", "How it Works"],
 };
@@ -112,75 +112,136 @@ const Header: React.FC = () => {
         </div>
 
         {/* Desktop_Navigation */}
-        <div className="hidden lg:flex items-center space-x-8 z-[9999]">
+        <div className="hidden lg:flex items-center justify-center space-x-6 z-[9999]">
           <Link
             aria-label="Homepage"
-            className="text-white  mx-[10px] hover:opacity-60 hover:text-emerald-400 font-bold transition-colors duration-300"
+            className="text-white hover:opacity-60 hover:text-emerald-400 font-bold transition-colors duration-300 text-center"
             href={"/"}
           >
             Home
           </Link>
-          <Link
-            aria-label="Homepage"
-            className="text-white  mx-[10px] hover:opacity-60 hover:text-emerald-400 font-bold transition-colors duration-300"
+          {/* <Link
+            aria-label="Join Video Call"
+            className="text-white hover:opacity-60 hover:text-emerald-400 font-bold transition-colors duration-300 text-center"
             href={"/video-call?isPublisher=false"}
           >
             Join Video Call
-          </Link>
+          </Link> */}
 
-          {Object.entries(menuItems).map(([label, items]) => (
-            <div
-              key={label}
-              className="relative"
-              onMouseEnter={() => handleMouseEnter(label)}
-              onMouseLeave={handleMouseLeave}
-            >
-              <button
-                aria-haspopup="true"
-                aria-expanded={openMenu === label}
-                aria-controls={`${label}-menu`}
-                className="flex hover:opacity-60 mx-[10px] font-bold items-center hover:opacity-0.8  text-white hover:text-emerald-400 transition-colors duration-300"
-              >
-                {label}
-                <ChevronDown className="w-4 h-4 ml-1" />
-              </button>
-
-              <AnimatePresence>
-                {openMenu === label && (
-                  <motion.div
-                    id={`${label}-menu`}
-                    role="menu"
-                    aria-label={`${label} submenu`}
-                    initial={{ opacity: 0, y: 20, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 20, scale: 0.95 }}
-                    transition={{ duration: 0.3, ease: "easeOut" }}
-                    className="absolute top-full mt-2 w-56 py-3 max-h-80 overflow-y-auto bg-[#002366]  shadow-xl z-[10000] origin-top"
+          {Object.entries(menuItems).map(([label, items]) => {
+            // Render "For pet parents" and "For Vet & techs" dropdowns
+            if (label === "For pet parents" || label === "For Vet & techs") {
+              return (
+                <div
+                  key={label}
+                  className="relative"
+                  onMouseEnter={() => handleMouseEnter(label)}
+                  onMouseLeave={handleMouseLeave}
+                >
+                  <button
+                    aria-haspopup="true"
+                    aria-expanded={openMenu === label}
+                    aria-controls={`${label}-menu`}
+                    className="flex hover:opacity-60 font-bold items-center justify-center text-white hover:text-emerald-400 transition-colors duration-300 text-center"
                   >
-                    {items.map((item) => (
-                      <Link
-                        role="menuitem"
-                        key={item}
-                        href={`/${toSlug(item)}`}
-                        className="block px-4 py-2  text-white font-garet hover:text-emerald-400 hover:opacity-60 text-sm transition-all duration-200"
-                      >
-                        {item}
-                      </Link>
-                    ))}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          ))}
+                    {label}
+                    <ChevronDown className="w-4 h-4 ml-1" />
+                  </button>
 
+                  <AnimatePresence>
+                    {openMenu === label && (
+                      <motion.div
+                        id={`${label}-menu`}
+                        role="menu"
+                        aria-label={`${label} submenu`}
+                        initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 20, scale: 0.95 }}
+                        transition={{ duration: 0.3, ease: "easeOut" }}
+                        className="absolute top-full mt-2 w-56 py-3 max-h-80 overflow-y-auto bg-[#002366] shadow-xl z-[10000] origin-top"
+                      >
+                        {items.map((item) => (
+                          <Link
+                            role="menuitem"
+                            key={item}
+                            href={`/${toSlug(item)}`}
+                            className="block px-4 py-2 text-white font-garet hover:text-emerald-400 hover:opacity-60 text-sm transition-all duration-200 text-center"
+                          >
+                            {item}
+                          </Link>
+                        ))}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              );
+            }
+
+            // Render "Get a prescription" as standalone link before About
+            if (label === "About") {
+              return (
+                <React.Fragment key="get-prescription-and-about">
+                  <Link
+                    className="text-white hover:opacity-60 font-bold hover:text-emerald-400 transition-colors duration-300 text-center"
+                    href="/get-a-prescription"
+                  >
+                    Get A Prescription
+                  </Link>
+                  <div
+                    className="relative"
+                    onMouseEnter={() => handleMouseEnter(label)}
+                    onMouseLeave={handleMouseLeave}
+                  >
+                    <button
+                      aria-haspopup="true"
+                      aria-expanded={openMenu === label}
+                      aria-controls={`${label}-menu`}
+                      className="flex hover:opacity-60 font-bold items-center justify-center text-white hover:text-emerald-400 transition-colors duration-300 text-center"
+                    >
+                      {label}
+                      <ChevronDown className="w-4 h-4 ml-1" />
+                    </button>
+
+                    <AnimatePresence>
+                      {openMenu === label && (
+                        <motion.div
+                          id={`${label}-menu`}
+                          role="menu"
+                          aria-label={`${label} submenu`}
+                          initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: 20, scale: 0.95 }}
+                          transition={{ duration: 0.3, ease: "easeOut" }}
+                          className="absolute top-full mt-2 w-56 py-3 max-h-80 overflow-y-auto bg-[#002366] shadow-xl z-[10000] origin-top"
+                        >
+                          {items.map((item) => (
+                            <Link
+                              role="menuitem"
+                              key={item}
+                              href={`/${toSlug(item)}`}
+                              className="block px-4 py-2 text-white font-garet hover:text-emerald-400 hover:opacity-60 text-sm transition-all duration-200 text-center"
+                            >
+                              {item}
+                            </Link>
+                          ))}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                </React.Fragment>
+              );
+            }
+
+            return null;
+          })}
           <Link
-            className="text-white hover:opacity-60 mx-[10px] font-bold hover:text-emerald-400 transition-colors duration-300"
+            className="text-white hover:opacity-60 font-bold hover:text-emerald-400 transition-colors duration-300 text-center"
             href="/support"
           >
             Support
           </Link>
           <Link
-            className="text-white hover:opacity-60 mx-[10px] font-bold hover:text-emerald-400  transition-colors duration-300"
+            className="text-white hover:opacity-60 font-bold hover:text-emerald-400 transition-colors duration-300 text-center"
             href="/donate"
           >
             Donate
@@ -279,58 +340,111 @@ const Header: React.FC = () => {
                       </div>
                     )}
 
-                    <div className="pb-3 border-b border-[#3D456B]">
+                    <div className="pb-3 border-b border-[#3D456B] text-center">
                       <Link
                         href="/"
-                        className="text-white hover:text-emerald-400 font-semibold text-lg"
+                        className="text-white hover:text-emerald-400 font-semibold text-lg block"
                         onClick={() => setMobileMenuOpen(false)}
                       >
                         Home
                       </Link>
                     </div>
-                    <Link
-                      aria-label="Homepage"
-                      className="text-white  mx-[10px] hover:opacity-60 hover:text-emerald-400 font-bold transition-colors duration-300"
-                      href={"/video-call?isPublisher=false"}
-                    >
-                      Join Video Call
-                    </Link>
-                    {Object.entries(menuItems).map(([label, items]) => (
-                      <Collapsible key={label}>
-                        <div className="py-4 border-b border-[#3D456B]">
-                          <CollapsibleTrigger className="flex items-center text-white hover:text-emerald-400 font-semibold text-lg w-full">
-                            {label}
-                            <ChevronDown className="w-4 h-4 ml-1" />
-                          </CollapsibleTrigger>
-                        </div>
-                        <CollapsibleContent className="pl-4">
-                          {items.map((item) => (
-                            <a
-                              key={item}
-                              href="#"
-                              className="block px-4 py-4 border-b border-[#3D456B] text-white hover:text-emerald-400 hover:bg-[#002a66] text-sm transition-all duration-200"
-                              onClick={() => setMobileMenuOpen(false)}
-                            >
-                              {item}
-                            </a>
-                          ))}
-                        </CollapsibleContent>
-                      </Collapsible>
-                    ))}
-                    <Link
-                      href="/support"
-                      className="text-white hover:text-emerald-400 font-semibold text-lg"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      Support
-                    </Link>
-                    <Link
-                      href="/donate"
-                      className="text-white hover:text-emerald-400 font-semibold text-lg"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      Donate
-                    </Link>
+                    <div className="pb-3 border-b border-[#3D456B] text-center">
+                      <Link
+                        href={"/video-call?isPublisher=false"}
+                        className="text-white hover:text-emerald-400 font-semibold text-lg block"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        Join Video Call
+                      </Link>
+                    </div>
+                    {Object.entries(menuItems).map(([label, items]) => {
+                      // Render "For pet parents" and "For Vet & techs" collapsible menus
+                      if (
+                        label === "For pet parents" ||
+                        label === "For Vet & techs"
+                      ) {
+                        return (
+                          <Collapsible key={label}>
+                            <div className="py-4 border-b border-[#3D456B]">
+                              <CollapsibleTrigger className="flex items-center text-white hover:text-emerald-400 font-semibold text-lg w-full">
+                                {label}
+                                <ChevronDown className="w-4 h-4 ml-1" />
+                              </CollapsibleTrigger>
+                            </div>
+                            <CollapsibleContent className="pl-4">
+                              {items.map((item) => (
+                                <a
+                                  key={item}
+                                  href="#"
+                                  className="block px-4 py-4 border-b border-[#3D456B] text-white hover:text-emerald-400 hover:bg-[#002a66] text-sm transition-all duration-200"
+                                  onClick={() => setMobileMenuOpen(false)}
+                                >
+                                  {item}
+                                </a>
+                              ))}
+                            </CollapsibleContent>
+                          </Collapsible>
+                        );
+                      }
+
+                      // Render "Get a prescription" as standalone link before About
+                      if (label === "About") {
+                        return (
+                          <React.Fragment key="get-prescription-and-about">
+                            <div className="py-4 border-b border-[#3D456B] text-center">
+                              <Link
+                                href="/get-a-prescription"
+                                className="text-white hover:text-emerald-400 font-semibold text-lg block"
+                                onClick={() => setMobileMenuOpen(false)}
+                              >
+                                Get a prescription
+                              </Link>
+                            </div>
+                            <Collapsible key={label}>
+                              <div className="py-4 border-b border-[#3D456B]">
+                                <CollapsibleTrigger className="flex items-center text-white hover:text-emerald-400 font-semibold text-lg w-full">
+                                  {label}
+                                  <ChevronDown className="w-4 h-4 ml-1" />
+                                </CollapsibleTrigger>
+                              </div>
+                              <CollapsibleContent className="pl-4">
+                                {items.map((item) => (
+                                  <a
+                                    key={item}
+                                    href="#"
+                                    className="block px-4 py-4 border-b border-[#3D456B] text-white hover:text-emerald-400 hover:bg-[#002a66] text-sm transition-all duration-200"
+                                    onClick={() => setMobileMenuOpen(false)}
+                                  >
+                                    {item}
+                                  </a>
+                                ))}
+                              </CollapsibleContent>
+                            </Collapsible>
+                          </React.Fragment>
+                        );
+                      }
+
+                      return null;
+                    })}
+                    <div className="pb-3 border-b border-[#3D456B] text-center">
+                      <Link
+                        href="/support"
+                        className="text-white hover:text-emerald-400 font-semibold text-lg block"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        Support
+                      </Link>
+                    </div>
+                    <div className="pb-3 border-b border-[#3D456B] text-center">
+                      <Link
+                        href="/donate"
+                        className="text-white hover:text-emerald-400 font-semibold text-lg block"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        Donate
+                      </Link>
+                    </div>
                   </div>
                 </div>
                 {/* ================Footer================= */}

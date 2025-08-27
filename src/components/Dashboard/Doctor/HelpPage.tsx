@@ -498,7 +498,7 @@ export default function HelpPage() {
                   </div>
                   <div>
                     <p className="font-semibold text-gray-900">Email</p>
-                    <p className="text-sm text-gray-600">support@rexvet.com</p>
+                    <p className="text-sm text-gray-600">support@rexvet.org</p>
                   </div>
                 </div>
 

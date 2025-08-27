@@ -27,15 +27,7 @@ declare module "next-auth" {
       phone: string;
       relationship: string;
     };
-    preferences?: {
-      notifications: {
-        email: boolean;
-        sms: boolean;
-        push: boolean;
-      };
-      language: string;
-      timezone: string;
-    };
+    timezone?: string;
   }
 
   interface Session {
@@ -68,14 +60,6 @@ declare module "next-auth/jwt" {
       phone: string;
       relationship: string;
     };
-    preferences?: {
-      notifications: {
-        email: boolean;
-        sms: boolean;
-        push: boolean;
-      };
-      language: string;
-      timezone: string;
-    };
+    timezone?: string;
   }
 }
