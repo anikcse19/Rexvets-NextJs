@@ -23,24 +23,27 @@ export const generateAppointmentSlots = async (
     vetId,
     slotPeriods,
     dateRange,
-    bufferBetweenSlots = 0,
+    bufferBetweenSlots = 5,
     slotDuration = 30,
   } = data;
 
   try {
-    // Convert date range to UTC and normalize to start/end of day
-    const startDate = moment(dateRange.start).utc().startOf("day");
-    const endDate = moment(dateRange.end).utc().endOf("day");
+    // Parse dates as UTC without timezone conversion
+    const startDate = moment.utc(dateRange.start, "YYYY-MM-DD").startOf("day");
+    const endDate = moment.utc(dateRange.end, "YYYY-MM-DD").endOf("day");
+    console.log("start date:", startDate);
+    console.log("end date:", endDate);
+    // Get current UTC datetime for comparison
+    const currentUtc = moment.utc();
 
     // Validate date range
     if (endDate.isBefore(startDate)) {
       throw new Error("Invalid date range: end date must be after start date");
     }
-
-    // HARD VALIDATION: Prevent creating slots in the past
-    const now = moment().utc();
-    if (startDate.isBefore(now, "day")) {
-      throw new Error(`Cannot create slots for past dates: ${startDate.format("YYYY-MM-DD")} is before ${now.format("YYYY-MM-DD")} now ${now.toDate()}`);
+    console.log("currentUtc", currentUtc);
+    // Check if any date in the range is in the past
+    if (startDate.isBefore(currentUtc)) {
+      throw new Error("Cannot create slots for past dates");
     }
 
     // Check for existing slots for this vet in the date range
@@ -71,22 +74,25 @@ export const generateAppointmentSlots = async (
       const currentDate = startDate.clone().add(day, "days");
       const utcDate = currentDate.toDate();
 
-      // HARD VALIDATION: Skip past dates (additional safety check)
-      if (currentDate.isBefore(now, "day")) {
-        continue; // Skip this day entirely
+      // Skip if this specific day is in the past
+      if (currentDate.isBefore(currentUtc)) {
+        continue;
       }
 
       // Process each slot period for this day
       for (const period of slotPeriods) {
-        // Parse the time from slotPeriods and combine with current date
-        const periodStart = moment(
-          `${currentDate.format("YYYY-MM-DD")} ${period.start}`,
-          "YYYY-MM-DD HH:mm"
-        ).utc();
-        const periodEnd = moment(
-          `${currentDate.format("YYYY-MM-DD")} ${period.end}`,
-          "YYYY-MM-DD HH:mm"
-        ).utc();
+        // Parse time strings directly as UTC times for the current date
+        const periodStart = moment.utc(
+          `${currentDate.format("YYYY-MM-DD")}T${period.start}:00.000Z`
+        );
+        const periodEnd = moment.utc(
+          `${currentDate.format("YYYY-MM-DD")}T${period.end}:00.000Z`
+        );
+
+        // Handle 24:00 end time (convert to next day 00:00)
+        if (period.end === "24:00") {
+          periodEnd.add(1, "day").startOf("day");
+        }
 
         // Validate that the period is valid
         if (periodEnd.isSameOrBefore(periodStart)) {
@@ -95,24 +101,9 @@ export const generateAppointmentSlots = async (
           );
         }
 
-        // HARD VALIDATION: For current day, ensure slots are not in the past
-        if (currentDate.isSame(now, "day")) {
-          // If period end is already in the past, skip this period entirely
-          if (periodEnd.isBefore(now)) {
-            continue;
-          }
-          
-          // If period start is in the past, adjust it to current time + buffer
-          if (periodStart.isBefore(now)) {
-            // Add buffer to current time to ensure we don't create slots that are too close
-            const adjustedStart = now.clone().add(bufferBetweenSlots, "minutes");
-            // Only use adjusted start if it's still within the period
-            if (adjustedStart.isBefore(periodEnd)) {
-              periodStart.set(adjustedStart.toObject());
-            } else {
-              continue; // Skip this period if adjusted start is beyond period end
-            }
-          }
+        // Skip this period if it's already in the past (for today)
+        if (periodEnd.isBefore(currentUtc)) {
+          continue;
         }
 
         // Calculate total time needed per slot (duration + buffer)
@@ -131,9 +122,8 @@ export const generateAppointmentSlots = async (
             break;
           }
 
-          // HARD VALIDATION: For current day, ensure slot is not in the past
-          if (currentDate.isSame(now, "day") && currentSlotEnd.isBefore(now)) {
-            // Move to next slot and continue
+          // Skip slots that are in the past
+          if (currentSlotEnd.isBefore(currentUtc)) {
             currentSlotStart = currentSlotEnd.clone();
             continue;
           }
@@ -161,15 +151,6 @@ export const generateAppointmentSlots = async (
       }
     }
 
-    // Additional validation: Ensure we're not creating any past slots
-    const hasPastSlots = slotsToCreate.some(slot => 
-      moment(slot.endTime).utc().isBefore(now)
-    );
-
-    if (hasPastSlots) {
-      throw new Error("Validation failed: Attempted to create slots in the past");
-    }
-
     // Insert all generated slots in bulk
     if (slotsToCreate.length > 0) {
       await AppointmentSlot.insertMany(slotsToCreate);
@@ -184,8 +165,8 @@ export const generateAppointmentSlots = async (
       )} and ${endDate.format("YYYY-MM-DD")}`,
       slotsCount: slotsToCreate.length,
       dateRange: {
-        start: startDate.toDate(),
-        end: endDate.toDate(),
+        start: startDate.format("YYYY-MM-DD"),
+        end: endDate.format("YYYY-MM-DD"),
       },
       slotDuration,
       bufferBetweenSlots,
@@ -440,7 +421,7 @@ export const getAppointmentSlots = async (
       baseQuery.status = status;
     } else {
       // If status is ALL, still exclude booked and blocked slots for booking purposes
-      baseQuery.status = { $in: [SlotStatus.AVAILABLE, SlotStatus.PENDING] };
+      baseQuery.status = { $in: [SlotStatus.AVAILABLE] };
     }
 
     // Filter out past dates and times

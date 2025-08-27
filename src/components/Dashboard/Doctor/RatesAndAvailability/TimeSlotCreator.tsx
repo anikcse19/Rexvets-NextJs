@@ -12,12 +12,9 @@ import {
 } from "@/components/ui/select";
 import { DateRange, SlotPeriod } from "@/lib/types";
 import { formatDisplayTime, generateTimeOptions } from "@/lib/utils";
-<<<<<<< HEAD
 import { Clock, Plus, Save, Trash2 } from "lucide-react";
 import { useState } from "react";
-=======
 import { toast } from "sonner";
->>>>>>> e1d492089c2b7aa55e507ab8b95d3e4858b5cbc4
 
 interface TimeSlotCreatorProps {
   selectedRange: DateRange | null;
@@ -71,7 +68,7 @@ export default function TimeSlotCreator({
   const validateSlots = (): boolean => {
     // Check if we have at least one valid slot
     if (slots.length === 0) return false;
-    
+
     for (const slot of slots) {
       if (!slot.startTime || !slot.endTime) return false;
       if (slot.startTime >= slot.endTime) return false;
@@ -81,7 +78,9 @@ export default function TimeSlotCreator({
 
   const handleSave = async () => {
     if (!selectedRange || !validateSlots()) {
-      toast.error("Please select a date range and ensure all time slots are valid");
+      toast.error(
+        "Please select a date range and ensure all time slots are valid"
+      );
       return;
     }
 
@@ -105,7 +104,7 @@ export default function TimeSlotCreator({
       console.log("Slot periods:", slotPeriods);
 
       await onSaveSlots(slotPeriods);
-      
+
       // Reset slots to default after successful save
       setSlots([{ id: "1", startTime: "09:00", endTime: "17:00" }]);
     } catch (error) {

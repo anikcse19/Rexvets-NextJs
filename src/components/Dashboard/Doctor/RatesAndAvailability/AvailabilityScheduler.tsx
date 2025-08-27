@@ -72,6 +72,8 @@ const AvailabilityScheduler: React.FC<Props> = ({
     setEnabled,
     open,
     setOpen,
+    disabledSlotIds,
+    setDisabledSlotIds,
   } = useDashboardContext();
   // console.log("slotStatus", slotStatus);
   const handleSlotSelect = (slot: Slot) => {
@@ -233,18 +235,6 @@ const AvailabilityScheduler: React.FC<Props> = ({
                     {dayData.numberOfPeriods > 1 ? "s" : ""} •{" "}
                     {dayData.periods.reduce((sum, p) => sum + p.totalHours, 0)}h
                     total
-                    <div className="flex items-center gap-0 ml-1  gap-x-3">
-                      <Switch
-                        id="notifications"
-                        checked={enabled}
-                        onCheckedChange={setEnabled}
-                        className={cn(
-                          "peer rounded-full border-2 transition-colors duration-300 cursor-pointer",
-                          "data-[state=unchecked]:bg-gray-300", // background when OFF
-                          "data-[state=checked]:bg-green-500" // background when ON
-                        )}
-                      />
-                    </div>
                   </div>
                 </div>
 
@@ -272,16 +262,44 @@ const AvailabilityScheduler: React.FC<Props> = ({
                       <span className="text-sm font-medium text-gray-500">
                         {period.totalHours}h
                       </span>
-                      <button
-                        onClick={() => {
-                          setOpen(true);
-                          console.log("slots", period.slots);
-                          setSelectedSlot(period.slots);
-                        }}
-                        className="p-1.5 cursor-pointer text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded transition-colors"
-                      >
-                        <FiEdit2 size={16} />
-                      </button>
+                      <div className=" flex items-center gap-x-3">
+                        <div className="flex items-center gap-0 ml-1  gap-x-3">
+                          <Switch
+                            id="notifications"
+                            checked={period.slots.some((slot) =>
+                              disabledSlotIds.includes(slot._id)
+                            )}
+                            onCheckedChange={() => {
+                              const slotIds = period?.slots?.map(
+                                (slot) => slot?._id
+                              );
+                              console.log("slotIds:", slotIds);
+                              setDisabledSlotIds((prev) => {
+                                if (prev) {
+                                  return [...prev, ...slotIds];
+                                }
+                                return slotIds;
+                              });
+                              setEnabled(!enabled);
+                            }}
+                            className={cn(
+                              "peer rounded-full border-2 transition-colors duration-300 cursor-pointer",
+                              "data-[state=unchecked]:bg-gray-300", // background when OFF
+                              "data-[state=checked]:bg-green-500" // background when ON
+                            )}
+                          />
+                        </div>
+                        <button
+                          onClick={() => {
+                            setOpen(true);
+                            console.log("slots", period.slots);
+                            setSelectedSlot(period.slots);
+                          }}
+                          className="p-1.5 cursor-pointer text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded transition-colors"
+                        >
+                          <FiEdit2 size={16} />
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>

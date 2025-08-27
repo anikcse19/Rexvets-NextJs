@@ -63,6 +63,8 @@ type DashboardContextType = {
   ) => Promise<void>;
   selectedRange: DateRange | null;
   setSelectedRange: React.Dispatch<React.SetStateAction<DateRange | null>>;
+  disabledSlotIds: string[];
+  setDisabledSlotIds: React.Dispatch<React.SetStateAction<string[]>>;
 };
 
 // 2. Create context with default values
@@ -89,6 +91,7 @@ export const DashboardProvider: React.FC<DashboardProviderProps> = ({
   const [availableSlotsApiResponse, setAvailableSlotsApiResponse] =
     useState<IAvailableApiResponseState>(initialApiResponseState);
   const [selectedRange, setSelectedRange] = useState<DateRange | null>(null);
+  const [disabledSlotIds, setDisabledSlotIds] = useState<string[]>([]);
 
   const getAvailableSlots = useCallback(
     async (startDate: string, endDate: string, refId: string) => {
@@ -107,16 +110,10 @@ export const DashboardProvider: React.FC<DashboardProviderProps> = ({
         return;
       }
       try {
-<<<<<<< HEAD
-        const res = await fetch(
-          `/api/appointments/slots/slot-summary/${refId}?startDate=${startDate}&endDate=${endDate}&status=${SlotStatus.AVAILABLE}`
-        );
-=======
         const apiUrl = `/api/appointments/slots/slot-summary/${refId}?startDate=${startDate}&endDate=${endDate}&status=${SlotStatus.AVAILABLE}`;
         console.log("Fetching from API:", apiUrl);
 
         const res = await fetch(apiUrl);
->>>>>>> e1d492089c2b7aa55e507ab8b95d3e4858b5cbc4
 
         if (!res.ok) {
           const errorText = await res.text();
@@ -239,6 +236,8 @@ export const DashboardProvider: React.FC<DashboardProviderProps> = ({
         getAvailableSlots,
         selectedRange,
         setSelectedRange,
+        disabledSlotIds,
+        setDisabledSlotIds,
       }}
     >
       {children}

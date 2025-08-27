@@ -176,7 +176,6 @@ export interface Slot {
 export enum SlotStatus {
   AVAILABLE = "available",
   BOOKED = "booked",
-  BLOCKED = "blocked",
-  PENDING = "pending",
+  DISABLED = "disabled",
   ALL = "all",
 }
