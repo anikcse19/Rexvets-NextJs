@@ -29,7 +29,7 @@ const petSchema = new Schema<IPet & Document>({
     required: true,
   },
   weight: { type: Number, required: true },
-  weightUnit: { type: String, enum: ["kg", "lb"], required: true },
+  weightUnit: { type: String, enum: ["kg", "lbs"], required: true },
   dateOfBirth: { type: String, required: true },
   parentId: { type: Schema.Types.ObjectId, ref: "PetParent", required: true },
   allergies: [{ type: String }],

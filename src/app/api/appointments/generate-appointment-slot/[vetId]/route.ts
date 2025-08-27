@@ -46,7 +46,6 @@ export const POST = async (
       };
       return throwAppError(errResp, 404);
     }
-    console.log("existingVet", existingVet);
     const slotData: IGenerateAppointmentSlots = {
       vetId: existingVet._id,
       slotPeriods: slotPeriods,
@@ -61,11 +60,11 @@ export const POST = async (
       data: response,
       statusCode: 200,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.log("ERROR:", error);
     const errResp: IErrorResponse = {
       success: false,
-      message: "Internal server error",
+      message: error?.message || "Internal server error",
       errorCode: "INTERNAL_SERVER_ERROR",
       errors: null,
     };

@@ -6,6 +6,7 @@ import {
   AppointmentStatus,
   IAppointment,
 } from "@/models/Appointment";
+import { AppointmentSlot } from "@/models/AppointmentSlot";
 import { Types } from "mongoose";
 import { getServerSession } from "next-auth/next";
 import { NextRequest } from "next/server";
@@ -71,7 +72,24 @@ export async function GET(
         404
       );
     }
+    const slotId = (appointment as any).slotId;
+    const appointmentSlot = await AppointmentSlot.findOne({
+      _id: slotId,
+    });
+    if (!appointmentSlot) {
+      return throwAppError(
+        {
+          success: false,
+          message: "Appointment slot not found",
+          errorCode: "NOT_FOUND",
+          errors: null,
+        },
+        404
+      );
+    }
 
+    (appointment as any).appointmentTime = appointmentSlot?.startTime;
+    console.log("appointmentSlot", appointmentSlot);
     return sendResponse({
       statusCode: 200,
       success: true,
