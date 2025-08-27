@@ -114,10 +114,8 @@ export const generateAppointmentSlots = async (
 
           slotsToCreate.push(slotData);
 
-          // Move to next slot, considering buffer time
-          currentSlotStart = currentSlotEnd
-            .clone()
-            .add(bufferBetweenSlots, "minutes");
+          // Move to next slot start time (no buffer gap)
+          currentSlotStart = currentSlotEnd.clone();
 
           // If next slot start would be beyond period end, break
           if (currentSlotStart.isSameOrAfter(periodEnd)) {

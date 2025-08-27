@@ -44,7 +44,7 @@ export default function AppointmentCard({ appointment }: AppointmentCardProps) {
 
       {/* Pet Info */}
       <Link
-        href="/dashboard/doctor/appointments/1"
+        href={`/dashboard/doctor/appointments/${appointment.id}`}
         className="flex items-center gap-5 cursor-pointer"
       >
         <Avatar className="w-20 h-20 border-4 border-white shadow-md">
