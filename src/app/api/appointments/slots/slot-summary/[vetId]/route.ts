@@ -80,8 +80,10 @@ export const GET = async (
       limit,
       page,
     };
+    console.log("paramsFn", paramsFn);
+
     const response = await getSlotsByVetId(paramsFn);
-    console.log("response", response);
+    // console.log("response", response);
     const slotPeriods = groupSlotsIntoPeriods(response.data);
     const responseFormat: ISendResponse<any> = {
       statusCode: 200,

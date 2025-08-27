@@ -23,7 +23,7 @@ export const generateAppointmentSlots = async (
     vetId,
     slotPeriods,
     dateRange,
-    bufferBetweenSlots = 5,
+    bufferBetweenSlots = 0,
     slotDuration = 30,
   } = data;
 
@@ -35,6 +35,12 @@ export const generateAppointmentSlots = async (
     // Validate date range
     if (endDate.isBefore(startDate)) {
       throw new Error("Invalid date range: end date must be after start date");
+    }
+
+    // HARD VALIDATION: Prevent creating slots in the past
+    const now = moment().utc();
+    if (startDate.isBefore(now, "day")) {
+      throw new Error(`Cannot create slots for past dates: ${startDate.format("YYYY-MM-DD")} is before ${now.format("YYYY-MM-DD")} now ${now.toDate()}`);
     }
 
     // Check for existing slots for this vet in the date range
@@ -55,15 +61,6 @@ export const generateAppointmentSlots = async (
           "YYYY-MM-DD"
         )}. Please delete existing slots first.`
       );
-      // return {
-      //   success: false,
-      //   message: `Appointment slots already exist for this vet between ${startDate.format(
-      //     "YYYY-MM-DD"
-      //   )} and ${endDate.format(
-      //     "YYYY-MM-DD"
-      //   )}. Please delete existing slots first.`,
-      //   existingSlotsCount: existingSlots.length,
-      // };
     }
 
     const slotsToCreate: any[] = [];
@@ -73,6 +70,11 @@ export const generateAppointmentSlots = async (
     for (let day = 0; day < numberOfDays; day++) {
       const currentDate = startDate.clone().add(day, "days");
       const utcDate = currentDate.toDate();
+
+      // HARD VALIDATION: Skip past dates (additional safety check)
+      if (currentDate.isBefore(now, "day")) {
+        continue; // Skip this day entirely
+      }
 
       // Process each slot period for this day
       for (const period of slotPeriods) {
@@ -93,6 +95,26 @@ export const generateAppointmentSlots = async (
           );
         }
 
+        // HARD VALIDATION: For current day, ensure slots are not in the past
+        if (currentDate.isSame(now, "day")) {
+          // If period end is already in the past, skip this period entirely
+          if (periodEnd.isBefore(now)) {
+            continue;
+          }
+          
+          // If period start is in the past, adjust it to current time + buffer
+          if (periodStart.isBefore(now)) {
+            // Add buffer to current time to ensure we don't create slots that are too close
+            const adjustedStart = now.clone().add(bufferBetweenSlots, "minutes");
+            // Only use adjusted start if it's still within the period
+            if (adjustedStart.isBefore(periodEnd)) {
+              periodStart.set(adjustedStart.toObject());
+            } else {
+              continue; // Skip this period if adjusted start is beyond period end
+            }
+          }
+        }
+
         // Calculate total time needed per slot (duration + buffer)
         const totalTimePerSlot = slotDuration + bufferBetweenSlots;
 
@@ -107,6 +129,13 @@ export const generateAppointmentSlots = async (
           // If the slot would extend beyond the period end, break
           if (currentSlotEnd.isAfter(periodEnd)) {
             break;
+          }
+
+          // HARD VALIDATION: For current day, ensure slot is not in the past
+          if (currentDate.isSame(now, "day") && currentSlotEnd.isBefore(now)) {
+            // Move to next slot and continue
+            currentSlotStart = currentSlotEnd.clone();
+            continue;
           }
 
           // Create slot data with ISO 8601 UTC format for times
@@ -130,6 +159,15 @@ export const generateAppointmentSlots = async (
           }
         }
       }
+    }
+
+    // Additional validation: Ensure we're not creating any past slots
+    const hasPastSlots = slotsToCreate.some(slot => 
+      moment(slot.endTime).utc().isBefore(now)
+    );
+
+    if (hasPastSlots) {
+      throw new Error("Validation failed: Attempted to create slots in the past");
     }
 
     // Insert all generated slots in bulk
@@ -157,7 +195,6 @@ export const generateAppointmentSlots = async (
     throw new Error(`Failed to generate appointment slots: ${error.message}`);
   }
 };
-
 export interface IUpdateAppointmentSlots {
   vetId: string;
   slotPeriods: {

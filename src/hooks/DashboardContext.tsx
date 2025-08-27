@@ -110,7 +110,7 @@ export const DashboardProvider: React.FC<DashboardProviderProps> = ({
       }
       try {
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/appointments/slots/slot-summary/${refId}?startDate=${startDate}&endDate=${endDate}&status=${SlotStatus.AVAILABLE}`
+          `/api/appointments/slots/slot-summary/${refId}?startDate=${startDate}&endDate=${endDate}&status=${SlotStatus.AVAILABLE}`
         );
 
         if (!res.ok) {

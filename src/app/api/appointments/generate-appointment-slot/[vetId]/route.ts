@@ -33,18 +33,12 @@ export const POST = async (
     const {
       slotPeriods,
       slotDuration = 30,
-      bufferBetweenSlots = 5,
+      bufferBetweenSlots = 0,
       dateRange,
     } = await req.json();
     const existingVet = await Veterinarian.findOne({ _id: vetId });
     if (!existingVet) {
-      const errResp: IErrorResponse = {
-        success: false,
-        message: "Veterinarian not found",
-        errorCode: "VET_NOT_FOUND",
-        errors: null,
-      };
-      return throwAppError(errResp, 404);
+      throw Error("Veterinarian not found");
     }
     const slotData: IGenerateAppointmentSlots = {
       vetId: existingVet._id,
@@ -61,7 +55,7 @@ export const POST = async (
       statusCode: 200,
     });
   } catch (error: any) {
-    console.log("ERROR:", error);
+    console.log("ERROR:", error.message);
     const errResp: IErrorResponse = {
       success: false,
       message: error?.message || "Internal server error",

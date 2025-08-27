@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -10,10 +10,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { Clock, Plus, Trash2, Save } from "lucide-react";
-import { SlotPeriod, DateRange } from "@/lib/types";
+import { DateRange, SlotPeriod } from "@/lib/types";
 import { formatDisplayTime, generateTimeOptions } from "@/lib/utils";
+import { Clock, Plus, Save, Trash2 } from "lucide-react";
+import { useState } from "react";
 
 interface TimeSlotCreatorProps {
   selectedRange: DateRange | null;
