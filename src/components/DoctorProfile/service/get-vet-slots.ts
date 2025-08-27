@@ -9,6 +9,7 @@ export const getVetSlots = async ({
   startDate: string;
   endDate: string;
 }) => {
+  // Fetch only available slots (excludes booked, blocked, and past slots)
   const res = await fetch(
     `${config.BASE_URL}/api/appointments/booking/slot/${id}?limit=1000&status=available&startDate=${startDate}&endDate=${endDate}`,
     {

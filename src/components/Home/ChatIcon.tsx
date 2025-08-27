@@ -165,7 +165,7 @@ export default function ChatIcon() {
         {
           role: "assistant",
           content:
-            "Sorry, I encountered an error. Please try again or contact support@rexvet.com for assistance.",
+            "Sorry, I encountered an error. Please try again or contact support@rexvet.org for assistance.",
           timestamp: new Date(),
           requiresHumanSupport: true,
         },

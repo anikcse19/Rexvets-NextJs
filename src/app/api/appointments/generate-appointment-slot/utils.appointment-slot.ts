@@ -398,10 +398,32 @@ export const getAppointmentSlots = async (
       },
     };
 
-    // Add status filter
+    // Add status filter - only show available slots (not booked, blocked, or pending)
     if (status !== SlotStatus.ALL) {
       baseQuery.status = status;
+    } else {
+      // If status is ALL, still exclude booked and blocked slots for booking purposes
+      baseQuery.status = { $in: [SlotStatus.AVAILABLE, SlotStatus.PENDING] };
     }
+
+    // Filter out past dates and times
+    const now = new Date();
+    baseQuery.$and = [
+      {
+        $or: [
+          // Date is in the future
+          { date: { $gt: now } },
+          // Or date is today but time is in the future
+          {
+            $and: [
+              { date: { $gte: moment().startOf('day').toDate() } },
+              { date: { $lte: moment().endOf('day').toDate() } },
+              { startTime: { $gt: moment().format('HH:mm') } }
+            ]
+          }
+        ]
+      }
+    ];
 
     // Add search functionality
     if (search.trim()) {

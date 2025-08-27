@@ -84,7 +84,7 @@ const Footer = React.memo(() => {
         label: "TikTok",
       },
       {
-        href: "mailto:support@rexVet.com",
+        href: "mailto:support@rexVet.org",
         icon: Mail,
         label: "Email",
       },

@@ -59,7 +59,7 @@ export const GET = async (
       },
       limit,
       page,
-      status: status as SlotStatus,
+      status: status as SlotStatus, // This will filter out booked/blocked slots and past dates
       search: searchQuery,
       sortOrder,
       sortBy,
