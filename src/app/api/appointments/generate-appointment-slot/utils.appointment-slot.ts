@@ -416,13 +416,13 @@ export const getAppointmentSlots = async (
           // Or date is today but time is in the future
           {
             $and: [
-              { date: { $gte: moment().startOf('day').toDate() } },
-              { date: { $lte: moment().endOf('day').toDate() } },
-              { startTime: { $gt: moment().format('HH:mm') } }
-            ]
-          }
-        ]
-      }
+              { date: { $gte: moment().startOf("day").toDate() } },
+              { date: { $lte: moment().endOf("day").toDate() } },
+              { startTime: { $gt: moment().format("HH:mm") } },
+            ],
+          },
+        ],
+      },
     ];
 
     // Add search functionality
@@ -507,16 +507,6 @@ export const getSlotsByVetId = async ({
   search = "",
   status = SlotStatus.AVAILABLE,
 }: IGetSlotsParams) => {
-  console.log("getSlotsByVetId params:", {
-    vetId,
-    dateRange,
-    limit,
-    sortBy,
-    sortOrder,
-    page,
-    search,
-    status,
-  });
   return getAppointmentSlots({
     vetId,
     dateRange,

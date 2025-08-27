@@ -88,9 +88,7 @@ export const DashboardProvider: React.FC<DashboardProviderProps> = ({
   const [isUpdating, setIsUpdating] = useState<boolean>(false);
   const [availableSlotsApiResponse, setAvailableSlotsApiResponse] =
     useState<IAvailableApiResponseState>(initialApiResponseState);
-  const [selectedRange, setSelectedRange] = useState<DateRange | null>(
-    null
-  );
+  const [selectedRange, setSelectedRange] = useState<DateRange | null>(null);
 
   const getAvailableSlots = useCallback(
     async (startDate: string, endDate: string, refId: string) => {
@@ -111,7 +109,7 @@ export const DashboardProvider: React.FC<DashboardProviderProps> = ({
       try {
         const apiUrl = `/api/appointments/slots/slot-summary/${refId}?startDate=${startDate}&endDate=${endDate}&status=${SlotStatus.AVAILABLE}`;
         console.log("Fetching from API:", apiUrl);
-        
+
         const res = await fetch(apiUrl);
 
         if (!res.ok) {
