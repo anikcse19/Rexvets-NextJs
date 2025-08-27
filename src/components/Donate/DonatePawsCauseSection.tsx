@@ -31,7 +31,7 @@ const DonatePawsCauseSection: FC = () => {
                     small gesture adds up to make a big difference in the lives
                     of those who need it the most.
                   </p>
-                  <Link href={"/donation"}>
+                  <Link href={"/donate-now"}>
                     <ModernButton className="flex flex-row items-center gap-x-2  max-w-[290px] md:mt-12 cursor-pointer z-50 py-5 ml-auto">
                       <MdPets className="mr-2 h-6 w-6" />
                       DONATE TODAY
