@@ -13,37 +13,63 @@ import {
   AlertTriangle,
   Pill,
   Syringe,
+  FileText,
 } from "lucide-react";
 
 interface PetInfoCardProps {
   pet: {
-    id: string;
+    _id: string;
     name: string;
-    image: string;
-    breed: string;
-    age: string;
-    weight: string;
-    gender: string;
-    color: string;
-    microchipId: string;
-    allergies: string[];
-    medications: string[];
-    lastVisit: string;
-    vaccinations: Array<{
-      name: string;
-      date: string;
-      nextDue: string;
-    }>;
+    image?: string;
+    species: string;
+    breed?: string;
+    age?: string;
+    weight?: string | number;
+    gender?: string;
+    color?: string;
+    primaryColor?: string;
+    weightUnit?: string;
+    dateOfBirth?: string;
+    spayedNeutered?: string;
+    allergies?: string[];
+    medicalConditions?: string[];
+    currentMedications?: string[];
+    lastVisit?: string;
+    nextVaccination?: string;
+    healthStatus?: string;
+    emergencyContact?: string;
+    veterinarianNotes?: string;
   };
 }
 
 export default function PetInfoCard({ pet }: PetInfoCardProps) {
   const formatDate = (dateString: string) => {
+    if (!dateString) return "Not available";
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",
       day: "numeric",
     });
+  };
+
+  const calculateAge = (dateOfBirth: string) => {
+    if (!dateOfBirth) return "Not available";
+    const birthDate = new Date(dateOfBirth);
+    const today = new Date();
+    const ageInYears = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      return `${ageInYears - 1} years`;
+    }
+    return `${ageInYears} years`;
+  };
+
+  const formatWeight = (weight: string | number, unit?: string) => {
+    if (!weight) return "Not available";
+    const weightValue = typeof weight === 'string' ? weight : weight.toString();
+    const weightUnit = unit || 'kg';
+    return `${weightValue} ${weightUnit}`;
   };
 
   return (
@@ -81,9 +107,9 @@ export default function PetInfoCard({ pet }: PetInfoCardProps) {
             <h3 className="text-2xl font-bold text-gray-900 mb-1">
               {pet.name}
             </h3>
-            <p className="text-gray-600 mb-3">{pet.breed}</p>
+            <p className="text-gray-600 mb-3">{pet.breed || pet.species}</p>
             <Badge className="bg-pink-100 text-pink-700 border-pink-300">
-              Patient ID: {pet.id}
+              Patient ID: {pet._id}
             </Badge>
           </div>
 
@@ -92,42 +118,60 @@ export default function PetInfoCard({ pet }: PetInfoCardProps) {
             <InfoItem
               icon={<Calendar className="w-4 h-4 text-blue-600" />}
               label="Age"
-              value={pet.age}
+              value={pet.age || (pet.dateOfBirth ? calculateAge(pet.dateOfBirth) : "Not available")}
             />
             <InfoItem
               icon={<Weight className="w-4 h-4 text-green-600" />}
               label="Weight"
-              value={pet.weight}
+              value={formatWeight(pet.weight || "", pet.weightUnit)}
             />
             <InfoItem
               icon={<Heart className="w-4 h-4 text-pink-600" />}
               label="Gender"
-              value={pet.gender}
+              value={pet.gender || "Not available"}
             />
             <InfoItem
               icon={<Palette className="w-4 h-4 text-purple-600" />}
               label="Color"
-              value={pet.color}
+              value={pet.color || pet.primaryColor || "Not available"}
             />
           </div>
 
-          {/* Microchip */}
-          <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200">
-            <div className="flex items-center gap-3">
-              <div className="bg-blue-500 text-white p-2 rounded-lg">
-                <Shield className="w-4 h-4" />
-              </div>
-              <div>
-                <p className="font-semibold text-blue-900">Microchip ID</p>
-                <p className="text-blue-700 font-mono text-sm">
-                  {pet.microchipId}
-                </p>
+          {/* Species & Spay/Neuter Status */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200">
+              <div className="flex items-center gap-3">
+                <div className="bg-blue-500 text-white p-2 rounded-lg">
+                  <Shield className="w-4 h-4" />
+                </div>
+                <div>
+                  <p className="font-semibold text-blue-900">Species</p>
+                  <p className="text-blue-700 font-medium text-sm capitalize">
+                    {pet.species}
+                  </p>
+                </div>
               </div>
             </div>
+
+            {pet.spayedNeutered && (
+              <div className="p-4 bg-gradient-to-r from-orange-50 to-amber-50 rounded-xl border border-orange-200">
+                <div className="flex items-center gap-3">
+                  <div className="bg-orange-500 text-white p-2 rounded-lg">
+                    <Heart className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-orange-900">Status</p>
+                    <p className="text-orange-700 font-medium text-sm capitalize">
+                      {pet.spayedNeutered}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Allergies */}
-          {pet.allergies.length > 0 && (
+          {pet.allergies && pet.allergies.length > 0 && (
             <div>
               <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
                 <AlertTriangle className="w-4 h-4 text-red-600" />
@@ -146,15 +190,35 @@ export default function PetInfoCard({ pet }: PetInfoCardProps) {
             </div>
           )}
 
+          {/* Medical Conditions */}
+          {pet.medicalConditions && pet.medicalConditions.length > 0 && (
+            <div>
+              <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-orange-600" />
+                Medical Conditions
+              </h4>
+              <div className="flex flex-wrap gap-2">
+                {pet.medicalConditions.map((condition, index) => (
+                  <Badge
+                    key={index}
+                    className="bg-orange-100 text-orange-700 border-orange-300"
+                  >
+                    {condition}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Current Medications */}
-          {pet.medications.length > 0 && (
+          {pet.currentMedications && pet.currentMedications.length > 0 && (
             <div>
               <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
                 <Pill className="w-4 h-4 text-orange-600" />
                 Current Medications
               </h4>
               <div className="space-y-2">
-                {pet.medications.map((medication, index) => (
+                {pet.currentMedications.map((medication, index) => (
                   <div
                     key={index}
                     className="p-3 bg-orange-50 rounded-lg border border-orange-200"
@@ -166,48 +230,80 @@ export default function PetInfoCard({ pet }: PetInfoCardProps) {
             </div>
           )}
 
-          {/* Vaccinations */}
-          <div>
-            <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-              <Syringe className="w-4 h-4 text-green-600" />
-              Vaccinations
-            </h4>
-            <div className="space-y-3">
-              {pet.vaccinations.map((vaccination, index) => (
-                <div
-                  key={index}
-                  className="p-3 bg-green-50 rounded-lg border border-green-200"
-                >
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <p className="font-medium text-green-900">
-                        {vaccination.name}
-                      </p>
-                      <p className="text-sm text-green-700">
-                        Last: {formatDate(vaccination.date)}
-                      </p>
-                    </div>
-                    <Badge className="bg-green-100 text-green-700 border-green-300 text-xs">
-                      Due: {formatDate(vaccination.nextDue)}
-                    </Badge>
-                  </div>
+          {/* Health Status */}
+          {pet.healthStatus && (
+            <div className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-200">
+              <div className="flex items-center gap-3">
+                <div className="bg-green-500 text-white p-2 rounded-lg">
+                  <Heart className="w-4 h-4" />
                 </div>
-              ))}
+                <div>
+                  <p className="font-semibold text-green-900">Health Status</p>
+                  <p className="text-green-700">{pet.healthStatus}</p>
+                </div>
+              </div>
             </div>
-          </div>
+          )}
+
+          {/* Next Vaccination */}
+          {pet.nextVaccination && (
+            <div className="p-4 bg-gradient-to-r from-purple-50 to-violet-50 rounded-xl border border-purple-200">
+              <div className="flex items-center gap-3">
+                <div className="bg-purple-500 text-white p-2 rounded-lg">
+                  <Syringe className="w-4 h-4" />
+                </div>
+                <div>
+                  <p className="font-semibold text-purple-900">Next Vaccination</p>
+                  <p className="text-purple-700">{formatDate(pet.nextVaccination)}</p>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Last Visit */}
-          <div className="p-4 bg-gradient-to-r from-gray-50 to-slate-50 rounded-xl border border-gray-200">
-            <div className="flex items-center gap-3">
-              <div className="bg-gray-500 text-white p-2 rounded-lg">
-                <Calendar className="w-4 h-4" />
-              </div>
-              <div>
-                <p className="font-semibold text-gray-900">Last Visit</p>
-                <p className="text-gray-700">{formatDate(pet.lastVisit)}</p>
+          {pet.lastVisit && (
+            <div className="p-4 bg-gradient-to-r from-gray-50 to-slate-50 rounded-xl border border-gray-200">
+              <div className="flex items-center gap-3">
+                <div className="bg-gray-500 text-white p-2 rounded-lg">
+                  <Calendar className="w-4 h-4" />
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-900">Last Visit</p>
+                  <p className="text-gray-700">{formatDate(pet.lastVisit)}</p>
+                </div>
               </div>
             </div>
-          </div>
+          )}
+
+          {/* Emergency Contact */}
+          {pet.emergencyContact && (
+            <div className="p-4 bg-gradient-to-r from-red-50 to-pink-50 rounded-xl border border-red-200">
+              <div className="flex items-center gap-3">
+                <div className="bg-red-500 text-white p-2 rounded-lg">
+                  <Shield className="w-4 h-4" />
+                </div>
+                <div>
+                  <p className="font-semibold text-red-900">Emergency Contact</p>
+                  <p className="text-red-700">{pet.emergencyContact}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Veterinarian Notes */}
+          {pet.veterinarianNotes && (
+            <div className="p-4 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl border border-indigo-200">
+              <div className="flex items-center gap-3">
+                <div className="bg-indigo-500 text-white p-2 rounded-lg">
+                  <FileText className="w-4 h-4" />
+                </div>
+                <div>
+                  <p className="font-semibold text-indigo-900">Vet Notes</p>
+                  <p className="text-indigo-700 text-sm">{pet.veterinarianNotes}</p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>

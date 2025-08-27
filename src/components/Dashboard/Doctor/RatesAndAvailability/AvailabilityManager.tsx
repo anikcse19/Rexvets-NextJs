@@ -42,7 +42,11 @@ export default function AvailabilityManager() {
   console.log("User refId:", user?.refId);
 
   const handleSaveSlots = async (slotPeriods: SlotPeriod[]) => {
-    if (!selectedRange) return;
+    if (!selectedRange || !user?.refId) {
+      toast.error("Please select a date range and ensure you are logged in");
+      return;
+    }
+
     console.log("slots from final save", slotPeriods);
     try {
       // Prepare the API request data
@@ -56,7 +60,8 @@ export default function AvailabilityManager() {
 
       console.log("API Request Data:", JSON.stringify(requestData, null, 2));
       console.log("User refId:", user?.refId);
-      // Here you would make the actual API call
+
+      // Make the API call
       const response = await fetch(
         `/api/appointments/generate-appointment-slot/${user?.refId}`,
         {
@@ -73,11 +78,19 @@ export default function AvailabilityManager() {
         const errorData = await response.json();
         console.error("API Error:", errorData);
         toast.error("Failed to create availability", {
-          description: errorData.message || "Unknown error",
+          description: errorData.message || "Unknown error occurred",
         });
         return;
       }
-      // For now, simulate success and add to existing availabilities
+
+      const result = await response.json();
+
+      // Refresh the available slots after successful creation
+      const formattedStartDate = format(selectedRange.start, "yyyy-MM-dd");
+      const formattedEndDate = format(selectedRange.end, "yyyy-MM-dd");
+      await getAvailableSlots(formattedStartDate, formattedEndDate, user.refId);
+
+      // Add to existing availabilities for local state
       const newAvailability: ExistingAvailabilityType = {
         id: Date.now().toString(),
         date: selectedRange.start,
@@ -86,7 +99,6 @@ export default function AvailabilityManager() {
       };
 
       setExistingAvailabilities((prev) => [...prev, newAvailability]);
-      setSelectedRange(null);
 
       toast.success("Availability created successfully!", {
         description: `Created ${slotPeriods.length} time slot${
@@ -122,8 +134,10 @@ export default function AvailabilityManager() {
       }
       if (!user?.refId) {
         console.error("User refId is missing");
+        toast.error("Please log in to view availability");
         return;
       }
+
       const formattedStartDate = format(selectedRange.start, "yyyy-MM-dd");
       const formattedEndDate = format(selectedRange.end, "yyyy-MM-dd");
 
@@ -133,12 +147,16 @@ export default function AvailabilityManager() {
         "to",
         formattedEndDate
       );
+
       await getAvailableSlots(formattedStartDate, formattedEndDate, user.refId);
 
       const diff = getDaysBetween(selectedRange);
-      console.log("DIFF", diff);
+      console.log("Days between selected range:", diff);
     } catch (error: any) {
       console.error("Error fetching available slots:", error);
+      toast.error("Failed to fetch availability data", {
+        description: "Please try refreshing the page or contact support.",
+      });
     }
   };
 
@@ -162,8 +180,42 @@ export default function AvailabilityManager() {
   }, [user?.refId, selectedRange, setSelectedRange]);
 
   console.log("selectedRange", selectedRange);
+  console.log("availableSlotsApiResponse", availableSlotsApiResponse);
+  console.log("User refId:", user?.refId);
+
   return (
     <div className="container mx-auto p-6 space-y-6">
+      {/* Debug Information */}
+      {process.env.NODE_ENV === "development" && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+          <h3 className="text-sm font-medium text-yellow-800 mb-2">
+            Debug Info:
+          </h3>
+          <div className="text-xs text-yellow-700 space-y-1">
+            <p>User refId: {user?.refId || "Not available"}</p>
+            <p>
+              Selected Range:{" "}
+              {selectedRange
+                ? `${format(selectedRange.start, "yyyy-MM-dd")} to ${format(
+                    selectedRange.end,
+                    "yyyy-MM-dd"
+                  )}`
+                : "None"}
+            </p>
+            <p>
+              API Loading: {availableSlotsApiResponse.loading ? "Yes" : "No"}
+            </p>
+            <p>API Error: {availableSlotsApiResponse.error || "None"}</p>
+            <p>
+              API Data:{" "}
+              {availableSlotsApiResponse.data
+                ? `${availableSlotsApiResponse.data.length} items`
+                : "None"}
+            </p>
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="space-y-6">
           <DateRangeCalendar

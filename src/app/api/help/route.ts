@@ -12,6 +12,7 @@ import { helpRequestSchema, helpFilterSchema } from "@/lib/validation/help";
  * - limit: number (default 20, max 100)
  * - role: 'pet_parent' | 'veterinarian' | 'technician' | 'admin' (optional)
  * - email: string (optional)
+ * - status: 'pending' | 'completed' (optional, if not provided shows all)
  * - q: text search on subject and details (optional)
  */
 export async function GET(req: NextRequest) {
@@ -24,6 +25,7 @@ export async function GET(req: NextRequest) {
       limit: searchParams.get('limit') || undefined,
       role: searchParams.get('role') || undefined,
       email: searchParams.get('email') || undefined,
+      status: searchParams.get('status') || undefined,
       q: searchParams.get('q') || undefined,
     };
 
@@ -45,13 +47,17 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const { page, limit, role, email, q } = validatedFilters.data;
+    const { page, limit, role, email, status: statusFilter, q } = validatedFilters.data;
 
     // Build filter object
     const filter: Record<string, any> = {
-      isActive: true,
       isDeleted: { $ne: true },
     };
+
+    // Add status filter if provided, otherwise show all (pending and completed)
+    if (statusFilter) {
+      filter.status = statusFilter;
+    }
 
     if (role) filter.role = role;
     if (email) filter.email = email.toLowerCase();
@@ -137,13 +143,19 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const helpData = validatedData.data;
+    const helpData = validatedData.data as any;
 
-    // Create new help request
-    const helpRequest = new HelpModel({
+    // Normalize optional fields
+    const toCreate: any = {
       ...helpData,
       email: helpData.email.toLowerCase(),
-    });
+    };
+    if (!toCreate.phone || toCreate.phone === "") {
+      delete toCreate.phone; // avoid mongoose regex validation on empty string
+    }
+
+    // Create new help request
+    const helpRequest = new HelpModel(toCreate);
 
     await helpRequest.save();
 

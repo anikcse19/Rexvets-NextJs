@@ -647,7 +647,7 @@ export const menuItemsDoctor: MenuItems[] = [
     label: "Prescription",
     icon: FaPrescription,
     href: "",
-    external_href: "https://practice.secureVetource.com/login",
+    external_href: "https://practice.securevetsource.com/login",
   },
   {
     id: "account",
@@ -717,7 +717,7 @@ export const mockDoctorData = {
     firstName: "Anik",
     lastName: "Deb",
     email: "anik@gmail.com",
-    phone: "+880 1234-567890",
+    phone: "+",
     dateOfBirth: "1985-03-15",
     gender: "male" as const,
     address: "123 Veterinary Street, Medical District",
@@ -742,7 +742,7 @@ export const mockDoctorData = {
     ],
     clinicName: "RexVet Animal Hospital",
     clinicAddress: "456 Pet Care Avenue, Gulshan, Dhaka 1212",
-    emergencyContact: "+880 1987-654321",
+    emergencyContact: "+8801987654321",
   },
 
   areasOfInterest: {
@@ -1291,7 +1291,7 @@ export const faqData = [
         question:
           "Who do I contact if I have issues with my Rex Vet account, subscription, or billing?",
         answer: [
-          "Please reach out to support@rexVet.com and we'll get back to you within 1 business day. You can also manage your account directly by logging in at rexVet.com/registration.",
+          "Please reach out to support@rexVet.org and we'll get back to you within 1 business day. You can also manage your account directly by logging in at rexVet.com/registration.",
         ],
       },
       {
@@ -1410,7 +1410,7 @@ export const faqData = [
         question:
           "Is it necessary for me to inform my regular veterinarian about the services my pet receives from Rex Vet?",
         answer: [
-          "While we strongly advise that you inform your primary veterinarian about all treatments and medications your pet is receiving, the decision ultimately rests with you. You can request the transfer of your pet's medical records from Rex Vet to your local veterinarian at any time by contacting support@rexVet.com.",
+          "While we strongly advise that you inform your primary veterinarian about all treatments and medications your pet is receiving, the decision ultimately rests with you. You can request the transfer of your pet's medical records from Rex Vet to your local veterinarian at any time by contacting support@rexVet.org.",
         ],
       },
       {

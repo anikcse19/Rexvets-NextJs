@@ -14,7 +14,7 @@ async function getAvailableVets(): Promise<Veterinarian[]> {
   try {
     // Use the full URL for the API route in production or relative for development
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/veterinarian`,
+      `/api/veterinarian`,
       {
         method: "GET",
         headers: {

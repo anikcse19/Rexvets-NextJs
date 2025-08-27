@@ -12,8 +12,12 @@ import {
 } from "@/components/ui/select";
 import { DateRange, SlotPeriod } from "@/lib/types";
 import { formatDisplayTime, generateTimeOptions } from "@/lib/utils";
+<<<<<<< HEAD
 import { Clock, Plus, Save, Trash2 } from "lucide-react";
 import { useState } from "react";
+=======
+import { toast } from "sonner";
+>>>>>>> e1d492089c2b7aa55e507ab8b95d3e4858b5cbc4
 
 interface TimeSlotCreatorProps {
   selectedRange: DateRange | null;
@@ -30,9 +34,9 @@ export default function TimeSlotCreator({
   selectedRange,
   onSaveSlots,
 }: TimeSlotCreatorProps) {
-  // start with one empty slot
+  // start with one slot with default times (9 AM to 5 PM)
   const [slots, setSlots] = useState<TimeSlot[]>([
-    { id: "1", startTime: "", endTime: "" },
+    { id: "1", startTime: "09:00", endTime: "17:00" },
   ]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -41,14 +45,17 @@ export default function TimeSlotCreator({
   const addSlot = () => {
     const newSlot: TimeSlot = {
       id: Date.now().toString(),
-      startTime: "",
-      endTime: "",
+      startTime: "09:00", // Default start time
+      endTime: "17:00", // Default end time
     };
     setSlots([...slots, newSlot]);
   };
 
   const removeSlot = (id: string) => {
-    setSlots(slots.filter((slot) => slot.id !== id));
+    // Don't allow removing the last slot
+    if (slots.length > 1) {
+      setSlots(slots.filter((slot) => slot.id !== id));
+    }
   };
 
   const updateSlot = (
@@ -62,6 +69,9 @@ export default function TimeSlotCreator({
   };
 
   const validateSlots = (): boolean => {
+    // Check if we have at least one valid slot
+    if (slots.length === 0) return false;
+    
     for (const slot of slots) {
       if (!slot.startTime || !slot.endTime) return false;
       if (slot.startTime >= slot.endTime) return false;
@@ -70,28 +80,39 @@ export default function TimeSlotCreator({
   };
 
   const handleSave = async () => {
-    if (!selectedRange || !validateSlots()) return;
+    if (!selectedRange || !validateSlots()) {
+      toast.error("Please select a date range and ensure all time slots are valid");
+      return;
+    }
 
     setIsLoading(true);
 
-    const slotPeriods: SlotPeriod[] = slots.map((slot) => {
-      const [startH, startM] = slot.startTime.split(":").map(Number);
-      const [endH, endM] = slot.endTime.split(":").map(Number);
+    try {
+      const slotPeriods: SlotPeriod[] = slots.map((slot) => {
+        const [startH, startM] = slot.startTime.split(":").map(Number);
+        const [endH, endM] = slot.endTime.split(":").map(Number);
 
-      const start = new Date(selectedRange.start);
-      start.setHours(startH, startM, 0, 0);
+        const start = new Date(selectedRange.start);
+        start.setHours(startH, startM, 0, 0);
 
-      const end = new Date(selectedRange.start);
-      end.setHours(endH, endM, 0, 0);
+        const end = new Date(selectedRange.start);
+        end.setHours(endH, endM, 0, 0);
 
-      return { start, end };
-    });
+        return { start, end };
+      });
 
-    console.log("Saving slots:", slots);
-    console.log("Slot periods:", slotPeriods);
+      console.log("Saving slots:", slots);
+      console.log("Slot periods:", slotPeriods);
 
-    onSaveSlots(slotPeriods);
-    setIsLoading(false);
+      await onSaveSlots(slotPeriods);
+      
+      // Reset slots to default after successful save
+      setSlots([{ id: "1", startTime: "09:00", endTime: "17:00" }]);
+    } catch (error) {
+      console.error("Error saving slots:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const isValidSlot = (slot: TimeSlot): boolean => {

@@ -36,15 +36,7 @@ export interface IPetParent extends Document {
     phone: string;
     relationship: string;
   };
-  preferences: {
-    notifications: {
-      email: boolean;
-      sms: boolean;
-      push: boolean;
-    };
-    language: string;
-    timezone: string;
-  };
+  timezone: string;
   fcmTokens: {
     web?: string;
     mobile?: string;
@@ -223,29 +215,9 @@ const petParentSchema = new Schema<IPetParent>(
         trim: true,
       },
     },
-    preferences: {
-      notifications: {
-        email: {
-          type: Boolean,
-          default: true,
-        },
-        sms: {
-          type: Boolean,
-          default: true,
-        },
-        push: {
-          type: Boolean,
-          default: true,
-        },
-      },
-      language: {
-        type: String,
-        default: "en",
-      },
-      timezone: {
-        type: String,
-        default: "UTC",
-      },
+    timezone: {
+      type: String,
+      default: "UTC",
     },
     fcmTokens: {
       web: String,

@@ -34,15 +34,7 @@ const emergencyContactSchema = z.object({
   relationship: z.string().min(2, "Relationship must be at least 2 characters").max(30, "Relationship cannot exceed 30 characters"),
 });
 
-const preferencesSchema = z.object({
-  notifications: z.object({
-    email: z.boolean().optional(),
-    sms: z.boolean().optional(),
-    push: z.boolean().optional(),
-  }).optional(),
-  language: z.string().min(2, "Language code must be at least 2 characters").max(5, "Language code cannot exceed 5 characters").optional(),
-  timezone: z.string().min(1, "Timezone is required").max(50, "Timezone cannot exceed 50 characters").optional(),
-});
+const timezoneSchema = z.string().min(1, "Timezone is required").max(50, "Timezone cannot exceed 50 characters");
 
 const fcmTokensSchema = z.object({
   web: z.string().optional(),
@@ -77,8 +69,8 @@ const updatePetParentSchema = z.object({
   // Emergency contact
   emergencyContact: emergencyContactSchema.optional(),
   
-  // Preferences
-  preferences: preferencesSchema.optional(),
+  // Timezone
+  timezone: timezoneSchema.optional(),
   
   // FCM tokens
   fcmTokens: fcmTokensSchema.optional(),
@@ -225,7 +217,7 @@ export async function PUT(request: NextRequest) {
           locale: updatedPetParent.locale,
           pets: updatedPetParent.pets,
           emergencyContact: updatedPetParent.emergencyContact,
-          preferences: updatedPetParent.preferences,
+          timezone: updatedPetParent.timezone,
           fcmTokens: updatedPetParent.fcmTokens,
           isEmailVerified: updatedPetParent.isEmailVerified,
           createdAt: updatedPetParent.createdAt,
@@ -338,7 +330,7 @@ export async function GET() {
         locale: petParent.locale,
         pets: petParent.pets,
         emergencyContact: petParent.emergencyContact,
-        preferences: petParent.preferences,
+        timezone: petParent.timezone,
         fcmTokens: petParent.fcmTokens,
         isEmailVerified: petParent.isEmailVerified,
         createdAt: petParent.createdAt,

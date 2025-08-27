@@ -9,13 +9,10 @@ export default async function Page({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const appointmentDetails = await getAppointmentById(id);
 
   return (
     <div>
-      <PetParentAppointmentDetailsPage
-        appointmentDetails={appointmentDetails.data}
-      />
+      <PetParentAppointmentDetailsPage id={id} />
     </div>
   );
 }

@@ -21,7 +21,7 @@ const querySchema = z.object({
     .transform((v) => v === "true")
     .optional()
     .default("true" as any),
-  includePreferences: z
+  includeTimezone: z
     .string()
     .transform((v) => v === "true")
     .optional()
@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
       id,
       email,
       includePets,
-      includePreferences,
+      includeTimezone,
       includeEmergencyContact,
     } = parsed.data as any;
 
@@ -80,7 +80,7 @@ export async function GET(request: NextRequest) {
     // Build projection: optionally exclude heavy subdocs if not requested
     const projectionParts: string[] = [SENSITIVE_EXCLUDE];
     if (includePets === false) projectionParts.push("-pets");
-    if (includePreferences === false) projectionParts.push("-preferences");
+    if (includeTimezone === false) projectionParts.push("-timezone");
     if (includeEmergencyContact === false)
       projectionParts.push("-emergencyContact");
     const projection = projectionParts.join(" ");

@@ -16,20 +16,21 @@ import {
 
 interface ParentInfoCardProps {
   parent: {
-    id: string;
+    _id: string;
     name: string;
-    image: string;
     email: string;
-    phone: string;
-    address: string;
-    emergencyContact: string;
-    relationshipToPet: string;
-    memberSince: string;
+    phone?: string;
+    address?: string;
+    profileImage?: string;
+    phoneNumber?: string;
+    state?: string;
+    createdAt?: string;
   };
 }
 
 export default function ParentInfoCard({ parent }: ParentInfoCardProps) {
   const formatDate = (dateString: string) => {
+    if (!dateString) return "Not available";
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
       month: "long",
@@ -38,11 +39,24 @@ export default function ParentInfoCard({ parent }: ParentInfoCardProps) {
   };
 
   const handleCall = () => {
-    window.open(`tel:${parent.phone}`, "_self");
+    const phoneNumber = parent.phone || parent.phoneNumber;
+    if (phoneNumber) {
+      window.open(`tel:${phoneNumber}`, "_self");
+    }
   };
 
   const handleEmail = () => {
-    window.open(`mailto:${parent.email}`, "_self");
+    if (parent.email) {
+      window.open(`mailto:${parent.email}`, "_self");
+    }
+  };
+
+  const getInitials = (name: string) => {
+    return name
+      .split(" ")
+      .map((n) => n.charAt(0))
+      .join("")
+      .toUpperCase();
   };
 
   return (
@@ -69,26 +83,25 @@ export default function ParentInfoCard({ parent }: ParentInfoCardProps) {
           <div className="text-center">
             <Avatar className="w-20 h-20 mx-auto mb-4 border-4 border-blue-100 shadow-lg">
               <AvatarImage
-                src={parent.image}
+                src={parent.profileImage}
                 alt={parent.name}
                 className="object-cover"
               />
               <AvatarFallback className="text-xl font-bold text-gray-800 bg-gradient-to-br from-blue-100 to-cyan-100">
-                {parent.name
-                  .split(" ")
-                  .map((n) => n.charAt(0))
-                  .join("")}
+                {getInitials(parent.name)}
               </AvatarFallback>
             </Avatar>
             <h3 className="text-xl font-bold text-gray-900 mb-1">
               {parent.name}
             </h3>
             <Badge className="bg-blue-100 text-blue-700 border-blue-300 mb-3">
-              {parent.relationshipToPet}
+              Pet Parent
             </Badge>
-            <p className="text-sm text-gray-600">
-              Member since {formatDate(parent.memberSince)}
-            </p>
+            {parent.createdAt && (
+              <p className="text-sm text-gray-600">
+                Member since {formatDate(parent.createdAt)}
+              </p>
+            )}
           </div>
 
           {/* Contact Information */}
@@ -119,66 +132,76 @@ export default function ParentInfoCard({ parent }: ParentInfoCardProps) {
             </div>
 
             {/* Phone */}
-            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200">
-              <div className="flex items-center gap-3">
-                <div className="bg-blue-500 text-white p-2 rounded-lg">
-                  <Phone className="w-4 h-4" />
+            {(parent.phone || parent.phoneNumber) && (
+              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200">
+                <div className="flex items-center gap-3">
+                  <div className="bg-blue-500 text-white p-2 rounded-lg">
+                    <Phone className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Phone</p>
+                    <p className="font-semibold text-gray-900">
+                      {parent.phone || parent.phoneNumber}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Phone</p>
-                  <p className="font-semibold text-gray-900">{parent.phone}</p>
-                </div>
+                <Button
+                  onClick={handleCall}
+                  variant="outline"
+                  size="sm"
+                  className="border-blue-300 text-blue-600 hover:bg-blue-50"
+                >
+                  <ExternalLink className="w-3 h-3" />
+                </Button>
               </div>
-              <Button
-                onClick={handleCall}
-                variant="outline"
-                size="sm"
-                className="border-blue-300 text-blue-600 hover:bg-blue-50"
-              >
-                <ExternalLink className="w-3 h-3" />
-              </Button>
-            </div>
+            )}
 
-            {/* Emergency Contact */}
-            <div className="p-3 bg-gradient-to-r from-red-50 to-orange-50 rounded-lg border border-red-200">
-              <div className="flex items-center gap-3">
-                <div className="bg-red-500 text-white p-2 rounded-lg">
-                  <Shield className="w-4 h-4" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-red-700">
-                    Emergency Contact
-                  </p>
-                  <p className="font-semibold text-red-900">
-                    {parent.emergencyContact}
-                  </p>
+            {/* State/Location */}
+            {parent.state && (
+              <div className="p-3 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg border border-purple-200">
+                <div className="flex items-center gap-3">
+                  <div className="bg-purple-500 text-white p-2 rounded-lg">
+                    <MapPin className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-purple-700">
+                      Location
+                    </p>
+                    <p className="font-semibold text-purple-900">
+                      {parent.state}
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
 
           {/* Address */}
-          <div>
-            <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-purple-600" />
-              Address
-            </h4>
-            <div className="p-4 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg border border-purple-200">
-              <p className="text-gray-900 font-medium leading-relaxed">
-                {parent.address}
-              </p>
+          {parent.address && (
+            <div>
+              <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-purple-600" />
+                Address
+              </h4>
+              <div className="p-4 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg border border-purple-200">
+                <p className="text-gray-900 font-medium leading-relaxed">
+                  {parent.address}
+                </p>
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Quick Actions */}
           <div className="grid grid-cols-2 gap-3">
-            <Button
-              onClick={handleCall}
-              className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white"
-            >
-              <Phone className="w-4 h-4 mr-2" />
-              Call
-            </Button>
+            {(parent.phone || parent.phoneNumber) && (
+              <Button
+                onClick={handleCall}
+                className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white"
+              >
+                <Phone className="w-4 h-4 mr-2" />
+                Call
+              </Button>
+            )}
             <Button
               onClick={handleEmail}
               variant="outline"

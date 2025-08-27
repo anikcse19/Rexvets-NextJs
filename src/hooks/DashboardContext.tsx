@@ -88,9 +88,7 @@ export const DashboardProvider: React.FC<DashboardProviderProps> = ({
   const [isUpdating, setIsUpdating] = useState<boolean>(false);
   const [availableSlotsApiResponse, setAvailableSlotsApiResponse] =
     useState<IAvailableApiResponseState>(initialApiResponseState);
-  const [selectedRange, setSelectedRange] = useState<DateRange | null>(
-    null
-  );
+  const [selectedRange, setSelectedRange] = useState<DateRange | null>(null);
 
   const getAvailableSlots = useCallback(
     async (startDate: string, endDate: string, refId: string) => {
@@ -109,16 +107,25 @@ export const DashboardProvider: React.FC<DashboardProviderProps> = ({
         return;
       }
       try {
+<<<<<<< HEAD
         const res = await fetch(
           `/api/appointments/slots/slot-summary/${refId}?startDate=${startDate}&endDate=${endDate}&status=${SlotStatus.AVAILABLE}`
         );
+=======
+        const apiUrl = `/api/appointments/slots/slot-summary/${refId}?startDate=${startDate}&endDate=${endDate}&status=${SlotStatus.AVAILABLE}`;
+        console.log("Fetching from API:", apiUrl);
+
+        const res = await fetch(apiUrl);
+>>>>>>> e1d492089c2b7aa55e507ab8b95d3e4858b5cbc4
 
         if (!res.ok) {
-          throw new Error(`HTTP error! status: ${res.status}`);
+          const errorText = await res.text();
+          console.error("API Error Response:", errorText);
+          throw new Error(`HTTP error! status: ${res.status} - ${errorText}`);
         }
 
         const responseData = await res.json();
-        console.log("responseData", responseData);
+        console.log("API Response Data:", responseData);
         setAvailableSlotsApiResponse((prev) => ({
           ...prev,
           loading: false,
@@ -126,6 +133,7 @@ export const DashboardProvider: React.FC<DashboardProviderProps> = ({
           error: null,
         }));
       } catch (error: any) {
+        console.error("Error in getAvailableSlots:", error);
         setAvailableSlotsApiResponse((prev) => ({
           ...prev,
           loading: false,
@@ -159,7 +167,7 @@ export const DashboardProvider: React.FC<DashboardProviderProps> = ({
     setIsUpdating(true);
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/appointments/slots/slot-summary/${refId}`,
+        `/api/appointments/slots/slot-summary/${refId}`,
         {
           method: "PUT",
           headers: {

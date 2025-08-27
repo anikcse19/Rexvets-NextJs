@@ -287,7 +287,7 @@ export async function POST(req: NextRequest) {
       }
 
       responseMessage +=
-        " Please hold while I transfer you, or you can email us directly at support@rexvet.com.";
+        "Please hold while I transfer you, or you can email us directly at support@rexvet.org.";
 
       // Save the conversation
       await saveConversation({
@@ -471,7 +471,7 @@ export async function POST(req: NextRequest) {
 
       // Handle different possible response structures from OpenRouter
       let aiResponse =
-        "I apologize, I'm having trouble processing your request. Please try again or contact our support team at support@rexvet.com.";
+        "I apologize, I'm having trouble processing your request. Please try again or contact our support team at support@rexvet.org.";
 
       if (
         responseData.choices &&
@@ -486,7 +486,7 @@ export async function POST(req: NextRequest) {
         // Handle error responses
         aiResponse = `I'm experiencing technical difficulties: ${
           responseData.error.message || "Unknown error"
-        }. Please contact support@rexvet.com.`;
+        }. Please contact support@rexvet.org.`;
       }
 
       // Check if the AI response indicates a need for human support
@@ -524,10 +524,10 @@ export async function POST(req: NextRequest) {
 
       // Fallback response if API fails
       let errorResponse =
-        "I'm currently experiencing technical difficulties. Please try again shortly or contact our support team at support@rexvet.com for immediate assistance.";
+        "I'm currently experiencing technical difficulties. Please try again shortly or contact our support team at support@rexvet.org for immediate assistance.";
 
       if (userName) {
-        errorResponse = `I'm currently experiencing technical difficulties, ${userName}. Please try again shortly or contact our support team at support@rexvet.com for immediate assistance.`;
+        errorResponse = `I'm currently experiencing technical difficulties, ${userName}. Please try again shortly or contact our support team at support@rexvet.org for immediate assistance.`;
       }
 
       // Save the error conversation
@@ -559,7 +559,7 @@ export async function POST(req: NextRequest) {
     return new Response(
       JSON.stringify({
         error: "Unable to process your request at this time",
-        supportContact: "support@rexvet.com",
+        supportContact: "support@rexvet.org",
         responseTime: "Typically within 1 business day",
         requiresHumanSupport: true,
       }),

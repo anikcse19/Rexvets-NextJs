@@ -282,7 +282,7 @@ export default function AppointmentDetailsPage() {
           <ChatBox
             appointmentId={appointment._id}
             parentName={appointment.petParent.name}
-            parentImage={appointment.petParent.profileImage}
+            parentImage={appointment.petParent.profileImage || ""}
           />
         </div>
       </div>

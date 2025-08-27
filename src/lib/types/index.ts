@@ -7,15 +7,7 @@ export interface User {
 }
 
 export interface PetParent extends User {
-  preferences: {
-    notifications: {
-      email: boolean;
-      sms: boolean;
-      push: boolean;
-    };
-    language: string;
-    timezone: string;
-  };
+  timezone: string;
   _id: string;
   phoneNumber: string;
   state: string;
@@ -221,11 +213,11 @@ export interface Help {
   role: "pet_parent" | "veterinarian" | "technician" | "admin";
   name: string;
   email: string;
-  phone: string;
+  phone?: string;
   state: string;
   subject: string;
   details: string;
-  isActive: boolean;
+  status: "pending" | "completed";
   isDeleted?: boolean;
   createdAt: string;
   updatedAt: string;
