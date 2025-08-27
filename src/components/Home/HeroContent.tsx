@@ -70,7 +70,10 @@ const HeroContent: React.FC = () => {
           <Video /> <span className="mb-[2px]">Book Consultation</span>
         </button>
 
-        <button className=" z-50 inline-flex items-center justify-center box-border outline-none m-0 cursor-pointer select-none align-middle appearance-none no-underline font-roboto leading-[1.75] tracking-[0.02857em] min-w-[64px] rounded-full px-6 py-[12px] text-[16px] font-bold normal-case relative overflow-hidden transition-transform duration-300 ease-in-out bg-white/10 backdrop-blur-[20px] border-2 border-white/30 hover:border-white/60 text-white transform hover:scale-105 gap-x-2">
+        <button
+          onClick={() => router.push(`/donate`)}
+          className=" z-50 inline-flex items-center justify-center box-border outline-none m-0 cursor-pointer select-none align-middle appearance-none no-underline font-roboto leading-[1.75] tracking-[0.02857em] min-w-[64px] rounded-full px-6 py-[12px] text-[16px] font-bold normal-case relative overflow-hidden transition-transform duration-300 ease-in-out bg-white/10 backdrop-blur-[20px] border-2 border-white/30 hover:border-white/60 text-white transform hover:scale-105 gap-x-2"
+        >
           <Heart /> <span className="mb-[2px]">Support Our Mission</span>
         </button>
       </div>
