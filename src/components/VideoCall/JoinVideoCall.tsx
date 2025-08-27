@@ -2,9 +2,19 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
 import { Input } from "@/components/ui/input";
 import config from "@/config/env.config";
-import Image from "next/image";
+import NextImage from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useCallback, useEffect, useRef, useState } from "react";
@@ -17,6 +27,12 @@ import {
   FaTimes,
   FaVideoSlash,
 } from "react-icons/fa";
+// Add strongly-typed Agora imports
+import AgoraRTC, {
+  IAgoraRTCClient,
+  ILocalAudioTrack,
+  ILocalVideoTrack,
+} from "agora-rtc-sdk-ng";
 
 type CallState = "connecting" | "waiting" | "active" | "ended" | "failed";
 interface VideoCallProps {
@@ -27,12 +43,21 @@ const APP_ID = config.AGORA_PUBLIC_ID;
 const CHANNEL = "testChannel";
 const IS_PUBLISHER = true;
 
+// Virtual background images (using project images)
+const VIRTUAL_BACKGROUNDS = [
+  { id: 1, name: "Blur", url: "blur", image: "/images/how-it-works/SecondImg.webp" },
+  { id: 2, name: "Office", url: "/images/donate-page/Texture.webp", image: "/images/donate-page/Texture.webp" },
+  { id: 3, name: "Beach", url: "/images/mission/dog.webp", image: "/images/mission/dog.webp" },
+  { id: 4, name: "Nature", url: "/images/about/About1.webp", image: "/images/about/About1.webp" },
+  { id: 5, name: "Space", url: "/images/how-it-works/PrincipalImgWorks.webp", image: "/images/how-it-works/PrincipalImgWorks.webp" },
+  { id: 6, name: "None", url: "none", image: "/images/Logo.svg" },
+];
+
 const VideoCall: React.FC<VideoCallProps> = ({ onEndCall }) => {
   const router = useRouter();
   const [isAudioEnabled, setIsAudioEnabled] = useState(true);
   const [isVideoEnabled, setIsVideoEnabled] = useState(true);
   const [callState, setCallState] = useState<CallState>("connecting");
-
   const [isFrontCamera, setIsFrontCamera] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [agoraLoaded, setAgoraLoaded] = useState(false);
@@ -40,64 +65,67 @@ const VideoCall: React.FC<VideoCallProps> = ({ onEndCall }) => {
   const [remoteUsersState, setRemoteUsersState] = useState<{
     [uid: string]: any;
   }>({});
+  const [isVirtualBackgroundSupported, setIsVirtualBackgroundSupported] = useState(false);
+  const [selectedBackground, setSelectedBackground] = useState<string | null>(null);
+  const [isProcessingVirtualBg, setIsProcessingVirtualBg] = useState(false);
 
-  // Agora refs
-  const client = useRef<any>(null);
-  const localVideoTrack = useRef<any>(null);
-  const localAudioTrack = useRef<any>(null);
+  // Agora refs with types
+  const client = useRef<IAgoraRTCClient | null>(null);
+  const localVideoTrack = useRef<ILocalVideoTrack | null>(null);
+  const localAudioTrack = useRef<ILocalAudioTrack | null>(null);
   const localVideoRef = useRef<HTMLDivElement>(null);
   const remoteVideoRef = useRef<HTMLDivElement>(null);
   const remoteUsers = useRef<{ [uid: string]: any }>({});
   const isJoiningRef = useRef(false);
+  const isJoinedRef = useRef(false);
+
+  // Virtual background extension/processor
+  const vbExtensionRef = useRef<any>(null);
+  const virtualBackgroundProcessor = useRef<any>(null);
 
   // Generate unique UID
   const [uid] = useState(Math.floor(Math.random() * 100000));
 
-  // Load AgoraRTC dynamically
+  // Check if virtual background is supported using the extension API
   useEffect(() => {
     (async () => {
       try {
-        const agoraModule = await import("agora-rtc-sdk-ng");
-        if (agoraModule.default) {
-          console.log("AgoraRTC loaded successfully");
-          agoraModule.default.setLogLevel(1); // Enable INFO level logging
-          setAgoraLoaded(true);
-        } else {
-          throw new Error("AgoraRTC module is undefined");
-        }
-      } catch (error) {
-        console.error("Failed to load AgoraRTC:", error);
-        setErrorMessage("Failed to load video call library.");
-        setCallState("failed");
+        if (typeof window === "undefined") return;
+        const { default: VirtualBackgroundExtension } = await import("agora-extension-virtual-background");
+        const ext = new VirtualBackgroundExtension();
+        const supported = ext.checkCompatibility();
+        setIsVirtualBackgroundSupported(!!supported);
+      } catch (e) {
+        setIsVirtualBackgroundSupported(false);
       }
     })();
   }, []);
 
+  // Load AgoraRTC (flag)
+  useEffect(() => {
+    try {
+      AgoraRTC.setLogLevel(1);
+      setAgoraLoaded(true);
+    } catch (error) {
+      console.error("Failed to load AgoraRTC:", error);
+      setErrorMessage("Failed to load video call library.");
+      setCallState("failed");
+    }
+  }, []);
+
   // Initialize Agora client
   useEffect(() => {
-    const initializeClient = async () => {
-      if (agoraLoaded && !client.current) {
-        console.log("Initializing Agora client...");
-        try {
-          const AgoraRTC = (await import("agora-rtc-sdk-ng")).default;
-          if (!AgoraRTC.createClient) {
-            throw new Error("AgoraRTC.createClient is not available");
-          }
-          client.current = AgoraRTC.createClient({ mode: "rtc", codec: "vp8" });
-          console.log("Agora client initialized:", client.current);
-          setClientInitialized(true);
-        } catch (error) {
-          console.error("Failed to initialize Agora client:", error);
-          setErrorMessage("Failed to initialize video call client.");
-          setCallState("failed");
-        }
+    if (agoraLoaded && !client.current) {
+      try {
+        client.current = AgoraRTC.createClient({ mode: "rtc", codec: "vp8" });
+        setClientInitialized(true);
+      } catch (error) {
+        console.error("Failed to initialize Agora client:", error);
+        setErrorMessage("Failed to initialize video call client.");
+        setCallState("failed");
       }
-    };
-
-    initializeClient();
+    }
   }, [agoraLoaded]);
-
-
 
   // Fetch token
   const fetchToken = useCallback(
@@ -106,15 +134,10 @@ const VideoCall: React.FC<VideoCallProps> = ({ onEndCall }) => {
         const res = await fetch(
           `/api/agora-token?channelName=${channelName}&uid=${id}&isPublisher=${isPublisher}`
         );
-        if (!res.ok) {
-          throw new Error(`Token fetch failed with status: ${res.status}`);
-        }
+        if (!res.ok) throw new Error(`Token fetch failed with status: ${res.status}`);
         const data = await res.json();
-        if (!data.token) {
-          throw new Error("No token received from server");
-        }
-        console.log("Token fetched successfully:", data.token);
-        return data.token;
+        if (!data.token) throw new Error("No token received from server");
+        return data.token as string;
       } catch (error) {
         console.error("Error fetching token:", error);
         setErrorMessage("Failed to authenticate. Please try again.");
@@ -125,128 +148,129 @@ const VideoCall: React.FC<VideoCallProps> = ({ onEndCall }) => {
     []
   );
 
-  // Join call function
-  const joinCall = useCallback(async () => {
-    if (isJoiningRef.current || !client.current || !clientInitialized) {
-      console.log("Join call skipped: isJoining or client not ready");
-      return;
-    }
-    isJoiningRef.current = true;
-
-    try {
-      if (!APP_ID) {
-        throw new Error("Missing Agora App ID");
+  // Apply virtual background using the extension API
+  const applyVirtualBackground = useCallback(
+    async (backgroundType: string | null) => {
+      if (!localVideoTrack.current) return;
+      setIsProcessingVirtualBg(true);
+      setSelectedBackground(backgroundType);
+      try {
+        // Initialize extension once
+        if (!vbExtensionRef.current) {
+          const { default: VirtualBackgroundExtension } = await import("agora-extension-virtual-background");
+          const ext = new VirtualBackgroundExtension();
+          if (!ext.checkCompatibility()) {
+            setIsProcessingVirtualBg(false);
+            return;
+          }
+          AgoraRTC.registerExtensions([ext]);
+          vbExtensionRef.current = ext;
+        }
+        // Remove existing processor if any
+        if (virtualBackgroundProcessor.current) {
+          try {
+            await virtualBackgroundProcessor.current.disable();
+          } catch {}
+          try {
+            (localVideoTrack.current as any).unpipe();
+            virtualBackgroundProcessor.current.unpipe();
+          } catch {}
+          virtualBackgroundProcessor.current = null;
+        }
+        // None selected → exit
+        if (!backgroundType || backgroundType === "none") {
+          setIsProcessingVirtualBg(false);
+          return;
+        }
+        // Create and init processor, inject into pipeline
+        const processor = vbExtensionRef.current.createProcessor();
+        await processor.init();
+        (localVideoTrack.current as any)
+          .pipe(processor)
+          .pipe((localVideoTrack.current as any).processorDestination);
+        // Configure options
+        if (backgroundType === "blur") {
+          await processor.setOptions({ type: "blur", blurDegree: 2 });
+        } else {
+          // Load image into HTMLImageElement
+          await new Promise<void>((resolve, reject) => {
+            if (typeof window === "undefined") {
+              reject(new Error("Window is undefined"));
+              return;
+            }
+            const img = new window.Image();
+            img.crossOrigin = "anonymous";
+            img.onload = async () => {
+              try {
+                await processor.setOptions({ type: "img", source: img });
+                resolve();
+              } catch (e) {
+                reject(e);
+              }
+            };
+            img.onerror = () => reject(new Error("Failed to load background image"));
+            img.src = backgroundType;
+          });
+        }
+        await processor.enable();
+        virtualBackgroundProcessor.current = processor;
+      } catch (error) {
+        console.error("Failed to apply virtual background:", error);
+        setErrorMessage("Failed to apply virtual background. Please try again.");
+      } finally {
+        setIsProcessingVirtualBg(false);
       }
+    },
+    []
+  );
 
+  // Join call function with guards to avoid double-join
+  const joinCall = useCallback(async () => {
+    if (isJoiningRef.current || isJoinedRef.current) return;
+    if (!client.current || !clientInitialized) return;
+    const state = (client.current as any).connectionState as string | undefined;
+    if (state && state !== "DISCONNECTED") return;
+    isJoiningRef.current = true;
+    try {
+      if (!APP_ID) throw new Error("Missing Agora App ID");
       setCallState("connecting");
       setErrorMessage(null);
 
-      // Set up event listeners
       client.current.on("user-joined", (user: any) => {
-        console.log("User joined:", user.uid);
         remoteUsers.current[user.uid] = user;
         setRemoteUsersState((prev) => ({ ...prev, [user.uid]: user }));
-        // setRemoteUserJoined(true);
         setCallState("active");
       });
-
-      client.current.on(
-        "user-published",
-        async (user: any, mediaType: string) => {
-          if (!client.current) {
-            console.warn("Client is null in user-published");
-            return;
-          }
-          try {
-            await client.current.subscribe(user, mediaType);
-            console.log(`Subscribed to ${mediaType} for user:`, user.uid);
-            remoteUsers.current[user.uid] = user;
-            setRemoteUsersState((prev) => ({ ...prev, [user.uid]: user }));
-
-            if (mediaType === "video" && remoteVideoRef.current) {
-              user.videoTrack?.play(remoteVideoRef.current);
-              console.log("Remote video playing for user:", user.uid);
-              // setRemoteUserJoined(true);
-            }
-            if (mediaType === "audio") {
-              user.audioTrack?.play();
-              console.log("Remote audio playing for user:", user.uid);
-            }
-          } catch (error) {
-            console.error("Error in user-published:", error);
-            setErrorMessage("Failed to subscribe to user stream.");
-          }
+      client.current.on("user-published", async (user: any, mediaType: "audio" | "video") => {
+        try {
+          await client.current!.subscribe(user, mediaType);
+          remoteUsers.current[user.uid] = user;
+          setRemoteUsersState((prev) => ({ ...prev, [user.uid]: user }));
+          if (mediaType === "video" && remoteVideoRef.current) user.videoTrack?.play(remoteVideoRef.current);
+          if (mediaType === "audio") user.audioTrack?.play();
+        } catch (error) {
+          console.error("Error in user-published:", error);
+          setErrorMessage("Failed to subscribe to user stream.");
         }
-      );
-
+      });
       client.current.on("user-unpublished", (user: any, mediaType: string) => {
-        console.log("User unpublished:", user.uid, mediaType);
         if (mediaType === "video") {
-          remoteUsers.current[user.uid] = {
-            ...remoteUsers.current[user.uid],
-            videoTrack: null,
-          };
-          setRemoteUsersState((prev) => ({
-            ...prev,
-            [user.uid]: { ...prev[user.uid], videoTrack: null },
-          }));
+          remoteUsers.current[user.uid] = { ...remoteUsers.current[user.uid], videoTrack: null };
+          setRemoteUsersState((prev) => ({ ...prev, [user.uid]: { ...prev[user.uid], videoTrack: null } }));
         }
-        if (Object.keys(remoteUsers.current).length <= 1) {
-          // setRemoteUserJoined(false);
-          setCallState("waiting");
-        }
+        if (Object.keys(remoteUsers.current).length <= 1) setCallState("waiting");
       });
-
       client.current.on("user-left", (user: any) => {
-        console.log("User left:", user.uid);
         delete remoteUsers.current[user.uid];
-        setRemoteUsersState((prev) => {
-          const newState = { ...prev };
-          delete newState[user.uid];
-          return newState;
-        });
-        if (Object.keys(remoteUsers.current).length === 0) {
-          // setRemoteUserJoined(false);
-          setCallState("waiting");
-        }
-      });
-
-      client.current.on("connection-state-change", (state: string) => {
-        console.log("Connection state changed:", state);
-        if (state === "DISCONNECTED" || state === "DISCONNECTING") {
-          setCallState("failed");
-          // setRemoteUserJoined(false);
-          setErrorMessage("Connection lost.");
-        }
-      });
-
-      client.current.on("track-updated", (track: any) => {
-        console.log("Track updated:", track.trackMediaType);
-        if (
-          track.trackMediaType === "audio" &&
-          track === localAudioTrack.current
-        ) {
-          setIsAudioEnabled(!track.muted);
-        }
-        if (
-          track.trackMediaType === "video" &&
-          track === localVideoTrack.current
-        ) {
-          setIsVideoEnabled(!track.muted);
-        }
+        setRemoteUsersState((prev) => { const next = { ...prev }; delete next[user.uid]; return next; });
+        if (Object.keys(remoteUsers.current).length === 0) setCallState("waiting");
       });
 
       // Create and publish local tracks
       if (IS_PUBLISHER) {
         try {
-          const AgoraRTC = (await import("agora-rtc-sdk-ng")).default;
           localVideoTrack.current = await AgoraRTC.createCameraVideoTrack();
           localAudioTrack.current = await AgoraRTC.createMicrophoneAudioTrack();
-          console.log(
-            "Local tracks created:",
-            localVideoTrack.current,
-            localAudioTrack.current
-          );
         } catch (error) {
           console.error("Error accessing media devices:", error);
           setErrorMessage("Please allow camera and microphone access.");
@@ -254,11 +278,9 @@ const VideoCall: React.FC<VideoCallProps> = ({ onEndCall }) => {
           isJoiningRef.current = false;
           return;
         }
-
         if (localVideoRef.current && localVideoTrack.current) {
           try {
             localVideoTrack.current.play(localVideoRef.current);
-            console.log("Local video playing on:", localVideoRef.current);
           } catch (error) {
             console.error("Error playing local video:", error);
             setErrorMessage("Failed to display local video.");
@@ -266,104 +288,44 @@ const VideoCall: React.FC<VideoCallProps> = ({ onEndCall }) => {
         }
       }
 
-      // Join channel with retry logic
-      const attemptJoin = async (retryCount = 3) => {
-        let currentUid = uid;
-        for (let i = 0; i < retryCount; i++) {
-          try {
-            const token = await fetchToken(CHANNEL, currentUid, IS_PUBLISHER);
-            if (!token) {
-              throw new Error("Failed to fetch token");
-            }
-            await client.current.join(APP_ID, CHANNEL, token, currentUid);
-            console.log("Joined channel with UID:", currentUid);
-            if (
-              IS_PUBLISHER &&
-              localVideoTrack.current &&
-              localAudioTrack.current
-            ) {
-              await client.current.publish([
-                localVideoTrack.current,
-                localAudioTrack.current,
-              ]);
-              console.log("Local tracks published");
-            }
-            // setLocalUserJoined(true);
-            setCallState("waiting");
-            return;
-          } catch (error: any) {
-            if (error.code === "UID_CONFLICT") {
-              console.warn(
-                `UID conflict detected for ${currentUid}. Retrying...`
-              );
-              currentUid = Number(
-                `${Date.now()}${Math.floor(Math.random() * 1000)}`
-              );
-              continue;
-            }
-            throw error;
-          }
-        }
-        throw new Error("Failed to join channel after multiple retries");
-      };
-
-      await attemptJoin();
+      // Join and publish
+      const token = await fetchToken(CHANNEL, uid, IS_PUBLISHER);
+      if (!token) throw new Error("Failed to fetch token");
+      await client.current.join(APP_ID, CHANNEL, token, uid);
+      isJoinedRef.current = true;
+      if (IS_PUBLISHER && localVideoTrack.current && localAudioTrack.current) {
+        await client.current.publish([localVideoTrack.current, localAudioTrack.current]);
+      }
+      setCallState("waiting");
     } catch (error: any) {
       console.error("Failed to join call:", error);
       setCallState("failed");
-      setErrorMessage(
-        `Failed to join call: ${error.message || "Unknown error"}`
-      );
+      setErrorMessage(`Failed to join call: ${error.message || "Unknown error"}`);
     } finally {
       isJoiningRef.current = false;
     }
-  }, [fetchToken, uid, clientInitialized]);
+  }, [clientInitialized, fetchToken, uid]);
 
-  // Join call once client is initialized
   useEffect(() => {
-    if (clientInitialized) {
-      console.log("Client initialized, joining call...");
-      joinCall();
-    }
+    if (clientInitialized) joinCall();
   }, [clientInitialized, joinCall]);
-
-  // // Call duration timer
-  // useEffect(() => {
-  //   let interval: NodeJS.Timeout;
-  //   if (callState === "active") {
-  //     interval = setInterval(() => setCallDuration((prev) => prev + 1), 1000);
-  //   }
-  //   return () => interval && clearInterval(interval);
-  // }, [callState]);
 
   // Cleanup on unmount
   useEffect(() => {
     return () => {
       const cleanupAgora = async () => {
         try {
-          if (localVideoTrack.current) {
-            localVideoTrack.current.stop();
-            localVideoTrack.current.close();
-            localVideoTrack.current = null;
-            console.log("Local video track cleaned up");
+          if (virtualBackgroundProcessor.current && localVideoTrack.current) {
+            try { await virtualBackgroundProcessor.current.disable(); } catch {}
+            try { (localVideoTrack.current as any).unpipe(); virtualBackgroundProcessor.current.unpipe(); } catch {}
           }
-          if (localAudioTrack.current) {
-            localAudioTrack.current.stop();
-            localAudioTrack.current.close();
-            localAudioTrack.current = null;
-            console.log("Local audio track cleaned up");
-          }
-          if (client.current) {
-            await client.current.leave();
-            client.current.removeAllListeners();
-            client.current = null;
-            console.log("Agora client cleaned up");
-          }
-          remoteUsers.current = {};
-          setRemoteUsersState({});
-        } catch (error) {
-          console.error("Error during Agora cleanup:", error);
-        }
+          virtualBackgroundProcessor.current = null;
+          if (localVideoTrack.current) { localVideoTrack.current.stop(); localVideoTrack.current.close(); localVideoTrack.current = null; }
+          if (localAudioTrack.current) { localAudioTrack.current.stop(); localAudioTrack.current.close(); localAudioTrack.current = null; }
+          if (client.current) { await client.current.leave(); client.current.removeAllListeners(); client.current = null; }
+          isJoinedRef.current = false;
+          remoteUsers.current = {}; setRemoteUsersState({});
+        } catch (error) { console.error("Error during Agora cleanup:", error); }
       };
       cleanupAgora();
     };
@@ -406,7 +368,6 @@ const VideoCall: React.FC<VideoCallProps> = ({ onEndCall }) => {
     }
 
     try {
-      const AgoraRTC = (await import("agora-rtc-sdk-ng")).default;
       const devices = await AgoraRTC.getCameras();
       if (devices.length === 0) {
         console.warn("No cameras found");
@@ -466,7 +427,7 @@ const VideoCall: React.FC<VideoCallProps> = ({ onEndCall }) => {
       }
 
       if (targetDeviceId && targetDeviceId !== currentDeviceId) {
-        await localVideoTrack.current.setDevice(targetDeviceId);
+        await (localVideoTrack.current as any).setDevice(targetDeviceId);
         console.log(`Switched to camera with deviceId: ${targetDeviceId}`);
         setIsFrontCamera(newIsFrontCameraValue);
         setErrorMessage(null);
@@ -506,8 +467,6 @@ const VideoCall: React.FC<VideoCallProps> = ({ onEndCall }) => {
       remoteUsers.current = {};
       setRemoteUsersState({});
       setCallState("ended");
-      // setLocalUserJoined(false);
-      // setRemoteUserJoined(false);
       setErrorMessage(null);
     } catch (error) {
       console.error("Error ending call:", error);
@@ -521,42 +480,6 @@ const VideoCall: React.FC<VideoCallProps> = ({ onEndCall }) => {
       }
     }
   }, [onEndCall, router]);
-
-  // Connection status helper
-  // const getConnectionStatus = useCallback(() => {
-  //   switch (callState) {
-  //     case "connecting":
-  //       return {
-  //         text: "Connecting...",
-  //         color: "text-yellow-400",
-  //         dot: "bg-yellow-400",
-  //       };
-  //     case "waiting":
-  //       return {
-  //         text: "Waiting for others...",
-  //         color: "text-yellow-400",
-  //         dot: "bg-yellow-400",
-  //       };
-  //     case "active":
-  //       return {
-  //         text: "Connected",
-  //         color: "text-green-400",
-  //         dot: "bg-green-400",
-  //       };
-  //     case "ended":
-  //       return { text: "Call Ended", color: "text-red-400", dot: "bg-red-400" };
-  //     case "failed":
-  //       return {
-  //         text: "Connection Failed",
-  //         color: "text-red-400",
-  //         dot: "bg-red-400",
-  //       };
-  //     default:
-  //       return { text: "Unknown", color: "text-gray-400", dot: "bg-gray-400" };
-  //   }
-  // }, [callState]);
-
-  // const status = getConnectionStatus();
 
   return (
     <div
@@ -572,7 +495,7 @@ const VideoCall: React.FC<VideoCallProps> = ({ onEndCall }) => {
           {/* Logo */}
           <div className="absolute -top-11 left-6">
             <Link href="/" aria-label="Homepage">
-              <Image
+              <NextImage
                 src="/images/Logo.svg"
                 alt="Logo RexVet"
                 width={120}
@@ -707,9 +630,61 @@ const VideoCall: React.FC<VideoCallProps> = ({ onEndCall }) => {
                 <FaVideoSlash className="text-white text-lg" />
               </Button>
 
-              <Button className="w-14 h-14 rounded-full bg-gray-600 hover:bg-gray-700 flex items-center justify-center">
-                <FaComments className="text-white text-lg" />
-              </Button>
+              {/* Virtual Background Drawer Trigger */}
+              <Drawer>
+                <DrawerTrigger asChild>
+                  <Button className="w-14 h-14 rounded-full bg-gray-600 hover:bg-gray-700 flex items-center justify-center">
+                    <FaComments className="text-white text-lg" />
+                  </Button>
+                </DrawerTrigger>
+                <DrawerContent className="bg-gray-900 text-white">
+                  <DrawerHeader>
+                    <DrawerTitle>Virtual Background</DrawerTitle>
+                    <DrawerDescription>
+                      Select a background for your video
+                    </DrawerDescription>
+                  </DrawerHeader>
+                  <div className="p-4">
+                    {!isVirtualBackgroundSupported && (
+                      <div className="text-yellow-500 mb-4 text-sm">
+                        Virtual background is not supported on your device/browser.
+                      </div>
+                    )}
+                    <div className="grid grid-cols-3 gap-4">
+                      {VIRTUAL_BACKGROUNDS.map((bg) => (
+                        <div
+                          key={bg.id}
+                          className={`flex flex-col items-center cursor-pointer p-2 rounded-lg ${
+                            selectedBackground === bg.url
+                              ? "bg-blue-600"
+                              : "bg-gray-800 hover:bg-gray-700"
+                          }`}
+                          onClick={() => applyVirtualBackground(bg.url)}
+                        >
+                          <div className="w-[180px] h-[180px] rounded-md overflow-hidden mb-2">
+                            <img
+                              src={bg.image}
+                              alt={bg.name}
+                              width={180}
+                              height={180}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                          <span className="text-xs">{bg.name}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <DrawerFooter>
+                    <DrawerClose asChild>
+                      <Button variant="outline" className="bg-gray-800 text-white">
+                        Close
+                      </Button>
+                    </DrawerClose>
+                  </DrawerFooter>
+                </DrawerContent>
+              </Drawer>
+
               <Button
                 onClick={switchCamera}
                 className="w-14 h-14 rounded-full bg-gray-600 hover:bg-gray-700 flex items-center justify-center"

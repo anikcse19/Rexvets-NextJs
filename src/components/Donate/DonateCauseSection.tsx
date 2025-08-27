@@ -26,7 +26,7 @@ const DonateCauseSection: FC = () => {
               lives.
             </p>
             <div className="items-center justify-center flex flex-col">
-              <Link href={"/donation"}>
+              <Link href={"/donate-now"}>
                 <ModernButton
                   className=" flex flex-row gap-x-4 py-5  px-12 cursor-pointer z-50 items-center justify-center"
                   variant="gradient"

@@ -16,10 +16,14 @@ const VideoCallPreview: React.FC = () => {
   const router = useRouter();
   const [isVideoEnabled, setIsVideoEnabled] = useState(false);
   const [isAudioEnabled, setIsAudioEnabled] = useState(true);
+  const [hasInitializedCamera, setHasInitializedCamera] = useState(false);
 
   const webcamRef = useRef<Webcam>(null);
 
   const toggleVideo = () => {
+    if (!hasInitializedCamera) {
+      setHasInitializedCamera(true);
+    }
     setIsVideoEnabled((prev) => !prev);
   };
 
@@ -94,7 +98,7 @@ const VideoCallPreview: React.FC = () => {
           {/* Right Side - Camera Preview */}
           <div className="flex flex-col justify-center h-[450px]">
             <div className="bg-black rounded-2xl overflow-hidden h-full w-full flex flex-col">
-              {!isVideoEnabled ? (
+              {!hasInitializedCamera ? (
                 <div className="h-full w-full flex flex-col items-center justify-center">
                   <Video className="w-12 h-12 mb-3 text-white/50" />
                   <p className="text-white text-lg font-medium mb-4">
@@ -130,10 +134,10 @@ const VideoCallPreview: React.FC = () => {
                   <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex space-x-4">
                     <button
                       onClick={toggleAudio}
-                      className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-200 ${
+                      className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-200 backdrop-blur-md bg-black/30 border border-white/20 ${
                         isAudioEnabled
-                          ? "bg-gray-700/80 hover:bg-gray-600/80 backdrop-blur-sm"
-                          : "bg-red-500 hover:bg-red-600"
+                          ? "hover:bg-gray-700/80"
+                          : "bg-red-500/80 hover:bg-red-600/80"
                       }`}
                     >
                       {isAudioEnabled ? (
@@ -145,10 +149,10 @@ const VideoCallPreview: React.FC = () => {
 
                     <button
                       onClick={toggleVideo}
-                      className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-200 ${
+                      className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-200 backdrop-blur-md bg-black/30 border border-white/20 ${
                         isVideoEnabled
-                          ? "bg-gray-700/80 hover:bg-gray-600/80 backdrop-blur-sm"
-                          : "bg-red-500 hover:bg-red-600"
+                          ? "hover:bg-gray-700/80"
+                          : "bg-red-500/80 hover:bg-red-600/80"
                       }`}
                     >
                       {isVideoEnabled ? (

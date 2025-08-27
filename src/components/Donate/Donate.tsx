@@ -1,7 +1,8 @@
 // app/donate/page.tsx
 "use client";
 import dynamic from "next/dynamic";
-import { FC } from "react";
+import { useRouter } from "next/navigation";
+import { FC, useRef } from "react";
 
 const DonateCauseSection = dynamic(() => import("./DonateCauseSection"), {
   loading: () => <p>Loading...</p>,
@@ -32,11 +33,28 @@ const DonateStatsSection = dynamic(() => import("./DonateStatsSection"), {
 });
 
 const DonatePage: FC = () => {
+  const router = useRouter();
+  const causeRef = useRef<HTMLDivElement>(null);
   return (
     <div className="min-h-screen flex flex-col">
-      <DonateHeroSection />
+      <DonateHeroSection
+        primaryButton={{
+          onClick: () => {
+            router.push("/donate-now");
+          },
+          text: "Donate Now",
+        }}
+        secondaryButton={{
+          onClick: () => {
+            causeRef.current?.scrollIntoView({ behavior: "smooth" });
+          },
+          text: "Learn More",
+        }}
+      />
       <DonateStatsSection />
-      <DonateCauseSection />
+      <div ref={causeRef}>
+        <DonateCauseSection />
+      </div>
       <DonateContributionsSection />
       <DonatePawsCauseSection />
       <DonateConnectSection />

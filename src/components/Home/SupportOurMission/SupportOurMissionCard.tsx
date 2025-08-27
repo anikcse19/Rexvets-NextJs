@@ -154,7 +154,7 @@ const SupportOurMissionCard: React.FC<DonationCardProps> = ({ tier }) => {
               >
                 <Button
                   variant="outline"
-                  className={`rounded-full px-6 py-2 border ${
+                  className={`rounded-full cursor-pointer px-6 py-2 border ${
                     tier.popular
                       ? "border-white text-white"
                       : "border-[#0E2148] text-[#0E2148]"
@@ -162,9 +162,7 @@ const SupportOurMissionCard: React.FC<DonationCardProps> = ({ tier }) => {
                     tier.popular ? "bg-[#002366]/20" : "bg-transparent"
                   } font-medium text-xs min-w-[70px]`}
                   onClick={() => {
-                    navigate.push(
-                      `/donate-page2?amount=${amount}&badge=${tier.title}`
-                    );
+                    navigate.push(`/donate-now?amount=${amount}`);
                   }}
                 >
                   {amount === 0 ? "Custom" : `$${amount}`}
@@ -176,7 +174,7 @@ const SupportOurMissionCard: React.FC<DonationCardProps> = ({ tier }) => {
 
         {/* Main Donate Button */}
         <motion.div variants={buttonVariants} whileHover="hover">
-          <Link href={"/donation"} passHref>
+          <Link href={"/donate-now"} passHref>
             <Button
               className={`w-full z-50 cursor-pointer py-7 px-8 rounded-full ${
                 tier.popular
