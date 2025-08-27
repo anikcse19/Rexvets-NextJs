@@ -56,7 +56,11 @@ type DashboardContextType = {
   setAvailableSlotsApiResponse: React.Dispatch<
     React.SetStateAction<IAvailableApiResponseState>
   >;
-  getAvailableSlots: (startDate: string, endDate: string, refId: string) => Promise<void>;
+  getAvailableSlots: (
+    startDate: string,
+    endDate: string,
+    refId: string
+  ) => Promise<void>;
   selectedRange: DateRange | null;
   setSelectedRange: React.Dispatch<React.SetStateAction<DateRange | null>>;
 };
@@ -85,7 +89,7 @@ export const DashboardProvider: React.FC<DashboardProviderProps> = ({
   const [availableSlotsApiResponse, setAvailableSlotsApiResponse] =
     useState<IAvailableApiResponseState>(initialApiResponseState);
   const [selectedRange, setSelectedRange] = useState<DateRange | null>(
-    todayDateRange
+    null
   );
 
   const getAvailableSlots = useCallback(
@@ -192,7 +196,11 @@ export const DashboardProvider: React.FC<DashboardProviderProps> = ({
         // Fallback to current date if no date range provided
         const currentDate = new Date();
         const formattedCurrentDate = currentDate.toISOString().split("T")[0];
-        await getAvailableSlots(formattedCurrentDate, formattedCurrentDate, refId);
+        await getAvailableSlots(
+          formattedCurrentDate,
+          formattedCurrentDate,
+          refId
+        );
       }
     } catch (error: any) {
       console.error("Error updating slot status:", error);

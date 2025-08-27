@@ -1,21 +1,19 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import AvailabilityScheduler from "@/components/Dashboard/Doctor/RatesAndAvailability/AvailabilityScheduler";
 import { useDashboardContext } from "@/hooks/DashboardContext";
 import {
   CreateAvailabilityRequest,
-  DateRange,
   ExistsingAvailability as ExistingAvailabilityType,
   SlotPeriod,
 } from "@/lib/types";
-import { formatDateRange, formatTimeSlot, getDaysBetween } from "@/lib/utils";
+import { formatDateRange, getDaysBetween } from "@/lib/utils";
 import { format } from "date-fns";
 import { useSession } from "next-auth/react";
 import DateRangeCalendar from "./DateRangeCalender";
-import ExistingAvailability from "./ExistingSlots";
 import TimeSlotCreator from "./TimeSlotCreator";
 
 interface SessionUserWithRefId {
@@ -29,16 +27,19 @@ export default function AvailabilityManager() {
   >([]);
 
   const { data: session } = useSession();
-  const { 
-    availableSlotsApiResponse, 
-    getAvailableSlots, 
-    selectedRange, 
-    setSelectedRange 
+  const {
+    availableSlotsApiResponse,
+    getAvailableSlots,
+    selectedRange,
+    setSelectedRange,
   } = useDashboardContext();
 
   const user = session?.user as SessionUserWithRefId | undefined;
 
+  console.log("Session data:", session);
   console.log("Session user:", user);
+  console.log("Selected range:", selectedRange);
+  console.log("User refId:", user?.refId);
 
   const handleSaveSlots = async (slotPeriods: SlotPeriod[]) => {
     if (!selectedRange) return;
@@ -48,19 +49,13 @@ export default function AvailabilityManager() {
       const requestData: CreateAvailabilityRequest = {
         dateRange: formatDateRange(selectedRange.start, selectedRange.end),
         slotPeriods: slotPeriods.map((slot) => ({
-          start: formatTimeSlot(
-            selectedRange.start,
-            slot.start.toTimeString().slice(0, 5)
-          ),
-          end: formatTimeSlot(
-            selectedRange.start,
-            slot.end.toTimeString().slice(0, 5)
-          ),
+          start: slot.start.toTimeString().slice(0, 5), // Format as "HH:mm"
+          end: slot.end.toTimeString().slice(0, 5), // Format as "HH:mm"
         })),
       };
 
       console.log("API Request Data:", JSON.stringify(requestData, null, 2));
-
+      console.log("User refId:", user?.refId);
       // Here you would make the actual API call
       const response = await fetch(
         `/api/appointments/generate-appointment-slot/${user?.refId}`,
@@ -122,7 +117,7 @@ export default function AvailabilityManager() {
   const fetchAvailableSlots = async () => {
     try {
       if (!selectedRange?.end || !selectedRange?.start) {
-        alert("Please select a valid date range");
+        console.log("No valid date range selected");
         return;
       }
       if (!user?.refId) {
@@ -132,6 +127,12 @@ export default function AvailabilityManager() {
       const formattedStartDate = format(selectedRange.start, "yyyy-MM-dd");
       const formattedEndDate = format(selectedRange.end, "yyyy-MM-dd");
 
+      console.log(
+        "Fetching slots for date range:",
+        formattedStartDate,
+        "to",
+        formattedEndDate
+      );
       await getAvailableSlots(formattedStartDate, formattedEndDate, user.refId);
 
       const diff = getDaysBetween(selectedRange);
@@ -143,22 +144,26 @@ export default function AvailabilityManager() {
 
   // console.log("selectedRange", selectedRange);
   useEffect(() => {
-    fetchAvailableSlots();
-  }, [selectedRange]);
+    // Only fetch if we have both selectedRange and user refId
+    if (selectedRange && user?.refId) {
+      fetchAvailableSlots();
+    }
+  }, [selectedRange, user?.refId]);
 
-  console.log("available slots api response", availableSlotsApiResponse);
+  // Initialize with today's date when component mounts and user is available
+  useEffect(() => {
+    if (user?.refId && !selectedRange) {
+      const today = new Date();
+      setSelectedRange({
+        start: today,
+        end: today,
+      });
+    }
+  }, [user?.refId, selectedRange, setSelectedRange]);
+
+  console.log("selectedRange", selectedRange);
   return (
     <div className="container mx-auto p-6 space-y-6">
-      <div className="space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight">
-          Doctor Availability
-        </h1>
-        <p className="text-muted-foreground">
-          Manage your appointment slots by selecting date ranges and setting up
-          time periods.
-        </p>
-      </div>
-
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="space-y-6">
           <DateRangeCalendar

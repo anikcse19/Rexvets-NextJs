@@ -8,6 +8,7 @@ import {
 } from "@/lib/utils/send.response";
 import { SlotStatus } from "@/models/AppointmentSlot";
 import Veterinarian from "@/models/Veterinarian";
+import moment from "moment";
 import { Types } from "mongoose";
 import { getServerSession } from "next-auth/next";
 import { NextRequest } from "next/server";
@@ -66,18 +67,19 @@ export const GET = async (
       };
       return throwAppError(errResp, 400);
     }
-
+    const formattedStartDate = moment(startDate).format("YYYY-MM-DD");
+    const formattedEndDate = moment(endDate).format("YYYY-MM-DD");
+    console.log("CALLED API");
     const paramsFn: IGetSlotsParams = {
       vetId,
       dateRange: {
-        start: new Date(startDate),
-        end: new Date(endDate),
+        start: new Date(formattedStartDate),
+        end: new Date(formattedEndDate),
       },
       status: SlotStatus.ALL,
       limit,
       page,
     };
-    console.log("paramsFn", paramsFn);
     const response = await getSlotsByVetId(paramsFn);
     console.log("response", response);
     const slotPeriods = groupSlotsIntoPeriods(response.data);

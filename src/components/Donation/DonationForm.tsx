@@ -6,6 +6,7 @@ import { Heart, Shield } from "lucide-react";
 import { DonationAmount } from "@/lib/types";
 import { donationAmounts } from "@/lib";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 interface DonationFormProps {
   onDonationComplete: (amount: number) => void;
@@ -30,6 +31,7 @@ interface DonationFormProps {
 const DonationForm: React.FC<DonationFormProps> = ({ onDonationComplete }) => {
   const stripe = useStripe();
   const elements = useElements();
+  const { data: session } = useSession();
 
   const [selectedAmount, setSelectedAmount] = useState<DonationAmount | null>(
     null
@@ -39,8 +41,8 @@ const DonationForm: React.FC<DonationFormProps> = ({ onDonationComplete }) => {
   const [completed, setCompleted] = useState(false);
   const [isRecurring, setIsRecurring] = useState(false);
   const [donorData, setDonorData] = useState({
-    name: "",
-    email: "",
+    name: session?.user?.name || "",
+    email: session?.user?.email || "",
   });
   const [error, setError] = useState<string | null>(null);
 
@@ -86,7 +88,8 @@ const DonationForm: React.FC<DonationFormProps> = ({ onDonationComplete }) => {
       return;
     }
 
-    if (!donorData.name || !donorData.email) {
+    // For anonymous users, require name and email
+    if (!session && (!donorData.name || !donorData.email)) {
       setError("Please fill in your name and email");
       return;
     }
@@ -154,6 +157,28 @@ const DonationForm: React.FC<DonationFormProps> = ({ onDonationComplete }) => {
 
       if (confirmResult.error) {
         throw new Error(confirmResult.error.message || "Payment failed");
+      }
+
+      // Mark donation as paid in PetParent record
+      if (session?.user?.refId) {
+        try {
+          const updateResponse = await fetch("/api/pet-parent/update-donation-status", {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              petParentId: session.user.refId,
+              donationPaid: true,
+              lastDonationAmount: amount,
+              lastDonationDate: new Date().toISOString(),
+            }),
+          });
+
+          if (!updateResponse.ok) {
+            console.error("Failed to update donation status");
+          }
+        } catch (error) {
+          console.error("Error updating donation status:", error);
+        }
       }
 
       setCompleted(true);
@@ -236,36 +261,38 @@ const DonationForm: React.FC<DonationFormProps> = ({ onDonationComplete }) => {
           </label>
         </div>
 
-        {/* Donor Information */}
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Full Name
-            </label>
-            <input
-              type="text"
-              value={donorData.name}
-              onChange={(e) => handleDonorInputChange("name", e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Enter your full name"
-              required
-            />
-          </div>
+        {/* Donor Information - Only show for anonymous users */}
+        {!session && (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Full Name
+              </label>
+              <input
+                type="text"
+                value={donorData.name}
+                onChange={(e) => handleDonorInputChange("name", e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Enter your full name"
+                required
+              />
+            </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Email Address
-            </label>
-            <input
-              type="email"
-              value={donorData.email}
-              onChange={(e) => handleDonorInputChange("email", e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Enter your email address"
-              required
-            />
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Email Address
+              </label>
+              <input
+                type="email"
+                value={donorData.email}
+                onChange={(e) => handleDonorInputChange("email", e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Enter your email address"
+                required
+              />
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Payment Information */}
         <div className="space-y-4">
@@ -318,8 +345,7 @@ const DonationForm: React.FC<DonationFormProps> = ({ onDonationComplete }) => {
           type="submit"
           disabled={
             processing ||
-            !donorData.name ||
-            !donorData.email ||
+            (!session && (!donorData.name || !donorData.email)) ||
             getCurrentAmount() < 5
           }
           className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors duration-200"
