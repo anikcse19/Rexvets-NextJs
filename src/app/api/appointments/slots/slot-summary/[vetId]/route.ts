@@ -8,7 +8,6 @@ import {
 } from "@/lib/utils/send.response";
 import { SlotStatus } from "@/models/AppointmentSlot";
 import Veterinarian from "@/models/Veterinarian";
-import moment from "moment";
 import { Types } from "mongoose";
 import { getServerSession } from "next-auth/next";
 import { NextRequest } from "next/server";
@@ -36,13 +35,7 @@ export const GET = async (
     const page = parseInt(searchParams.get("page") as string) || 1;
     const limit = parseInt(searchParams.get("limit") as string) || 1000;
     if (!vetId || !new Types.ObjectId(vetId)) {
-      const errResp: IErrorResponse = {
-        success: false,
-        message: "Invalid vetId",
-        errorCode: "INVALID_VET_ID",
-        errors: null,
-      };
-      return throwAppError(errResp, 400);
+      throw Error("Invalid vetId");
     }
     const isVetExist = await Veterinarian.findOne({
       _id: vetId,
@@ -50,38 +43,25 @@ export const GET = async (
       isActive: true,
     });
     if (!isVetExist) {
-      const errResp: IErrorResponse = {
-        success: false,
-        message: "Veterinarian not found",
-        errorCode: "VET_NOT_FOUND",
-        errors: null,
-      };
-      return throwAppError(errResp, 404);
+      throw Error("Veterinarian not found");
+      // return throwAppError(errResp, 404);
     }
     if (!startDate || !endDate) {
-      const errResp: IErrorResponse = {
-        success: false,
-        message: "Invalid date range",
-        errorCode: "INVALID_DATE_RANGE",
-        errors: null,
-      };
-      return throwAppError(errResp, 400);
+      // return throwAppError(errResp, 400);
+      throw Error("Invalid date range");
     }
-    const formattedStartDate = moment(startDate).format("YYYY-MM-DD");
-    const formattedEndDate = moment(endDate).format("YYYY-MM-DD");
-    console.log("CALLED API");
+
     const paramsFn: IGetSlotsParams = {
       vetId,
       dateRange: {
-        start: new Date(formattedStartDate),
-        end: new Date(formattedEndDate),
-      },
+        start: new Date(startDate),
+        end: new Date(endDate),
+      } as any,
       status: SlotStatus.ALL,
       limit,
       page,
     };
     const response = await getSlotsByVetId(paramsFn);
-    console.log("response", response);
     const slotPeriods = groupSlotsIntoPeriods(response.data);
     const responseFormat: ISendResponse<any> = {
       statusCode: 200,
@@ -91,10 +71,10 @@ export const GET = async (
     };
 
     return sendResponse(responseFormat);
-  } catch (error) {
+  } catch (error: any) {
     const errResp: IErrorResponse = {
       success: false,
-      message: "Failed to retrieve veterinarian slots",
+      message: error?.message || "Failed to retrieve veterinarian slots",
       errorCode: "FAILED_TO_RETRIEVE_SLOTS",
       errors: null,
     };

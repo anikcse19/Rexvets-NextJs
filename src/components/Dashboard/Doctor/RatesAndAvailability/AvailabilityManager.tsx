@@ -46,7 +46,7 @@ export default function AvailabilityManager() {
       toast.error("Please select a date range and ensure you are logged in");
       return;
     }
-    
+
     console.log("slots from final save", slotPeriods);
     try {
       // Prepare the API request data
@@ -60,7 +60,7 @@ export default function AvailabilityManager() {
 
       console.log("API Request Data:", JSON.stringify(requestData, null, 2));
       console.log("User refId:", user?.refId);
-      
+
       // Make the API call
       const response = await fetch(
         `/api/appointments/generate-appointment-slot/${user?.refId}`,
@@ -84,7 +84,7 @@ export default function AvailabilityManager() {
       }
 
       const result = await response.json();
-      
+
       // Refresh the available slots after successful creation
       const formattedStartDate = format(selectedRange.start, "yyyy-MM-dd");
       const formattedEndDate = format(selectedRange.end, "yyyy-MM-dd");
@@ -137,7 +137,7 @@ export default function AvailabilityManager() {
         toast.error("Please log in to view availability");
         return;
       }
-      
+
       const formattedStartDate = format(selectedRange.start, "yyyy-MM-dd");
       const formattedEndDate = format(selectedRange.end, "yyyy-MM-dd");
 
@@ -147,7 +147,7 @@ export default function AvailabilityManager() {
         "to",
         formattedEndDate
       );
-      
+
       await getAvailableSlots(formattedStartDate, formattedEndDate, user.refId);
 
       const diff = getDaysBetween(selectedRange);
@@ -182,23 +182,40 @@ export default function AvailabilityManager() {
   console.log("selectedRange", selectedRange);
   console.log("availableSlotsApiResponse", availableSlotsApiResponse);
   console.log("User refId:", user?.refId);
-  
+
   return (
     <div className="container mx-auto p-6 space-y-6">
       {/* Debug Information */}
-      {process.env.NODE_ENV === 'development' && (
+      {process.env.NODE_ENV === "development" && (
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
-          <h3 className="text-sm font-medium text-yellow-800 mb-2">Debug Info:</h3>
+          <h3 className="text-sm font-medium text-yellow-800 mb-2">
+            Debug Info:
+          </h3>
           <div className="text-xs text-yellow-700 space-y-1">
-            <p>User refId: {user?.refId || 'Not available'}</p>
-            <p>Selected Range: {selectedRange ? `${format(selectedRange.start, 'yyyy-MM-dd')} to ${format(selectedRange.end, 'yyyy-MM-dd')}` : 'None'}</p>
-            <p>API Loading: {availableSlotsApiResponse.loading ? 'Yes' : 'No'}</p>
-            <p>API Error: {availableSlotsApiResponse.error || 'None'}</p>
-            <p>API Data: {availableSlotsApiResponse.data ? `${availableSlotsApiResponse.data.length} items` : 'None'}</p>
+            <p>User refId: {user?.refId || "Not available"}</p>
+            <p>
+              Selected Range:{" "}
+              {selectedRange
+                ? `${format(selectedRange.start, "yyyy-MM-dd")} to ${format(
+                    selectedRange.end,
+                    "yyyy-MM-dd"
+                  )}`
+                : "None"}
+            </p>
+            <p>
+              API Loading: {availableSlotsApiResponse.loading ? "Yes" : "No"}
+            </p>
+            <p>API Error: {availableSlotsApiResponse.error || "None"}</p>
+            <p>
+              API Data:{" "}
+              {availableSlotsApiResponse.data
+                ? `${availableSlotsApiResponse.data.length} items`
+                : "None"}
+            </p>
           </div>
         </div>
       )}
-      
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="space-y-6">
           <DateRangeCalendar
