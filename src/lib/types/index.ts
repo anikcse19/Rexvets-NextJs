@@ -221,11 +221,11 @@ export interface Help {
   role: "pet_parent" | "veterinarian" | "technician" | "admin";
   name: string;
   email: string;
-  phone: string;
+  phone?: string;
   state: string;
   subject: string;
   details: string;
-  isActive: boolean;
+  status: "pending" | "completed";
   isDeleted?: boolean;
   createdAt: string;
   updatedAt: string;

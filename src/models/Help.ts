@@ -8,7 +8,7 @@ export interface IHelp extends Document {
   state: string;
   subject: string;
   details: string;
-  isActive: boolean;
+  status: 'pending' | 'completed';
   isDeleted?: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -40,7 +40,7 @@ const helpSchema = new Schema<IHelp>({
   },
   phone: {
     type: String,
-    required: [true, 'Phone number is required'],
+    required: false,
     trim: true,
     match: [/^[\+]?[1-9][\d]{0,15}$/, 'Please enter a valid phone number']
   },
@@ -62,9 +62,10 @@ const helpSchema = new Schema<IHelp>({
     trim: true,
     maxlength: [2000, 'Details cannot exceed 2000 characters']
   },
-  isActive: {
-    type: Boolean,
-    default: true
+  status: {
+    type: String,
+    enum: ['pending', 'completed'],
+    default: 'pending'
   },
   isDeleted: {
     type: Boolean,
@@ -78,7 +79,7 @@ const helpSchema = new Schema<IHelp>({
 
 // Indexes for performance
 helpSchema.index({ email: 1 });
-helpSchema.index({ isActive: 1 });
+helpSchema.index({ status: 1 });
 helpSchema.index({ isDeleted: 1 });
 helpSchema.index({ createdAt: -1 });
 helpSchema.index({ subject: 'text', details: 'text' }); // Text search index
@@ -87,7 +88,7 @@ helpSchema.index({ subject: 'text', details: 'text' }); // Text search index
 helpSchema.statics.findByEmail = function(email: string) {
   return this.find({ 
     email: email.toLowerCase(), 
-    isActive: true, 
+    status: 'pending', 
     isDeleted: { $ne: true } 
   }).sort({ createdAt: -1 });
 };

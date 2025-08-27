@@ -13,7 +13,8 @@ export const helpRequestSchema = z.object({
   phone: z.string()
     .min(10, "Phone number must be at least 10 digits")
     .max(15, "Phone number cannot exceed 15 digits")
-    .regex(/^[\+]?[1-9][\d]{0,15}$/, "Invalid phone number format"),
+    .regex(/^[\+]?[1-9][\d]{0,15}$/, "Invalid phone number format")
+    .optional(),
   state: z.string()
     .min(2, "State must be at least 2 characters")
     .max(100, "State cannot exceed 100 characters"),

@@ -49,7 +49,7 @@ export async function GET(req: NextRequest) {
 
     // Build filter object
     const filter: Record<string, any> = {
-      isActive: true,
+      status: 'pending',
       isDeleted: { $ne: true },
     };
 

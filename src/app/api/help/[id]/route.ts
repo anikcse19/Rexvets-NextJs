@@ -49,7 +49,7 @@ export async function GET(
 
     const helpRequest = await HelpModel.findOne({
       _id: id,
-      isActive: true,
+      status: 'pending',
       isDeleted: { $ne: true },
     });
 
@@ -166,7 +166,7 @@ export async function DELETE(
     // Check if help request exists
     const existingHelpRequest = await HelpModel.findOne({
       _id: id,
-      isActive: true,
+      status: 'pending',
       isDeleted: { $ne: true },
     });
 
@@ -188,7 +188,7 @@ export async function DELETE(
       {
         $set: {
           isDeleted: true,
-          isActive: false,
+          status: 'completed',
           updatedAt: new Date(),
         },
       },
@@ -316,7 +316,7 @@ export async function PUT(
     // Check if help request exists
     const existingHelpRequest = await HelpModel.findOne({
       _id: id,
-      isActive: true,
+      status: 'pending',
       isDeleted: { $ne: true },
     });
 
