@@ -257,25 +257,12 @@ export const updateSlotStatusBulk = async ({
     // Validate slot IDs format
     const invalidSlotIds = slotIds.filter((id) => !Types.ObjectId.isValid(id));
     if (invalidSlotIds.length > 0) {
-      const errResp: IErrorResponse = {
-        success: false,
-        message: "Invalid slot ID format",
-        errorCode: "INVALID_SLOT_ID_FORMAT",
-        errors: {
-          invalidSlotIds: invalidSlotIds,
-        },
-      };
-      return throwAppError(errResp, 400);
+      // return throwAppError(errResp, 400);
+      throw Error("Invalid slot ID format");
     }
 
     if (!Object.values(SlotStatus).includes(status)) {
-      const errResp: IErrorResponse = {
-        success: false,
-        message: "Invalid status value",
-        errorCode: "INVALID_SLOT_STATUS",
-        errors: null,
-      };
-      return throwAppError(errResp, 400);
+      throw Error("Invalid status value");
     }
 
     // Check if vet exists and is active
@@ -285,26 +272,14 @@ export const updateSlotStatusBulk = async ({
     });
 
     if (!isVetExist) {
-      const errResp: IErrorResponse = {
-        success: false,
-        message: "Veterinarian not found or inactive",
-        errorCode: "VET_NOT_FOUND",
-        errors: null,
-      };
-      return throwAppError(errResp, 404);
+      throw Error("Veterinarian not found or inactive");
     }
 
     // Check if user has permission to update this vet's slots
     // This assumes your Veterinarian model has a userId field or similar
-    if (isVetExist.userId.toString() !== session.user.id) {
-      const errResp: IErrorResponse = {
-        success: false,
-        message: "Forbidden: You don't have permission to update these slots",
-        errorCode: "FORBIDDEN",
-        errors: null,
-      };
-      return throwAppError(errResp, 403);
-    }
+    // if (isVetExist.userId.toString() !== session.user.id) {
+    //   throw Error("Forbidden: You don't have permission to update these slots");
+    // }
 
     // Update slots in bulk
     const result = await AppointmentSlot.updateMany(
@@ -318,19 +293,22 @@ export const updateSlotStatusBulk = async ({
     );
 
     if (result.modifiedCount === 0) {
-      const errResp: IErrorResponse = {
-        success: false,
-        message: "No slots were updated. Please check the vetId and slotIds.",
-        errorCode: "NO_SLOTS_UPDATED",
-        errors: null,
-      };
-      return throwAppError(errResp, 404);
+      // const errResp: IErrorResponse = {
+      //   success: false,
+      //   message: "No slots were updated. Please check the vetId and slotIds.",
+      //   errorCode: "NO_SLOTS_UPDATED",
+      //   errors: null,
+      // };
+      // return throwAppError(errResp, 404);
+      throw Error("No slots were updated. Please check the vetId and slotIds.");
     }
-
+    console.log("result", result);
     // Return success response
     return {
       success: true,
-      message: `Successfully updated ${result.modifiedCount} slots to ${status}`,
+      message: `Successfully updated ${result.modifiedCount} slot${
+        result.modifiedCount > 1 ? "s" : ""
+      } to ${status}`,
       data: {
         modifiedCount: result.modifiedCount,
       },

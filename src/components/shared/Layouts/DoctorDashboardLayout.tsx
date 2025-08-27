@@ -2,6 +2,7 @@
 
 import Sidebar from "@/components/shared/Layouts/DoctorDashboardSidebar";
 import Topbar from "@/components/shared/Layouts/Topbar";
+import { DashboardProvider } from "@/hooks/DashboardContext";
 import { SessionProvider } from "next-auth/react";
 import React, { useState } from "react";
 

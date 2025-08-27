@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
@@ -26,9 +26,11 @@ import {
   MessageSquare,
   User,
   FileText,
+  AlertCircle,
 } from "lucide-react";
 import { HelpRequestData, helpRequestSchema } from "@/lib/validation/help";
-import { mockDoctorData } from "@/lib";
+import { usePathname } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 const bangladeshStates = [
   "Barisal",
@@ -44,6 +46,43 @@ const bangladeshStates = [
 export default function HelpPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [userData, setUserData] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  
+  const pathname = usePathname();
+  const { data: session, status } = useSession();
+
+  // Determine user type based on the current route
+  const userType = pathname.includes("/pet-parent/") ? "pet_parent" : "veterinarian";
+
+  // Fetch user data from API
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (status === "loading") return;
+      
+      if (status === "unauthenticated") {
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        const response = await fetch("/api/user/profile");
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success) {
+            setUserData(result.data);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchUserData();
+  }, [status]);
 
   const {
     register,
@@ -51,11 +90,13 @@ export default function HelpPage() {
     formState: { errors },
     setValue,
     reset,
+    watch,
   } = useForm<HelpRequestData>({
     resolver: zodResolver(helpRequestSchema),
     defaultValues: {
-      name: `${mockDoctorData.personalInfo.firstName} ${mockDoctorData.personalInfo.lastName}`,
-      email: mockDoctorData.personalInfo.email,
+      role: userType,
+      name: "",
+      email: "",
       phone: "",
       state: "",
       subject: "",
@@ -63,20 +104,108 @@ export default function HelpPage() {
     },
   });
 
+  // Update form values when user data is loaded
+  useEffect(() => {
+    if (userData) {
+      setValue("role", userData.role);
+      setValue("name", userData.name || "");
+      setValue("email", userData.email || "");
+      setValue("phone", userData.phone || "");
+      setValue("state", userData.state || "");
+    }
+  }, [userData, setValue]);
+
   const onSubmit = async (data: HelpRequestData) => {
     setIsSubmitting(true);
+    setError(null);
+    
     try {
-      // API call would go here
-      console.log("Submitting help request:", data);
-      await new Promise((resolve) => setTimeout(resolve, 2000)); // Simulate API call
-      setIsSubmitted(true);
-      reset();
-    } catch (error) {
+      const response = await fetch("/api/help", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || "Failed to submit help request");
+      }
+
+      if (result.success) {
+        setIsSubmitted(true);
+        reset();
+      } else {
+        throw new Error(result.message || "Failed to submit help request");
+      }
+    } catch (error: any) {
       console.error("Error submitting help request:", error);
+      setError(error.message || "An unexpected error occurred. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="space-y-8">
+        <div>
+          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">
+            Help & Support
+          </h1>
+          <p className="text-gray-600 mt-1">
+            We're here to help you with any questions or issues.
+          </p>
+        </div>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading your information...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show authentication required message
+  if (status === "unauthenticated") {
+    return (
+      <div className="space-y-8">
+        <div>
+          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">
+            Help & Support
+          </h1>
+          <p className="text-gray-600 mt-1">
+            We're here to help you with any questions or issues.
+          </p>
+        </div>
+        <div className="max-w-2xl mx-auto">
+          <Card className="shadow-lg border-0 bg-white overflow-hidden">
+            <CardContent className="p-8 text-center">
+              <div className="bg-red-50 p-6 rounded-lg">
+                <AlertCircle className="w-12 h-12 text-red-600 mx-auto mb-4" />
+                <h2 className="text-xl font-bold text-red-800 mb-2">
+                  Authentication Required
+                </h2>
+                <p className="text-red-700 mb-4">
+                  Please sign in to submit a help request.
+                </p>
+                <Button
+                  onClick={() => window.location.href = "/auth/signin"}
+                  className="bg-red-600 hover:bg-red-700 text-white"
+                >
+                  Sign In
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   if (isSubmitted) {
     return (
@@ -157,7 +286,20 @@ export default function HelpPage() {
             </div>
 
             <CardContent className="p-8">
+              {/* Error Message */}
+              {error && (
+                <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <AlertCircle className="w-5 h-5 text-red-600" />
+                    <p className="text-red-800 font-medium">{error}</p>
+                  </div>
+                </div>
+              )}
+
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+                                 {/* Role (Hidden field since it's pre-filled based on user data) */}
+                 <input type="hidden" {...register("role")} value={userData?.role || userType} />
+
                 {/* Personal Information */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
@@ -200,13 +342,13 @@ export default function HelpPage() {
                   <div className="space-y-2">
                     <Label htmlFor="phone" className="flex items-center gap-2">
                       <Phone className="w-4 h-4 text-purple-600" />
-                      Phone Number
+                      Phone Number (Optional)
                     </Label>
                     <Input
                       id="phone"
                       {...register("phone")}
                       className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                      placeholder="Enter your phone number"
+                      placeholder="Enter your phone number (optional)"
                     />
                     {errors.phone && (
                       <p className="text-sm text-red-600">
