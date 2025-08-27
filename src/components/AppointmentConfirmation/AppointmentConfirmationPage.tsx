@@ -41,6 +41,11 @@ export default function AppointmentConfirmation() {
   const [customConcerns, setCustomConcerns] = useState<string[]>([]);
   const [moreDetails, setMoreDetails] = useState("");
   const [veterinarian, setVeterinarian] = useState<Doctor | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [donationStatus, setDonationStatus] = useState<{
+    donationPaid: boolean;
+    lastDonationDate?: string;
+  } | null>(null);
 
   const { data: session } = useSession();
 
@@ -56,7 +61,45 @@ export default function AppointmentConfirmation() {
     }
   }, []);
 
+  // Check donation status when session is available
+  useEffect(() => {
+    const checkDonationStatus = async () => {
+      if (session?.user?.refId) {
+        try {
+          const response = await fetch(`/api/pet-parent/${session.user.refId}/donation-status`);
+          if (response.ok) {
+            const data = await response.json();
+            setDonationStatus(data.data);
+          }
+        } catch (error) {
+          console.error("Error checking donation status:", error);
+        }
+      }
+    };
+
+    checkDonationStatus();
+  }, [session?.user?.refId]);
+
   const completeAppointment = async () => {
+    // Prevent multiple submissions
+    if (isProcessing) {
+      toast.error("Appointment is being processed. Please wait...");
+      return;
+    }
+
+    // Check if user is authenticated
+    if (!session?.user?.refId) {
+      toast.error("Please sign in to book an appointment.");
+      return;
+    }
+
+    // Check donation status
+    if (!donationStatus?.donationPaid) {
+      toast.error("Please make a donation first to book an appointment.");
+      window.location.href = "/donate";
+      return;
+    }
+
     if (!selectedPet) {
       toast.error("Please select at least one pet for the appointment.");
       return;
@@ -68,48 +111,70 @@ export default function AppointmentConfirmation() {
       return;
     }
 
-    console.log({
-      doctor: veterinarian,
-      selectedPets: selectedPet,
-      concerns: allConcerns,
-      details: moreDetails,
-    });
+    setIsProcessing(true);
 
-    const appointmentCreateData = {
-      veterinarian: veterinarian?._id,
-      petParent: session
-        ? (session.user as typeof session.user & { refId?: string })?.refId
-        : undefined,
-      pet: selectedPet,
-      notes: moreDetails,
-      feeUSD: 0,
-      reasonForVisit: "",
-      reminderSent: true,
-      slotId: slot,
-      appointmentType: "general_checkup",
-      isFollowUp: false,
-      concerns: allConcerns,
-    };
+    try {
+      console.log({
+        doctor: veterinarian,
+        selectedPets: selectedPet,
+        concerns: allConcerns,
+        details: moreDetails,
+      });
 
-    const res = await fetch("/api/appointments", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(appointmentCreateData),
-    });
+      const appointmentCreateData = {
+        veterinarian: veterinarian?._id,
+        petParent: session.user.refId,
+        pet: selectedPet,
+        notes: moreDetails,
+        feeUSD: 0,
+        reasonForVisit: "",
+        reminderSent: true,
+        slotId: slot,
+        appointmentType: "general_checkup",
+        isFollowUp: false,
+        concerns: allConcerns,
+      };
 
-    if (!res.ok) {
-      toast.error("Failed to create appointment. Please try again.");
-      return;
-    }
+      const res = await fetch("/api/appointments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(appointmentCreateData),
+      });
 
-    const data = await res.json();
-    console.log("Appointment created:", data);
-    if (data.success) {
-      toast.success("Appointment successfully created!");
-      localStorage.removeItem("doctorData");
-      window.location.href = "/dashboard/pet-parent/appointments";
-    } else {
-      toast.error("Failed to create appointment. Please try again.");
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "Failed to create appointment");
+      }
+
+      const data = await res.json();
+      console.log("Appointment created:", data);
+      
+      if (data.success) {
+        // Mark donation as used
+        try {
+          await fetch("/api/pet-parent/update-donation-status", {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              petParentId: session.user.refId,
+              donationPaid: false,
+            }),
+          });
+        } catch (error) {
+          console.error("Error updating donation status:", error);
+        }
+
+        toast.success("Appointment successfully created!");
+        localStorage.removeItem("doctorData");
+        window.location.href = "/dashboard/pet-parent/appointments";
+      } else {
+        throw new Error(data.message || "Failed to create appointment");
+      }
+    } catch (error) {
+      console.error("Error creating appointment:", error);
+      toast.error(error instanceof Error ? error.message : "Failed to create appointment. Please try again.");
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -184,19 +249,61 @@ export default function AppointmentConfirmation() {
           </CardContent>
         </Card>
 
+        {/* Donation Status Indicator */}
+        {session?.user?.refId && (
+          <Card className="mb-6 border border-gray-200 shadow-lg bg-white backdrop-blur-xl">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className={`w-4 h-4 rounded-full ${donationStatus?.donationPaid ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                  <div>
+                    <h3 className="font-semibold text-gray-800">
+                      Donation Status
+                    </h3>
+                    <p className="text-sm text-gray-600">
+                      {donationStatus?.donationPaid 
+                        ? `Donation paid - You can book your appointment`
+                        : `No donation found - Please donate first to book an appointment`
+                      }
+                    </p>
+                  </div>
+                </div>
+                {!donationStatus?.donationPaid && (
+                  <Button
+                    onClick={() => window.location.href = "/donate"}
+                    className="bg-red-600 hover:bg-red-700 text-white"
+                  >
+                    Donate Now
+                  </Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Complete Appointment Button */}
         <div className="text-center">
           <div className="relative inline-block">
             <div className="absolute inset-0 bg-blue-600 rounded-2xl blur-xl opacity-30 animate-pulse"></div>
             <Button
               onClick={completeAppointment}
+              disabled={isProcessing || !donationStatus?.donationPaid}
               size="lg"
-              className="relative px-12 py-6 cursor-pointer bg-blue-600 hover:bg-blue-700 text-white font-bold text-xl rounded-2xl shadow-2xl transform transition-all duration-300 hover:scale-110 hover:shadow-3xl border-0"
+              className="relative px-12 py-6 cursor-pointer bg-blue-600 hover:bg-blue-700 text-white font-bold text-xl rounded-2xl shadow-2xl transform transition-all duration-300 hover:scale-110 hover:shadow-3xl border-0 disabled:bg-gray-400 disabled:cursor-not-allowed disabled:transform-none"
             >
               <div className="flex items-center gap-3">
-                <CheckCircle className="w-6 h-6" />
-                Complete Appointment
-                <Sparkles className="w-6 h-6" />
+                {isProcessing ? (
+                  <>
+                    <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle className="w-6 h-6" />
+                    Complete Appointment
+                    <Sparkles className="w-6 h-6" />
+                  </>
+                )}
               </div>
             </Button>
           </div>

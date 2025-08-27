@@ -18,6 +18,11 @@ export interface IPetParent extends Document {
   lastName?: string;
   locale?: string;
 
+  // Donation tracking for secure booking
+  donationPaid: boolean;
+  lastDonationDate?: Date;
+  lastDonationAmount?: number;
+
   pets: Array<{
     name: string;
     type: "dog" | "cat" | "bird" | "fish" | "reptile" | "other";
@@ -159,6 +164,19 @@ const petParentSchema = new Schema<IPetParent>(
     locale: {
       type: String,
       default: "en",
+    },
+
+    // Donation tracking for secure booking
+    donationPaid: {
+      type: Boolean,
+      default: false,
+    },
+    lastDonationDate: {
+      type: Date,
+    },
+    lastDonationAmount: {
+      type: Number,
+      min: 0,
     },
 
     pets: [

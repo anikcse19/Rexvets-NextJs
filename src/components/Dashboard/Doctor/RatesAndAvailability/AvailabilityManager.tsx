@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 
 import AvailabilityScheduler from "@/components/AvailabilityScheduler";
 import {
@@ -19,7 +20,11 @@ import TimeSlotCreator from "./TimeSlotCreator";
 
 interface SessionUserWithRefId {
   refId: string;
-  // other user properties can be added here
+  id: string;
+  role: string;
+  email: string;
+  name: string;
+  image?: string;
 }
 const todayDateRange: DateRange = {
   start: new Date(),
@@ -45,33 +50,48 @@ export default function AvailabilityManager() {
     ExistingAvailabilityType[]
   >([]);
 
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
 
   const user = session?.user as SessionUserWithRefId | undefined;
 
+  console.log("Session status:", status);
+  console.log("Session data:", session);
   console.log("Session user:", user);
+  
+  // Debug log for authenticated user
+  if (status === "authenticated" && user) {
+    console.log("User role:", user.role);
+    console.log("User refId:", user.refId);
+    console.log("User id:", user.id);
+  }
 
   const handleSaveSlots = async (slotPeriods: SlotPeriod[]) => {
     if (!selectedRange) return;
+    
+    // Check if user is authenticated
+    if (status === "loading") {
+      toast.error("Please wait while we verify your session...");
+      return;
+    }
+    
+    if (status === "unauthenticated" || !user?.refId) {
+      toast.error("Please sign in to manage availability");
+      return;
+    }
+    
     console.log("slots from final save", slotPeriods);
     try {
       // Prepare the API request data
       const requestData: CreateAvailabilityRequest = {
         dateRange: formatDateRange(selectedRange.start, selectedRange.end),
         slotPeriods: slotPeriods.map((slot) => ({
-          start: formatTimeSlot(
-            selectedRange.start,
-            slot.start.toTimeString().slice(0, 5)
-          ),
-          end: formatTimeSlot(
-            selectedRange.start,
-            slot.end.toTimeString().slice(0, 5)
-          ),
+          start: slot.start.toTimeString().slice(0, 5), // Format as "HH:mm"
+          end: slot.end.toTimeString().slice(0, 5), // Format as "HH:mm"
         })),
       };
 
       console.log("API Request Data:", JSON.stringify(requestData, null, 2));
-
+      console.log("User refId:", user?.refId);
       // Here you would make the actual API call
       const response = await fetch(
         `/api/appointments/generate-appointment-slot/${user?.refId}`,
@@ -124,26 +144,26 @@ export default function AvailabilityManager() {
 
   // GET available slots based on selected range
   const getAvailableSlots = useCallback(async () => {
+    // Require a complete date range and an authenticated user
+    if (!selectedRange?.start || !selectedRange?.end) {
+      return;
+    }
+    if (status !== "authenticated" || !user?.refId) {
+      return;
+    }
+
     setAvailableSlotsApiResponse((prev) => ({
       ...prev,
       loading: true,
       error: null,
     }));
     try {
-      if (!selectedRange?.end || !selectedRange?.start) {
-        alert("Please select a valid date range");
-        return [];
-      }
       const formattedStartDate = format(selectedRange.start, "yyyy-MM-dd");
       const formattedEndDate = format(selectedRange.end, "yyyy-MM-dd");
       const res = await fetch(
-<<<<<<< HEAD
-        `${process.env.NEXT_PUBLIC_API_URL}/api/appointments/slots/slot-summary/68ad9c2da7c3764aa273445b?startDate=${formattedStartDate}&endDate=${formattedEndDate}`
-=======
         `${process.env.NEXT_PUBLIC_API_URL}/api/appointments/slots/slot-summary/${user?.refId}?startDate=${formattedStartDate}&endDate=${formattedEndDate}`
->>>>>>> a4458a46991aaf8c33b5447856cff16912b93789
       );
-      console.log("res--------------------------", res);
+ 
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`);
       }
@@ -172,14 +192,48 @@ export default function AvailabilityManager() {
         loading: false,
       }));
     }
-  }, [selectedRange]);
+  }, [selectedRange, status, user?.refId]);
 
-  // console.log("selectedRange", selectedRange);
-  // useEffect(() => {
-  //   getAvailableSlots();
-  // }, [getAvailableSlots]);
+  // Auto-fetch whenever inputs are ready/changed
+  useEffect(() => {
+    // Only fetch when we have a complete range and an authenticated user
+    if (selectedRange?.start && selectedRange?.end && status === "authenticated" && user?.refId) {
+      getAvailableSlots();
+    }
+  }, [getAvailableSlots, selectedRange?.start, selectedRange?.end, status, user?.refId]);
 
   console.log("availablke slots api responser", availableSlotsApiResponse);
+  
+  // Show loading state while session is loading
+  if (status === "loading") {
+    return (
+      <div className="container mx-auto p-6 space-y-6">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading session...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
+  // Show error state if not authenticated
+  if (status === "unauthenticated") {
+    return (
+      <div className="container mx-auto p-6 space-y-6">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <p className="text-red-600 mb-4">Please sign in to access this page</p>
+            <Button onClick={() => window.location.href = "/auth/signin"}>
+              Sign In
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
   return (
     <div className="container mx-auto p-6 space-y-6">
       <div className="space-y-2">
