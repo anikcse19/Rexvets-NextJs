@@ -253,7 +253,7 @@ export default function AppointmentsPage() {
                   filtered.map((appointment) => (
                     <AppointmentCard
                       key={appointment.id}
-                      appointment={appointment as Appointment}
+                      appointment={appointment as unknown as Appointment}
                     />
                   ))
                 )}
