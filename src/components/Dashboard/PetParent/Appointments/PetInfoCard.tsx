@@ -76,20 +76,20 @@ export const PetInfoCard = ({ pet }: PetCardProps) => {
           <div className="text-center">
             <Avatar className="w-24 h-24 mx-auto mb-4 border-4 border-pink-100 shadow-lg">
               <AvatarImage
-                src={pet.image}
-                alt={pet.name}
+                src={pet?.image}
+                alt={pet?.name}
                 className="object-cover"
               />
               <AvatarFallback className="text-2xl font-bold text-gray-800 bg-gradient-to-br from-pink-100 to-rose-100">
-                {pet.name.charAt(0)}
+                {pet?.name.charAt(0)}
               </AvatarFallback>
             </Avatar>
             <h3 className="text-2xl font-bold text-gray-900 mb-1">
-              {pet.name}
+              {pet?.name}
             </h3>
-            <p className="text-gray-600 mb-3">{pet.breed}</p>
+            <p className="text-gray-600 mb-3">{pet?.breed}</p>
             <Badge className="bg-pink-100 text-pink-700 border-pink-300">
-              Patient ID: {pet._id}
+              Patient ID: {pet?._id}
             </Badge>
           </div>
 
@@ -98,22 +98,22 @@ export const PetInfoCard = ({ pet }: PetCardProps) => {
             <InfoItem
               icon={<Calendar className="w-4 h-4 text-blue-600" />}
               label="Age"
-              value={calculatePetAge(pet.dateOfBirth)}
+              value={calculatePetAge(pet?.dateOfBirth)}
             />
             <InfoItem
               icon={<Weight className="w-4 h-4 text-green-600" />}
               label="Weight"
-              value={Number(pet.weight).toFixed(1) + pet.weightUnit}
+              value={Number(pet?.weight).toFixed(1) + pet?.weightUnit}
             />
             <InfoItem
               icon={<Heart className="w-4 h-4 text-pink-600" />}
               label="Gender"
-              value={pet.gender}
+              value={pet?.gender}
             />
             <InfoItem
               icon={<Palette className="w-4 h-4 text-purple-600" />}
               label="Color"
-              value={pet.primaryColor}
+              value={pet?.primaryColor}
             />
           </div>
 
@@ -133,14 +133,14 @@ export const PetInfoCard = ({ pet }: PetCardProps) => {
           </div> */}
 
           {/* Allergies */}
-          {pet.allergies.length > 0 && (
+          {pet?.allergies?.length > 0 && (
             <div>
               <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
                 <AlertTriangle className="w-4 h-4 text-red-600" />
                 Allergies
               </h4>
               <div className="flex flex-wrap gap-2">
-                {pet.allergies.map((allergy, index) => (
+                {pet?.allergies.map((allergy, index) => (
                   <Badge
                     key={index}
                     className="bg-red-100 text-red-700 border-red-300"
@@ -153,14 +153,14 @@ export const PetInfoCard = ({ pet }: PetCardProps) => {
           )}
 
           {/* Current Medications */}
-          {pet.currentMedications.length > 0 && (
+          {pet?.currentMedications?.length > 0 && (
             <div>
               <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
                 <Pill className="w-4 h-4 text-orange-600" />
                 Current Medications
               </h4>
               <div className="space-y-2">
-                {pet.currentMedications.map((medication, index) => (
+                {pet?.currentMedications?.map((medication, index) => (
                   <div
                     key={index}
                     className="p-3 bg-orange-50 rounded-lg border border-orange-200"
