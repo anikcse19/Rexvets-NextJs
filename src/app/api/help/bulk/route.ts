@@ -82,13 +82,13 @@ export async function POST(req: NextRequest) {
       const result = await HelpModel.updateMany(
         { 
           _id: { $in: validIds },
-          isActive: true,
+          status: 'pending',
           isDeleted: { $ne: true }
         },
         { 
           $set: { 
             isDeleted: true, 
-            isActive: false,
+            status: 'completed',
             updatedAt: new Date()
           } 
         }

@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { use, useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -69,13 +69,35 @@ const mockAppointment = {
 };
 
 export default function PetParentAppointmentDetailsPage({
-  appointmentDetails,
+  id,
 }: {
-  appointmentDetails: Appointment;
+  id: string;
 }) {
-  console.log("Appointment Details in Page Component:", appointmentDetails);
+  const [appointmentDetails, setAppointmentDetails] = useState<Appointment>(
+    {} as Appointment
+  );
+
+  console.log("appointmentDetails", appointmentDetails);
+
+  useEffect(() => {
+    const fetchAppointmentDetails = async () => {
+      try {
+        const response = await fetch(`/api/appointments/${id}`);
+        if (!response.ok) {
+          throw new Error("Failed to fetch appointment details");
+        }
+        const data = await response.json();
+        setAppointmentDetails(data?.data);
+      } catch (error) {
+        console.error("Error fetching appointment details:", error);
+      }
+    };
+
+    fetchAppointmentDetails();
+  }, [id]);
+
   const handleJoinMeeting = () => {
-    window.open(appointmentDetails.meetingLink, "_blank");
+    window.open(appointmentDetails?.meetingLink, "_blank");
   };
 
   const formatDate = (dateString: string) => {
@@ -130,10 +152,10 @@ export default function PetParentAppointmentDetailsPage({
           <div className="flex items-center gap-3">
             <Badge
               className={`${getStatusColor(
-                appointmentDetails.status
+                appointmentDetails?.status
               )} px-4 py-2 text-sm font-semibold capitalize`}
             >
-              {appointmentDetails.status}
+              {appointmentDetails?.status}
             </Badge>
             <Button
               onClick={handleJoinMeeting}
@@ -154,7 +176,7 @@ export default function PetParentAppointmentDetailsPage({
               </div>
               <div>
                 <h2 className="text-xl font-bold capitalize">
-                  {appointmentDetails.appointmentType.replace("_", " ")}
+                  {appointmentDetails?.appointmentType?.replace("_", " ")}
                 </h2>
                 <p className="text-blue-100">Appointment Overview</p>
               </div>
@@ -170,7 +192,8 @@ export default function PetParentAppointmentDetailsPage({
                 <div>
                   <p className="font-semibold text-gray-900">Date</p>
                   <p className="text-gray-600">
-                    {formatDate(appointmentDetails.appointmentDate)}
+                    {formatDate(mockAppointment.appointmentDate)} at{" "}
+                    {mockAppointment.appointmentTime}{" "}
                   </p>
                 </div>
               </div>
@@ -195,7 +218,7 @@ export default function PetParentAppointmentDetailsPage({
                 <div>
                   <p className="font-semibold text-gray-900">Service</p>
                   <p className="text-gray-600">
-                    {appointmentDetails.appointmentType.replace("_", " ")}
+                    {appointmentDetails?.appointmentType?.replace("_", " ")}
                   </p>
                 </div>
               </div>
@@ -207,8 +230,11 @@ export default function PetParentAppointmentDetailsPage({
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
           {/* Left Column - Pet & Doctor Info */}
           <div className="xl:col-span-1 space-y-6">
-            <PetInfoCard pet={appointmentDetails.pet} />
-            <DoctorInfoCard doctor={appointmentDetails.veterinarian} />
+            <PetInfoCard pet={appointmentDetails?.pet} />
+
+            {appointmentDetails?.veterinarian && (
+              <DoctorInfoCard doctor={appointmentDetails?.veterinarian} />
+            )}
           </div>
 
           {/* Middle Column - Data Assessment & Prescription */}
@@ -220,9 +246,9 @@ export default function PetParentAppointmentDetailsPage({
           {/* Right Column - Chat */}
           <div className="xl:col-span-1">
             <ChatBox
-              appointmentId={mockAppointment.id}
-              doctorName={mockAppointment.doctor.name}
-              doctorImage={mockAppointment.doctor.image}
+              appointmentId={mockAppointment?.id}
+              doctorName={mockAppointment?.doctor?.name}
+              doctorImage={mockAppointment?.doctor?.image}
             />
           </div>
         </div>

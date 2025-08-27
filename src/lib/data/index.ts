@@ -647,7 +647,7 @@ export const menuItemsDoctor: MenuItems[] = [
     label: "Prescription",
     icon: FaPrescription,
     href: "",
-    external_href: "https://practice.secureVetource.com/login",
+    external_href: "https://practice.securevetsource.com/login",
   },
   {
     id: "account",
@@ -717,7 +717,7 @@ export const mockDoctorData = {
     firstName: "Anik",
     lastName: "Deb",
     email: "anik@gmail.com",
-    phone: "+880 1234-567890",
+    phone: "+",
     dateOfBirth: "1985-03-15",
     gender: "male" as const,
     address: "123 Veterinary Street, Medical District",
@@ -742,7 +742,7 @@ export const mockDoctorData = {
     ],
     clinicName: "RexVet Animal Hospital",
     clinicAddress: "456 Pet Care Avenue, Gulshan, Dhaka 1212",
-    emergencyContact: "+880 1987-654321",
+    emergencyContact: "+8801987654321",
   },
 
   areasOfInterest: {
