@@ -122,12 +122,14 @@ export async function POST(req: NextRequest) {
       slotId: appointmentSlotId,
       concerns,
     } = parsed.data;
+    console.log("existingSlot.date", existingSlot.startTime);
+
     // Create appointment document
     const appointment = new AppointmentModel({
       veterinarian: new Types.ObjectId(veterinarian),
       petParent: new Types.ObjectId(petParent),
       pet: new Types.ObjectId(pet),
-      appointmentDate: existingSlot.date,
+      appointmentDate: existingSlot.startTime,
       notes,
       feeUSD,
       isFollowUp,
@@ -140,14 +142,16 @@ export async function POST(req: NextRequest) {
     await appointment.validate();
     const newAppointment = await appointment.save();
     const link_URL =
-      process.env.NODE_ENV === "production"
-        ? "https://rexvets-nextjs.vercel.app"
-        : "http://localhost:3000";
+      process.env.NODE_ENV === "development"
+        ? "http://localhost:3000"
+        : "https://rexvets-nextjs.vercel.app";
 
     // Generate meeting link
-    const meetingLink = `${link_URL}/video-call/?${encodeURIComponent(
+    const meetingLink = `${link_URL}/video-call/?appointmentId=${encodeURIComponent(
       newAppointment._id
-    )}`;
+    )}&vetId=${encodeURIComponent(veterinarian)}&petId=${encodeURIComponent(
+      pet
+    )}&petParentId=${encodeURIComponent(petParent)}`;
 
     // Save meetingLink to the appointment
     newAppointment.meetingLink = meetingLink;
@@ -162,7 +166,7 @@ export async function POST(req: NextRequest) {
     };
     return sendResponse(response);
   } catch (err: any) {
-    console.error("Error creating appointment:", err);
+    console.error("Error creating appointment:", err.message);
 
     if (err.name === "ValidationError") {
       const errors: Record<string, string | undefined> = {};

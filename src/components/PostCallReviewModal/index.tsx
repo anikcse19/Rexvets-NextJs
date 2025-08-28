@@ -59,9 +59,18 @@ const PostCallModal: React.FC<PostCallModalProps> = ({
       ) {
         throw new Error("Missing appointment details");
       }
+
+      if (rating === 0) {
+        throw new Error("Please select a rating before submitting");
+      }
+
+      if (!reviewText.trim()) {
+        throw new Error("Please add a comment before submitting");
+      }
+
       const reviewData: ICreateReview = {
         rating,
-        comment: reviewText,
+        comment: reviewText.trim(),
         appointmentDate: appointmentDetails?.appointmentDate as any,
         vetId: appointmentDetails?.veterinarian as any,
         parentId: appointmentDetails?.petParent as any,
@@ -76,16 +85,25 @@ const PostCallModal: React.FC<PostCallModalProps> = ({
       });
 
       if (!res.ok) {
-        throw new Error(`Failed to submit review: ${res.body}`);
+        const errorData = await res.json();
+        throw new Error(errorData?.message || `Failed to submit review: ${res.status}`);
       }
 
       const data = await res.json();
       console.log("Review submitted:", data);
+      toast.success(data?.message || "Review submitted successfully!");
 
       setReviewSubmitted(true);
       setSubmitted(true);
+      
+      // Close modal and redirect to home after successful review
+      setTimeout(() => {
+        onClose();
+        router.push("/");
+      }, 2000);
     } catch (error: any) {
-      toast.error(error.message || "Failed to create review");
+      const errorMessage = error.message || "Failed to create review";
+      toast.error(errorMessage);
       console.error("Error submitting review:", error);
     } finally {
       setIsSubmitting(false);

@@ -1,26 +1,26 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   ArrowLeft,
-  Video,
-  FileText,
-  Stethoscope,
   Calendar,
   Clock,
+  FileText,
+  Stethoscope,
+  Video,
 } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import PetInfoCard from "./Appointments/PetInfoCard";
-import ParentInfoCard from "./Appointments/ParentInfoCard";
-import DataAssessmentSection from "./Appointments/DataAssessmentSection";
-import PrescriptionSection from "./Appointments/PrescriptionSection";
+import React, { useEffect, useState } from "react";
 import ChatBox from "./Appointments/Chatbox";
 import DataAssessmentModal from "./Appointments/DataAssessmentModal";
+import DataAssessmentSection from "./Appointments/DataAssessmentSection";
+import ParentInfoCard from "./Appointments/ParentInfoCard";
+import PetInfoCard from "./Appointments/PetInfoCard";
 import PrescriptionModal from "./Appointments/Prescriptionodal";
+import PrescriptionSection from "./Appointments/PrescriptionSection";
 
 interface AppointmentData {
   _id: string;
@@ -267,8 +267,8 @@ export default function AppointmentDetailsPage() {
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         {/* Left Column - Pet & Parent Info */}
         <div className="xl:col-span-1 space-y-6">
-          <PetInfoCard pet={appointment.pet} />
-          <ParentInfoCard parent={appointment.petParent} />
+          {/* <PetInfoCard pet={appointment?.pet} /> */}
+          <ParentInfoCard parent={appointment?.petParent} />
         </div>
 
         {/* Middle Column - Data Assessment & Prescription */}
@@ -279,7 +279,7 @@ export default function AppointmentDetailsPage() {
             setCurrentAssessment={setCurrentAssessment}
           />
           <PrescriptionSection
-            appointmentId={appointment._id}
+            appointmentId={appointment?._id}
             onOpenModal={() => setIsPrescriptionModalOpen(true)}
           />
         </div>
@@ -287,9 +287,9 @@ export default function AppointmentDetailsPage() {
         {/* Right Column - Chat */}
         <div className="xl:col-span-1">
           <ChatBox
-            appointmentId={appointment._id}
-            parentName={appointment.petParent.name}
-            parentImage={appointment.petParent.profileImage || ""}
+            appointmentId={appointment?._id}
+            parentName={appointment?.petParent?.name || ""}
+            parentImage={appointment?.petParent?.profileImage || ""}
           />
         </div>
       </div>

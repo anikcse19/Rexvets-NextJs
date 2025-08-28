@@ -17,8 +17,13 @@ import { toast } from "sonner";
 
 const VideoCallPreview: React.FC = () => {
   const searchParams = useSearchParams();
-  const id = searchParams.get("id");
-  console.log("Video call ID:", id);
+  const appointmentId = searchParams.get("appointmentId");
+  const vetId = searchParams.get("vetId");
+  const petId = searchParams.get("petId");
+  const petParentId = searchParams.get("petParentId");
+  console.log("appointmentId:", appointmentId);
+  console.log("vetId:", vetId);
+  console.log("petId:", petId);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const [isVideoEnabled, setIsVideoEnabled] = useState(false);
@@ -30,7 +35,7 @@ const VideoCallPreview: React.FC = () => {
   const getAppointmentDetails = async () => {
     setIsLoading(true);
     try {
-      const res = await fetch(`/api/appointments/${id}`);
+      const res = await fetch(`/api/appointments/${appointmentId}`);
       if (!res.ok) {
         const error = await res.json();
         throw new Error(error.message || "Failed to fetch appointment details");
@@ -46,10 +51,10 @@ const VideoCallPreview: React.FC = () => {
     // Fetch appointment details using the ID
   };
   useEffect(() => {
-    if (id && !appointmentDetails) {
+    if (appointmentId && !appointmentDetails) {
       getAppointmentDetails();
     }
-  }, [id]);
+  }, [appointmentId]);
   console.log("appointment details:", appointmentDetails);
   const toggleVideo = () => {
     if (!hasInitializedCamera) {
@@ -139,7 +144,11 @@ const VideoCallPreview: React.FC = () => {
                 borderRadius: "12px",
                 padding: "16px",
               }}
-              onClick={() => router.push(`/join-video-call?id=${id}`)}
+              onClick={() =>
+                router.push(
+                  `/join-video-call?appointmentId=${appointmentId}&vetId=${vetId}&petId=${petId}&petParentId=${petParentId}`
+                )
+              }
               className="w-full cursor-pointer bg-gradient-to-r text-white font-semibold py-4 px-6 rounded-xl mb-4"
             >
               JOIN VIDEO CALL
