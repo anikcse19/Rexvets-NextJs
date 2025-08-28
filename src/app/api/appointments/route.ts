@@ -1,31 +1,4 @@
-/*
-  Appointments API
-  -----------------
-  This file exposes two handlers for appointments:
-
-  1) POST /api/appointments
-     - Authenticated endpoint (requires NextAuth session)
-     - Validates input using zod schema (IDs, slotId, concerns, optional meetingLink)
-     - Verifies the requested slot is AVAILABLE and belongs to the veterinarian
-     - Verifies veterinarian and pet parent exist and are active
-     - Creates an Appointment using the slot's date (and stores meetingLink if provided)
-     - Marks the slot as BOOKED
-     - Sends confirmation emails to both veterinarian and pet parent (server-side)
-       using saved appointment data (meetingLink, date, time, pet name)
-
-  2) GET /api/appointments
-     - Returns a paginated list of appointments
-     - Supports filtering by status, appointmentType, paymentStatus, veterinarian, petParent, isFollowUp and search (concerns)
-     - Populates references to `veterinarian`, `petParent`, and `pet`
-
-  Notes
-  -----
-  - Meeting links are generated on the client and passed in the POST body, then saved here.
-  - Emails are sent on the server after a successful save to ensure reliability (mirrors signup email behavior).
-  - Error handling standardizes responses via send.response utils.
-*/
 import { authOptions } from "@/lib/auth";
-import { sendAppointmentConfirmationEmails } from "@/lib/email";
 import { connectToDatabase } from "@/lib/mongoose";
 import {
   IErrorResponse,
@@ -36,7 +9,6 @@ import {
 import { VeterinarianModel } from "@/models";
 import { AppointmentModel } from "@/models/Appointment";
 import { AppointmentSlot, SlotStatus } from "@/models/AppointmentSlot";
-import { PetModel } from "@/models/Pet";
 import PetParent from "@/models/PetParent";
 import { Types } from "mongoose";
 import { getServerSession } from "next-auth/next";
@@ -64,7 +36,6 @@ const appointmentSchema = z.object({
     message: "Invalid slot ID",
   }),
   concerns: z.array(z.string()).min(1, "At least one concern is required"),
-  meetingLink: z.string().url().optional(),
 });
 
 export async function POST(req: NextRequest) {
@@ -83,7 +54,6 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    console.log("Appointment creation request body:", body);
     const parsed = appointmentSchema.safeParse(body);
     if (!parsed.success) {
       const errors: Record<string, string> = {};
@@ -151,7 +121,6 @@ export async function POST(req: NextRequest) {
       reminderSent,
       slotId: appointmentSlotId,
       concerns,
-      meetingLink,
     } = parsed.data;
     // Create appointment document
     const appointment = new AppointmentModel({
@@ -167,51 +136,24 @@ export async function POST(req: NextRequest) {
       reminderSent,
       slotId: new Types.ObjectId(appointmentSlotId),
       concerns,
-      meetingLink,
     });
     await appointment.validate();
     const newAppointment = await appointment.save();
-    const URL =
-      process.env.NODE_ENV === "development"
-        ? "http://localhost:3000"
-        : "https://rexvets-nextjs.vercel.app";
+    const link_URL =
+      process.env.NODE_ENV === "production"
+        ? "https://rexvets-nextjs.vercel.app"
+        : "http://localhost:3000";
 
     // Generate meeting link
-    const meetingLink = `${URL}/?id=${encodeURIComponent(newAppointment._id)}`;
+    const meetingLink = `${link_URL}/video-call/?${encodeURIComponent(
+      newAppointment._id
+    )}`;
 
     // Save meetingLink to the appointment
     newAppointment.meetingLink = meetingLink;
     await newAppointment.save({ validateBeforeSave: true });
     existingSlot.status = SlotStatus.BOOKED;
     await existingSlot.save({ validateBeforeSave: false });
-
-    // Send confirmation emails (server-side, similar to signup email flow)
-    try {
-      const petDoc = await PetModel.findById(pet).select("name");
-      const petName = petDoc?.name || "Pet";
-
-      const appointmentDateStr = new Date(existingSlot.date)
-        .toISOString()
-        .split("T")[0];
-      const appointmentTimeStr = existingSlot.startTime;
-
-      await sendAppointmentConfirmationEmails({
-        doctorEmail: (existingVet as any)?.email || "",
-        doctorName: `Dr. ${(existingVet as any)?.name || ""}`,
-        parentEmail: (existingPetOwner as any)?.email || "",
-        parentName: (existingPetOwner as any)?.name || "",
-        petName,
-        appointmentDate: appointmentDateStr,
-        appointmentTime: appointmentTimeStr,
-        meetingLink: newAppointment.meetingLink || "",
-      });
-    } catch (emailErr) {
-      console.error(
-        "Failed to send appointment confirmation emails:",
-        emailErr
-      );
-      // Do not fail the request if email sending fails
-    }
     const response: ISendResponse<any> = {
       success: true,
       data: newAppointment,
