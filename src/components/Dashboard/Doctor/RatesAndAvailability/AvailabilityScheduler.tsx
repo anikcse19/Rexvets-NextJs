@@ -271,8 +271,7 @@ const AvailabilityScheduler: React.FC<Props> = ({
                           Periods: {periodIndex + 1}
                         </span>
                         <span className="text-sm text-gray-600">
-                          {formatTime(period.startTime)} -{" "}
-                          {formatTime(period.endTime)}
+                          {period.startTime} - {formatTime(period.endTime)}
                         </span>
                         <div className="flex items-center gap-1 text-xs">
                           <span className="px-1.5 py-0.5 bg-green-100 text-green-700 rounded">

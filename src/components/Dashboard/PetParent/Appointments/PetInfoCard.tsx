@@ -1,20 +1,20 @@
 "use client";
 
-import React from "react";
-import { Card, CardContent, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  Heart,
-  Calendar,
-  Weight,
-  Palette,
-  Shield,
-  AlertTriangle,
-  Pill,
-  Syringe,
-} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Pet } from "@/lib/types";
+import {
+  AlertTriangle,
+  Calendar,
+  Heart,
+  Palette,
+  Pill,
+  Shield,
+  Syringe,
+  Weight,
+} from "lucide-react";
+import React from "react";
 
 interface PetCardProps {
   pet: Pet;
@@ -81,7 +81,7 @@ export const PetInfoCard = ({ pet }: PetCardProps) => {
                 className="object-cover"
               />
               <AvatarFallback className="text-2xl font-bold text-gray-800 bg-gradient-to-br from-pink-100 to-rose-100">
-                {pet?.name.charAt(0)}
+                {pet?.name?.charAt(0)}
               </AvatarFallback>
             </Avatar>
             <h3 className="text-2xl font-bold text-gray-900 mb-1">

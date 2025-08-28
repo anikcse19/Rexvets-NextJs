@@ -42,7 +42,7 @@ export const generateAppointmentSlots = async (
     }
     console.log("currentUtc", currentUtc);
     // Check if any date in the range is in the past
-    if (startDate.isBefore(currentUtc)) {
+    if (startDate.isBefore(currentUtc.startOf("day"))) {
       throw new Error("Cannot create slots for past dates");
     }
 
@@ -75,7 +75,7 @@ export const generateAppointmentSlots = async (
       const utcDate = currentDate.toDate();
 
       // Skip if this specific day is in the past
-      if (currentDate.isBefore(currentUtc)) {
+      if (currentDate.isBefore(currentUtc.startOf("day"))) {
         continue;
       }
 
@@ -400,8 +400,11 @@ export const getAppointmentSlots = async (
     } = params;
 
     // Validate date range
-    const startDate = moment(dateRange.start).utc().startOf("day");
-    const endDate = moment(dateRange.end).utc().startOf("day");
+    const startDate = moment.utc(dateRange.start, "YYYY-MM-DD").startOf("day");
+    const endDate = moment.utc(dateRange.end, "YYYY-MM-DD").endOf("day");
+    console.log("START DATE", startDate.toDate());
+    console.log("END DATE", endDate.toDate());
+    console.log("STATUS", status);
 
     if (endDate.isBefore(startDate)) {
       throw new Error("Invalid date range: end date must be after start date");
@@ -424,35 +427,15 @@ export const getAppointmentSlots = async (
       baseQuery.status = { $in: [SlotStatus.AVAILABLE] };
     }
 
-    // Filter out past dates and times
-    const now = new Date();
-    baseQuery.$and = [
-      {
-        $or: [
-          // Date is in the future
-          { date: { $gt: now } },
-          // Or date is today but time is in the future
-          {
-            $and: [
-              { date: { $gte: moment().startOf("day").toDate() } },
-              { date: { $lte: moment().endOf("day").toDate() } },
-              { startTime: { $gt: moment().format("HH:mm") } },
-            ],
-          },
-        ],
-      },
-    ];
+    // REMOVED: The complex time filtering that was causing issues
+    // Only filter out past dates (not times within the current day)
+    const todayStart = moment().startOf("day").toDate();
+    baseQuery.date.$gte = todayStart; // Ensure we only get dates from today onwards
 
     // Add search functionality
     if (search.trim()) {
       const searchRegex = new RegExp(search, "i");
-
-      // Search across multiple fields using $or
-      baseQuery.$or = [
-        { status: searchRegex },
-        { vetId: searchRegex }, // If you want to search by vet details
-        // Add other searchable fields as needed
-      ];
+      baseQuery.$or = [{ status: searchRegex }, { vetId: searchRegex }];
     }
 
     // Calculate pagination
@@ -465,7 +448,7 @@ export const getAppointmentSlots = async (
     // Execute queries in parallel for better performance
     const [slots, totalCount] = await Promise.all([
       // Get paginated results
-      AppointmentSlot.find(baseQuery).sort(sort).skip(skip).limit(limit).lean(), // Use lean for better performance
+      AppointmentSlot.find(baseQuery).sort(sort).skip(skip).limit(limit).lean(),
 
       // Get total count for pagination
       AppointmentSlot.countDocuments(baseQuery),
@@ -477,7 +460,6 @@ export const getAppointmentSlots = async (
     // Format the response data
     const formattedSlots = slots.map((slot) => ({
       ...slot,
-      // Add any additional formatting here
       formattedDate: moment(slot.date).format("YYYY-MM-DD"),
       formattedStartTime: moment(slot.startTime).format("HH:mm"),
       formattedEndTime: moment(slot.endTime).format("HH:mm"),

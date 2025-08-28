@@ -1,25 +1,56 @@
 "use client";
+import { IAppointment } from "@/models";
 import {
   Calendar,
   Clock,
+  Loader,
   Mic,
   MicOff,
   Phone,
   Video,
   VideoOff,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
-import React, { useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import React, { useEffect, useRef, useState } from "react";
 import Webcam from "react-webcam";
+import { toast } from "sonner";
 
 const VideoCallPreview: React.FC = () => {
+  const searchParams = useSearchParams();
+  const id = searchParams.get("id");
+  console.log("Video call ID:", id);
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const [isVideoEnabled, setIsVideoEnabled] = useState(false);
   const [isAudioEnabled, setIsAudioEnabled] = useState(true);
   const [hasInitializedCamera, setHasInitializedCamera] = useState(false);
-
+  const [appointmentDetails, setAppointmentDetails] =
+    useState<IAppointment | null>(null);
   const webcamRef = useRef<Webcam>(null);
+  const getAppointmentDetails = async () => {
+    setIsLoading(true);
+    try {
+      const res = await fetch(`/api/appointments/${id}`);
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || "Failed to fetch appointment details");
+      }
+      const data = await res.json();
+      setAppointmentDetails(data?.data);
+    } catch (error: any) {
+      toast.error(error.message || "Failed to fetch appointment details");
+    } finally {
+      setIsLoading(false);
+    }
 
+    // Fetch appointment details using the ID
+  };
+  useEffect(() => {
+    if (id && !appointmentDetails) {
+      getAppointmentDetails();
+    }
+  }, [id]);
+  console.log("appointment details:", appointmentDetails);
   const toggleVideo = () => {
     if (!hasInitializedCamera) {
       setHasInitializedCamera(true);
@@ -30,7 +61,32 @@ const VideoCallPreview: React.FC = () => {
   const toggleAudio = () => {
     setIsAudioEnabled((prev) => !prev);
   };
+  if (isLoading) {
+    return (
+      <div className="h-screen flex gap-x-3 items-center justify-center">
+        <h1> Loading...</h1>
+        <Loader />
+      </div>
+    );
+  }
 
+  if (!appointmentDetails && !isLoading) {
+    return (
+      <div className="h-screen flex flex-col gap-y-3 items-center justify-center">
+        <h1 className="text-xl font-semibold">No appointment found</h1>
+        <p className="text-gray-600">
+          We couldn't find the appointment details. Please check the link or
+          contact support.
+        </p>
+        <button
+          onClick={() => router.push("/")}
+          className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+        >
+          Go to Home
+        </button>
+      </div>
+    );
+  }
   return (
     <div
       style={{
@@ -83,7 +139,7 @@ const VideoCallPreview: React.FC = () => {
                 borderRadius: "12px",
                 padding: "16px",
               }}
-              onClick={() => router.push("/join-video-call")}
+              onClick={() => router.push(`/join-video-call?id=${id}`)}
               className="w-full cursor-pointer bg-gradient-to-r text-white font-semibold py-4 px-6 rounded-xl mb-4"
             >
               JOIN VIDEO CALL

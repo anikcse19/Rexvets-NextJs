@@ -26,7 +26,6 @@ export const GET = async (
   { params }: { params: Promise<{ vetId: string }> }
 ) => {
   try {
-    console.log("HIT VET ID");
     await connectToDatabase();
     const { vetId } = await params;
     const { searchParams } = new URL(req.url);
@@ -63,11 +62,11 @@ export const GET = async (
       limit,
       page,
     };
-    console.log("paramsFn", paramsFn);
 
     const response = await getSlotsByVetId(paramsFn);
-    // console.log("response", response);
+    console.log("response", response);
     const slotPeriods = groupSlotsIntoPeriods(response.data);
+    console.log("slotPeriods", slotPeriods);
     const responseFormat: ISendResponse<any> = {
       statusCode: 200,
       success: true,

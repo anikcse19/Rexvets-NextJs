@@ -1,21 +1,21 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
-import { Card, CardContent, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import {
-  MessageCircle,
-  Send,
-  Paperclip,
-  Image,
-  Video,
-  Smile,
   Check,
   CheckCheck,
+  Image,
+  MessageCircle,
+  Paperclip,
+  Send,
+  Smile,
+  Video,
 } from "lucide-react";
+import React, { useEffect, useRef, useState } from "react";
 
 interface ChatBoxProps {
   appointmentId: string;
@@ -104,10 +104,7 @@ const mockMessages: Message[] = [
   },
 ];
 
-export default function ChatBox({
-  doctorName,
-  doctorImage,
-}: ChatBoxProps) {
+export default function ChatBox({ doctorName, doctorImage }: ChatBoxProps) {
   const [messages, setMessages] = useState<Message[]>(mockMessages);
   const [newMessage, setNewMessage] = useState("");
   const [isTyping] = useState(false);

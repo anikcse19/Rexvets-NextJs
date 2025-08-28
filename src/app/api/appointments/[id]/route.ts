@@ -18,6 +18,7 @@ export async function GET(
   try {
     await connectToDatabase();
     const session = await getServerSession(authOptions);
+    console.log("USER", session?.user);
     if (!session?.user) {
       return throwAppError(
         {
@@ -48,18 +49,18 @@ export async function GET(
     const appointment = await AppointmentModel.findOne({
       _id: id,
       isDeleted: false,
-      $or: [
-        { veterinarian: new Types.ObjectId(String(userIdToMatch)) },
-        { petParent: new Types.ObjectId(String(userIdToMatch)) },
-      ],
-    })
-      .populate("veterinarian")
-      .populate("petParent")
-      .populate("pet")
-      .lean();
+      // $or: [
+      //   { veterinarian: new Types.ObjectId(String(userIdToMatch)) },
+      //   { petParent: new Types.ObjectId(String(userIdToMatch)) },
+      // ],
+    });
+    // .populate("veterinarian")
+    // .populate("petParent")
+    // .populate("pet")
+    // .lean();
 
     // console.log("appointment-------------------", appointment);
-
+    console.log("appointment", appointment);
     if (!appointment) {
       return throwAppError(
         {

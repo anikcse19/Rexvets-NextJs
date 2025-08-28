@@ -139,11 +139,13 @@ export async function POST(req: NextRequest) {
     });
     await appointment.validate();
     const newAppointment = await appointment.save();
+    const URL =
+      process.env.NODE_ENV === "development"
+        ? "http://localhost:3000"
+        : "https://rexvets-nextjs.vercel.app";
 
     // Generate meeting link
-    const meetingLink = `https://rexvets-nextjs.vercel.app/video-call/?${encodeURIComponent(
-      newAppointment._id
-    )}`;
+    const meetingLink = `${URL}/?id=${encodeURIComponent(newAppointment._id)}`;
 
     // Save meetingLink to the appointment
     newAppointment.meetingLink = meetingLink;
@@ -230,8 +232,6 @@ export async function GET(req: NextRequest) {
         .exec(),
       AppointmentModel.countDocuments(query),
     ]);
-
-
 
     return sendResponse({
       statusCode: 200,

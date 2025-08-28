@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input";
 import config from "@/config/env.config";
 import NextImage from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { AiOutlineCamera } from "react-icons/ai";
 import {
@@ -28,11 +28,16 @@ import {
   FaVideoSlash,
 } from "react-icons/fa";
 // Add strongly-typed Agora imports
+import { IAppointment, IPetParent, IUser } from "@/models";
 import AgoraRTC, {
   IAgoraRTCClient,
   ILocalAudioTrack,
   ILocalVideoTrack,
 } from "agora-rtc-sdk-ng";
+import { Loader } from "lucide-react";
+import { useSession } from "next-auth/react";
+import { toast } from "sonner";
+import PostCallModal from "../PostCallReviewModal";
 
 type CallState = "connecting" | "waiting" | "active" | "ended" | "failed";
 interface VideoCallProps {
@@ -45,16 +50,52 @@ const IS_PUBLISHER = true;
 
 // Virtual background images (using project images)
 const VIRTUAL_BACKGROUNDS = [
-  { id: 1, name: "Blur", url: "blur", image: "/images/how-it-works/SecondImg.webp" },
-  { id: 2, name: "Office", url: "/images/donate-page/Texture.webp", image: "/images/donate-page/Texture.webp" },
-  { id: 3, name: "Beach", url: "/images/mission/dog.webp", image: "/images/mission/dog.webp" },
-  { id: 4, name: "Nature", url: "/images/about/About1.webp", image: "/images/about/About1.webp" },
-  { id: 5, name: "Space", url: "/images/how-it-works/PrincipalImgWorks.webp", image: "/images/how-it-works/PrincipalImgWorks.webp" },
+  {
+    id: 1,
+    name: "Blur",
+    url: "blur",
+    image: "/images/how-it-works/SecondImg.webp",
+  },
+  {
+    id: 2,
+    name: "Office",
+    url: "/images/donate-page/Texture.webp",
+    image: "/images/donate-page/Texture.webp",
+  },
+  {
+    id: 3,
+    name: "Beach",
+    url: "/images/mission/dog.webp",
+    image: "/images/mission/dog.webp",
+  },
+  {
+    id: 4,
+    name: "Nature",
+    url: "/images/about/About1.webp",
+    image: "/images/about/About1.webp",
+  },
+  {
+    id: 5,
+    name: "Space",
+    url: "/images/how-it-works/PrincipalImgWorks.webp",
+    image: "/images/how-it-works/PrincipalImgWorks.webp",
+  },
   { id: 6, name: "None", url: "none", image: "/images/Logo.svg" },
 ];
 
 const VideoCall: React.FC<VideoCallProps> = ({ onEndCall }) => {
   const router = useRouter();
+  const { data: session } = useSession();
+  const user = session?.user;
+  const [petParent, setPetParent] = useState<IUser | null>(null);
+  console.log("user", user);
+  const searchParams = useSearchParams();
+  const id = searchParams.get("id");
+  const [appointmentDetails, setAppointmentDetails] =
+    useState<IAppointment | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+
   const [isAudioEnabled, setIsAudioEnabled] = useState(true);
   const [isVideoEnabled, setIsVideoEnabled] = useState(true);
   const [callState, setCallState] = useState<CallState>("connecting");
@@ -65,8 +106,11 @@ const VideoCall: React.FC<VideoCallProps> = ({ onEndCall }) => {
   const [remoteUsersState, setRemoteUsersState] = useState<{
     [uid: string]: any;
   }>({});
-  const [isVirtualBackgroundSupported, setIsVirtualBackgroundSupported] = useState(false);
-  const [selectedBackground, setSelectedBackground] = useState<string | null>(null);
+  const [isVirtualBackgroundSupported, setIsVirtualBackgroundSupported] =
+    useState(false);
+  const [selectedBackground, setSelectedBackground] = useState<string | null>(
+    null
+  );
   const [isProcessingVirtualBg, setIsProcessingVirtualBg] = useState(false);
 
   // Agora refs with types
@@ -91,7 +135,9 @@ const VideoCall: React.FC<VideoCallProps> = ({ onEndCall }) => {
     (async () => {
       try {
         if (typeof window === "undefined") return;
-        const { default: VirtualBackgroundExtension } = await import("agora-extension-virtual-background");
+        const { default: VirtualBackgroundExtension } = await import(
+          "agora-extension-virtual-background"
+        );
         const ext = new VirtualBackgroundExtension();
         const supported = ext.checkCompatibility();
         setIsVirtualBackgroundSupported(!!supported);
@@ -134,7 +180,8 @@ const VideoCall: React.FC<VideoCallProps> = ({ onEndCall }) => {
         const res = await fetch(
           `/api/agora-token?channelName=${channelName}&uid=${id}&isPublisher=${isPublisher}`
         );
-        if (!res.ok) throw new Error(`Token fetch failed with status: ${res.status}`);
+        if (!res.ok)
+          throw new Error(`Token fetch failed with status: ${res.status}`);
         const data = await res.json();
         if (!data.token) throw new Error("No token received from server");
         return data.token as string;
@@ -157,7 +204,9 @@ const VideoCall: React.FC<VideoCallProps> = ({ onEndCall }) => {
       try {
         // Initialize extension once
         if (!vbExtensionRef.current) {
-          const { default: VirtualBackgroundExtension } = await import("agora-extension-virtual-background");
+          const { default: VirtualBackgroundExtension } = await import(
+            "agora-extension-virtual-background"
+          );
           const ext = new VirtualBackgroundExtension();
           if (!ext.checkCompatibility()) {
             setIsProcessingVirtualBg(false);
@@ -208,7 +257,8 @@ const VideoCall: React.FC<VideoCallProps> = ({ onEndCall }) => {
                 reject(e);
               }
             };
-            img.onerror = () => reject(new Error("Failed to load background image"));
+            img.onerror = () =>
+              reject(new Error("Failed to load background image"));
             img.src = backgroundType;
           });
         }
@@ -216,7 +266,9 @@ const VideoCall: React.FC<VideoCallProps> = ({ onEndCall }) => {
         virtualBackgroundProcessor.current = processor;
       } catch (error) {
         console.error("Failed to apply virtual background:", error);
-        setErrorMessage("Failed to apply virtual background. Please try again.");
+        setErrorMessage(
+          "Failed to apply virtual background. Please try again."
+        );
       } finally {
         setIsProcessingVirtualBg(false);
       }
@@ -241,29 +293,45 @@ const VideoCall: React.FC<VideoCallProps> = ({ onEndCall }) => {
         setRemoteUsersState((prev) => ({ ...prev, [user.uid]: user }));
         setCallState("active");
       });
-      client.current.on("user-published", async (user: any, mediaType: "audio" | "video") => {
-        try {
-          await client.current!.subscribe(user, mediaType);
-          remoteUsers.current[user.uid] = user;
-          setRemoteUsersState((prev) => ({ ...prev, [user.uid]: user }));
-          if (mediaType === "video" && remoteVideoRef.current) user.videoTrack?.play(remoteVideoRef.current);
-          if (mediaType === "audio") user.audioTrack?.play();
-        } catch (error) {
-          console.error("Error in user-published:", error);
-          setErrorMessage("Failed to subscribe to user stream.");
+      client.current.on(
+        "user-published",
+        async (user: any, mediaType: "audio" | "video") => {
+          try {
+            await client.current!.subscribe(user, mediaType);
+            remoteUsers.current[user.uid] = user;
+            setRemoteUsersState((prev) => ({ ...prev, [user.uid]: user }));
+            if (mediaType === "video" && remoteVideoRef.current)
+              user.videoTrack?.play(remoteVideoRef.current);
+            if (mediaType === "audio") user.audioTrack?.play();
+          } catch (error) {
+            console.error("Error in user-published:", error);
+            setErrorMessage("Failed to subscribe to user stream.");
+          }
         }
-      });
+      );
       client.current.on("user-unpublished", (user: any, mediaType: string) => {
         if (mediaType === "video") {
-          remoteUsers.current[user.uid] = { ...remoteUsers.current[user.uid], videoTrack: null };
-          setRemoteUsersState((prev) => ({ ...prev, [user.uid]: { ...prev[user.uid], videoTrack: null } }));
+          remoteUsers.current[user.uid] = {
+            ...remoteUsers.current[user.uid],
+            videoTrack: null,
+          };
+          setRemoteUsersState((prev) => ({
+            ...prev,
+            [user.uid]: { ...prev[user.uid], videoTrack: null },
+          }));
         }
-        if (Object.keys(remoteUsers.current).length <= 1) setCallState("waiting");
+        if (Object.keys(remoteUsers.current).length <= 1)
+          setCallState("waiting");
       });
       client.current.on("user-left", (user: any) => {
         delete remoteUsers.current[user.uid];
-        setRemoteUsersState((prev) => { const next = { ...prev }; delete next[user.uid]; return next; });
-        if (Object.keys(remoteUsers.current).length === 0) setCallState("waiting");
+        setRemoteUsersState((prev) => {
+          const next = { ...prev };
+          delete next[user.uid];
+          return next;
+        });
+        if (Object.keys(remoteUsers.current).length === 0)
+          setCallState("waiting");
       });
 
       // Create and publish local tracks
@@ -294,13 +362,18 @@ const VideoCall: React.FC<VideoCallProps> = ({ onEndCall }) => {
       await client.current.join(APP_ID, CHANNEL, token, uid);
       isJoinedRef.current = true;
       if (IS_PUBLISHER && localVideoTrack.current && localAudioTrack.current) {
-        await client.current.publish([localVideoTrack.current, localAudioTrack.current]);
+        await client.current.publish([
+          localVideoTrack.current,
+          localAudioTrack.current,
+        ]);
       }
       setCallState("waiting");
     } catch (error: any) {
       console.error("Failed to join call:", error);
       setCallState("failed");
-      setErrorMessage(`Failed to join call: ${error.message || "Unknown error"}`);
+      setErrorMessage(
+        `Failed to join call: ${error.message || "Unknown error"}`
+      );
     } finally {
       isJoiningRef.current = false;
     }
@@ -316,16 +389,36 @@ const VideoCall: React.FC<VideoCallProps> = ({ onEndCall }) => {
       const cleanupAgora = async () => {
         try {
           if (virtualBackgroundProcessor.current && localVideoTrack.current) {
-            try { await virtualBackgroundProcessor.current.disable(); } catch {}
-            try { (localVideoTrack.current as any).unpipe(); virtualBackgroundProcessor.current.unpipe(); } catch {}
+            try {
+              await virtualBackgroundProcessor.current.disable();
+            } catch {}
+            try {
+              (localVideoTrack.current as any).unpipe();
+              virtualBackgroundProcessor.current.unpipe();
+            } catch {}
           }
           virtualBackgroundProcessor.current = null;
-          if (localVideoTrack.current) { localVideoTrack.current.stop(); localVideoTrack.current.close(); localVideoTrack.current = null; }
-          if (localAudioTrack.current) { localAudioTrack.current.stop(); localAudioTrack.current.close(); localAudioTrack.current = null; }
-          if (client.current) { await client.current.leave(); client.current.removeAllListeners(); client.current = null; }
+          if (localVideoTrack.current) {
+            localVideoTrack.current.stop();
+            localVideoTrack.current.close();
+            localVideoTrack.current = null;
+          }
+          if (localAudioTrack.current) {
+            localAudioTrack.current.stop();
+            localAudioTrack.current.close();
+            localAudioTrack.current = null;
+          }
+          if (client.current) {
+            await client.current.leave();
+            client.current.removeAllListeners();
+            client.current = null;
+          }
           isJoinedRef.current = false;
-          remoteUsers.current = {}; setRemoteUsersState({});
-        } catch (error) { console.error("Error during Agora cleanup:", error); }
+          remoteUsers.current = {};
+          setRemoteUsersState({});
+        } catch (error) {
+          console.error("Error during Agora cleanup:", error);
+        }
       };
       cleanupAgora();
     };
@@ -473,14 +566,102 @@ const VideoCall: React.FC<VideoCallProps> = ({ onEndCall }) => {
       setErrorMessage("Failed to end call.");
       setCallState("ended");
     } finally {
-      if (onEndCall) {
-        onEndCall();
-      } else {
-        router.back();
-      }
+      setIsOpen(true);
+      // if (onEndCall) {
+      //   onEndCall();
+      // } else {
+      //   router.back();
+      // }
     }
-  }, [onEndCall, router]);
+  }, [
+    localAudioTrack,
+    setIsOpen,
+    remoteUsers,
+    setRemoteUsersState,
+    setCallState,
+    setErrorMessage,
+    router,
+    onEndCall,
+  ]);
 
+  // Fetch appointment details
+  const getAppointmentDetails = async () => {
+    setIsLoading(true);
+    try {
+      const res = await fetch(`/api/appointments/${id}`);
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || "Failed to fetch appointment details");
+      }
+      const data = await res.json();
+      setAppointmentDetails(data?.data);
+    } catch (error: any) {
+      toast.error(error.message || "Failed to fetch appointment details");
+    } finally {
+      setIsLoading(false);
+    }
+
+    // Fetch appointment details using the ID
+  };
+  const getPetParentDetails = async () => {
+    setIsLoading(true);
+    try {
+      const userId =
+        process.env.NODE_ENV === "development"
+          ? "68a7067782bef66bac0d6b27"
+          : user?.id;
+      console.log("user id", userId);
+      if (!user?.refId) {
+        throw new Error("User reference ID is missing");
+      }
+      const res = await fetch(`/api/user/${userId}`);
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || "Failed to fetch pet parent details");
+      }
+      const data = await res.json();
+      setPetParent(data?.data);
+    } catch (error: any) {
+      toast.error(error.message || "Failed to fetch pet parent details");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  console.log("pet parent  details", petParent);
+  useEffect(() => {
+    if (user) {
+      getPetParentDetails();
+    }
+    if (id) {
+      getAppointmentDetails();
+    }
+  }, [id, user]);
+  if (isLoading) {
+    return (
+      <div className="h-screen flex gap-x-3 items-center justify-center">
+        <h1> Loading...</h1>
+        <Loader />
+      </div>
+    );
+  }
+
+  if (!appointmentDetails && !isLoading) {
+    return (
+      <div className="h-screen flex flex-col gap-y-3 items-center justify-center">
+        <h1 className="text-xl font-semibold">No appointment found</h1>
+        <p className="text-gray-600">
+          We couldn't find the appointment details. Please check the link or
+          contact support.
+        </p>
+        <button
+          onClick={() => router.push("/")}
+          className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+        >
+          Go to Home
+        </button>
+      </div>
+    );
+  }
   return (
     <div
       style={{
@@ -509,25 +690,22 @@ const VideoCall: React.FC<VideoCallProps> = ({ onEndCall }) => {
           <div className="flex items-center justify-between p-6 absolute top-0 left-0 right-0 z-10">
             <div className="flex items-center gap-3">
               <Avatar className="w-10 h-10">
-                <AvatarImage src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face" />
-                <AvatarFallback>MM</AvatarFallback>
+                {petParent?.profileImage && (
+                  <AvatarImage src={petParent?.profileImage} />
+                )}
+                {/* <AvatarImage src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face" /> */}
+                <AvatarFallback>
+                  {petParent?.name?.toUpperCase()?.split("").slice(0, 1)}
+                </AvatarFallback>
               </Avatar>
               <div className="text-white">
-                <div className="font-semibold text-lg">Mohammed Mohiuddin</div>
+                <div className="font-semibold text-lg">{petParent?.name}</div>
                 <div className="flex items-center gap-1">
                   <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                   <span className="text-sm text-gray-300">Online</span>
                 </div>
               </div>
             </div>
-
-            <Button
-              onClick={endCall}
-              className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg flex items-center gap-2"
-            >
-              <FaPhoneSlash className="w-4 h-4" />
-              End Call
-            </Button>
           </div>
 
           {/* Main Video Area */}
@@ -647,7 +825,8 @@ const VideoCall: React.FC<VideoCallProps> = ({ onEndCall }) => {
                   <div className="p-4">
                     {!isVirtualBackgroundSupported && (
                       <div className="text-yellow-500 mb-4 text-sm">
-                        Virtual background is not supported on your device/browser.
+                        Virtual background is not supported on your
+                        device/browser.
                       </div>
                     )}
                     <div className="grid grid-cols-3 gap-4">
@@ -677,7 +856,10 @@ const VideoCall: React.FC<VideoCallProps> = ({ onEndCall }) => {
                   </div>
                   <DrawerFooter>
                     <DrawerClose asChild>
-                      <Button variant="outline" className="bg-gray-800 text-white">
+                      <Button
+                        variant="outline"
+                        className="bg-gray-800 text-white"
+                      >
                         Close
                       </Button>
                     </DrawerClose>
@@ -765,6 +947,13 @@ const VideoCall: React.FC<VideoCallProps> = ({ onEndCall }) => {
           </div>
         </div>
       </div>
+      <PostCallModal
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+        doctorId="123"
+        docType="Parent"
+        appointmentDetails={appointmentDetails}
+      />
     </div>
   );
 };

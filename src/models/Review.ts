@@ -10,7 +10,7 @@ export interface IReview extends Document {
   appointmentDate: string;
 
   // References to other models
-  doctorId: mongoose.Types.ObjectId;
+  vetId: mongoose.Types.ObjectId;
   parentId: mongoose.Types.ObjectId;
 
   // Soft delete flag
@@ -23,7 +23,7 @@ export interface IReview extends Document {
 
 // Static methods interface
 export interface IReviewModel extends Model<IReview> {
-  findByDoctorId(doctorId: mongoose.Types.ObjectId): Promise<IReview[]>;
+  findByDoctorId(vetId: mongoose.Types.ObjectId): Promise<IReview[]>;
   findByParentId(parentId: mongoose.Types.ObjectId): Promise<IReview[]>;
   findVisibleReviews(): Promise<IReview[]>;
   findReviewsByRating(rating: number): Promise<IReview[]>;
@@ -31,8 +31,8 @@ export interface IReviewModel extends Model<IReview> {
     startDate: string,
     endDate: string
   ): Promise<IReview[]>;
-  getAverageRating(doctorId: mongoose.Types.ObjectId): Promise<number>;
-  getReviewStats(doctorId: mongoose.Types.ObjectId): Promise<{
+  getAverageRating(vetId: mongoose.Types.ObjectId): Promise<number>;
+  getReviewStats(vetId: mongoose.Types.ObjectId): Promise<{
     totalReviews: number;
     averageRating: number;
     ratingDistribution: { [key: number]: number };
@@ -42,7 +42,7 @@ export interface IReviewModel extends Model<IReview> {
   restore(reviewId: mongoose.Types.ObjectId): Promise<IReview | null>;
   findDeletedReviews(): Promise<IReview[]>;
   findDeletedReviewsByDoctorId(
-    doctorId: mongoose.Types.ObjectId
+    vetId: mongoose.Types.ObjectId
   ): Promise<IReview[]>;
   findDeletedReviewsByParentId(
     parentId: mongoose.Types.ObjectId
@@ -93,10 +93,10 @@ const reviewSchema = new Schema<IReview>(
     },
 
     // References to other models
-    doctorId: {
+    vetId: {
       type: Schema.Types.ObjectId,
       ref: "Veterinarian",
-      required: [true, "Doctor ID is required"],
+      required: [true, "Veterinarian ID is required"],
     },
     parentId: {
       type: Schema.Types.ObjectId,
@@ -118,7 +118,7 @@ const reviewSchema = new Schema<IReview>(
 );
 
 // Indexes for better query performance
-reviewSchema.index({ doctorId: 1, visible: 1, isDeleted: 1 });
+reviewSchema.index({ vetId: 1, visible: 1, isDeleted: 1 });
 reviewSchema.index({ parentId: 1, isDeleted: 1 });
 reviewSchema.index({ rating: 1, isDeleted: 1 });
 reviewSchema.index({ createdAt: -1, isDeleted: 1 });
@@ -127,9 +127,9 @@ reviewSchema.index({ isDeleted: 1 });
 
 // Static methods
 reviewSchema.statics.findByDoctorId = function (
-  doctorId: mongoose.Types.ObjectId
+  vetId: mongoose.Types.ObjectId
 ) {
-  return this.find({ doctorId, visible: true, isDeleted: { $ne: true } }).sort({
+  return this.find({ vetId, visible: true, isDeleted: { $ne: true } }).sort({
     createdAt: -1,
   });
 };
@@ -168,20 +168,20 @@ reviewSchema.statics.findReviewsByDateRange = function (
 };
 
 reviewSchema.statics.getAverageRating = async function (
-  doctorId: mongoose.Types.ObjectId
+  vetId: mongoose.Types.ObjectId
 ) {
   const result = await this.aggregate([
-    { $match: { doctorId, visible: true, isDeleted: { $ne: true } } },
+    { $match: { vetId, visible: true, isDeleted: { $ne: true } } },
     { $group: { _id: null, averageRating: { $avg: "$rating" } } },
   ]);
   return result.length > 0 ? Math.round(result[0].averageRating * 10) / 10 : 0;
 };
 
 reviewSchema.statics.getReviewStats = async function (
-  doctorId: mongoose.Types.ObjectId
+  vetId: mongoose.Types.ObjectId
 ) {
   const result = await this.aggregate([
-    { $match: { doctorId, visible: true, isDeleted: { $ne: true } } },
+    { $match: { vetId, visible: true, isDeleted: { $ne: true } } },
     {
       $group: {
         _id: null,
@@ -228,9 +228,9 @@ reviewSchema.statics.findDeletedReviews = function () {
 };
 
 reviewSchema.statics.findDeletedReviewsByDoctorId = function (
-  doctorId: mongoose.Types.ObjectId
+  vetId: mongoose.Types.ObjectId
 ) {
-  return this.find({ doctorId, isDeleted: true }).sort({ createdAt: -1 });
+  return this.find({ vetId, isDeleted: true }).sort({ createdAt: -1 });
 };
 
 reviewSchema.statics.findDeletedReviewsByParentId = function (
