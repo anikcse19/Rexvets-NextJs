@@ -10,8 +10,9 @@ import {
   ExistsingAvailability as ExistingAvailabilityType,
   SlotPeriod,
 } from "@/lib/types";
-import { formatDateRange, getDaysBetween } from "@/lib/utils";
+import { getDaysBetween } from "@/lib/utils";
 import { format } from "date-fns";
+import moment from "moment";
 import { useSession } from "next-auth/react";
 import DateRangeCalendar from "./DateRangeCalender";
 import TimeSlotCreator from "./TimeSlotCreator";
@@ -36,11 +37,11 @@ export default function AvailabilityManager() {
 
   const user = session?.user as SessionUserWithRefId | undefined;
 
-  console.log("Session data:", session);
-  console.log("Session user:", user);
-  console.log("Selected range:", selectedRange);
-  console.log("User refId:", user?.refId);
-
+  // console.log("Session data:", session);
+  // console.log("Session user:", user);
+  // console.log("Selected range:", selectedRange);
+  // console.log("User refId:", user?.refId);
+  console.log("SELECTED DATE RANGE:", selectedRange);
   const handleSaveSlots = async (slotPeriods: SlotPeriod[]) => {
     if (!selectedRange || !user?.refId) {
       toast.error("Please select a date range and ensure you are logged in");
@@ -49,9 +50,13 @@ export default function AvailabilityManager() {
 
     console.log("slots from final save", slotPeriods);
     try {
+      const dateRange = {
+        start: format(selectedRange.start, "yyyy-MM-dd"),
+        end: format(selectedRange.end, "yyyy-MM-dd"),
+      };
       // Prepare the API request data
       const requestData: CreateAvailabilityRequest = {
-        dateRange: formatDateRange(selectedRange.start, selectedRange.end),
+        dateRange: dateRange,
         slotPeriods: slotPeriods.map((slot) => ({
           start: slot.start.toTimeString().slice(0, 5), // Format as "HH:mm"
           end: slot.end.toTimeString().slice(0, 5), // Format as "HH:mm"

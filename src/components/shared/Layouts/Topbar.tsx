@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Menu, Bell } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { useSession } from "next-auth/react";
 
 interface TopbarProps {
   title?: string;
@@ -15,8 +16,9 @@ interface TopbarProps {
 export default function Topbar({
   title = "Dashboard",
   onMenuClick,
-  // sidebarOpen = false,
-}: TopbarProps) {
+}: // sidebarOpen = false,
+TopbarProps) {
+  const { data: session } = useSession();
   return (
     <header className="h-16 lg:h-20 bg-[#1C1B36] border-b border-slate-800 flex items-center justify-between px-4 lg:px-6 text-white shadow-sm">
       <div className="flex items-center gap-4">
@@ -49,8 +51,13 @@ export default function Topbar({
         {/* User profile */}
         <div className="flex items-center gap-2 lg:gap-3">
           <div className="hidden sm:block text-right">
-            <p className="text-sm font-medium">Dr. Anik Deb</p>
-            <p className="text-xs text-muted-foreground">Veterinarian</p>
+            <p className="text-sm font-medium">
+              {session?.user?.role !== "pet_parent" && "Dr. "}
+              {session?.user?.name}
+            </p>
+            <p className="text-xs text-muted-foreground capitalize">
+              {session?.user?.role.replace("_", " ")}
+            </p>
           </div>
 
           <Avatar className="w-8 h-8 lg:w-10 lg:h-10">

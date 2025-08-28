@@ -1,105 +1,75 @@
-import { model, Schema, Types } from "mongoose";
-export enum PrescriptionStatus {
-  ACTIVE = "active",
-  EXPIRED = "expired",
-  CANCELLED = "cancelled",
-}
-export interface IPrescription {
-  _id?: Types.ObjectId;
-  veterinarian: Types.ObjectId; // Reference to Vet User
-  petOwner: Types.ObjectId; // Reference to Pet Owner User
-  pet: Types.ObjectId; // Reference to Pet
+// models/Prescription.js
+import mongoose, { Document, model, Schema, Types } from "mongoose";
 
-  appointmentId: Types.ObjectId; // Optional: link to telehealth consultation
-  prescriptionDate: Date;
-  expirationDate?: Date; // Optional expiration date for medications
+const quantityUnits = ["tablet", "ml", "capsule", "packet", "drop", "other"];
+const strengthUnits = ["mg", "g", "mcg", "IU", "ml", "other"];
 
-  diagnosis: string; // Vet diagnosis
-  notes?: string; // Additional notes for owner or pharmacy
-
-  medications: {
-    name: string;
-    dosage: string; // e.g., "5 mg/kg"
-    frequency: string; // e.g., "Twice daily"
-    duration: string; // e.g., "7 days"
-    route?: string; // e.g., oral, injection
-    instructions?: string; // Additional instructions
-  }[];
-
-  labTests?: {
-    name: string;
-    instructions?: string;
-    scheduledDate?: Date;
-  }[];
-
-  followUp?: {
-    date?: Date;
-    notes?: string;
-  };
-
-  status: PrescriptionStatus;
-
-  createdAt?: Date;
-  updatedAt?: Date;
-}
-
-const MedicationSchema = new Schema(
+const MedicationDetailSchema = new Schema(
   {
-    name: { type: String, required: true },
-    dosage: { type: String, required: true },
-    frequency: { type: String, required: true },
-    duration: { type: String, required: true },
-    route: { type: String },
-    instructions: { type: String },
+    name: { type: String, required: true, trim: true },
+    form: { type: String, trim: true }, // e.g. tablet, syrup
+    medicationQuantity: { type: Number, required: true, min: 0 },
+    quantityUnit: { type: String, enum: quantityUnits, required: true },
+    strength: { type: Number, min: 0 },
+    strengthUnit: { type: String, enum: strengthUnits },
   },
   { _id: false }
 );
 
-const LabTestSchema = new Schema(
+const UsageInstructionSchema = new Schema(
   {
-    name: { type: String, required: true },
-    instructions: { type: String },
-    scheduledDate: { type: Date },
+    refills: { type: Number, default: 0, min: 0 },
+    refillsGap: { type: Number, default: 0, min: 0 }, // days
+    directionForUse: { type: String, trim: true },
   },
   { _id: false }
 );
 
-const FollowUpSchema = new Schema(
+const PharmacySchema = new Schema(
   {
-    date: { type: Date },
-    notes: { type: String },
+    canUseGenericSubs: { type: Boolean, default: true },
+    canFilledHumanPharmacy: { type: Boolean, default: false },
+    noteToPharmacist: { type: String, trim: true },
   },
   { _id: false }
 );
 
-const VetPrescriptionSchema = new Schema<IPrescription>(
+const PrescriptionSchema = new Schema(
   {
-    // clinic: { type: Types.ObjectId, ref: "Clinic", required: true },
-    veterinarian: { type: Schema.Types.ObjectId, ref: "User", required: true },
-    petOwner: { type: Schema.Types.ObjectId, ref: "User", required: true },
-    pet: { type: Schema.Types.ObjectId, ref: "Pet", required: true },
-    appointmentId: { type: Schema.Types.ObjectId, ref: "Appointment" },
-
-    prescriptionDate: { type: Date, default: Date.now },
-    expirationDate: { type: Date },
-
-    diagnosis: { type: String, required: true },
-    notes: { type: String },
-
-    medications: { type: [MedicationSchema], default: [] },
-    labTests: { type: [LabTestSchema], default: [] },
-    followUp: { type: FollowUpSchema },
-
-    status: {
-      type: String,
-      enum: Object.values(PrescriptionStatus),
-      default: PrescriptionStatus.ACTIVE,
+    veterinarian: {
+      type: Schema.Types.ObjectId,
+      ref: "Veterinarian",
+      required: true,
     },
+    petParent: {
+      type: Schema.Types.ObjectId,
+      ref: "PetParent",
+      required: true,
+    },
+    appointment: {
+      type: Schema.Types.ObjectId,
+      ref: "Appointment",
+      required: true,
+    },
+    pet: { type: Schema.Types.ObjectId, ref: "Pet", required: true },
+
+    medication_details: { type: [MedicationDetailSchema], required: true },
+    usage_instruction: { type: UsageInstructionSchema, default: {} },
+    pharmacy: { type: PharmacySchema, default: {} },
+
+    pdfLink: { type: String },
+    pdfPublicId: { type: String },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+  }
 );
 
-export const PrescriptionModel = model<IPrescription>(
-  "Prescription",
-  VetPrescriptionSchema
-);
+PrescriptionSchema.index({ appointment: 1 });
+PrescriptionSchema.index({ veterinarian: 1 });
+PrescriptionSchema.index({ pet: 1 });
+PrescriptionSchema.index({ petParent: 1 });
+
+export const PrescriptionModel =
+  mongoose.models.Prescription ||
+  model<Document>("Prescription", PrescriptionSchema);

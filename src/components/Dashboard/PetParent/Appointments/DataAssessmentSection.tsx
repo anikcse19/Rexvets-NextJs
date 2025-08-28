@@ -1,10 +1,9 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { FileText, Calendar, User, Stethoscope, Eye } from "lucide-react";
-
-
+import { DataAssessmentPlan } from "@/lib/types/dataAssessmentPlan";
 
 // Mock data for existing assessments (read-only for pet parents)
 const mockAssessments = [
@@ -29,8 +28,17 @@ const mockAssessments = [
     doctorName: "Dr. Anik Rahman",
   },
 ];
+interface DataAssessmentSectionProps {
+  appointmentId: string;
+}
 
-export default function DataAssessmentSection() {
+export default function DataAssessmentSection({
+  appointmentId,
+}: DataAssessmentSectionProps) {
+  const [assessments, setAssessments] = useState<DataAssessmentPlan[]>([]);
+
+  console.log("Appointment ID in DataAssessmentSection:", appointmentId);
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
@@ -38,6 +46,30 @@ export default function DataAssessmentSection() {
       day: "numeric",
     });
   };
+
+  const formatTime = (dateString: string) => {
+    return new Date(dateString).toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  const fetchAssessments = async () => {
+    try {
+      const res = await fetch(
+        `/api/data-assessment-plans/appointment/${appointmentId}`
+      );
+      const data = await res.json();
+      console.log("Fetched assessments:", data);
+      setAssessments(data?.data);
+    } catch (error) {
+      console.error("Error fetching assessments:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchAssessments();
+  }, []);
 
   return (
     <Card className="shadow-lg border-0 bg-white overflow-hidden">
@@ -59,7 +91,7 @@ export default function DataAssessmentSection() {
 
       <CardContent className="p-6">
         <div className="space-y-6">
-          {mockAssessments.length === 0 ? (
+          {assessments.length === 0 ? (
             <div className="text-center py-12">
               <div className="bg-gray-100 p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
                 <FileText className="w-8 h-8 text-gray-400" />
@@ -73,8 +105,8 @@ export default function DataAssessmentSection() {
             </div>
           ) : (
             <div className="space-y-4">
-              {mockAssessments.map((assessment, index) => (
-                <div key={assessment.id} className="group">
+              {assessments.map((assessment, index) => (
+                <div key={assessment._id} className="group">
                   <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-white via-gray-50 to-purple-50/30 border border-gray-200/60 hover:border-purple-300/60 transition-all duration-300 hover:shadow-xl">
                     {/* Header */}
                     <div className="p-4 border-b border-gray-100 bg-gradient-to-r from-purple-50 to-indigo-50">
@@ -85,13 +117,13 @@ export default function DataAssessmentSection() {
                           </div>
                           <div>
                             <p className="font-semibold text-gray-900">
-                              Assessment #{mockAssessments.length - index}
+                              Assessment #{assessments.length - index}
                             </p>
                             <div className="flex items-center gap-2 text-sm text-gray-600">
                               <Calendar className="w-3 h-3" />
                               <span>
-                                {formatDate(assessment.date)} at{" "}
-                                {assessment.time}
+                                {formatDate(assessment.createdAt)} at{" "}
+                                {formatTime(assessment.createdAt)}{" "}
                               </span>
                             </div>
                           </div>
@@ -99,7 +131,7 @@ export default function DataAssessmentSection() {
                         <div className="flex items-center gap-2">
                           <User className="w-3 h-3 text-gray-500" />
                           <span className="text-sm text-gray-600">
-                            {assessment.doctorName}
+                            {assessment.veterinarian.name}
                           </span>
                         </div>
                       </div>

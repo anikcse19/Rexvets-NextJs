@@ -28,13 +28,22 @@ export const generateAppointmentSlots = async (
   } = data;
 
   try {
-    // Convert date range to UTC and normalize to start/end of day
-    const startDate = moment(dateRange.start).utc().startOf("day");
-    const endDate = moment(dateRange.end).utc().endOf("day");
+    // Parse dates as UTC without timezone conversion
+    const startDate = moment.utc(dateRange.start, "YYYY-MM-DD").startOf("day");
+    const endDate = moment.utc(dateRange.end, "YYYY-MM-DD").endOf("day");
+    console.log("start date:", startDate);
+    console.log("end date:", endDate);
+    // Get current UTC datetime for comparison
+    const currentUtc = moment.utc();
 
     // Validate date range
     if (endDate.isBefore(startDate)) {
       throw new Error("Invalid date range: end date must be after start date");
+    }
+    console.log("currentUtc", currentUtc);
+    // Check if any date in the range is in the past
+    if (startDate.isBefore(currentUtc)) {
+      throw new Error("Cannot create slots for past dates");
     }
 
     // Check for existing slots for this vet in the date range
@@ -55,15 +64,6 @@ export const generateAppointmentSlots = async (
           "YYYY-MM-DD"
         )}. Please delete existing slots first.`
       );
-      // return {
-      //   success: false,
-      //   message: `Appointment slots already exist for this vet between ${startDate.format(
-      //     "YYYY-MM-DD"
-      //   )} and ${endDate.format(
-      //     "YYYY-MM-DD"
-      //   )}. Please delete existing slots first.`,
-      //   existingSlotsCount: existingSlots.length,
-      // };
     }
 
     const slotsToCreate: any[] = [];
@@ -74,23 +74,36 @@ export const generateAppointmentSlots = async (
       const currentDate = startDate.clone().add(day, "days");
       const utcDate = currentDate.toDate();
 
+      // Skip if this specific day is in the past
+      if (currentDate.isBefore(currentUtc)) {
+        continue;
+      }
+
       // Process each slot period for this day
       for (const period of slotPeriods) {
-        // Parse the time from slotPeriods and combine with current date
-        const periodStart = moment(
-          `${currentDate.format("YYYY-MM-DD")} ${period.start}`,
-          "YYYY-MM-DD HH:mm"
-        ).utc();
-        const periodEnd = moment(
-          `${currentDate.format("YYYY-MM-DD")} ${period.end}`,
-          "YYYY-MM-DD HH:mm"
-        ).utc();
+        // Parse time strings directly as UTC times for the current date
+        const periodStart = moment.utc(
+          `${currentDate.format("YYYY-MM-DD")}T${period.start}:00.000Z`
+        );
+        const periodEnd = moment.utc(
+          `${currentDate.format("YYYY-MM-DD")}T${period.end}:00.000Z`
+        );
+
+        // Handle 24:00 end time (convert to next day 00:00)
+        if (period.end === "24:00") {
+          periodEnd.add(1, "day").startOf("day");
+        }
 
         // Validate that the period is valid
         if (periodEnd.isSameOrBefore(periodStart)) {
           throw new Error(
             `Invalid time period: end time ${period.end} must be after start time ${period.start}`
           );
+        }
+
+        // Skip this period if it's already in the past (for today)
+        if (periodEnd.isBefore(currentUtc)) {
+          continue;
         }
 
         // Calculate total time needed per slot (duration + buffer)
@@ -107,6 +120,12 @@ export const generateAppointmentSlots = async (
           // If the slot would extend beyond the period end, break
           if (currentSlotEnd.isAfter(periodEnd)) {
             break;
+          }
+
+          // Skip slots that are in the past
+          if (currentSlotEnd.isBefore(currentUtc)) {
+            currentSlotStart = currentSlotEnd.clone();
+            continue;
           }
 
           // Create slot data with ISO 8601 UTC format for times
@@ -146,8 +165,8 @@ export const generateAppointmentSlots = async (
       )} and ${endDate.format("YYYY-MM-DD")}`,
       slotsCount: slotsToCreate.length,
       dateRange: {
-        start: startDate.toDate(),
-        end: endDate.toDate(),
+        start: startDate.format("YYYY-MM-DD"),
+        end: endDate.format("YYYY-MM-DD"),
       },
       slotDuration,
       bufferBetweenSlots,
@@ -157,7 +176,6 @@ export const generateAppointmentSlots = async (
     throw new Error(`Failed to generate appointment slots: ${error.message}`);
   }
 };
-
 export interface IUpdateAppointmentSlots {
   vetId: string;
   slotPeriods: {
@@ -403,7 +421,7 @@ export const getAppointmentSlots = async (
       baseQuery.status = status;
     } else {
       // If status is ALL, still exclude booked and blocked slots for booking purposes
-      baseQuery.status = { $in: [SlotStatus.AVAILABLE, SlotStatus.PENDING] };
+      baseQuery.status = { $in: [SlotStatus.AVAILABLE] };
     }
 
     // Filter out past dates and times

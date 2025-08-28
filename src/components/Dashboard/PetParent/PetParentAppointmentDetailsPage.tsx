@@ -239,7 +239,9 @@ export default function PetParentAppointmentDetailsPage({
 
           {/* Middle Column - Data Assessment & Prescription */}
           <div className="xl:col-span-1 space-y-6">
-            <DataAssessmentSection />
+            {appointmentDetails?._id && (
+              <DataAssessmentSection appointmentId={appointmentDetails?._id} />
+            )}
             <PrescriptionSection />
           </div>
 
