@@ -17,7 +17,7 @@ const Page = async ({ params }: PageProps) => {
   // fetch data using the dynamic id
   const doctorData = await getVetById(doctorId);
 
-  console.log("doctor get by id", doctorData);
+  // console.log("doctor get by id", doctorData);
 
   return (
     <div>

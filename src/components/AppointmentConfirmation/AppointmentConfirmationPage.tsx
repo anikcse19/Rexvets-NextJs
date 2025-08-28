@@ -3,11 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   User,
   MapPin,
@@ -47,6 +43,7 @@ export default function AppointmentConfirmation() {
     lastDonationDate?: string;
   } | null>(null);
   const [isCheckingDonation, setIsCheckingDonation] = useState(true);
+  const [pets, setPets] = useState<any[]>([]);
 
   const { data: session } = useSession();
 
@@ -92,6 +89,22 @@ export default function AppointmentConfirmation() {
     checkAccess();
   }, [session?.user?.refId]);
 
+  // Fetch pets when session is available
+  useEffect(() => {
+    const fetchPets = async () => {
+      if (session?.user?.refId) {
+        try {
+          const petsData = await getPetsByParent(session.user.refId);
+          setPets(petsData);
+        } catch (error) {
+          console.error("Error fetching pets:", error);
+        }
+      }
+    };
+
+    fetchPets();
+  }, [session?.user?.refId]);
+
   const completeAppointment = async () => {
     // Prevent multiple submissions
     if (isProcessing) {
@@ -133,6 +146,11 @@ export default function AppointmentConfirmation() {
         details: moreDetails,
       });
 
+      // Generate meeting link
+      const roomId = `${session.user.refId?.slice(0, 4)}${veterinarian?._id?.slice(0, 4)}${Date.now().toString(36)}`;
+      const meetingLink = `https://rexvets-nextjs.vercel.app/video-call/?${encodeURIComponent(roomId)}`;
+      console.log("Generated meeting link:", meetingLink);
+
       const appointmentCreateData = {
         veterinarian: veterinarian?._id,
         petParent: session.user.refId,
@@ -145,6 +163,7 @@ export default function AppointmentConfirmation() {
         appointmentType: "general_checkup",
         isFollowUp: false,
         concerns: allConcerns,
+        meetingLink: meetingLink,
       };
 
       const res = await fetch("/api/appointments", {
@@ -175,6 +194,8 @@ export default function AppointmentConfirmation() {
         } catch (error) {
           console.error("Error updating donation status:", error);
         }
+
+        // Emails are sent server-side after appointment creation
 
         toast.success("Appointment successfully created!");
         localStorage.removeItem("doctorData");

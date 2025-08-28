@@ -1,5 +1,5 @@
 import { connectToDatabase } from "@/lib/mongoose";
-import { PrescriptionModel } from "@/models/Prescription";
+import { PrescriptionModel } from "@/models";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(

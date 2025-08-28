@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import cloudinary from "@/lib/cloudinary";
 import { connectToDatabase } from "@/lib/mongoose";
-import { PrescriptionModel } from "@/models/Prescription";
+import { PrescriptionModel } from "@/models";
 
 export async function GET(
   _: NextRequest,

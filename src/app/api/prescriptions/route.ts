@@ -17,19 +17,104 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
 
     const filter: any = {};
-    if (searchParams.get("appointment"))
-      filter.appointment = searchParams.get("appointment");
-    if (searchParams.get("veterinarian"))
-      filter.veterinarian = searchParams.get("veterinarian");
-    if (searchParams.get("pet")) filter.pet = searchParams.get("pet");
-    if (searchParams.get("petParent"))
-      filter.petParent = searchParams.get("petParent");
+    if (searchParams.get("appointment")) {
+      const appointmentId = searchParams.get("appointment");
+      if (appointmentId && /^[0-9a-fA-F]{24}$/.test(appointmentId)) {
+        filter.appointment = appointmentId;
+      }
+    }
+    if (searchParams.get("veterinarian")) {
+      const veterinarianId = searchParams.get("veterinarian");
+      if (veterinarianId && /^[0-9a-fA-F]{24}$/.test(veterinarianId)) {
+        filter.veterinarian = veterinarianId;
+      }
+    }
+    if (searchParams.get("pet")) {
+      const petId = searchParams.get("pet");
+      if (petId && /^[0-9a-fA-F]{24}$/.test(petId)) {
+        filter.pet = petId;
+      }
+    }
+    if (searchParams.get("petParent")) {
+      const petParentId = searchParams.get("petParent");
+      if (petParentId && /^[0-9a-fA-F]{24}$/.test(petParentId)) {
+        filter.petParent = petParentId;
+      }
+    }
+    
+    // Check if we should filter out orphaned prescriptions
+    const excludeOrphaned = searchParams.get("excludeOrphaned") === "true";
 
-    const prescriptions = await PrescriptionModel.find(filter)
-      // .populate("veterinarian")
-      // .populate("petParent")
-      // .populate("appointment")
-      // .populate("pet")
+    console.log("Filter:", filter);
+    
+    // First, let's see what's in the prescription without populate
+    const rawPrescriptions = await PrescriptionModel.find(filter).sort({ createdAt: -1 });
+    console.log("Raw prescription data:", rawPrescriptions[0] ? {
+      id: rawPrescriptions[0]._id,
+      veterinarian: rawPrescriptions[0].veterinarian,
+      petParent: rawPrescriptions[0].petParent,
+      appointment: rawPrescriptions[0].appointment,
+      pet: rawPrescriptions[0].pet,
+      veterinarianType: typeof rawPrescriptions[0].veterinarian,
+      petParentType: typeof rawPrescriptions[0].petParent
+    } : "No prescriptions found");
+    
+    // Check if referenced documents exist
+    if (rawPrescriptions[0]) {
+      const { VeterinarianModel, PetParentModel, AppointmentModel, PetModel } = await import("@/models");
+      
+      const vetExists = await VeterinarianModel.findById(rawPrescriptions[0].veterinarian);
+      const petParentExists = await PetParentModel.findById(rawPrescriptions[0].petParent);
+      const appointmentExists = await AppointmentModel.findById(rawPrescriptions[0].appointment);
+      const petExists = await PetModel.findById(rawPrescriptions[0].pet);
+      
+      console.log("Referenced documents exist:", {
+        veterinarian: !!vetExists,
+        petParent: !!petParentExists,
+        appointment: !!appointmentExists,
+        pet: !!petExists
+      });
+      
+      if (!vetExists) console.log("Veterinarian not found:", rawPrescriptions[0].veterinarian);
+      if (!petParentExists) console.log("PetParent not found:", rawPrescriptions[0].petParent);
+      if (!appointmentExists) console.log("Appointment not found:", rawPrescriptions[0].appointment);
+      if (!petExists) console.log("Pet not found:", rawPrescriptions[0].pet);
+    }
+    
+    // Let's check what documents actually exist in each collection
+    const { VeterinarianModel, PetParentModel, AppointmentModel, PetModel } = await import("@/models");
+    
+    const vetCount = await VeterinarianModel.countDocuments();
+    const petParentCount = await PetParentModel.countDocuments();
+    const appointmentCount = await AppointmentModel.countDocuments();
+    const petCount = await PetModel.countDocuments();
+    
+    console.log("Documents in collections:", {
+      veterinarians: vetCount,
+      petParents: petParentCount,
+      appointments: appointmentCount,
+      pets: petCount
+    });
+    
+    // Get a few sample documents from each collection
+    const sampleVet = await VeterinarianModel.findOne();
+    const samplePetParent = await PetParentModel.findOne();
+    const sampleAppointment = await AppointmentModel.findOne();
+    const samplePet = await PetModel.findOne();
+    
+    console.log("Sample documents:", {
+      veterinarian: sampleVet ? { id: sampleVet._id, name: sampleVet.name } : null,
+      petParent: samplePetParent ? { id: samplePetParent._id, name: samplePetParent.name } : null,
+      appointment: sampleAppointment ? { id: sampleAppointment._id, date: sampleAppointment.appointmentDate } : null,
+      pet: samplePet ? { id: samplePet._id, name: samplePet.name } : null
+    });
+    
+    // Try populate with explicit model references
+    let prescriptions = await PrescriptionModel.find(filter)
+      .populate("veterinarian", "name email specialization")
+      .populate("petParent", "name email")
+      .populate("appointment", "appointmentDate status")
+      .populate("pet", "name species breed")
       .sort({ createdAt: -1 });
 
     const response: ISendResponse<typeof prescriptions> = {
