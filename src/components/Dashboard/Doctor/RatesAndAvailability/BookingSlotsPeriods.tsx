@@ -1,6 +1,7 @@
 "use client";
 
 import { Checkbox } from "@/components/ui/checkbox";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { useDashboardContext } from "@/hooks/DashboardContext";
 import { Slot, SlotStatus } from "@/lib";
 import { Check, ChevronDown } from "lucide-react";
@@ -45,10 +46,9 @@ const BookingSlotsPeriods: React.FC<BookingSlotsProps> = ({
         return `${baseStyles} border-green-200 bg-green-50 text-green-700 hover:border-green-300 hover:bg-green-100`;
       case SlotStatus.BOOKED:
         return `${baseStyles} border-red-200 bg-red-50 text-red-700 cursor-not-allowed opacity-75`;
-      case SlotStatus.BLOCKED:
+      case SlotStatus.DISABLED:
         return `${baseStyles} border-gray-300 bg-gray-100 text-gray-500 cursor-not-allowed opacity-75`;
-      case SlotStatus.PENDING:
-        return `${baseStyles} border-yellow-200 bg-yellow-50 text-yellow-700 cursor-not-allowed opacity-75`;
+
       default:
         return `${baseStyles} border-gray-200 bg-white text-gray-700 hover:border-gray-300`;
     }
@@ -60,10 +60,9 @@ const BookingSlotsPeriods: React.FC<BookingSlotsProps> = ({
         return "bg-green-100 text-green-800 border-green-200";
       case SlotStatus.BOOKED:
         return "bg-red-100 text-red-800 border-red-200";
-      case SlotStatus.BLOCKED:
+      case SlotStatus.DISABLED:
         return "bg-gray-100 text-gray-800 border-gray-200";
-      case SlotStatus.PENDING:
-        return "bg-yellow-100 text-yellow-800 border-yellow-200";
+
       default:
         return "bg-gray-100 text-gray-800 border-gray-200";
     }
@@ -75,10 +74,9 @@ const BookingSlotsPeriods: React.FC<BookingSlotsProps> = ({
         return "Available";
       case SlotStatus.BOOKED:
         return "Booked";
-      case SlotStatus.BLOCKED:
-        return "Blocked";
-      case SlotStatus.PENDING:
-        return "Pending";
+      case SlotStatus.DISABLED:
+        return "Disabled";
+
       default:
         return status;
     }
@@ -134,20 +132,25 @@ const BookingSlotsPeriods: React.FC<BookingSlotsProps> = ({
       // Get current date range from the selectedSlot data
       let startDate: string | undefined;
       let endDate: string | undefined;
-      
+
       if (selectedSlot && selectedSlot.length > 0) {
         // Get the first and last dates from the selected slots
-        const dates = selectedSlot.map(slot => slot.formattedDate).sort();
+        const dates = selectedSlot.map((slot) => slot.formattedDate).sort();
         startDate = dates[0];
         endDate = dates[dates.length - 1];
       } else {
         // Fallback to current date if no slots available
         const currentDate = new Date();
-        startDate = currentDate.toISOString().split('T')[0];
+        startDate = currentDate.toISOString().split("T")[0];
         endDate = startDate;
       }
 
-      await onUpdateSelectedSlotStatus(selectedStatus, user.refId, startDate, endDate);
+      await onUpdateSelectedSlotStatus(
+        selectedStatus,
+        user.refId,
+        startDate,
+        endDate
+      );
       setSelectedStatus(null);
       setSelectedSlotIds([]);
     } catch (error) {
@@ -289,7 +292,7 @@ const BookingSlotsPeriods: React.FC<BookingSlotsProps> = ({
       </div>
 
       {/* Slots Display */}
-      <div className="space-y-8 w-full ">
+      <ScrollArea className="space-y-8 w-full  h-[70vh] pb-2">
         {Object.keys(groupedSlots ?? {})?.length === 0 ? (
           <div className="text-center py-12">
             <div className="text-gray-500 text-lg">
@@ -364,7 +367,7 @@ const BookingSlotsPeriods: React.FC<BookingSlotsProps> = ({
               </div>
             ))
         )}
-      </div>
+      </ScrollArea>
     </div>
   );
 };

@@ -63,6 +63,8 @@ type DashboardContextType = {
   ) => Promise<void>;
   selectedRange: DateRange | null;
   setSelectedRange: React.Dispatch<React.SetStateAction<DateRange | null>>;
+  disabledSlotIds: string[];
+  setDisabledSlotIds: React.Dispatch<React.SetStateAction<string[]>>;
 };
 
 // 2. Create context with default values
@@ -89,6 +91,7 @@ export const DashboardProvider: React.FC<DashboardProviderProps> = ({
   const [availableSlotsApiResponse, setAvailableSlotsApiResponse] =
     useState<IAvailableApiResponseState>(initialApiResponseState);
   const [selectedRange, setSelectedRange] = useState<DateRange | null>(null);
+  const [disabledSlotIds, setDisabledSlotIds] = useState<string[]>([]);
 
   const getAvailableSlots = useCallback(
     async (startDate: string, endDate: string, refId: string) => {
@@ -233,6 +236,8 @@ export const DashboardProvider: React.FC<DashboardProviderProps> = ({
         getAvailableSlots,
         selectedRange,
         setSelectedRange,
+        disabledSlotIds,
+        setDisabledSlotIds,
       }}
     >
       {children}

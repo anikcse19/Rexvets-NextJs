@@ -257,4 +257,5 @@ export interface CreateAvailabilityRequest {
     start: string;
     end: string;
   }[];
+  overwriteExisting?: boolean;
 }
