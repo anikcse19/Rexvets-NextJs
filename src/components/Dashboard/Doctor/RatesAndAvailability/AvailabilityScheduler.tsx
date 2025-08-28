@@ -274,12 +274,7 @@ const AvailabilityScheduler: React.FC<Props> = ({
                                 (slot) => slot?._id
                               );
                               console.log("slotIds:", slotIds);
-                              setDisabledSlotIds((prev) => {
-                                if (prev) {
-                                  return [...prev, ...slotIds];
-                                }
-                                return slotIds;
-                              });
+                              setDisabledSlotIds(slotIds || []);
                               setEnabled(!enabled);
                             }}
                             className={cn(
