@@ -11,11 +11,12 @@ import {
 
 export async function GET(
   _req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     await connectToDatabase();
-    const doc: any = await DataAssessmentPlanModel.findById(params.id)
+    const doc: any = await DataAssessmentPlanModel.findById(id)
       .populate("veterinarian", "name email")
       .lean();
     if (!doc || doc.isDeleted) {
@@ -49,13 +50,14 @@ export async function GET(
 // PUT fully/partially update (except when already FINALIZED)
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     await connectToDatabase();
     const body = await req.json();
 
-    const current = await DataAssessmentPlanModel.findById(params.id);
+    const current = await DataAssessmentPlanModel.findById(id);
     if (!current || current.isDeleted) {
       const response: IErrorResponse = {
         success: false,
@@ -86,7 +88,7 @@ export async function PUT(
     if (typeof body.status === "string") updatable.status = body.status; // allow status change to FINALIZED here if you want
 
     const updated = await DataAssessmentPlanModel.findByIdAndUpdate(
-      params.id,
+      id,
       updatable,
       { new: true }
     );
@@ -113,12 +115,13 @@ export async function PUT(
 // Soft delete
 export async function DELETE(
   _req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     await connectToDatabase();
     const doc = await DataAssessmentPlanModel.findByIdAndUpdate(
-      params.id,
+      id,
       { isDeleted: true },
       { new: true }
     );

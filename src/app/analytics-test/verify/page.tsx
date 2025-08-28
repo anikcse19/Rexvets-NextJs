@@ -34,7 +34,7 @@ export default function AnalyticsVerificationPage() {
       }
 
       // Check if gtag function exists
-      if (typeof window !== 'undefined' && window.gtag) {
+      if (typeof window !== 'undefined' && typeof window.gtag === 'function') {
         status.gtagExists = true;
         console.log('✅ gtag function found');
       }
@@ -69,7 +69,7 @@ export default function AnalyticsVerificationPage() {
   }, []);
 
   const testTracking = () => {
-    if (typeof window !== 'undefined' && window.gtag) {
+    if (typeof window !== 'undefined' && typeof window.gtag === 'function') {
       // Test a simple event
       window.gtag('event', 'test_event', {
         event_category: 'test',

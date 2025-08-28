@@ -4,11 +4,12 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { appointmentId: string } }
+  { params }: { params: Promise<{ appointmentId: string }> }
 ) {
+  const { appointmentId } = await params;
   try {
     await connectToDatabase();
-    const { appointmentId } = params;
+
 
     const prescriptions = await PrescriptionModel.find({
       appointment: appointmentId,

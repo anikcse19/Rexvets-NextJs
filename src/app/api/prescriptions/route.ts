@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 
 import cloudinary from "@/lib/cloudinary";
 import { connectToDatabase } from "@/lib/mongoose";
-import { PrescriptionModel } from "@/models/Prescription";
+import { PrescriptionModel } from "@/models";
 import {
   IErrorResponse,
   ISendResponse,
@@ -45,83 +45,34 @@ export async function GET(req: NextRequest) {
     // Check if we should filter out orphaned prescriptions
     const excludeOrphaned = searchParams.get("excludeOrphaned") === "true";
 
-    console.log("Filter:", filter);
-    
-    // First, let's see what's in the prescription without populate
-    const rawPrescriptions = await PrescriptionModel.find(filter).sort({ createdAt: -1 });
-    console.log("Raw prescription data:", rawPrescriptions[0] ? {
-      id: rawPrescriptions[0]._id,
-      veterinarian: rawPrescriptions[0].veterinarian,
-      petParent: rawPrescriptions[0].petParent,
-      appointment: rawPrescriptions[0].appointment,
-      pet: rawPrescriptions[0].pet,
-      veterinarianType: typeof rawPrescriptions[0].veterinarian,
-      petParentType: typeof rawPrescriptions[0].petParent
-    } : "No prescriptions found");
-    
-    // Check if referenced documents exist
-    if (rawPrescriptions[0]) {
-      const { VeterinarianModel, PetParentModel, AppointmentModel, PetModel } = await import("@/models");
-      
-      const vetExists = await VeterinarianModel.findById(rawPrescriptions[0].veterinarian);
-      const petParentExists = await PetParentModel.findById(rawPrescriptions[0].petParent);
-      const appointmentExists = await AppointmentModel.findById(rawPrescriptions[0].appointment);
-      const petExists = await PetModel.findById(rawPrescriptions[0].pet);
-      
-      console.log("Referenced documents exist:", {
-        veterinarian: !!vetExists,
-        petParent: !!petParentExists,
-        appointment: !!appointmentExists,
-        pet: !!petExists
-      });
-      
-      if (!vetExists) console.log("Veterinarian not found:", rawPrescriptions[0].veterinarian);
-      if (!petParentExists) console.log("PetParent not found:", rawPrescriptions[0].petParent);
-      if (!appointmentExists) console.log("Appointment not found:", rawPrescriptions[0].appointment);
-      if (!petExists) console.log("Pet not found:", rawPrescriptions[0].pet);
-    }
-    
-    // Let's check what documents actually exist in each collection
-    const { VeterinarianModel, PetParentModel, AppointmentModel, PetModel } = await import("@/models");
-    
-    const vetCount = await VeterinarianModel.countDocuments();
-    const petParentCount = await PetParentModel.countDocuments();
-    const appointmentCount = await AppointmentModel.countDocuments();
-    const petCount = await PetModel.countDocuments();
-    
-    console.log("Documents in collections:", {
-      veterinarians: vetCount,
-      petParents: petParentCount,
-      appointments: appointmentCount,
-      pets: petCount
-    });
-    
-    // Get a few sample documents from each collection
-    const sampleVet = await VeterinarianModel.findOne();
-    const samplePetParent = await PetParentModel.findOne();
-    const sampleAppointment = await AppointmentModel.findOne();
-    const samplePet = await PetModel.findOne();
-    
-    console.log("Sample documents:", {
-      veterinarian: sampleVet ? { id: sampleVet._id, name: sampleVet.name } : null,
-      petParent: samplePetParent ? { id: samplePetParent._id, name: samplePetParent.name } : null,
-      appointment: sampleAppointment ? { id: sampleAppointment._id, date: sampleAppointment.appointmentDate } : null,
-      pet: samplePet ? { id: samplePet._id, name: samplePet.name } : null
-    });
-    
-    // Try populate with explicit model references
-    let prescriptions = await PrescriptionModel.find(filter)
+    const prescriptions = await PrescriptionModel.find(filter)
       .populate("veterinarian", "name email specialization")
       .populate("petParent", "name email")
       .populate("appointment", "appointmentDate status")
       .populate("pet", "name species breed")
       .sort({ createdAt: -1 });
 
-    const response: ISendResponse<typeof prescriptions> = {
+    // Filter out prescriptions with missing references if requested
+    let finalPrescriptions = prescriptions;
+    if (excludeOrphaned) {
+      finalPrescriptions = prescriptions.filter(prescription => 
+        prescription.veterinarian && 
+        prescription.petParent && 
+        prescription.appointment && 
+        prescription.pet
+      );
+    }
+
+    const orphanedCount = prescriptions.length - finalPrescriptions.length;
+    const message = orphanedCount > 0 
+      ? `Prescriptions fetched successfully. ${orphanedCount} prescriptions have missing references.`
+      : "Prescriptions fetched successfully";
+
+    const response: ISendResponse<typeof finalPrescriptions> = {
       success: true,
-      data: prescriptions,
+      data: finalPrescriptions,
       statusCode: 201,
-      message: "Prescriptions fetched successfully",
+      message,
     };
     return sendResponse(response);
   } catch (error: any) {

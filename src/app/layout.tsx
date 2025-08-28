@@ -5,6 +5,7 @@ import "./globals.css";
 import { Toaster } from "sonner";
 import GoogleAnalytics, { GoogleTagManagerNoScript, GoogleAnalyticsScript } from "@/components/GoogleAnalytics";
 import PerformanceMonitor from "@/components/PerformanceMonitor";
+import { Suspense } from "react";
 
 const garet = localFont({
   src: [
@@ -422,9 +423,11 @@ export default function RootLayout({
         {/* Performance Monitor */}
         <PerformanceMonitor>
           {/* Google Analytics Provider */}
-          <GoogleAnalytics>
-            {children}
-          </GoogleAnalytics>
+          <Suspense fallback={<div>Loading...</div>}>
+            <GoogleAnalytics>
+              {children}
+            </GoogleAnalytics>
+          </Suspense>
         </PerformanceMonitor>
       </body>
     </html>
