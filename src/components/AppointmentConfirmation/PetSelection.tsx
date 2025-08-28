@@ -13,7 +13,7 @@ interface Pet {
   _id: string;
   name: string;
   type: string;
-  species: String;
+  species: string;
   breed: string;
   age: string;
   image?: string;

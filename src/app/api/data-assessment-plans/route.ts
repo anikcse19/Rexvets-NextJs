@@ -114,9 +114,7 @@ export async function POST(req: NextRequest) {
         { status: 404 }
       );
     }
-    let doc;
-
-    doc = await DataAssessmentPlanModel.create({
+    const doc = await DataAssessmentPlanModel.create({
       data,
       assessment,
       plan,

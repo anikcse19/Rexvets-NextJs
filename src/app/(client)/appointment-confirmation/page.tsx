@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { connectToDatabase } from "@/lib/mongoose";
 import { PetParentModel } from "@/models";
+import React, { Suspense } from "react";
 
 const page = async () => {
   // Server-side access check
@@ -32,7 +33,9 @@ const page = async () => {
 
   return (
     <div>
-      <AppointmentConfirmationPage />
+      <Suspense fallback={<div>Loading...</div>}>
+        <AppointmentConfirmationPage />
+      </Suspense>
     </div>
   );
 };

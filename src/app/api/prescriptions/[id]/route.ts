@@ -2,14 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 
 import cloudinary from "@/lib/cloudinary";
 import { connectToDatabase } from "@/lib/mongoose";
-import { PrescriptionModel } from "@/models/Prescription";
+import { PrescriptionModel } from "@/models";
 
 export async function GET(
   _: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   await connectToDatabase();
-  const prescription = await PrescriptionModel.findById(params.id);
+  const prescription = await PrescriptionModel.findById(id);
   if (!prescription)
     return NextResponse.json({ message: "Not found" }, { status: 404 });
   return NextResponse.json(prescription);
@@ -17,8 +18,9 @@ export async function GET(
 
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   await connectToDatabase();
 
   const formData = await req.formData();
@@ -36,7 +38,7 @@ export async function PUT(
   if (formData.get("pharmacy"))
     updateData.pharmacy = JSON.parse(formData.get("pharmacy") as string);
 
-  const existing = await PrescriptionModel.findById(params.id);
+  const existing = await PrescriptionModel.findById(id);
   if (!existing)
     return NextResponse.json({ message: "Not found" }, { status: 404 });
 
@@ -68,7 +70,7 @@ export async function PUT(
   }
 
   const updated = await PrescriptionModel.findByIdAndUpdate(
-    params.id,
+    id,
     updateData,
     {
       new: true,
@@ -79,10 +81,11 @@ export async function PUT(
 
 export async function DELETE(
   _: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   await connectToDatabase();
-  const existing = await PrescriptionModel.findById(params.id);
+  const existing = await PrescriptionModel.findById(id);
   if (!existing)
     return NextResponse.json({ message: "Not found" }, { status: 404 });
 

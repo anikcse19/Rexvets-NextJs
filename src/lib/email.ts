@@ -2,7 +2,7 @@ import nodemailer from 'nodemailer';
 
 // Email configuration
 const emailConfig = {
-  host: process.env.EMAIL_HOST || 'smtp.gmail.com',
+  host: process.env.EMAIL_HOST || 'smtp.gmail.org',
   port: parseInt(process.env.EMAIL_PORT || '587'),
   secure: process.env.EMAIL_SECURE === 'true', // true for 465, false for other ports
   auth: {
@@ -324,5 +324,507 @@ export async function testEmailConfiguration(): Promise<boolean> {
   } catch (error) {
     console.error('Email configuration test failed:', error);
     return false;
+  }
+}
+
+// Appointment confirmation email templates
+const createAppointmentConfirmationDoctorTemplate = (
+  doctorName: string,
+  parentName: string,
+  appointmentDateTime: string,
+  petName: string,
+  meetingLink: string
+) => {
+  return `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Appointment Confirmation - RexVet</title>
+        <style>
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                line-height: 1.6;
+                color: #333;
+                max-width: 600px;
+                margin: 0 auto;
+                padding: 20px;
+                background-color: #f4f4f4;
+            }
+            .container {
+                background-color: #ffffff;
+                border-radius: 10px;
+                padding: 30px;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            }
+            .header {
+                background-color: #c5f1fc;
+                padding: 20px;
+                text-align: center;
+                border-radius: 10px 10px 0 0;
+                margin: -30px -30px 30px -30px;
+            }
+            .logo {
+                font-size: 28px;
+                font-weight: bold;
+                color: #002366;
+                margin-bottom: 10px;
+            }
+            .title {
+                color: #2c3e50;
+                font-size: 24px;
+                margin-bottom: 20px;
+            }
+            .content {
+                margin-bottom: 30px;
+            }
+            .appointment-details {
+                background-color: #f8f9fa;
+                border-left: 4px solid #002366;
+                padding: 20px;
+                margin: 20px 0;
+                border-radius: 0 5px 5px 0;
+            }
+            .button {
+                display: inline-block;
+                background: linear-gradient(135deg, #002366, #1e40af);
+                color: white;
+                padding: 15px 30px;
+                text-decoration: none;
+                border-radius: 25px;
+                font-weight: bold;
+                text-align: center;
+                margin: 20px 0;
+                transition: transform 0.3s ease;
+            }
+            .button:hover {
+                transform: translateY(-2px);
+            }
+            .footer {
+                text-align: center;
+                margin-top: 30px;
+                padding-top: 20px;
+                border-top: 1px solid #eee;
+                color: #666;
+                font-size: 14px;
+            }
+            .highlight {
+                color: #002366;
+                font-weight: bold;
+            }
+            .meeting-link {
+                word-break: break-all;
+                color: #666;
+                font-size: 14px;
+                background-color: #f8f9fa;
+                padding: 10px;
+                border-radius: 5px;
+                margin: 10px 0;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <div class="logo">🐾 RexVet</div>
+                <h1 class="title">Appointment Confirmation</h1>
+            </div>
+            
+            <div class="content">
+                <p>Dear <span class="highlight">${doctorName}</span>,</p>
+                
+                <p>We're excited to confirm your upcoming video call appointment with <span class="highlight">${parentName}</span> at RexVet. Here are the details for your appointment:</p>
+                
+                <div class="appointment-details">
+                    <p><strong>Start Time:</strong> ${appointmentDateTime}</p>
+                    <p><strong>Veterinarian:</strong> ${doctorName}</p>
+                    <p><strong>Parent:</strong> ${parentName}</p>
+                    <p><strong>Pet Name:</strong> ${petName}</p>
+                </div>
+                
+                <div style="text-align: center;">
+                    <a href="${meetingLink}" class="button">Join Appointment</a>
+                </div>
+                
+                <p class="meeting-link">
+                    Or copy and paste this link in your browser:<br/> ${meetingLink}
+                </p>
+
+                <p>Please make sure you're ready for the call at least a few minutes before the scheduled time.</p>
+
+                <p>If you need to reschedule or have any other questions, please feel free to reply to this email or contact our support team at <a href="mailto:support@rexvets.org">support@rexvets.org</a>.</p>
+
+                <p>We thank you for your dedication to pet care.</p>
+            </div>
+            
+            <div class="footer">
+                <p>Warm regards,<br>The Team at RexVet</p>
+                <p>© 2024 RexVet. All rights reserved.</p>
+            </div>
+        </div>
+    </body>
+    </html>
+  `;
+};
+
+const createAppointmentConfirmationParentTemplate = (
+  parentName: string,
+  doctorName: string,
+  appointmentDateTime: string,
+  petName: string,
+  meetingLink: string
+) => {
+  return `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Your Appointment Confirmation - RexVet</title>
+        <style>
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                line-height: 1.6;
+                color: #333;
+                max-width: 600px;
+                margin: 0 auto;
+                padding: 20px;
+                background-color: #f4f4f4;
+            }
+            .container {
+                background-color: #ffffff;
+                border-radius: 10px;
+                padding: 30px;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            }
+            .header {
+                background-color: #c5f1fc;
+                padding: 20px;
+                text-align: center;
+                border-radius: 10px 10px 0 0;
+                margin: -30px -30px 30px -30px;
+            }
+            .logo {
+                font-size: 28px;
+                font-weight: bold;
+                color: #002366;
+                margin-bottom: 10px;
+            }
+            .title {
+                color: #2c3e50;
+                font-size: 24px;
+                margin-bottom: 20px;
+            }
+            .content {
+                margin-bottom: 30px;
+            }
+            .appointment-details {
+                background-color: #f8f9fa;
+                border-left: 4px solid #002366;
+                padding: 20px;
+                margin: 20px 0;
+                border-radius: 0 5px 5px 0;
+            }
+            .button {
+                display: inline-block;
+                background: linear-gradient(135deg, #002366, #1e40af);
+                color: white;
+                padding: 15px 30px;
+                text-decoration: none;
+                border-radius: 25px;
+                font-weight: bold;
+                text-align: center;
+                margin: 20px 0;
+                transition: transform 0.3s ease;
+            }
+            .button:hover {
+                transform: translateY(-2px);
+            }
+            .footer {
+                text-align: center;
+                margin-top: 30px;
+                padding-top: 20px;
+                border-top: 1px solid #eee;
+                color: #666;
+                font-size: 14px;
+            }
+            .highlight {
+                color: #002366;
+                font-weight: bold;
+            }
+            .meeting-link {
+                word-break: break-all;
+                color: #666;
+                font-size: 14px;
+                background-color: #f8f9fa;
+                padding: 10px;
+                border-radius: 5px;
+                margin: 10px 0;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <div class="logo">🐾 RexVet</div>
+                <h1 class="title">Your Appointment Confirmation</h1>
+            </div>
+            
+            <div class="content">
+                <p>Dear <span class="highlight">${parentName}</span>,</p>
+                
+                <p>We're excited to confirm your upcoming video call appointment with <span class="highlight">${doctorName}</span> at RexVet. Here are the details for your appointment:</p>
+                
+                <div class="appointment-details">
+                    <p><strong>Start Time:</strong> ${appointmentDateTime}</p>
+                    <p><strong>Veterinarian:</strong> ${doctorName}</p>
+                    <p><strong>Pet Name:</strong> ${petName}</p>
+                </div>
+                
+                <div style="text-align: center;">
+                    <a href="${meetingLink}" class="button">Join Appointment</a>
+                </div>
+                
+                <p class="meeting-link">
+                    Or copy and paste this link in your browser:<br/> ${meetingLink}
+                </p>
+
+                <p>Please make sure you're ready for the call at least a few minutes before the scheduled time. ${doctorName} is here to address any questions or concerns you have about your pet's health.</p>
+
+                <p>If you need to reschedule or have any other questions, please feel free to reply to this email or contact our support team at <a href="mailto:support@rexvets.org">support@rexvets.org</a>.</p>
+
+                <p>We look forward to assisting you with your pet's care.</p>
+            </div>
+            
+            <div class="footer">
+                <p>Warm regards,<br>The Team at RexVet</p>
+                <p>© 2024 RexVet. All rights reserved.</p>
+            </div>
+        </div>
+    </body>
+    </html>
+  `;
+};
+
+// Appointment confirmation email function
+export async function sendAppointmentConfirmationEmails({
+  doctorEmail,
+  doctorName,
+  parentEmail,
+  parentName,
+  petName,
+  appointmentDate,
+  appointmentTime,
+  meetingLink,
+}: {
+  doctorEmail: string;
+  doctorName: string;
+  parentEmail: string;
+  parentName: string;
+  petName: string;
+  appointmentDate: string;
+  appointmentTime: string;
+  meetingLink: string;
+}): Promise<void> {
+  try {
+    console.log('sendAppointmentConfirmationEmails called with:', {
+      doctorEmail,
+      doctorName,
+      parentEmail,
+      parentName,
+      petName,
+      appointmentDate,
+      appointmentTime,
+      meetingLink,
+    });
+
+    // Check if email service is configured
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+      console.log('Email service not configured. Using development mode.');
+      console.log(`Appointment confirmation emails would be sent to:`);
+      console.log(`- Doctor: ${doctorEmail} (${doctorName})`);
+      console.log(`- Parent: ${parentEmail} (${parentName})`);
+      console.log(`Appointment: ${appointmentDate} at ${appointmentTime} for ${petName}`);
+      console.log(`Meeting link: ${meetingLink}`);
+      return;
+    }
+
+    const transporter = createTransporter();
+    const appointmentDateTime = `${appointmentDate} at ${appointmentTime}`;
+
+    // Send email to doctor
+    const doctorHtmlContent = createAppointmentConfirmationDoctorTemplate(
+      doctorName,
+      parentName,
+      appointmentDateTime,
+      petName,
+      meetingLink
+    );
+
+    const doctorMailOptions = {
+      from: `"RexVet" <${process.env.EMAIL_USER}>`,
+      to: doctorEmail,
+      subject: 'Appointment Confirmation - RexVet',
+      html: doctorHtmlContent,
+    };
+
+    // Send email to parent
+    const parentHtmlContent = createAppointmentConfirmationParentTemplate(
+      parentName,
+      doctorName,
+      appointmentDateTime,
+      petName,
+      meetingLink
+    );
+
+    const parentMailOptions = {
+      from: `"RexVet" <${process.env.EMAIL_USER}>`,
+      to: parentEmail,
+      subject: 'Your Appointment Confirmation - RexVet',
+      html: parentHtmlContent,
+    };
+
+    console.log('Attempting to send emails...');
+    
+    // Send both emails
+    const [doctorInfo, parentInfo] = await Promise.all([
+      transporter.sendMail(doctorMailOptions),
+      transporter.sendMail(parentMailOptions),
+    ]);
+
+    console.log('Appointment confirmation emails sent successfully:');
+    console.log('- Doctor email:', doctorInfo.messageId);
+    console.log('- Parent email:', parentInfo.messageId);
+  } catch (error) {
+    console.error('Failed to send appointment confirmation emails:', error);
+    throw new Error('Failed to send appointment confirmation emails');
+  }
+}
+
+// Appointment reminder email templates
+const createAppointmentReminderDoctorTemplate = (
+  doctorName: string,
+  parentName: string,
+  appointmentDateTime: string,
+  meetingLink: string
+) => {
+  return `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Appointment Reminder - RexVet</title>
+      <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f4f4f4; }
+        .container { background-color: #ffffff; border-radius: 10px; padding: 30px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
+        .header { background-color: #c5f1fc; padding: 16px; text-align: center; border-radius: 10px 10px 0 0; margin: -30px -30px 20px -30px; }
+        .title { color: #2c3e50; font-size: 22px; margin: 0; }
+        .button { display: inline-block; background: linear-gradient(135deg, #002366, #1e40af); color: white; padding: 12px 22px; text-decoration: none; border-radius: 24px; font-weight: bold; text-align: center; margin: 16px 0; }
+        .meeting-link { word-break: break-all; color: #666; font-size: 14px; background-color: #f8f9fa; padding: 10px; border-radius: 5px; margin: 10px 0; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header"><h2 class="title">Appointment starts in 10 minutes</h2></div>
+        <p>Dear <strong>${doctorName}</strong>,</p>
+        <p>Your video call appointment with <strong>${parentName}</strong> starts at <strong>${appointmentDateTime}</strong>.</p>
+        <div style="text-align:center"><a href="${meetingLink}" class="button">Join Appointment</a></div>
+        <p class="meeting-link">Or open this link: ${meetingLink}</p>
+        <p>Thank you for caring for our pet community.</p>
+      </div>
+    </body>
+    </html>
+  `;
+};
+
+const createAppointmentReminderParentTemplate = (
+  parentName: string,
+  doctorName: string,
+  appointmentDateTime: string,
+  meetingLink: string
+) => {
+  return `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Appointment Reminder - RexVet</title>
+      <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f4f4f4; }
+        .container { background-color: #ffffff; border-radius: 10px; padding: 30px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
+        .header { background-color: #c5f1fc; padding: 16px; text-align: center; border-radius: 10px 10px 0 0; margin: -30px -30px 20px -30px; }
+        .title { color: #2c3e50; font-size: 22px; margin: 0; }
+        .button { display: inline-block; background: linear-gradient(135deg, #002366, #1e40af); color: white; padding: 12px 22px; text-decoration: none; border-radius: 24px; font-weight: bold; text-align: center; margin: 16px 0; }
+        .meeting-link { word-break: break-all; color: #666; font-size: 14px; background-color: #f8f9fa; padding: 10px; border-radius: 5px; margin: 10px 0; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header"><h2 class="title">Your appointment starts in 10 minutes</h2></div>
+        <p>Dear <strong>${parentName}</strong>,</p>
+        <p>This is a friendly reminder for your video call with <strong>${doctorName}</strong> at <strong>${appointmentDateTime}</strong>.</p>
+        <div style="text-align:center"><a href="${meetingLink}" class="button">Join Appointment</a></div>
+        <p class="meeting-link">Or open this link: ${meetingLink}</p>
+        <p>See you soon!</p>
+      </div>
+    </body>
+    </html>
+  `;
+};
+
+export async function sendAppointmentReminderEmails({
+  doctorEmail,
+  doctorName,
+  parentEmail,
+  parentName,
+  appointmentDateTime,
+  meetingLink,
+}: {
+  doctorEmail: string;
+  doctorName: string;
+  parentEmail: string;
+  parentName: string;
+  appointmentDateTime: string;
+  meetingLink: string;
+}): Promise<void> {
+  try {
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+      console.log("[REMINDER] Dev mode. Would send to:", { doctorEmail, parentEmail, appointmentDateTime, meetingLink });
+      return;
+    }
+
+    const transporter = createTransporter();
+
+    const doctorMail = {
+      from: `"RexVet" <${process.env.EMAIL_USER}>`,
+      to: doctorEmail,
+      subject: "Appointment Reminder - Starts in 10 minutes",
+      html: createAppointmentReminderDoctorTemplate(
+        doctorName,
+        parentName,
+        appointmentDateTime,
+        meetingLink
+      ),
+    } as any;
+
+    const parentMail = {
+      from: `"RexVet" <${process.env.EMAIL_USER}>`,
+      to: parentEmail,
+      subject: "Reminder: Your Appointment Starts in 10 Minutes",
+      html: createAppointmentReminderParentTemplate(
+        parentName,
+        doctorName,
+        appointmentDateTime,
+        meetingLink
+      ),
+    } as any;
+
+    await Promise.all([transporter.sendMail(doctorMail), transporter.sendMail(parentMail)]);
+  } catch (err) {
+    console.error("Failed to send reminder emails:", err);
+    throw err;
   }
 }

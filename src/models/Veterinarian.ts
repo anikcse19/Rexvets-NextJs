@@ -436,26 +436,12 @@ const veterinarianSchema = new Schema<IVeterinarian>(
 );
 
 // Indexes (email is auto-created by unique)
+veterinarianSchema.index({ isDeleted: 1});
 veterinarianSchema.index({ isActive: 1 });
 veterinarianSchema.index({ isApproved: 1 });
-veterinarianSchema.index({ specialization: 1 });
-veterinarianSchema.index({ available: 1 });
-
-// Performance indexes for list API queries
-veterinarianSchema.index({ isActive: 1, isDeleted: 1, isApproved: 1 });
-veterinarianSchema.index({ specialization: 1, available: 1 });
-veterinarianSchema.index({ specialities: 1 });
-veterinarianSchema.index({ treatedSpecies: 1 });
-veterinarianSchema.index({ interests: 1 });
-veterinarianSchema.index({ researchAreas: 1 });
-veterinarianSchema.index({ isDeleted: 1 });
-veterinarianSchema.index({ name: "text" }); // Text search index
-veterinarianSchema.index({ reviews: 1 }); // Index for reviews queries
-veterinarianSchema.index({ city: 1 }); // Index for location-based queries
+veterinarianSchema.index({ city: 1 }); // Index for location-based queries// no need to index city
 veterinarianSchema.index({ state: 1 }); // Index for state-based queries
-veterinarianSchema.index({ country: 1 }); // Index for country-based queries
-veterinarianSchema.index({ gender: 1 }); // Index for gender-based queries
-veterinarianSchema.index({ zipCode: 1 }); // Index for zip code-based queries
+
 
 // Unique index for license numbers to prevent duplicates
 veterinarianSchema.index(
@@ -463,20 +449,6 @@ veterinarianSchema.index(
   { unique: true, sparse: true }
 );
 
-// Authentication methods removed - now handled by User model
-// veterinarianSchema.virtual('isLocked').get(function() { ... });
-// veterinarianSchema.pre('save', async function(next) { ... });
-// veterinarianSchema.methods.comparePassword = async function(candidatePassword: string): Promise<boolean> { ... };
-// veterinarianSchema.methods.generateEmailVerificationToken = function(): string { ... };
-// veterinarianSchema.methods.generatePasswordResetToken = function(): string { ... };
-// veterinarianSchema.methods.checkIfLocked = function(): boolean { ... };
-// veterinarianSchema.methods.incrementLoginAttempts = async function(): Promise<void> { ... };
-// veterinarianSchema.methods.resetLoginAttempts = async function(): Promise<void> { ... };
-
-// Authentication static methods removed - now handled by User model
-// veterinarianSchema.statics.findByEmailForAuth = function(email: string) { ... };
-// veterinarianSchema.statics.findByEmailVerificationToken = function(token: string) { ... };
-// veterinarianSchema.statics.findByPasswordResetToken = function(token: string) { ... };
 
 export default mongoose.models.Veterinarian ||
   mongoose.model<IVeterinarian, IVeterinarianModel>(

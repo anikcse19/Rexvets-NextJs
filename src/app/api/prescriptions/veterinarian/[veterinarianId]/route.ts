@@ -1,14 +1,15 @@
 import { connectToDatabase } from "@/lib/mongoose";
-import { PrescriptionModel } from "@/models/Prescription";
+import { PrescriptionModel } from "@/models";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { veterinarianId: string } }
+  { params }: { params: Promise<{ veterinarianId: string }> }
 ) {
+  const { veterinarianId } = await params;
   try {
     await connectToDatabase();
-    const { veterinarianId } = params;
+
 
     const prescriptions = await PrescriptionModel.find({
       veterinarian: veterinarianId,

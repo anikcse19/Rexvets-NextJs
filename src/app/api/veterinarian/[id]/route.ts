@@ -36,7 +36,7 @@ export async function GET(
       "-password -emailVerificationToken -passwordResetToken -googleAccessToken -googleRefreshToken"
     );
 
-    console.log("Fetched veterinarian in api route:", veterinarian);
+    // console.log("Fetched veterinarian in api route:", veterinarian);
 
     if (!veterinarian) {
       return NextResponse.json(

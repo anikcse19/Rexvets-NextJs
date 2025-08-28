@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 
 import cloudinary from "@/lib/cloudinary";
 import { connectToDatabase } from "@/lib/mongoose";
-import { PrescriptionModel } from "@/models/Prescription";
+import { PrescriptionModel } from "@/models";
 import {
   IErrorResponse,
   ISendResponse,
@@ -17,26 +17,62 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
 
     const filter: any = {};
-    if (searchParams.get("appointment"))
-      filter.appointment = searchParams.get("appointment");
-    if (searchParams.get("veterinarian"))
-      filter.veterinarian = searchParams.get("veterinarian");
-    if (searchParams.get("pet")) filter.pet = searchParams.get("pet");
-    if (searchParams.get("petParent"))
-      filter.petParent = searchParams.get("petParent");
+    if (searchParams.get("appointment")) {
+      const appointmentId = searchParams.get("appointment");
+      if (appointmentId && /^[0-9a-fA-F]{24}$/.test(appointmentId)) {
+        filter.appointment = appointmentId;
+      }
+    }
+    if (searchParams.get("veterinarian")) {
+      const veterinarianId = searchParams.get("veterinarian");
+      if (veterinarianId && /^[0-9a-fA-F]{24}$/.test(veterinarianId)) {
+        filter.veterinarian = veterinarianId;
+      }
+    }
+    if (searchParams.get("pet")) {
+      const petId = searchParams.get("pet");
+      if (petId && /^[0-9a-fA-F]{24}$/.test(petId)) {
+        filter.pet = petId;
+      }
+    }
+    if (searchParams.get("petParent")) {
+      const petParentId = searchParams.get("petParent");
+      if (petParentId && /^[0-9a-fA-F]{24}$/.test(petParentId)) {
+        filter.petParent = petParentId;
+      }
+    }
+    
+    // Check if we should filter out orphaned prescriptions
+    const excludeOrphaned = searchParams.get("excludeOrphaned") === "true";
 
     const prescriptions = await PrescriptionModel.find(filter)
-      // .populate("veterinarian")
-      // .populate("petParent")
-      // .populate("appointment")
-      // .populate("pet")
+      .populate("veterinarian", "name email specialization")
+      .populate("petParent", "name email")
+      .populate("appointment", "appointmentDate status")
+      .populate("pet", "name species breed")
       .sort({ createdAt: -1 });
 
-    const response: ISendResponse<typeof prescriptions> = {
+    // Filter out prescriptions with missing references if requested
+    let finalPrescriptions = prescriptions;
+    if (excludeOrphaned) {
+      finalPrescriptions = prescriptions.filter(prescription => 
+        prescription.veterinarian && 
+        prescription.petParent && 
+        prescription.appointment && 
+        prescription.pet
+      );
+    }
+
+    const orphanedCount = prescriptions.length - finalPrescriptions.length;
+    const message = orphanedCount > 0 
+      ? `Prescriptions fetched successfully. ${orphanedCount} prescriptions have missing references.`
+      : "Prescriptions fetched successfully";
+
+    const response: ISendResponse<typeof finalPrescriptions> = {
       success: true,
-      data: prescriptions,
+      data: finalPrescriptions,
       statusCode: 201,
-      message: "Prescriptions fetched successfully",
+      message,
     };
     return sendResponse(response);
   } catch (error: any) {
