@@ -194,25 +194,6 @@ const BookingSlotsPeriods: React.FC<BookingSlotsProps> = ({
           Slots
         </h2>
 
-        {/* Filter Buttons */}
-        <div className="flex flex-wrap gap-2 mb-6 mt-1 px-3">
-          {Object.values(SlotStatus).map((status) => (
-            <button
-              key={status}
-              onClick={() => {
-                setSlotStatus(status);
-                console.log("slotStatus", status);
-              }}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
-                slotStatus === status
-                  ? "bg-blue-500 text-white shadow-md"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
-            >
-              {status.charAt(0).toUpperCase() + status.slice(1)}
-            </button>
-          ))}
-        </div>
         {/* Legend */}
         <div className="flex flex-wrap gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
           <div className="flex items-center gap-2">

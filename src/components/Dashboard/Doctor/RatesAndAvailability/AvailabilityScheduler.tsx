@@ -61,9 +61,6 @@ const AvailabilityScheduler: React.FC<Props> = ({
   loading = false,
   error = null,
 }) => {
-  const [selectedSlotIds, setSelectedSlotIds] = useState<string[]>([]);
-  // const [selectedSlot, setSelectedSlot] = useState<Slot[] | null>(null);
-
   const {
     setSelectedSlot,
     setSlotStatus,
@@ -161,11 +158,34 @@ const AvailabilityScheduler: React.FC<Props> = ({
     );
   }
 
+  const filterButtons = () => {
+    return (
+      <div className="flex flex-wrap gap-2 mb-6 mt-1 px-3">
+        {Object.values(SlotStatus).map((status) => (
+          <button
+            key={status}
+            onClick={() => {
+              setSlotStatus(status);
+              console.log("slotStatus", status);
+            }}
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
+              slotStatus === status
+                ? "bg-blue-500 text-white shadow-md"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+            }`}
+          >
+            {status.charAt(0).toUpperCase() + status.slice(1)}
+          </button>
+        ))}
+      </div>
+    );
+  };
   // No data state
   if (!data || data.length === 0) {
     return (
       <div className="max-w-2xl mx-auto p-6 bg-gray-50 min-h-screen">
         <div className="bg-white rounded-lg shadow-sm p-8">
+          {filterButtons()}
           <div className="text-center text-gray-600">
             <FiCalendar className="text-4xl mx-auto mb-4 text-gray-400" />
             <p>No availability data found for the selected period.</p>
@@ -177,7 +197,6 @@ const AvailabilityScheduler: React.FC<Props> = ({
 
   const summary = calculateSummary(data);
   const dateRange = formatDateRange(data);
-
   return (
     <div className="max-w-2xl mx-auto p-6 bg-gray-50 min-h-screen">
       <div className="bg-white rounded-lg shadow-sm">
@@ -194,6 +213,8 @@ const AvailabilityScheduler: React.FC<Props> = ({
           </div>
         </div>
 
+        {/* Filter Buttons */}
+        {filterButtons()}
         {/* Availability Group */}
         <div className="p-4">
           {/* Group Header */}

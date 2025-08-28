@@ -110,7 +110,7 @@ export const DashboardProvider: React.FC<DashboardProviderProps> = ({
         return;
       }
       try {
-        const apiUrl = `/api/appointments/slots/slot-summary/${refId}?startDate=${startDate}&endDate=${endDate}&status=${SlotStatus.AVAILABLE}`;
+        const apiUrl = `/api/appointments/slots/slot-summary/${refId}?startDate=${startDate}&endDate=${endDate}&status=${slotStatus}`;
         console.log("Fetching from API:", apiUrl);
 
         const res = await fetch(apiUrl);
@@ -144,7 +144,7 @@ export const DashboardProvider: React.FC<DashboardProviderProps> = ({
         }));
       }
     },
-    []
+    [slotStatus]
   );
 
   const onUpdateSelectedSlotStatus = async (

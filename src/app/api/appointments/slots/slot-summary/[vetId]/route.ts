@@ -34,6 +34,8 @@ export const GET = async (
     const endDate = searchParams.get("endDate");
     const page = parseInt(searchParams.get("page") as string) || 1;
     const limit = parseInt(searchParams.get("limit") as string) || 1000;
+    const slotStatus =
+      (searchParams.get("status") as SlotStatus) || SlotStatus.AVAILABLE;
     if (!vetId || !new Types.ObjectId(vetId)) {
       throw Error("Invalid vetId");
     }
@@ -57,7 +59,7 @@ export const GET = async (
         start: new Date(startDate),
         end: new Date(endDate),
       } as any,
-      status: SlotStatus.ALL,
+      status: slotStatus,
       limit,
       page,
     };

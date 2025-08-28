@@ -33,6 +33,7 @@ export default function AvailabilityManager() {
     getAvailableSlots,
     selectedRange,
     setSelectedRange,
+    slotStatus,
   } = useDashboardContext();
 
   const user = session?.user as SessionUserWithRefId | undefined;
@@ -171,7 +172,7 @@ export default function AvailabilityManager() {
     if (selectedRange && user?.refId) {
       fetchAvailableSlots();
     }
-  }, [selectedRange, user?.refId]);
+  }, [selectedRange, user?.refId, slotStatus]);
 
   // Initialize with today's date when component mounts and user is available
   useEffect(() => {
