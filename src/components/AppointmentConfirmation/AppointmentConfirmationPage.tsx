@@ -158,7 +158,7 @@ export default function AppointmentConfirmation() {
         notes: moreDetails,
         feeUSD: 0,
         reasonForVisit: "",
-        reminderSent: true,
+        reminderSent: false, // Set to false - reminder will be sent by cron job
         slotId: slot,
         appointmentType: "general_checkup",
         isFollowUp: false,

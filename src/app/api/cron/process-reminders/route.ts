@@ -22,13 +22,33 @@ export async function GET(req: NextRequest) {
     const windowStart = new Date(now.getTime() + 9 * 60 * 1000);
     const windowEnd = new Date(now.getTime() + 11 * 60 * 1000);
 
+    console.log(`[CRON] Current time: ${now.toISOString()}`);
     console.log(`[CRON] Time window: ${windowStart.toISOString()} to ${windowEnd.toISOString()}`);
+
+    // Get all pending reminders (reminderSent: false) regardless of appointment time
+    const allPendingReminders = await AppointmentModel.find({ 
+      isDeleted: false,
+      reminderSent: false 
+    })
+      .select('_id appointmentDate status reminderSent')
+      .lean()
+      .exec();
+    
+    console.log(`[CRON] Total pending reminders (reminderSent: false): ${allPendingReminders.length}`);
+    if (allPendingReminders.length > 0) {
+      console.log(`[CRON] Pending reminders:`, allPendingReminders.map(a => ({
+        id: a._id,
+        date: a.appointmentDate,
+        status: a.status,
+        reminderSent: a.reminderSent
+      })));
+    }
 
     // Find upcoming appointments whose slot date is within window
     // Appointment holds appointmentDate (same as slot date) and slotId
     const appointments = await AppointmentModel.find({
       isDeleted: false,
-      status: { $in: ["upcoming", "UPCOMING", "scheduled", "SCHEDULED"] },
+      status: "upcoming", // Use the correct enum value
       appointmentDate: { $gte: windowStart, $lte: windowEnd },
     })
       .lean()
@@ -36,8 +56,31 @@ export async function GET(req: NextRequest) {
 
     console.log(`[CRON] Found ${appointments.length} appointments in time window`);
 
+    // Get all upcoming appointments in broader range for comparison
+    const broaderStart = new Date(now.getTime() - 60 * 60 * 1000); // 1 hour ago
+    const broaderEnd = new Date(now.getTime() + 24 * 60 * 60 * 1000); // 24 hours from now
+    
+    const broaderAppointments = await AppointmentModel.find({
+      isDeleted: false,
+      status: "upcoming",
+      appointmentDate: { $gte: broaderStart, $lte: broaderEnd },
+    })
+      .select('_id appointmentDate status reminderSent')
+      .lean()
+      .exec();
+    
+    console.log(`[CRON] Upcoming appointments in broader range (1 hour ago to 24 hours from now): ${broaderAppointments.length}`);
+    if (broaderAppointments.length > 0) {
+      console.log(`[CRON] Broader range appointments:`, broaderAppointments.slice(0, 5).map(a => ({
+        id: a._id,
+        date: a.appointmentDate,
+        status: a.status,
+        reminderSent: a.reminderSent
+      })));
+    }
+
     if (!appointments.length) {
-      console.log(`[CRON] No appointments to process`);
+      console.log(`[CRON] No appointments to process in the 9-11 minute window`);
       return NextResponse.json({ 
         success: true, 
         processed: 0,
@@ -46,7 +89,9 @@ export async function GET(req: NextRequest) {
             start: windowStart.toISOString(),
             end: windowEnd.toISOString()
           },
-          totalAppointments: 0,
+          totalPendingReminders: allPendingReminders.length,
+          upcomingAppointments: broaderAppointments.length,
+          appointmentsInWindow: 0,
           pendingReminders: 0,
           sentReminders: 0,
           executionTime: `${Date.now() - startTime.getTime()}ms`
