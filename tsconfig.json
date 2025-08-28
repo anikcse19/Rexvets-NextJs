@@ -33,6 +33,7 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
+    "src/app/api/data-assessment-plans",
   ],
   "exclude": [
     "node_modules"

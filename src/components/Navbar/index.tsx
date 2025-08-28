@@ -477,7 +477,7 @@ const Header: React.FC = () => {
                 </DropdownMenuTrigger>
 
                 <DropdownMenuContent
-                  className="w-64 z-[99999] rounded-2xl shadow-lg border border-emerald-100 bg-white/95 backdrop-blur-md p-2"
+                  className="w-64 z-[99999] rounded-2xl shadow-lg border border-emerald-100 bg-[#211951] backdrop-blur-md p-2"
                   align="end"
                   forceMount
                 >
@@ -496,10 +496,10 @@ const Header: React.FC = () => {
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex flex-col">
-                        <p className="text-sm font-semibold text-gray-900">
+                        <p className="text-sm font-semibold text-white">
                           {(session?.user as any)?.name || "User"}
                         </p>
-                        <p className="text-xs text-gray-500 truncate">
+                        <p className="text-xs text-gray-300 truncate">
                           {(session?.user as any)?.email}
                         </p>
                         <p className="text-xs text-emerald-600 font-medium">
@@ -514,17 +514,22 @@ const Header: React.FC = () => {
                   <DropdownMenuSeparator className="my-2 bg-emerald-100" />
 
                   {/* Dashboard */}
-                  <DropdownMenuItem asChild>
+                  <DropdownMenuItem
+                    asChild
+                    className="group hover:bg-red-50 focus:bg-red-50 data-[highlighted]:bg-red-50 text-blue-200 data-[highlighted]:text-[#211951]"
+                  >
                     <Link
                       href={`/dashboard/${
                         (session?.user as any).role === "veterinarian"
                           ? "doctor"
                           : "pet-parent"
                       }/overview`}
-                      className="flex items-center px-3 py-2 rounded-lg hover:bg-emerald-50 transition-colors cursor-pointer"
+                      className="flex items-center px-3 py-2 rounded-lg cursor-pointer"
                     >
-                      <UserCircle className="mr-2 h-4 w-4 text-emerald-600" />
-                      <span className="text-sm">Dashboard</span>
+                      <UserCircle className="mr-2 h-4 w-4 text-blue-200 group-data-[highlighted]:text-black" />
+                      <span className="text-sm group-data-[highlighted]:text-black">
+                        Dashboard
+                      </span>
                     </Link>
                   </DropdownMenuItem>
 
@@ -532,10 +537,10 @@ const Header: React.FC = () => {
 
                   {/* Logout */}
                   <DropdownMenuItem
-                    className="flex items-center px-3 py-2 rounded-lg text-red-600 hover:bg-red-50 focus:text-red-600 cursor-pointer transition-colors"
+                    className="flex items-center px-3 py-2 rounded-lg text-red-400 hover:bg-red-50 focus:text-red-600 cursor-pointer transition-colors"
                     onClick={handleSignOut}
                   >
-                    <LogOut className="mr-2 h-4 w-4" />
+                    <LogOut className="mr-2 h-4 w-4 text-red-400" />
                     <span className="text-sm">Sign Out</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>

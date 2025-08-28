@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -24,12 +24,11 @@ import {
   Activity,
   Weight,
 } from "lucide-react";
+import { toast } from "sonner";
+import { DataAssessmentPlan } from "@/lib/types/dataAssessmentPlan";
+import { useRouter } from "next/navigation";
 
 const assessmentSchema = z.object({
-  temperature: z.string().min(1, "Temperature is required"),
-  heartRate: z.string().min(1, "Heart rate is required"),
-  respiratoryRate: z.string().min(1, "Respiratory rate is required"),
-  weight: z.string().min(1, "Weight is required"),
   additionalData: z.string().optional(),
   assessment: z.string().min(10, "Assessment must be at least 10 characters"),
   plan: z.string().min(10, "Treatment plan must be at least 10 characters"),
@@ -43,14 +42,20 @@ interface DataAssessmentModalProps {
   onClose: () => void;
   appointmentId: string;
   petName: string;
+  vetId: string;
+  assessment?: DataAssessmentPlan | null; // 👈 optional for edit
 }
 
 export default function DataAssessmentModal({
   isOpen,
   onClose,
+  appointmentId,
   petName,
+  vetId,
+  assessment,
 }: DataAssessmentModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDrafting, setIsDrafting] = useState(false);
   // const [sendToChat, setSendToChat] = useState(true);
 
   const {
@@ -61,29 +66,111 @@ export default function DataAssessmentModal({
   } = useForm<AssessmentFormData>({
     resolver: zodResolver(assessmentSchema),
     defaultValues: {
+      additionalData: assessment?.data || "",
+      assessment: assessment?.assessment || "",
+      plan: assessment?.plan || "",
       sendToChat: true,
     },
   });
 
-  const onSubmit = async (data: AssessmentFormData) => {
-    setIsSubmitting(true);
-    try {
-      // API call to save assessment
-      console.log("Saving assessment:", data);
+  const router = useRouter();
 
-      // If sendToChat is true, also send to chat
-      if (data.sendToChat) {
-        const chatMessage = `📋 **Assessment Added**\n\nTemperature: ${data.temperature}\nHeart Rate: ${data.heartRate}\nRespiratory Rate: ${data.respiratoryRate}\nWeight: ${data.weight}\n\n**Assessment:** ${data.assessment}\n\n**Plan:** ${data.plan}`;
-        console.log("Sending to chat:", chatMessage);
+  useEffect(() => {
+    if (assessment) {
+      reset({
+        additionalData: assessment.data || "",
+        assessment: assessment.assessment || "",
+        plan: assessment.plan || "",
+        sendToChat: true,
+      });
+    } else {
+      reset({
+        additionalData: "",
+        assessment: "",
+        plan: "",
+        sendToChat: true,
+      });
+    }
+  }, [assessment, reset]);
+
+  const onSubmit = async (data: AssessmentFormData, event?: any) => {
+    try {
+      const action = event?.nativeEvent?.submitter?.value;
+      const status = action === "draft" ? "DRAFT" : "FINALIZED";
+      if (status === "DRAFT") {
+        setIsDrafting(true);
+      } else {
+        setIsSubmitting(true);
+      }
+      if (assessment?._id) {
+        const res = await fetch(
+          "/api/data-assessment-plans/" + assessment._id,
+          {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              data: data.additionalData,
+              assessment: data.assessment,
+              plan: data.plan,
+              veterinarian: vetId,
+              appointment: appointmentId,
+              status,
+            }),
+          }
+        );
+
+        if (!res.ok) {
+          throw new Error("Failed to save assessment");
+        }
+
+        const result = await res.json();
+
+        if (result.success) {
+          toast.success("Assessment saved successfully");
+        } else {
+          toast.error(result.message || "Failed to save assessment");
+        }
+      } else {
+        const res = await fetch("/api/data-assessment-plans", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            data: data.additionalData,
+            assessment: data.assessment,
+            plan: data.plan,
+            veterinarian: vetId,
+            appointment: appointmentId,
+            status,
+          }),
+        });
+
+        if (!res.ok) {
+          throw new Error("Failed to save assessment");
+        }
+
+        const result = await res.json();
+
+        if (result.success) {
+          toast.success("Assessment saved successfully");
+        } else {
+          toast.error(result.message || "Failed to save assessment");
+        }
       }
 
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate API call
       reset();
       onClose();
-    } catch (error) {
+    } catch (error: any) {
+      toast.error(
+        error.data.message || "An error occurred while saving the assessment"
+      );
       console.error("Error saving assessment:", error);
     } finally {
       setIsSubmitting(false);
+      setIsDrafting(false);
     }
   };
 
@@ -120,89 +207,7 @@ export default function DataAssessmentModal({
                 Clinical Data
               </h3>
             </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label
-                  htmlFor="temperature"
-                  className="flex items-center gap-2"
-                >
-                  <Thermometer className="w-4 h-4 text-red-500" />
-                  Temperature (°F)
-                </Label>
-                <Input
-                  id="temperature"
-                  {...register("temperature")}
-                  placeholder="e.g., 101.5"
-                  className="border-gray-300 focus:border-purple-500 focus:ring-purple-500"
-                />
-                {errors.temperature && (
-                  <p className="text-sm text-red-600">
-                    {errors.temperature.message}
-                  </p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="heartRate" className="flex items-center gap-2">
-                  <Heart className="w-4 h-4 text-red-500" />
-                  Heart Rate (bpm)
-                </Label>
-                <Input
-                  id="heartRate"
-                  {...register("heartRate")}
-                  placeholder="e.g., 120"
-                  className="border-gray-300 focus:border-purple-500 focus:ring-purple-500"
-                />
-                {errors.heartRate && (
-                  <p className="text-sm text-red-600">
-                    {errors.heartRate.message}
-                  </p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label
-                  htmlFor="respiratoryRate"
-                  className="flex items-center gap-2"
-                >
-                  <Activity className="w-4 h-4 text-blue-500" />
-                  Respiratory Rate (breaths/min)
-                </Label>
-                <Input
-                  id="respiratoryRate"
-                  {...register("respiratoryRate")}
-                  placeholder="e.g., 24"
-                  className="border-gray-300 focus:border-purple-500 focus:ring-purple-500"
-                />
-                {errors.respiratoryRate && (
-                  <p className="text-sm text-red-600">
-                    {errors.respiratoryRate.message}
-                  </p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="weight" className="flex items-center gap-2">
-                  <Weight className="w-4 h-4 text-green-500" />
-                  Weight (kg)
-                </Label>
-                <Input
-                  id="weight"
-                  {...register("weight")}
-                  placeholder="e.g., 28"
-                  className="border-gray-300 focus:border-purple-500 focus:ring-purple-500"
-                />
-                {errors.weight && (
-                  <p className="text-sm text-red-600">
-                    {errors.weight.message}
-                  </p>
-                )}
-              </div>
-            </div>
-
             <div className="space-y-2">
-              <Label htmlFor="additionalData">Additional Clinical Data</Label>
               <Textarea
                 id="additionalData"
                 {...register("additionalData")}
@@ -223,7 +228,6 @@ export default function DataAssessmentModal({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="assessment">Clinical Assessment</Label>
               <Textarea
                 id="assessment"
                 {...register("assessment")}
@@ -249,7 +253,6 @@ export default function DataAssessmentModal({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="plan">Treatment Plan & Recommendations</Label>
               <Textarea
                 id="plan"
                 {...register("plan")}
@@ -293,14 +296,37 @@ export default function DataAssessmentModal({
               type="button"
               variant="outline"
               onClick={handleClose}
-              className="border-gray-300 hover:bg-gray-50"
+              className="border-gray-300 hover:bg-gray-50 cursor-pointer"
             >
               Cancel
             </Button>
+
             <Button
               type="submit"
+              name="action"
+              value="draft"
+              disabled={isDrafting}
+              className="bg-gray-500 hover:bg-gray-600 text-gray-100 cursor-pointer"
+            >
+              {isDrafting ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Drafting...
+                </>
+              ) : (
+                <>
+                  <Save className="w-4 h-4 mr-2" />
+                  Draft Assessment
+                </>
+              )}
+            </Button>
+
+            <Button
+              type="submit"
+              name="action"
+              value="save"
               disabled={isSubmitting}
-              className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white"
+              className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white cursor-pointer"
             >
               {isSubmitting ? (
                 <>
@@ -310,7 +336,7 @@ export default function DataAssessmentModal({
               ) : (
                 <>
                   <Save className="w-4 h-4 mr-2" />
-                  Save Assessment
+                  Finalize Assessment
                 </>
               )}
             </Button>

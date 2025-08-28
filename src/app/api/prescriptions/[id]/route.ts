@@ -1,136 +1,97 @@
+import { NextRequest, NextResponse } from "next/server";
+
+import cloudinary from "@/lib/cloudinary";
 import { connectToDatabase } from "@/lib/mongoose";
-import { sendResponse, throwAppError } from "@/lib/utils/send.response";
 import { PrescriptionModel } from "@/models/Prescription";
-import { NextRequest } from "next/server";
 
-// GET one
 export async function GET(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  _: NextRequest,
+  { params }: { params: { id: string } }
 ) {
-  try {
-    const { id } = await params;
-    await connectToDatabase();
-
-    const prescription = await PrescriptionModel.findById(id)
-      .populate("pet")
-      .exec();
-
-    if (!prescription) {
-      return throwAppError(
-        {
-          success: false,
-          message: "PrescriptionModel not found",
-          errorCode: "NOT_FOUND",
-          errors: null,
-        },
-        404
-      );
-    }
-
-    return sendResponse({
-      statusCode: 200,
-      success: true,
-      message: "PrescriptionModel fetched successfully",
-      data: prescription,
-    });
-  } catch (error: any) {
-    return throwAppError(
-      {
-        success: false,
-        message: error.message,
-        errorCode: "FETCH_FAILED",
-        errors: null,
-      },
-      500
-    );
-  }
+  await connectToDatabase();
+  const prescription = await PrescriptionModel.findById(params.id);
+  if (!prescription)
+    return NextResponse.json({ message: "Not found" }, { status: 404 });
+  return NextResponse.json(prescription);
 }
 
-// UPDATE
 export async function PUT(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
-  try {
-    const { id } = await params;
-    await connectToDatabase();
-    const body = await req.json();
-    // partial update
-    const prescription = await PrescriptionModel.findByIdAndUpdate(id, body, {
-      new: true,
-      runValidators: true,
-    });
+  await connectToDatabase();
 
-    if (!prescription) {
-      return throwAppError(
-        {
-          success: false,
-          message: "PrescriptionModel not found",
-          errorCode: "NOT_FOUND",
-          errors: null,
-        },
-        404
-      );
-    }
+  const formData = await req.formData();
+  const pdfFile = formData.get("pdf") as File | null;
 
-    return sendResponse({
-      statusCode: 200,
-      success: true,
-      message: "PrescriptionModel updated successfully",
-      data: prescription,
-    });
-  } catch (error: any) {
-    return throwAppError(
-      {
-        success: false,
-        message: error.message,
-        errorCode: "UPDATE_FAILED",
-        errors: null,
-      },
-      500
+  const updateData: any = {};
+  if (formData.get("medication_details"))
+    updateData.medication_details = JSON.parse(
+      formData.get("medication_details") as string
     );
+  if (formData.get("usage_instruction"))
+    updateData.usage_instruction = JSON.parse(
+      formData.get("usage_instruction") as string
+    );
+  if (formData.get("pharmacy"))
+    updateData.pharmacy = JSON.parse(formData.get("pharmacy") as string);
+
+  const existing = await PrescriptionModel.findById(params.id);
+  if (!existing)
+    return NextResponse.json({ message: "Not found" }, { status: 404 });
+
+  if (pdfFile) {
+    const arrayBuffer = await pdfFile.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    const uploadRes = await new Promise<any>((resolve, reject) => {
+      cloudinary.uploader
+        .upload_stream(
+          { folder: "prescriptions", resource_type: "auto" },
+          (err, result) => {
+            if (err) reject(err);
+            else resolve(result);
+          }
+        )
+        .end(buffer);
+    });
+
+    updateData.pdfLink = uploadRes.secure_url;
+    updateData.pdfPublicId = uploadRes.public_id;
+
+    // delete old PDF if exists
+    if (existing.pdfPublicId) {
+      await cloudinary.uploader.destroy(existing.pdfPublicId, {
+        resource_type: "auto",
+      });
+    }
   }
+
+  const updated = await PrescriptionModel.findByIdAndUpdate(
+    params.id,
+    updateData,
+    {
+      new: true,
+    }
+  );
+  return NextResponse.json(updated);
 }
 
-// DELETE
 export async function DELETE(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  _: NextRequest,
+  { params }: { params: { id: string } }
 ) {
-  try {
-    const { id } = await params;
-    await connectToDatabase();
+  await connectToDatabase();
+  const existing = await PrescriptionModel.findById(params.id);
+  if (!existing)
+    return NextResponse.json({ message: "Not found" }, { status: 404 });
 
-    const prescription = await PrescriptionModel.findByIdAndDelete(id);
-
-    if (!prescription) {
-      return throwAppError(
-        {
-          success: false,
-          message: "PrescriptionModel not found",
-          errorCode: "NOT_FOUND",
-          errors: null,
-        },
-        404
-      );
-    }
-
-    return sendResponse({
-      statusCode: 200,
-      success: true,
-      message: "PrescriptionModel deleted successfully",
-      data: null,
+  if (existing.pdfPublicId) {
+    await cloudinary.uploader.destroy(existing.pdfPublicId, {
+      resource_type: "auto",
     });
-  } catch (error: any) {
-    return throwAppError(
-      {
-        success: false,
-        message: error.message,
-        errorCode: "DELETE_FAILED",
-        errors: null,
-      },
-      500
-    );
   }
+
+  await existing.deleteOne();
+  return NextResponse.json({ message: "Deleted" });
 }

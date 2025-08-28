@@ -2,7 +2,7 @@ import config from "@/config/env.config";
 
 export const getParentAppointments = async (parentId: string) => {
   const res = await fetch(
-    config.BASE_URL + "/api/appointments?petParent" + parentId
+    config.BASE_URL + "/api/appointments?petParent=" + parentId
   );
 
   if (!res.ok) {
