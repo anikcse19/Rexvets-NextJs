@@ -9,7 +9,7 @@ export async function GET(
 ) {
   try {
     await connectToDatabase();
-    
+
     const { id } = await params;
 
     if (!id) {
@@ -24,8 +24,10 @@ export async function GET(
       );
     }
 
-    const petParent = await PetParent.findById(id).select('donationPaid lastDonationDate lastDonationAmount');
-    
+    const petParent = await PetParent.findById(id).select(
+      "donationPaid lastDonationDate lastDonationAmount"
+    );
+
     if (!petParent) {
       return throwAppError(
         {
@@ -37,6 +39,8 @@ export async function GET(
         404
       );
     }
+
+    console.log("petParent", petParent);
 
     return sendResponse({
       statusCode: 200,

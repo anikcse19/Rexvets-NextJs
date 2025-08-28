@@ -16,7 +16,7 @@ import { getParentAppointments } from "./Service/get-all-appointments";
 type AppointmentCategory = "upcoming" | "past";
 
 export default function PetParentAppointmentsListPage() {
-  const [activeTab, setActiveTab] = useState("schedule");
+  const [activeTab, setActiveTab] = useState("upcoming");
   const [searchTerm, setSearchTerm] = useState("");
   const [filterDate, setFilterDate] = useState("");
   const [appointmentsData, setAppointmentsData] = useState<

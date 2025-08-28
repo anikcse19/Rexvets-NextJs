@@ -707,7 +707,7 @@ export const bottomMenuItems: MenuItems[] = [
     id: "logout",
     label: "Logout",
     icon: LogOut,
-    href: "/logout",
+    href: "/",
   },
 ];
 

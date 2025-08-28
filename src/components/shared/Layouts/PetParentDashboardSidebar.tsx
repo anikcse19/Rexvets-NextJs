@@ -10,6 +10,7 @@ import { usePathname } from "next/navigation";
 import { X } from "lucide-react";
 import { bottomMenuItems, menuItemsPetParent } from "@/lib";
 import { MenuItems } from "@/lib/types";
+import { signOut } from "next-auth/react";
 
 interface SidebarProps {
   onClose?: () => void;
@@ -17,6 +18,10 @@ interface SidebarProps {
 
 export default function Sidebar({ onClose }: SidebarProps) {
   const pathname = usePathname();
+
+  const handleSignOut = async () => {
+    await signOut({ callbackUrl: "/" });
+  };
 
   return (
     <aside className="w-64 h-full border-r border-slate-600 flex flex-col bg-[#1C1B36] shadow-xl lg:shadow-none">
@@ -52,7 +57,10 @@ export default function Sidebar({ onClose }: SidebarProps) {
             key={item.id}
             item={item}
             isActive={pathname === item.href}
-            onClick={onClose}
+            onClick={() => {
+              onClose && onClose();
+              handleSignOut;
+            }}
           />
         ))}
       </nav>

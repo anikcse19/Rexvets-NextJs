@@ -1,74 +1,116 @@
+import { NextRequest, NextResponse } from "next/server";
+
+import cloudinary from "@/lib/cloudinary";
 import { connectToDatabase } from "@/lib/mongoose";
-import { sendResponse, throwAppError } from "@/lib/utils/send.response";
 import { PrescriptionModel } from "@/models/Prescription";
-import { NextRequest } from "next/server";
+import {
+  IErrorResponse,
+  ISendResponse,
+  sendResponse,
+  throwAppError,
+} from "@/lib/utils/send.response";
 
-// CREATE PrescriptionModel
-export async function POST(req: NextRequest) {
+export async function GET(req: NextRequest) {
+  await connectToDatabase();
+
   try {
-    await connectToDatabase();
-    const body = await req.json();
+    const { searchParams } = new URL(req.url);
 
-    const prescription = await PrescriptionModel.create(body);
+    const filter: any = {};
+    if (searchParams.get("appointment"))
+      filter.appointment = searchParams.get("appointment");
+    if (searchParams.get("veterinarian"))
+      filter.veterinarian = searchParams.get("veterinarian");
+    if (searchParams.get("pet")) filter.pet = searchParams.get("pet");
+    if (searchParams.get("petParent"))
+      filter.petParent = searchParams.get("petParent");
 
-    return sendResponse({
-      statusCode: 201,
+    const prescriptions = await PrescriptionModel.find(filter)
+      // .populate("veterinarian")
+      // .populate("petParent")
+      // .populate("appointment")
+      // .populate("pet")
+      .sort({ createdAt: -1 });
+
+    const response: ISendResponse<typeof prescriptions> = {
       success: true,
-      message: "PrescriptionModel created successfully",
-      data: prescription,
-    });
+      data: prescriptions,
+      statusCode: 201,
+      message: "Prescriptions fetched successfully",
+    };
+    return sendResponse(response);
   } catch (error: any) {
-    return throwAppError(
-      {
-        success: false,
-        message: error.message,
-        errorCode: "CREATE_FAILED",
-        errors: null,
-      },
-      500
-    );
+    console.error("Error fetching prescriptions:", error);
+    const errResp: IErrorResponse = {
+      success: false,
+      message: "Unexpected server error",
+      errorCode: "UNHANDLED_ERROR",
+      errors: error?.message ?? error,
+    };
+    return throwAppError(errResp, 500);
   }
 }
-// GET all Prescriptions
-export async function GET(req: NextRequest) {
+
+export async function POST(req: NextRequest) {
+  console.log("Received POST request to create prescription");
+  await connectToDatabase();
+
   try {
-    await connectToDatabase();
+    const formData = await req.formData();
+    const pdfFile = formData.get("pdf") as File | null;
 
-    const { searchParams } = new URL(req.url);
-    const page = parseInt(searchParams.get("page") || "1", 10);
-    const limit = parseInt(searchParams.get("limit") || "10", 10);
+    const prescriptionData: any = {
+      veterinarian: formData.get("veterinarian"),
+      petParent: formData.get("petParent"),
+      appointment: formData.get("appointment"),
+      pet: formData.get("pet"),
+      medication_details: JSON.parse(
+        formData.get("medication_details") as string
+      ),
+      usage_instruction: JSON.parse(
+        formData.get("usage_instruction") as string
+      ),
+      pharmacy: JSON.parse(formData.get("pharmacy") as string),
+    };
 
-    const skip = (page - 1) * limit;
+    if (pdfFile) {
+      const arrayBuffer = await pdfFile.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
 
-    // Count total documents
-    const totalDocs = await PrescriptionModel.countDocuments();
+      const uploadRes = await new Promise<any>((resolve, reject) => {
+        cloudinary.uploader
+          .upload_stream(
+            { folder: "prescriptions", resource_type: "auto" },
+            (err, result) => {
+              if (err) reject(err);
+              else resolve(result);
+            }
+          )
+          .end(buffer);
+      });
 
-    // Fetch prescriptions with pagination
-    const prescriptions = await PrescriptionModel.find()
-      .populate("pet")
-      .skip(skip)
-      .limit(limit)
-      .sort({ createdAt: -1 })
-      .exec();
+      prescriptionData.pdfLink = uploadRes.secure_url;
+      prescriptionData.pdfPublicId = uploadRes.public_id;
+    }
 
-    const totalPages = Math.ceil(totalDocs / limit);
+    console.log("Creating prescription with data:", prescriptionData);
 
-    return sendResponse({
-      statusCode: 200,
+    const created = await PrescriptionModel.create(prescriptionData);
+    const response: ISendResponse<typeof created> = {
       success: true,
-      message: "Prescriptions fetched successfully",
-      data: prescriptions,
-      meta: { page, limit, totalPages },
-    });
+      data: created,
+      statusCode: 201,
+      message: "Prescription created successfully",
+    };
+    return sendResponse(response);
   } catch (error: any) {
-    return throwAppError(
-      {
-        success: false,
-        message: error.message,
-        errorCode: "FETCH_FAILED",
-        errors: null,
-      },
-      500
-    );
+    console.log("Error creating prescription:", error);
+    const errResp: IErrorResponse = {
+      success: false,
+      message: "Unexpected server error",
+      errorCode: "UNHANDLED_ERROR",
+      errors: error?.message ?? error,
+    };
+    return throwAppError(errResp, 500);
   }
 }
