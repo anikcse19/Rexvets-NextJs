@@ -12,6 +12,7 @@ interface Period {
   endTime: string;
   totalHours: number;
   slots: Slot[];
+  timezone?: string; // Add timezone information
 }
 
 interface DateGroup {
@@ -22,6 +23,7 @@ interface DateGroup {
   periods: Period[];
   numberOfPeriods: number;
   numberOfDays: number;
+  timezone?: string; // Add timezone information
 }
 
 export const groupSlotsIntoPeriods = (slots: Slot[]): DateGroup[] => {
@@ -29,7 +31,8 @@ export const groupSlotsIntoPeriods = (slots: Slot[]): DateGroup[] => {
   const groups: { [key: string]: Slot[] } = {};
 
   slots.forEach((slot) => {
-    const key = moment(slot.date).format("YYYY-MM-DD");
+    // Use the formatted date from the slot if available, otherwise format the date
+    const key = slot.formattedDate || moment(slot.date).format("YYYY-MM-DD");
     if (!groups[key]) {
       groups[key] = [];
     }
@@ -41,28 +44,37 @@ export const groupSlotsIntoPeriods = (slots: Slot[]): DateGroup[] => {
   // Process each date group
   Object.keys(groups).forEach((date) => {
     const dateSlots = groups[date];
-    // Sort slots by startTime
-    dateSlots.sort(
-      (a, b) => moment(a.startTime).valueOf() - moment(b.startTime).valueOf()
-    );
+    
+    // Sort slots by startTime (use formatted time if available)
+    dateSlots.sort((a, b) => {
+      const timeA = a.formattedStartTime || a.startTime;
+      const timeB = b.formattedStartTime || b.startTime;
+      return moment(`2000-01-01 ${timeA}`).valueOf() - moment(`2000-01-01 ${timeB}`).valueOf();
+    });
 
     const periods: Period[] = [];
     if (dateSlots.length === 0) return;
 
+    // Get timezone from first slot (all slots in a group should have the same timezone)
+    const timezone = dateSlots[0].timezone;
+
     // Initialize first period
-    let currentStart = dateSlots[0].startTime;
-    let currentEnd = dateSlots[0].endTime;
+    let currentStart = dateSlots[0].formattedStartTime || dateSlots[0].startTime;
+    let currentEnd = dateSlots[0].formattedEndTime || dateSlots[0].endTime;
     let currentSlots: Slot[] = [dateSlots[0]];
 
     // Group slots into periods based on 50-minute gap
     for (let i = 1; i < dateSlots.length; i++) {
-      const nextStart = dateSlots[i].startTime;
-      const gap = moment(nextStart).diff(moment(currentEnd), "minutes");
+      const nextStart = dateSlots[i].formattedStartTime || dateSlots[i].startTime;
+      const gap = moment(`2000-01-01 ${nextStart}`).diff(
+        moment(`2000-01-01 ${currentEnd}`), 
+        "minutes"
+      );
 
       if (gap > 50) {
         // Complete the current period
-        const totalHours = moment(currentEnd).diff(
-          moment(currentStart),
+        const totalHours = moment(`2000-01-01 ${currentEnd}`).diff(
+          moment(`2000-01-01 ${currentStart}`),
           "hours",
           true
         );
@@ -71,21 +83,22 @@ export const groupSlotsIntoPeriods = (slots: Slot[]): DateGroup[] => {
           endTime: currentEnd,
           totalHours,
           slots: currentSlots,
+          timezone: timezone,
         });
         // Start a new period
         currentStart = nextStart;
-        currentEnd = dateSlots[i].endTime;
+        currentEnd = dateSlots[i].formattedEndTime || dateSlots[i].endTime;
         currentSlots = [dateSlots[i]];
       } else {
         // Extend the current period
-        currentEnd = dateSlots[i].endTime;
+        currentEnd = dateSlots[i].formattedEndTime || dateSlots[i].endTime;
         currentSlots.push(dateSlots[i]);
       }
     }
 
     // Add the last period
-    const totalHours = moment(currentEnd).diff(
-      moment(currentStart),
+    const totalHours = moment(`2000-01-01 ${currentEnd}`).diff(
+      moment(`2000-01-01 ${currentStart}`),
       "hours",
       true
     );
@@ -94,6 +107,7 @@ export const groupSlotsIntoPeriods = (slots: Slot[]): DateGroup[] => {
       endTime: currentEnd,
       totalHours,
       slots: currentSlots,
+      timezone: timezone,
     });
 
     // Calculate date range for the group
@@ -109,6 +123,7 @@ export const groupSlotsIntoPeriods = (slots: Slot[]): DateGroup[] => {
       periods,
       numberOfPeriods: periods.length,
       numberOfDays,
+      timezone: timezone,
     });
   });
 
@@ -119,6 +134,7 @@ export const groupSlotsIntoPeriods = (slots: Slot[]): DateGroup[] => {
 
   return result;
 };
+
 interface UpdateSlotStatusParams {
   vetId: string;
   dateRange: {
@@ -152,9 +168,9 @@ export const updateSlotStatus = async ({
       return throwAppError(errResp, 400);
     }
 
-    // Convert date range to UTC and normalize to start/end of day
-    const startDate = moment(dateRange.start).utc().startOf("day").toDate();
-    const endDate = moment(dateRange.end).utc().endOf("day").toDate();
+    // Convert date range to local dates without timezone conversion
+    const startDate = moment(dateRange.start).startOf("day").toDate();
+    const endDate = moment(dateRange.end).endOf("day").toDate();
 
     // Validate date range
     if (moment(endDate).isBefore(startDate)) {
@@ -218,6 +234,7 @@ export const updateSlotStatus = async ({
     );
   }
 };
+
 interface IUpdateSlotStatusBulk {
   vetId: string;
   slotIds: string[];
@@ -257,12 +274,23 @@ export const updateSlotStatusBulk = async ({
     // Validate slot IDs format
     const invalidSlotIds = slotIds.filter((id) => !Types.ObjectId.isValid(id));
     if (invalidSlotIds.length > 0) {
-      // return throwAppError(errResp, 400);
-      throw Error("Invalid slot ID format");
+      const errResp: IErrorResponse = {
+        success: false,
+        message: "Invalid slot ID format",
+        errorCode: "INVALID_SLOT_ID",
+        errors: null,
+      };
+      return throwAppError(errResp, 400);
     }
 
     if (!Object.values(SlotStatus).includes(status)) {
-      throw Error("Invalid status value");
+      const errResp: IErrorResponse = {
+        success: false,
+        message: "Invalid status value",
+        errorCode: "INVALID_STATUS",
+        errors: null,
+      };
+      return throwAppError(errResp, 400);
     }
 
     // Check if vet exists and is active
@@ -272,14 +300,14 @@ export const updateSlotStatusBulk = async ({
     });
 
     if (!isVetExist) {
-      throw Error("Veterinarian not found or inactive");
+      const errResp: IErrorResponse = {
+        success: false,
+        message: "Veterinarian not found or inactive",
+        errorCode: "VET_NOT_FOUND",
+        errors: null,
+      };
+      return throwAppError(errResp, 404);
     }
-
-    // Check if user has permission to update this vet's slots
-    // This assumes your Veterinarian model has a userId field or similar
-    // if (isVetExist.userId.toString() !== session.user.id) {
-    //   throw Error("Forbidden: You don't have permission to update these slots");
-    // }
 
     // Update slots in bulk
     const result = await AppointmentSlot.updateMany(
@@ -293,16 +321,17 @@ export const updateSlotStatusBulk = async ({
     );
 
     if (result.modifiedCount === 0) {
-      // const errResp: IErrorResponse = {
-      //   success: false,
-      //   message: "No slots were updated. Please check the vetId and slotIds.",
-      //   errorCode: "NO_SLOTS_UPDATED",
-      //   errors: null,
-      // };
-      // return throwAppError(errResp, 404);
-      throw Error("No slots were updated. Please check the vetId and slotIds.");
+      const errResp: IErrorResponse = {
+        success: false,
+        message: "No slots were updated. Please check the vetId and slotIds.",
+        errorCode: "NO_SLOTS_UPDATED",
+        errors: null,
+      };
+      return throwAppError(errResp, 404);
     }
-    console.log("result", result);
+
+    console.log("Bulk update result:", result);
+    
     // Return success response
     return {
       success: true,
@@ -311,6 +340,7 @@ export const updateSlotStatusBulk = async ({
       } to ${status}`,
       data: {
         modifiedCount: result.modifiedCount,
+        matchedCount: result.matchedCount,
       },
     };
   } catch (error: any) {

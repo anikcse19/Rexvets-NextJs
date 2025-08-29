@@ -1,4 +1,5 @@
 import { connectToDatabase } from "@/lib/mongoose";
+import { getUserTimezone } from "@/lib/timezone";
 import {
   IErrorResponse,
   sendResponse,
@@ -35,7 +36,12 @@ export const POST = async (
       slotDuration = 30,
       bufferBetweenSlots = 0,
       dateRange,
+      timezone, // New timezone parameter
     } = await req.json();
+
+    // Validate timezone - use provided timezone or default to user's timezone
+    const appointmentTimezone = timezone || getUserTimezone();
+
     const existingVet = await Veterinarian.findOne({ _id: vetId });
     if (!existingVet) {
       const errResp: IErrorResponse = {
@@ -46,13 +52,16 @@ export const POST = async (
       };
       return throwAppError(errResp, 404);
     }
+
     const slotData: IGenerateAppointmentSlots = {
       vetId: existingVet._id,
       slotPeriods: slotPeriods,
       dateRange: dateRange,
+      timezone: appointmentTimezone, // Include timezone in the data
       bufferBetweenSlots: bufferBetweenSlots,
       slotDuration: slotDuration,
     };
+
     const response = await generateAppointmentSlots(slotData);
     console.log("RESPONSE", response);
     return sendResponse({
@@ -72,6 +81,7 @@ export const POST = async (
     return throwAppError(errResp, 500);
   }
 };
+
 export const PATCH = async (
   req: NextRequest,
   { params }: { params: Promise<{ vetId: string }> }
@@ -94,7 +104,12 @@ export const PATCH = async (
       slotDuration = 30,
       bufferBetweenSlots = 5,
       dateRange,
+      timezone, // New timezone parameter
     } = await req.json();
+
+    // Validate timezone - use provided timezone or default to user's timezone
+    const appointmentTimezone = timezone || getUserTimezone();
+
     const existingVet = await Veterinarian.findOne({ _id: vetId });
     if (!existingVet) {
       const errResp: IErrorResponse = {
@@ -105,18 +120,21 @@ export const PATCH = async (
       };
       return throwAppError(errResp, 404);
     }
+
     console.log("existingVet", existingVet);
     const slotData: IUpdateAppointmentSlots = {
       vetId: existingVet._id,
       slotPeriods: slotPeriods,
       dateRange: dateRange,
+      timezone: appointmentTimezone, // Include timezone in the data
       bufferBetweenSlots: bufferBetweenSlots,
       slotDuration: slotDuration,
     };
+
     const response = await updateAppointmentSlots(slotData);
     return sendResponse({
       success: true,
-      message: "Appointment slots generated successfully",
+      message: "Appointment slots updated successfully",
       data: response,
       statusCode: 200,
     });

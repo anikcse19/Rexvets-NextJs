@@ -10,6 +10,7 @@ import { VeterinarianModel } from "@/models";
 import { AppointmentModel } from "@/models/Appointment";
 import { AppointmentSlot, SlotStatus } from "@/models/AppointmentSlot";
 import PetParent from "@/models/PetParent";
+import moment from "moment-timezone";
 import { Types } from "mongoose";
 import { getServerSession } from "next-auth/next";
 import { NextRequest } from "next/server";
@@ -122,14 +123,31 @@ export async function POST(req: NextRequest) {
       slotId: appointmentSlotId,
       concerns,
     } = parsed.data;
-    console.log("existingSlot.date", existingSlot.startTime);
+    console.log("existingSlot.date", existingSlot.date);
+    console.log("existingSlot.startTime", existingSlot.startTime);
 
-    // Create appointment document
+    // Create appointment document with proper timezone handling
+    const slotDate = new Date(existingSlot.date);
+    const timezone = existingSlot.timezone || 'UTC';
+    
+    // Convert the slot date to the slot's timezone to get the correct local date
+    const slotDateInTimezone = moment.tz(slotDate, timezone);
+    const dateString = slotDateInTimezone.format('YYYY-MM-DD');
+    
+    // Create the appointment date in the slot's timezone
+    const appointmentDateTime = moment.tz(`${dateString}T${existingSlot.startTime}:00`, timezone).toDate();
+    
+    console.log("Slot date in timezone:", slotDateInTimezone.format());
+    console.log("Slot date string:", dateString);
+    console.log("Created appointment date:", appointmentDateTime);
+    console.log("Slot timezone:", timezone);
+    console.log("Current time:", new Date());
+
     const appointment = new AppointmentModel({
       veterinarian: new Types.ObjectId(veterinarian),
       petParent: new Types.ObjectId(petParent),
       pet: new Types.ObjectId(pet),
-      appointmentDate: existingSlot.startTime,
+      appointmentDate: appointmentDateTime,
       notes,
       feeUSD,
       isFollowUp,
