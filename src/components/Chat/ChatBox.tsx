@@ -279,8 +279,8 @@ const ChatBox: React.FC<IProps> = ({ receiverId, isAdmin = true }) => {
                 </p>
 
                 {message.file && (
-                  <div className="mt-2 p-2 rounded-lg bg-white border border-gray-200 shadow-sm">
-                    <div className="flex items-center space-x-2">
+                  <div className="mt-2">
+                    <div className="flex items-center space-x-2 mb-2">
                       <div className="flex-shrink-0 text-gray-600">
                         {getFileIcon(message.file.type)}
                       </div>
@@ -308,7 +308,24 @@ const ChatBox: React.FC<IProps> = ({ receiverId, isAdmin = true }) => {
                       <img
                         src={message.file.url}
                         alt={message.file.name}
-                        className="w-full max-h-48 object-cover rounded mt-2"
+                        className="w-full max-h-48 object-contain rounded mt-2"
+                        style={{
+                          display: 'block',
+                          maxWidth: '100%',
+                          height: 'auto'
+                        }}
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                          // Show a fallback message
+                          const fallback = document.createElement('div');
+                          fallback.className = 'w-full max-h-48 rounded mt-2 flex items-center justify-center text-gray-500 text-sm';
+                          fallback.textContent = 'Image failed to load';
+                          target.parentNode?.appendChild(fallback);
+                        }}
+                        onLoad={(e) => {
+                          console.log('ChatBox image loaded:', message.file?.url);
+                        }}
                       />
                     )}
                   </div>

@@ -58,8 +58,6 @@ export async function GET(
       .populate("pet")
       .lean();
 
-    // console.log("appointment-------------------", appointment);
-
     if (!appointment) {
       return throwAppError(
         {
