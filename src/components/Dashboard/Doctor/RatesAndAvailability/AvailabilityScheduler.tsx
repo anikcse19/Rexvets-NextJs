@@ -1,11 +1,11 @@
 import { useDashboardContext } from "@/hooks/DashboardContext";
 import { Slot, SlotStatus } from "@/lib";
-import { getTimezoneOffset, getUserTimezone } from "@/lib/timezone";
+import { getTimezoneOffset } from "@/lib/timezone";
 import { convertTimesToUserTimezone } from "@/lib/timezone/index";
 import { cn } from "@/lib/utils";
 import moment from "moment";
 import { useSession } from "next-auth/react";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import {
   FiCalendar,
   FiClock,
@@ -285,11 +285,12 @@ const AvailabilityScheduler: React.FC<Props> = ({
                 <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded-full font-medium">
                   {summary.totalDays} days
                 </span>
-                {periods?.[0]?.timezone && periods[0].timezone !== currentUserTimezone && (
-                  <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full font-medium">
-                    Timezone: {periods[0].timezone} → {currentUserTimezone}
-                  </span>
-                )}
+                {periods?.[0]?.timezone &&
+                  periods[0].timezone !== currentUserTimezone && (
+                    <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full font-medium">
+                      Timezone: {periods[0].timezone} → {currentUserTimezone}
+                    </span>
+                  )}
               </div>
             </div>
           </div>
@@ -443,49 +444,55 @@ const AvailabilityScheduler: React.FC<Props> = ({
               </span>
             </div>
 
-                         {/* Weekly Schedule Pattern */}
-             <div className="mt-3 text-xs text-gray-600">
-               <span className="font-medium">Pattern:</span> Daily availability
-               with {periods?.[0]?.numberOfPeriods || 0} time slots per day
-               {periods?.[0]?.periods && (
-                 <span className="ml-1">
-                   (
-                   {(() => {
-                     const firstPeriod = periods[0].periods[0];
-                     if (!firstPeriod) return "";
-                     
-                     const { formattedStartTime, formattedEndTime } = convertTimesToUserTimezone(
-                       firstPeriod.startTime,
-                       firstPeriod.endTime,
-                       periods[0].date.start,
-                       periods[0].timezone || "UTC"
-                     );
-                     
-                     let patternText = `${formattedStartTime} - ${formattedEndTime}`;
-                     
-                     // Add second period if it exists
-                     if (periods[0].periods[1]) {
-                       const secondPeriod = periods[0].periods[1];
-                       const { formattedStartTime: secondStart, formattedEndTime: secondEnd } = convertTimesToUserTimezone(
-                         secondPeriod.startTime,
-                         secondPeriod.endTime,
-                         periods[0].date.start,
-                         periods[0].timezone || "UTC"
-                       );
-                       patternText += `, ${secondStart} - ${secondEnd}`;
-                     }
-                     
-                     return patternText;
-                   })()}
-                   )
-                 </span>
-               )}
-               {periods?.[0]?.timezone && periods[0].timezone !== currentUserTimezone && (
-                 <span className="ml-1 text-blue-600">
-                   • Times converted from {periods[0].timezone} to {currentUserTimezone}
-                 </span>
-               )}
-             </div>
+            {/* Weekly Schedule Pattern */}
+            <div className="mt-3 text-xs text-gray-600">
+              <span className="font-medium">Pattern:</span> Daily availability
+              with {periods?.[0]?.numberOfPeriods || 0} time slots per day
+              {periods?.[0]?.periods && (
+                <span className="ml-1">
+                  (
+                  {(() => {
+                    const firstPeriod = periods[0].periods[0];
+                    if (!firstPeriod) return "";
+
+                    const { formattedStartTime, formattedEndTime } =
+                      convertTimesToUserTimezone(
+                        firstPeriod.startTime,
+                        firstPeriod.endTime,
+                        periods[0].date.start,
+                        periods[0].timezone || "UTC"
+                      );
+
+                    let patternText = `${formattedStartTime} - ${formattedEndTime}`;
+
+                    // Add second period if it exists
+                    if (periods[0].periods[1]) {
+                      const secondPeriod = periods[0].periods[1];
+                      const {
+                        formattedStartTime: secondStart,
+                        formattedEndTime: secondEnd,
+                      } = convertTimesToUserTimezone(
+                        secondPeriod.startTime,
+                        secondPeriod.endTime,
+                        periods[0].date.start,
+                        periods[0].timezone || "UTC"
+                      );
+                      patternText += `, ${secondStart} - ${secondEnd}`;
+                    }
+
+                    return patternText;
+                  })()}
+                  )
+                </span>
+              )}
+              {periods?.[0]?.timezone &&
+                periods[0].timezone !== currentUserTimezone && (
+                  <span className="ml-1 text-blue-600">
+                    • Times converted from {periods[0].timezone} to{" "}
+                    {currentUserTimezone}
+                  </span>
+                )}
+            </div>
           </div>
         </div>
       </div>
