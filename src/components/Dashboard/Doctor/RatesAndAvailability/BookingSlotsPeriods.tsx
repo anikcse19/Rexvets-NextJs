@@ -4,10 +4,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useDashboardContext } from "@/hooks/DashboardContext";
 import { Slot, SlotStatus } from "@/lib";
-import { Check, ChevronDown } from "lucide-react";
+import { getTimezoneOffset, getUserTimezone } from "@/lib/timezone";
+import { Check, ChevronDown, Globe } from "lucide-react";
 import moment from "moment";
 import { useSession } from "next-auth/react";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 interface BookingSlotsProps {
   className?: string;
@@ -36,6 +37,13 @@ const BookingSlotsPeriods: React.FC<BookingSlotsProps> = ({
 
   const [selectedStatus, setSelectedStatus] = useState<SlotStatus | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [userTimezone, setUserTimezone] = useState<string>("");
+
+  // Get user's timezone on component mount
+  useEffect(() => {
+    const timezone = getUserTimezone();
+    setUserTimezone(timezone);
+  }, []);
 
   const getSlotStyles = (status: SlotStatus) => {
     const baseStyles =
@@ -180,10 +188,41 @@ const BookingSlotsPeriods: React.FC<BookingSlotsProps> = ({
       day: "numeric",
     });
   };
-  const convertUtcToLocal = (utcTime: string): string => {
-    const utcMoment = moment.utc(utcTime, "HH:mm");
-    const localMoment = utcMoment.local();
-    return localMoment.format("hh:mm A");
+
+  // Enhanced time formatting with timezone support
+  const formatTimeForDisplay = (slot: Slot): string => {
+    // Use formatted times if available (these are already converted to user's timezone)
+    const startTime = slot.formattedStartTime || slot.startTime;
+    const endTime = slot.formattedEndTime || slot.endTime;
+
+    // Format times in 12-hour format
+    const formatTime = (timeStr: string) => {
+      return moment(`2000-01-01 ${timeStr}`).format("hh:mm A");
+    };
+
+    return `${formatTime(startTime)} - ${formatTime(endTime)}`;
+  };
+
+  // Get timezone information for display
+  const getTimezoneInfo = (slot: Slot) => {
+    const slotTimezone = slot.timezone;
+    const displayTimezone = slot.displayTimezone;
+
+    if (!slotTimezone) return null;
+
+    if (displayTimezone && displayTimezone !== slotTimezone) {
+      return {
+        original: slotTimezone,
+        display: displayTimezone,
+        offset: getTimezoneOffset(slotTimezone),
+        displayOffset: getTimezoneOffset(displayTimezone),
+      };
+    }
+
+    return {
+      original: slotTimezone,
+      offset: getTimezoneOffset(slotTimezone),
+    };
   };
 
   return (
@@ -194,25 +233,42 @@ const BookingSlotsPeriods: React.FC<BookingSlotsProps> = ({
           Slots
         </h2>
 
-        {/* Filter Buttons */}
-        <div className="flex flex-wrap gap-2 mb-6 mt-1 px-3">
-          {Object.values(SlotStatus).map((status) => (
-            <button
-              key={status}
-              onClick={() => {
-                setSlotStatus(status);
-                console.log("slotStatus", status);
-              }}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
-                slotStatus === status
-                  ? "bg-blue-500 text-white shadow-md"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
-            >
-              {status.charAt(0).toUpperCase() + status.slice(1)}
-            </button>
-          ))}
-        </div>
+        {/* Timezone Information */}
+        {selectedSlot && selectedSlot.length > 0 && (
+          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="flex items-center gap-2 text-sm text-blue-800">
+              <Globe className="w-4 h-4" />
+              <span className="font-medium">Timezone Information:</span>
+              {(() => {
+                const firstSlot = selectedSlot[0];
+                const timezoneInfo = getTimezoneInfo(firstSlot);
+
+                if (timezoneInfo) {
+                  if ("display" in timezoneInfo) {
+                    return (
+                      <span>
+                        Slots created in{" "}
+                        <strong>{timezoneInfo.original}</strong> (
+                        {timezoneInfo.offset}) • Displaying in{" "}
+                        <strong>{timezoneInfo.display}</strong> (
+                        {timezoneInfo.displayOffset})
+                      </span>
+                    );
+                  } else {
+                    return (
+                      <span>
+                        All times in <strong>{timezoneInfo.original}</strong> (
+                        {timezoneInfo.offset})
+                      </span>
+                    );
+                  }
+                }
+                return <span>No timezone information available</span>;
+              })()}
+            </div>
+          </div>
+        )}
+
         {/* Legend */}
         <div className="flex flex-wrap gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
           <div className="flex items-center gap-2">
@@ -231,6 +287,17 @@ const BookingSlotsPeriods: React.FC<BookingSlotsProps> = ({
             <div className="w-3 h-3 bg-yellow-200 border border-yellow-300 rounded"></div>
             <span className="text-sm text-gray-600">Pending</span>
           </div>
+          {selectedSlot &&
+            selectedSlot.some(
+              (slot) => slot.timezone && slot.timezone !== userTimezone
+            ) && (
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-blue-200 border border-blue-300 rounded"></div>
+                <span className="text-sm text-gray-600">
+                  Different Timezone
+                </span>
+              </div>
+            )}
         </div>
 
         {/* Action Buttons */}
@@ -292,7 +359,7 @@ const BookingSlotsPeriods: React.FC<BookingSlotsProps> = ({
       </div>
 
       {/* Slots Display */}
-      <ScrollArea className="space-y-8 w-full  h-[70vh] pb-2">
+      <ScrollArea className="space-y-8 w-full h-[60vh] pb-2">
         {Object.keys(groupedSlots ?? {})?.length === 0 ? (
           <div className="text-center py-12">
             <div className="text-gray-500 text-lg">
@@ -308,19 +375,30 @@ const BookingSlotsPeriods: React.FC<BookingSlotsProps> = ({
                   {formatDateForDisplay(date)}
                 </h3>
 
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4  gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                   {dateSlots
                     .sort((a, b) =>
                       a.formattedStartTime.localeCompare(b.formattedStartTime)
                     )
                     .map((slot) => {
                       const isSelected = selectedSlotIds.includes(slot._id);
+                      const timezoneInfo = getTimezoneInfo(slot);
+                      const hasDifferentTimezone =
+                        timezoneInfo &&
+                        "display" in timezoneInfo &&
+                        timezoneInfo.original !== timezoneInfo.display;
 
                       return (
                         <div
                           key={slot._id}
                           onClick={() => handleSlotClick(slot)}
-                          className={getSlotStyles(slot.status as SlotStatus)}
+                          className={`${getSlotStyles(
+                            slot.status as SlotStatus
+                          )} ${
+                            hasDifferentTimezone
+                              ? "border-blue-300 bg-blue-50"
+                              : ""
+                          }`}
                         >
                           <div className="flex flex-col items-center space-y-1 relative">
                             {slot.status === SlotStatus.AVAILABLE && (
@@ -346,12 +424,20 @@ const BookingSlotsPeriods: React.FC<BookingSlotsProps> = ({
                               </div>
                             )}
 
-                            <div className="font-semibold">
-                              {convertUtcToLocal(slot.formattedStartTime)}
+                            <div className="font-semibold text-center">
+                              {formatTimeForDisplay(slot)}
                             </div>
-                            <div className="text-xs opacity-75">
-                              {convertUtcToLocal(slot.formattedEndTime)}
-                            </div>
+
+                            {/* Timezone indicator */}
+                            {hasDifferentTimezone && (
+                              <div className="flex items-center gap-1 text-xs text-blue-600">
+                                <Globe className="w-3 h-3" />
+                                <span className="text-[10px]">
+                                  {timezoneInfo.original}
+                                </span>
+                              </div>
+                            )}
+
                             <div
                               className={`px-2 py-1 rounded-full text-xs border ${getStatusBadgeStyles(
                                 slot.status as SlotStatus

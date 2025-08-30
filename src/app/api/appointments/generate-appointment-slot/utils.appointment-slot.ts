@@ -1,3 +1,4 @@
+import { isTimeInPast, isValidTimezone } from "@/lib/timezone";
 import { AppointmentSlot, SlotStatus } from "@/models/AppointmentSlot";
 import moment from "moment";
 import { Types } from "mongoose";
@@ -12,6 +13,7 @@ export interface IGenerateAppointmentSlots {
     start: Date;
     end: Date;
   };
+  timezone: string; // Timezone for the appointment slots (e.g., "America/New_York")
   bufferBetweenSlots?: number;
   slotDuration?: number;
 }
@@ -23,36 +25,44 @@ export const generateAppointmentSlots = async (
     vetId,
     slotPeriods,
     dateRange,
+    timezone,
     bufferBetweenSlots = 5,
     slotDuration = 30,
   } = data;
 
   try {
-    // Parse dates as UTC without timezone conversion
-    const startDate = moment.utc(dateRange.start, "YYYY-MM-DD").startOf("day");
-    const endDate = moment.utc(dateRange.end, "YYYY-MM-DD").endOf("day");
-    console.log("start date:", startDate);
-    console.log("end date:", endDate);
-    // Get current UTC datetime for comparison
-    const currentUtc = moment.utc();
+    // Validate timezone
+    if (!isValidTimezone(timezone)) {
+      throw new Error(`Invalid timezone: ${timezone}`);
+    }
+
+    // Parse dates as local dates without timezone conversion
+    const startDate = moment(dateRange.start).startOf("day");
+    const endDate = moment(dateRange.end).endOf("day");
+    console.log("start date:", startDate.format("YYYY-MM-DD"));
+    console.log("end date:", endDate.format("YYYY-MM-DD"));
+    
+    // Get current date in the appointment timezone for comparison
+    const currentDateInTimezone = moment.tz(timezone).startOf("day");
 
     // Validate date range
     if (endDate.isBefore(startDate)) {
       throw new Error("Invalid date range: end date must be after start date");
     }
-    console.log("currentUtc", currentUtc);
+
     // Check if any date in the range is in the past
-    if (startDate.isBefore(currentUtc)) {
+    if (startDate.isBefore(currentDateInTimezone)) {
       throw new Error("Cannot create slots for past dates");
     }
 
-    // Check for existing slots for this vet in the date range
+    // Check for existing slots for this vet in the date range and timezone
     const existingSlots = await AppointmentSlot.find({
       vetId: new Types.ObjectId(vetId),
       date: {
         $gte: startDate.toDate(),
         $lte: endDate.toDate(),
       },
+      timezone: timezone,
     });
 
     // If slots already exist, return early without generating new ones
@@ -62,7 +72,7 @@ export const generateAppointmentSlots = async (
           "YYYY-MM-DD"
         )} and ${endDate.format(
           "YYYY-MM-DD"
-        )}. Please delete existing slots first.`
+        )} in timezone ${timezone}. Please delete existing slots first.`
       );
     }
 
@@ -72,37 +82,41 @@ export const generateAppointmentSlots = async (
     const numberOfDays = endDate.diff(startDate, "days") + 1;
     for (let day = 0; day < numberOfDays; day++) {
       const currentDate = startDate.clone().add(day, "days");
-      const utcDate = currentDate.toDate();
+      const localDate = currentDate.toDate(); // Store as local date without timezone
 
       // Skip if this specific day is in the past
-      if (currentDate.isBefore(currentUtc)) {
+      if (currentDate.isBefore(currentDateInTimezone)) {
         continue;
       }
 
       // Process each slot period for this day
       for (const period of slotPeriods) {
-        // Parse time strings directly as UTC times for the current date
-        const periodStart = moment.utc(
-          `${currentDate.format("YYYY-MM-DD")}T${period.start}:00.000Z`
-        );
-        const periodEnd = moment.utc(
-          `${currentDate.format("YYYY-MM-DD")}T${period.end}:00.000Z`
-        );
+        // Validate time format (HH:mm)
+        const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
+        if (!timeRegex.test(period.start) || !timeRegex.test(period.end)) {
+          throw new Error(`Invalid time format. Expected HH:mm, got start: ${period.start}, end: ${period.end}`);
+        }
 
         // Handle 24:00 end time (convert to next day 00:00)
+        let periodEnd = period.end;
+        let periodEndDate = currentDate.clone();
         if (period.end === "24:00") {
-          periodEnd.add(1, "day").startOf("day");
+          periodEnd = "00:00";
+          periodEndDate = currentDate.clone().add(1, "day");
         }
 
         // Validate that the period is valid
-        if (periodEnd.isSameOrBefore(periodStart)) {
+        if (periodEnd === "00:00" && period.start !== "00:00") {
+          // This is valid (period spans to midnight)
+        } else if (periodEnd <= period.start) {
           throw new Error(
             `Invalid time period: end time ${period.end} must be after start time ${period.start}`
           );
         }
 
         // Skip this period if it's already in the past (for today)
-        if (periodEnd.isBefore(currentUtc)) {
+        if (currentDate.isSame(currentDateInTimezone, "day") && 
+            isTimeInPast(period.end, currentDate.toDate(), timezone)) {
           continue;
         }
 
@@ -110,30 +124,33 @@ export const generateAppointmentSlots = async (
         const totalTimePerSlot = slotDuration + bufferBetweenSlots;
 
         // Generate slots within this period
-        let currentSlotStart = periodStart.clone();
+        let currentSlotStart = period.start;
 
-        while (currentSlotStart.isBefore(periodEnd)) {
-          const currentSlotEnd = currentSlotStart
-            .clone()
-            .add(slotDuration, "minutes");
+        while (true) {
+          // Calculate slot end time
+          const slotStartMoment = moment(`2000-01-01 ${currentSlotStart}`, "YYYY-MM-DD HH:mm");
+          const slotEndMoment = slotStartMoment.clone().add(slotDuration, "minutes");
+          const currentSlotEnd = slotEndMoment.format("HH:mm");
 
           // If the slot would extend beyond the period end, break
-          if (currentSlotEnd.isAfter(periodEnd)) {
+          if (periodEnd !== "00:00" && currentSlotEnd > periodEnd) {
             break;
           }
 
-          // Skip slots that are in the past
-          if (currentSlotEnd.isBefore(currentUtc)) {
-            currentSlotStart = currentSlotEnd.clone();
+          // Skip slots that are in the past (for today)
+          if (currentDate.isSame(currentDateInTimezone, "day") && 
+              isTimeInPast(currentSlotEnd, currentDate.toDate(), timezone)) {
+            currentSlotStart = currentSlotEnd;
             continue;
           }
 
-          // Create slot data with ISO 8601 UTC format for times
+          // Create slot data with local date and timezone-specific times
           const slotData = {
             vetId: new Types.ObjectId(vetId),
-            date: utcDate,
-            startTime: currentSlotStart.toISOString(),
-            endTime: currentSlotEnd.toISOString(),
+            date: localDate, // Store as local date without timezone
+            startTime: currentSlotStart, // Store as HH:mm in appointment timezone
+            endTime: currentSlotEnd, // Store as HH:mm in appointment timezone
+            timezone: timezone, // Store the timezone identifier
             status: SlotStatus.AVAILABLE,
             createdAt: new Date(),
           };
@@ -141,10 +158,10 @@ export const generateAppointmentSlots = async (
           slotsToCreate.push(slotData);
 
           // Move to next slot start time (no buffer gap)
-          currentSlotStart = currentSlotEnd.clone();
+          currentSlotStart = currentSlotEnd;
 
           // If next slot start would be beyond period end, break
-          if (currentSlotStart.isSameOrAfter(periodEnd)) {
+          if (periodEnd !== "00:00" && currentSlotStart >= periodEnd) {
             break;
           }
         }
@@ -162,12 +179,13 @@ export const generateAppointmentSlots = async (
         slotsToCreate.length
       } appointment slots between ${startDate.format(
         "YYYY-MM-DD"
-      )} and ${endDate.format("YYYY-MM-DD")}`,
+      )} and ${endDate.format("YYYY-MM-DD")} in timezone ${timezone}`,
       slotsCount: slotsToCreate.length,
       dateRange: {
         start: startDate.format("YYYY-MM-DD"),
         end: endDate.format("YYYY-MM-DD"),
       },
+      timezone: timezone,
       slotDuration,
       bufferBetweenSlots,
     };
@@ -176,6 +194,7 @@ export const generateAppointmentSlots = async (
     throw new Error(`Failed to generate appointment slots: ${error.message}`);
   }
 };
+
 export interface IUpdateAppointmentSlots {
   vetId: string;
   slotPeriods: {
@@ -186,6 +205,7 @@ export interface IUpdateAppointmentSlots {
     start: Date;
     end: Date;
   };
+  timezone: string; // Timezone for the appointment slots
   bufferBetweenSlots?: number;
   slotDuration?: number;
 }
@@ -196,13 +216,19 @@ export const updateAppointmentSlots = async (data: IUpdateAppointmentSlots) => {
       vetId,
       slotPeriods,
       dateRange,
+      timezone,
       bufferBetweenSlots = 5,
       slotDuration = 30,
     } = data;
 
-    // Convert date range to UTC
-    const startDate = moment(dateRange.start).utc().startOf("day");
-    const endDate = moment(dateRange.end).utc().startOf("day");
+    // Validate timezone
+    if (!isValidTimezone(timezone)) {
+      throw new Error(`Invalid timezone: ${timezone}`);
+    }
+
+    // Convert date range to local dates without timezone conversion
+    const startDate = moment(dateRange.start).startOf("day");
+    const endDate = moment(dateRange.end).startOf("day");
 
     // Validate date range
     if (endDate.isBefore(startDate)) {
@@ -211,23 +237,26 @@ export const updateAppointmentSlots = async (data: IUpdateAppointmentSlots) => {
 
     // Validate slot periods
     for (const period of slotPeriods) {
-      const periodStart = moment(period.start).utc();
-      const periodEnd = moment(period.end).utc();
+      const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
+      if (!timeRegex.test(period.start) || !timeRegex.test(period.end)) {
+        throw new Error(`Invalid time format. Expected HH:mm, got start: ${period.start}, end: ${period.end}`);
+      }
 
-      if (periodEnd.isSameOrBefore(periodStart)) {
+      if (period.end <= period.start && period.end !== "24:00") {
         throw new Error(
           `Invalid time period: end time must be after start time`
         );
       }
     }
 
-    // Get all existing slots for this vet in the date range
+    // Get all existing slots for this vet in the date range and timezone
     const existingSlots = await AppointmentSlot.find({
       vetId: new Types.ObjectId(vetId),
       date: {
         $gte: startDate.toDate(),
         $lte: endDate.toDate(),
       },
+      timezone: timezone,
     });
 
     // Separate booked and available slots
@@ -247,32 +276,36 @@ export const updateAppointmentSlots = async (data: IUpdateAppointmentSlots) => {
     // Process each day in the date range
     for (let day = 0; day < numberOfDays; day++) {
       const currentDate = startDate.clone().add(day, "days");
-      const utcDate = currentDate.toDate();
+      const localDate = currentDate.toDate();
 
       // Process each slot period for this day
       for (const period of slotPeriods) {
-        const periodStart = moment(period.start).utc();
-        const periodEnd = moment(period.end).utc();
+        let periodEnd = period.end;
+        if (period.end === "24:00") {
+          periodEnd = "00:00";
+        }
 
         // Generate slots within this period with buffer consideration
-        let currentSlotStart = periodStart.clone();
+        let currentSlotStart = period.start;
 
-        while (currentSlotStart.isBefore(periodEnd)) {
-          const currentSlotEnd = currentSlotStart
-            .clone()
-            .add(slotDuration, "minutes");
+        while (true) {
+          // Calculate slot end time
+          const slotStartMoment = moment(`2000-01-01 ${currentSlotStart}`, "YYYY-MM-DD HH:mm");
+          const slotEndMoment = slotStartMoment.clone().add(slotDuration, "minutes");
+          const currentSlotEnd = slotEndMoment.format("HH:mm");
 
           // If the slot would extend beyond the period end, break
-          if (currentSlotEnd.isAfter(periodEnd)) {
+          if (periodEnd !== "00:00" && currentSlotEnd > periodEnd) {
             break;
           }
 
           // Create slot data
           const slotData = {
             vetId: new Types.ObjectId(vetId),
-            date: utcDate,
-            startTime: currentSlotStart.toISOString(),
-            endTime: currentSlotEnd.toISOString(),
+            date: localDate, // Store as local date without timezone
+            startTime: currentSlotStart, // Store as HH:mm in appointment timezone
+            endTime: currentSlotEnd, // Store as HH:mm in appointment timezone
+            timezone: timezone, // Store the timezone identifier
             status: SlotStatus.AVAILABLE,
             createdAt: new Date(),
           };
@@ -280,12 +313,11 @@ export const updateAppointmentSlots = async (data: IUpdateAppointmentSlots) => {
           newAvailableSlots.push(slotData);
 
           // Move to next slot, considering buffer time
-          currentSlotStart = currentSlotEnd
-            .clone()
-            .add(bufferBetweenSlots, "minutes");
+          const nextSlotStartMoment = slotEndMoment.clone().add(bufferBetweenSlots, "minutes");
+          currentSlotStart = nextSlotStartMoment.format("HH:mm");
 
           // If next slot start would be beyond period end, break
-          if (currentSlotStart.isSameOrAfter(periodEnd)) {
+          if (periodEnd !== "00:00" && currentSlotStart >= periodEnd) {
             break;
           }
         }
@@ -325,7 +357,7 @@ export const updateAppointmentSlots = async (data: IUpdateAppointmentSlots) => {
         success: true,
         message: `Updated appointment slots for vet ${vetId} between ${startDate.format(
           "YYYY-MM-DD"
-        )} and ${endDate.format("YYYY-MM-DD")}`,
+        )} and ${endDate.format("YYYY-MM-DD")} in timezone ${timezone}`,
         preservedBookedSlots: bookedSlots.length,
         deletedAvailableSlots: availableSlots.length,
         createdSlotsCount: createdSlotsCount,
@@ -334,6 +366,7 @@ export const updateAppointmentSlots = async (data: IUpdateAppointmentSlots) => {
           start: startDate.toDate(),
           end: endDate.toDate(),
         },
+        timezone: timezone,
         slotDuration: slotDuration,
         bufferBetweenSlots: bufferBetweenSlots,
       };
@@ -358,6 +391,7 @@ export interface IGetAppointmentSlots {
     start: Date;
     end: Date;
   };
+  timezone?: string; // Optional timezone for display conversion
   page?: number;
   limit?: number;
   status?: SlotStatus | "ALL";
@@ -381,6 +415,7 @@ export interface IGetAppointmentSlotsResponse {
     };
     status?: SlotStatus | "ALL";
     search?: string;
+    timezone?: string;
   };
 }
 
@@ -391,6 +426,7 @@ export const getAppointmentSlots = async (
     const {
       vetId,
       dateRange,
+      timezone,
       page = 1,
       limit = 10,
       status = SlotStatus.AVAILABLE,
@@ -399,9 +435,13 @@ export const getAppointmentSlots = async (
       sortOrder = "asc",
     } = params;
 
-    // Validate date range
-    const startDate = moment(dateRange.start).utc().startOf("day");
-    const endDate = moment(dateRange.end).utc().startOf("day");
+    // Validate date range - use local dates without timezone conversion
+    const startDate = moment(dateRange.start).startOf("day");
+    const endDate = moment(dateRange.end).endOf("day");
+    console.log("START DATE", startDate.format("YYYY-MM-DD"));
+    console.log("END DATE", endDate.format("YYYY-MM-DD"));
+    console.log("STATUS", status);
+    console.log("TIMEZONE", timezone);
 
     if (endDate.isBefore(startDate)) {
       throw new Error("Invalid date range: end date must be after start date");
@@ -424,35 +464,16 @@ export const getAppointmentSlots = async (
       baseQuery.status = { $in: [SlotStatus.AVAILABLE] };
     }
 
-    // Filter out past dates and times
-    const now = new Date();
-    baseQuery.$and = [
-      {
-        $or: [
-          // Date is in the future
-          { date: { $gt: now } },
-          // Or date is today but time is in the future
-          {
-            $and: [
-              { date: { $gte: moment().startOf("day").toDate() } },
-              { date: { $lte: moment().endOf("day").toDate() } },
-              { startTime: { $gt: moment().format("HH:mm") } },
-            ],
-          },
-        ],
-      },
-    ];
+    // REMOVED: Server timezone-based date filtering
+    // This was causing slots to disappear when users changed their timezone
+    // Slots should be timezone-agnostic and always visible regardless of user's current timezone
+    // const todayStart = moment().startOf("day").toDate();
+    // baseQuery.date.$gte = todayStart; // This line was the problem!
 
     // Add search functionality
     if (search.trim()) {
       const searchRegex = new RegExp(search, "i");
-
-      // Search across multiple fields using $or
-      baseQuery.$or = [
-        { status: searchRegex },
-        { vetId: searchRegex }, // If you want to search by vet details
-        // Add other searchable fields as needed
-      ];
+      baseQuery.$or = [{ status: searchRegex }, { vetId: searchRegex }];
     }
 
     // Calculate pagination
@@ -465,7 +486,7 @@ export const getAppointmentSlots = async (
     // Execute queries in parallel for better performance
     const [slots, totalCount] = await Promise.all([
       // Get paginated results
-      AppointmentSlot.find(baseQuery).sort(sort).skip(skip).limit(limit).lean(), // Use lean for better performance
+      AppointmentSlot.find(baseQuery).sort(sort).skip(skip).limit(limit).lean(),
 
       // Get total count for pagination
       AppointmentSlot.countDocuments(baseQuery),
@@ -474,14 +495,34 @@ export const getAppointmentSlots = async (
     // Calculate total pages
     const totalPages = Math.ceil(totalCount / limit);
 
-    // Format the response data
-    const formattedSlots = slots.map((slot) => ({
-      ...slot,
-      // Add any additional formatting here
-      formattedDate: moment(slot.date).format("YYYY-MM-DD"),
-      formattedStartTime: moment(slot.startTime).format("HH:mm"),
-      formattedEndTime: moment(slot.endTime).format("HH:mm"),
-    }));
+    // Format the response data with timezone conversion if needed
+    const formattedSlots = slots.map((slot) => {
+      const baseSlot: any = {
+        ...slot,
+        formattedDate: moment(slot.date).format("YYYY-MM-DD"),
+        formattedStartTime: slot.startTime, // Already in HH:mm format
+        formattedEndTime: slot.endTime, // Already in HH:mm format
+        timezone: slot.timezone, // Include the slot's timezone
+      };
+
+      // If a display timezone is provided and different from slot timezone, convert times
+      if (timezone && slot.timezone && timezone !== slot.timezone) {
+        try {
+          const dateStr = moment(slot.date).format("YYYY-MM-DD");
+          const startDateTime = moment.tz(`${dateStr} ${slot.startTime}`, slot.timezone);
+          const endDateTime = moment.tz(`${dateStr} ${slot.endTime}`, slot.timezone);
+          
+          baseSlot.formattedStartTime = startDateTime.tz(timezone).format("HH:mm");
+          baseSlot.formattedEndTime = endDateTime.tz(timezone).format("HH:mm");
+          baseSlot.displayTimezone = timezone; // Add display timezone info
+        } catch (error) {
+          console.warn(`Failed to convert timezone for slot ${slot._id}:`, error);
+          // Keep original times if conversion fails
+        }
+      }
+
+      return baseSlot;
+    });
 
     return {
       data: formattedSlots,
@@ -498,6 +539,7 @@ export const getAppointmentSlots = async (
         },
         status: status !== "ALL" ? status : undefined,
         search: search.trim() || undefined,
+        timezone: timezone,
       },
     };
   } catch (error: any) {
@@ -508,6 +550,7 @@ export const getAppointmentSlots = async (
 export interface IGetSlotsParams {
   vetId: string;
   dateRange: { start: Date; end: Date };
+  timezone?: string; // Optional timezone for display conversion
   limit?: number;
   sortBy?: string;
   sortOrder?: SortOrder;
@@ -515,9 +558,11 @@ export interface IGetSlotsParams {
   status?: SlotStatus;
   search?: string;
 }
+
 export const getSlotsByVetId = async ({
   vetId,
   dateRange,
+  timezone,
   limit = 100,
   sortBy = "startTime",
   sortOrder = SortOrder.ASC,
@@ -528,6 +573,7 @@ export const getSlotsByVetId = async ({
   return getAppointmentSlots({
     vetId,
     dateRange,
+    timezone,
     status,
     limit,
     page,

@@ -91,3 +91,58 @@ export async function getVeterinarianSlots(
     throw new Error("Failed to fetch veterinarian slots");
   }
 }
+interface IGetSlotsByNoticePeriodAndDateRangeByVetId {
+  vetId: string;
+  noticePeriod: number; // in minutes
+  startDate: Date;
+  endDate: Date;
+}
+
+export const getSlotsByNoticePeriodAndDateRangeByVetId = async (
+  params: IGetSlotsByNoticePeriodAndDateRangeByVetId
+): Promise<IAvailabilitySlot[]> => {
+  const { vetId, noticePeriod, startDate, endDate } = params;
+
+  try {
+    // Convert input dates to UTC start and end of day for proper range query
+    const startDateUtc = moment.utc(startDate).startOf("day").toDate();
+    const endDateUtc = moment.utc(endDate).endOf("day").toDate();
+
+    // Query all available slots for the vet within the date range
+    const allSlots = await AppointmentSlot.find({
+      vetId: new Types.ObjectId(vetId),
+      date: {
+        $gte: startDateUtc,
+        $lte: endDateUtc,
+      },
+      status: SlotStatus.AVAILABLE,
+    }).sort({ date: 1, startTime: 1 }); // Sort by date and startTime
+
+    // Get current time in UTC
+    const nowUtc = moment.utc();
+
+    // Filter out slots that are within the notice period
+    const filteredSlots = allSlots.filter((slot) => {
+      // Parse the slot's start time (which is stored as ISO string)
+      const slotStartTime = moment.utc(slot.startTime);
+
+      // Calculate the difference in minutes between now and slot start time
+      const timeDifference = slotStartTime.diff(nowUtc, "minutes");
+
+      // Keep the slot only if it's outside the notice period (difference >= noticePeriod)
+      return timeDifference >= noticePeriod;
+    });
+
+    // Sort the filtered slots by startTime
+    const sortedSlots = filteredSlots.sort((a, b) => {
+      const timeA = moment.utc(a.startTime);
+      const timeB = moment.utc(b.startTime);
+      return timeA.diff(timeB);
+    });
+
+    return sortedSlots;
+  } catch (error) {
+    console.error("Error fetching slots:", error);
+    throw new Error("Failed to fetch available slots");
+  }
+};

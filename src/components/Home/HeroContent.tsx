@@ -64,7 +64,11 @@ const HeroContent: React.FC = () => {
 
       <div className="flex flex-col sm:flex-row flex-wrap gap-4 pt-4 justify-center items-center xl:justify-start xl:items-start">
         <button
-          onClick={() => router.push(`/video-call?isPublisher=true`)}
+          onClick={() =>
+            router.push(
+              `/video-call?appointmentId=68b07c22569b1704b240c673&vetId=68a9477e0cc6dcbf64cbaf5c&petId=68ad599fea3a1dc3d32a6348&petParentId=68ad56a7ea3a1dc3d32a6314'`
+            )
+          }
           className=" z-50  inline-flex items-center justify-center box-border outline-none border-none m-0 cursor-pointer select-none align-middle appearance-none no-underline font-roboto text-base leading-[1.75] tracking-[0.02857em] min-w-[64px] rounded-full px-9 py-4 font-bold normal-case relative overflow-hidden transition-all duration-400 ease-[cubic-bezier(0.4,0,0.2,1)] bg-gradient-to-r from-blue-500 via-purple-500 to-pink-400 text-white shadow-[0_8px_25px_rgba(59,130,246,0.4)] gap-x-2"
         >
           <Video /> <span className="mb-[2px]">Book Consultation</span>

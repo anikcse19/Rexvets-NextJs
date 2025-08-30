@@ -257,5 +257,6 @@ export interface CreateAvailabilityRequest {
     start: string;
     end: string;
   }[];
+  timezone?: string; // Timezone for the appointment slots
   overwriteExisting?: boolean;
 }

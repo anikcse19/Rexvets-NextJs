@@ -12,7 +12,24 @@ import React, {
 import { toast } from "sonner";
 
 interface IAvailableApiResponseState {
-  data: any[] | null;
+  data: {
+    periods: any[];
+    meta: {
+      page?: number;
+      limit?: number;
+      totalPages?: number;
+      totalItems: number;
+    };
+    filters: {
+      dateRange: {
+        start: Date;
+        end: Date;
+      };
+      status?: SlotStatus | "ALL";
+      search?: string;
+      timezone?: string;
+    };
+  } | null;
   error: string | null;
   loading: boolean;
 }
@@ -59,7 +76,9 @@ type DashboardContextType = {
   getAvailableSlots: (
     startDate: string,
     endDate: string,
-    refId: string
+    refId: string,
+    timezone?: string
+
   ) => Promise<void>;
   selectedRange: DateRange | null;
   setSelectedRange: React.Dispatch<React.SetStateAction<DateRange | null>>;
@@ -94,7 +113,7 @@ export const DashboardProvider: React.FC<DashboardProviderProps> = ({
   const [disabledSlotIds, setDisabledSlotIds] = useState<string[]>([]);
 
   const getAvailableSlots = useCallback(
-    async (startDate: string, endDate: string, refId: string) => {
+    async (startDate: string, endDate: string, refId: string, timezone?: string) => {
       setAvailableSlotsApiResponse((prev) => ({
         ...prev,
         loading: true,
@@ -110,7 +129,8 @@ export const DashboardProvider: React.FC<DashboardProviderProps> = ({
         return;
       }
       try {
-        const apiUrl = `/api/appointments/slots/slot-summary/${refId}?startDate=${startDate}&endDate=${endDate}&status=${SlotStatus.AVAILABLE}`;
+        const timezoneParam = timezone ? `&timezone=${encodeURIComponent(timezone)}` : '';
+        const apiUrl = `/api/appointments/slots/slot-summary/${refId}?startDate=${startDate}&endDate=${endDate}&status=${slotStatus}${timezoneParam}`;
         console.log("Fetching from API:", apiUrl);
 
         const res = await fetch(apiUrl);
@@ -144,7 +164,7 @@ export const DashboardProvider: React.FC<DashboardProviderProps> = ({
         }));
       }
     },
-    []
+    [slotStatus]
   );
 
   const onUpdateSelectedSlotStatus = async (
