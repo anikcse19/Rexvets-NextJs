@@ -1,8 +1,8 @@
-import UserModel from "@/models/User";
+import { connectToDatabase } from "@/lib/mongoose";
 import PetParentModel from "@/models/PetParent";
+import UserModel from "@/models/User";
 import VeterinarianModel from "@/models/Veterinarian";
 import VetTechModel from "@/models/VetTech";
-import { connectToDatabase } from "@/lib/mongoose";
 
 /**
  * Get full user data by populating references
@@ -23,6 +23,7 @@ export async function getUserWithFullData(userId: string) {
     fcmTokens: user.fcmTokens,
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
+    timezone: user.timezone,
   };
 
   // Populate role-specific data
@@ -35,16 +36,18 @@ export async function getUserWithFullData(userId: string) {
         }
       }
       break;
-    
+
     case "veterinarian":
       if (user.veterinarianRef) {
-        const veterinarian = await VeterinarianModel.findById(user.veterinarianRef);
+        const veterinarian = await VeterinarianModel.findById(
+          user.veterinarianRef
+        );
         if (veterinarian) {
           fullData = { ...fullData, ...veterinarian.toObject() };
         }
       }
       break;
-    
+
     case "technician":
       if (user.vetTechRef) {
         const vetTech = await VetTechModel.findById(user.vetTechRef);
@@ -136,7 +139,11 @@ export async function linkUserToModel(
  * Get user by email with role-specific data
  */
 export async function getUserByEmailWithData(email: string) {
-  const user = await UserModel.findOne({ email, isActive: true, isDeleted: false });
+  const user = await UserModel.findOne({
+    email,
+    isActive: true,
+    isDeleted: false,
+  });
   if (!user) return null;
 
   return getUserWithFullData(user._id.toString());
@@ -148,27 +155,27 @@ export async function getUserByEmailWithData(email: string) {
 export async function checkVeterinarianStatus(userId: string) {
   try {
     await connectToDatabase();
-    
+
     // First check if user exists and has veterinarian role
     const user = await UserModel.findById(userId);
     if (!user) {
       return { isVeterinarian: false, error: "User not found" };
     }
-    
+
     if (user.role !== "veterinarian") {
       return { isVeterinarian: false, error: "User is not a veterinarian" };
     }
-    
+
     // Check if veterinarian profile exists using the reference
     if (!user.veterinarianRef) {
       return { isVeterinarian: false, error: "Veterinarian profile not found" };
     }
-    
+
     const veterinarian = await VeterinarianModel.findById(user.veterinarianRef);
     if (!veterinarian) {
       return { isVeterinarian: false, error: "Veterinarian profile not found" };
     }
-    
+
     return { isVeterinarian: true, veterinarian };
   } catch (error) {
     console.error("Error checking veterinarian status:", error);

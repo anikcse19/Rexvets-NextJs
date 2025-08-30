@@ -3,11 +3,7 @@
 import AvailabilityScheduler from "@/components/Dashboard/Doctor/RatesAndAvailability/AvailabilityScheduler";
 import { useDashboardContext } from "@/hooks/DashboardContext";
 import { getTodayUTC, getUserTimezone } from "@/lib/timezone";
-import {
-  CreateAvailabilityRequest,
-  DateRange,
-  SlotPeriod,
-} from "@/lib/types";
+import { CreateAvailabilityRequest, DateRange, SlotPeriod } from "@/lib/types";
 import { format } from "date-fns";
 import moment from "moment";
 import { useSession } from "next-auth/react";
@@ -18,6 +14,7 @@ import TimeSlotCreator from "./TimeSlotCreator";
 
 interface SessionUserWithRefId {
   refId: string;
+  timezone?: string;
   // other user properties can be added here
 }
 
@@ -33,13 +30,14 @@ const AvailabilityManager: React.FC = () => {
   const { data: session } = useSession();
   const user = session?.user as SessionUserWithRefId | undefined;
 
-  const [userTimezone, setUserTimezone] = useState<string>("");
+  // const [userTimezone, setUserTimezone] = useState<string>("");
+  const userTimezone = user?.timezone || "";
 
   // Get user's timezone on component mount
-  useEffect(() => {
-    const timezone = getUserTimezone();
-    setUserTimezone(timezone);
-  }, []);
+  // useEffect(() => {
+  //   const timezone = getUserTimezone();
+  //   setUserTimezone(timezone);
+  // }, []);
 
   const handleSaveSlots = async (slotPeriods: SlotPeriod[]) => {
     if (!selectedRange || !user?.refId) {
@@ -74,7 +72,9 @@ const AvailabilityManager: React.FC = () => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to create availability slots");
+        throw new Error(
+          errorData.message || "Failed to create availability slots"
+        );
       }
 
       const result = await response.json();
@@ -119,7 +119,13 @@ const AvailabilityManager: React.FC = () => {
     if (selectedRange && user?.refId && userTimezone) {
       fetchAvailableSlots();
     }
-  }, [selectedRange, user?.refId, slotStatus, userTimezone, fetchAvailableSlots]);
+  }, [
+    selectedRange,
+    user?.refId,
+    slotStatus,
+    userTimezone,
+    fetchAvailableSlots,
+  ]);
 
   // Initialize with today's date when component mounts and user is available
   useEffect(() => {
@@ -127,18 +133,13 @@ const AvailabilityManager: React.FC = () => {
       // Use timezone-agnostic date to ensure slots are always visible
       // regardless of the user's current timezone
       const todayUTC = getTodayUTC();
-      
+
       setSelectedRange({
         start: todayUTC,
         end: todayUTC,
       });
     }
   }, [user?.refId, selectedRange, setSelectedRange]);
-
-  console.log("selectedRange", selectedRange);
-  console.log("availableSlotsApiResponse", availableSlotsApiResponse);
-  console.log("User refId:", user?.refId);
-  console.log("User timezone:", userTimezone);
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -151,6 +152,7 @@ const AvailabilityManager: React.FC = () => {
           <div className="text-xs text-yellow-700 space-y-1">
             <p>User refId: {user?.refId || "Not available"}</p>
             <p>User timezone: {userTimezone || "Not available"}</p>
+            <p>User ID: {(user as any)?.id || "Not available"}</p>
             <p>
               Selected Range:{" "}
               {selectedRange
@@ -167,7 +169,9 @@ const AvailabilityManager: React.FC = () => {
             <p>
               API Data:{" "}
               {availableSlotsApiResponse.data
-                ? `${availableSlotsApiResponse.data.periods?.length || 0} periods`
+                ? `${
+                    availableSlotsApiResponse.data.periods?.length || 0
+                  } periods`
                 : "None"}
             </p>
           </div>

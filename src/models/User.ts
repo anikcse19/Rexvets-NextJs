@@ -1,5 +1,5 @@
-import mongoose, { Document, Model, Schema } from "mongoose";
 import crypto from "crypto";
+import mongoose, { Document, Model, Schema } from "mongoose";
 
 export type UserRole = "pet_parent" | "veterinarian" | "technician" | "admin";
 
@@ -33,7 +33,7 @@ export interface IUser extends Document {
   googleExpiresAt?: number;
   googleTokenType?: string;
   googleScope?: string;
-
+  timezone?: string;
   // Common fields for session
   name?: string;
   profileImage?: string;
@@ -179,6 +179,10 @@ const userSchema = new Schema<IUser>(
     fcmTokens: {
       web: String,
       mobile: String,
+    },
+    timezone: {
+      type: String,
+      trim: true,
     },
   },
   {

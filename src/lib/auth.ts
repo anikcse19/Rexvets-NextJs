@@ -123,6 +123,7 @@ export const authOptions = {
             name: fullUserData?.name || (user as any).name,
             image: fullUserData?.profileImage || (user as any).profileImage,
             role: (user as any).role,
+            timezone: (user as any)?.timezone,
             refId:
               (user as any).role === "pet_parent"
                 ? (user as any).petParentRef?.toString()
@@ -165,6 +166,7 @@ export const authOptions = {
         token.emailVerified = Boolean(user.emailVerified);
         token.image = user.image;
         token.refId = user.refId;
+        token.timezone = user.timezone;
 
         // Console log the JWT token data on initial sign in
         console.log("🔑 JWT Token Data (Initial Sign In):", {
@@ -173,6 +175,7 @@ export const authOptions = {
           emailVerified: token.emailVerified,
           image: token.image,
           refId: token.refId,
+          timezone: token.timezone,
         });
       }
 
@@ -188,6 +191,7 @@ export const authOptions = {
           emailVerified: token.emailVerified as boolean,
           image: token.image as string,
           refId: token.refId as string,
+          timezone: token.timezone as string,
         };
       }
 
@@ -259,6 +263,7 @@ export const authOptions = {
             user.emailVerified = existingUser.isEmailVerified;
             user.name = existingUser.name;
             user.image = existingUser.profileImage;
+            user.timezone = existingUser?.timezone;
 
             // Add reference to veterinarian profile if user is a veterinarian
             if (
@@ -287,6 +292,7 @@ export const authOptions = {
             user.role = newUser.role;
             user.emailVerified = true;
             user.name = newUser.name;
+            user.timezone = newUser?.timezone;
             user.image = newUser.profileImage;
             user.refId =
               newUser.role === "pet_parent"
