@@ -1,6 +1,13 @@
 import { connectToDatabase } from "@/lib/mongoose";
+import {
+  IErrorResponse,
+  ISendResponse,
+  sendResponse,
+  throwAppError,
+} from "@/lib/utils/send.response";
 import { PrescriptionModel } from "@/models/Prescription";
 import { NextRequest, NextResponse } from "next/server";
+import "@/models/Veterinarian";
 
 export async function GET(
   req: NextRequest,
@@ -12,23 +19,32 @@ export async function GET(
 
     const prescriptions = await PrescriptionModel.find({
       appointment: appointmentId,
-    });
+    }).populate("veterinarian", "name licenses");
 
     if (!prescriptions || prescriptions.length === 0) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "No prescriptions found for this appointment",
-        },
-        { status: 404 }
-      );
+      const errResp: IErrorResponse = {
+        success: false,
+        message: "Prescription not found",
+        errorCode: "NOT_FOUND",
+        errors: null,
+      };
+      return throwAppError(errResp, 500);
     }
 
-    return NextResponse.json({ success: true, data: prescriptions });
+    const response: ISendResponse<typeof prescriptions> = {
+      success: true,
+      data: prescriptions,
+      statusCode: 201,
+      message: "Prescriptions fetched successfully",
+    };
+    return sendResponse(response);
   } catch (error: any) {
-    return NextResponse.json(
-      { success: false, message: error.message },
-      { status: 500 }
-    );
+    const errResp: IErrorResponse = {
+      success: false,
+      message: "Unexpected server error",
+      errorCode: "UNHANDLED_ERROR",
+      errors: error?.message ?? error,
+    };
+    return throwAppError(errResp, 500);
   }
 }

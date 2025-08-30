@@ -9,6 +9,10 @@ import {
   sendResponse,
   throwAppError,
 } from "@/lib/utils/send.response";
+import "@/models/Veterinarian";
+import "@/models/PetParent";
+import "@/models/Pet";
+import "@/models/Appointment";
 
 export async function GET(req: NextRequest) {
   await connectToDatabase();
@@ -26,10 +30,10 @@ export async function GET(req: NextRequest) {
       filter.petParent = searchParams.get("petParent");
 
     const prescriptions = await PrescriptionModel.find(filter)
-      // .populate("veterinarian")
-      // .populate("petParent")
-      // .populate("appointment")
-      // .populate("pet")
+      .populate("veterinarian")
+      .populate("petParent")
+      .populate("appointment")
+      .populate("pet")
       .sort({ createdAt: -1 });
 
     const response: ISendResponse<typeof prescriptions> = {

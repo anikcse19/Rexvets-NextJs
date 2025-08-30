@@ -13,14 +13,16 @@ import {
   Clock,
 } from "lucide-react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import PetInfoCard from "./Appointments/PetInfoCard";
 import ParentInfoCard from "./Appointments/ParentInfoCard";
 import DataAssessmentSection from "./Appointments/DataAssessmentSection";
 import PrescriptionSection from "./Appointments/PrescriptionSection";
 import ChatBox from "./Appointments/Chatbox";
 import DataAssessmentModal from "./Appointments/DataAssessmentModal";
-import PrescriptionModal from "./Appointments/Prescriptionodal";
+import PrescriptionModal from "./Appointments/PrescriptionModal";
+import { Doctor, Pet, PetParent } from "@/lib/types";
+import { routerServerGlobal } from "next/dist/server/lib/router-utils/router-server-context";
 
 interface AppointmentData {
   _id: string;
@@ -31,32 +33,9 @@ interface AppointmentData {
   meetingLink?: string;
   notes?: string;
   feeUSD: number;
-  veterinarian: {
-    _id: string;
-    name: string;
-    email: string;
-    specialization?: string;
-    profileImage?: string;
-  };
-  petParent: {
-    _id: string;
-    name: string;
-    email: string;
-    phone?: string;
-    address?: string;
-    profileImage?: string;
-  };
-  pet: {
-    _id: string;
-    name: string;
-    species: string;
-    breed?: string;
-    age?: string;
-    weight?: string;
-    gender?: string;
-    color?: string;
-    image?: string;
-  };
+  veterinarian: Doctor;
+  petParent: PetParent;
+  pet: Pet;
   concerns: string[];
   createdAt: string;
   updatedAt: string;
@@ -72,6 +51,8 @@ export default function AppointmentDetailsPage() {
   const [error, setError] = useState<string | null>(null);
   const params = useParams();
   const appointmentId = params.id as string;
+
+  const router = useRouter();
 
   useEffect(() => {
     const fetchAppointment = async () => {
@@ -102,6 +83,8 @@ export default function AppointmentDetailsPage() {
       window.open(appointment.meetingLink, "_blank");
     }
   };
+
+  console.log("appointment", appointment);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -306,14 +289,13 @@ export default function AppointmentDetailsPage() {
 
       <PrescriptionModal
         isOpen={isPrescriptionModalOpen}
-        onClose={() => setIsPrescriptionModalOpen(false)}
-        appointmentId={appointment._id}
-        petName={appointment.pet.name}
-        petDetails={{
-          breed: appointment.pet.breed || "",
-          age: appointment.pet.age || "",
-          weight: appointment.pet.weight || "",
+        onClose={() => {
+          setIsPrescriptionModalOpen(false);
         }}
+        appointmentId={appointment._id}
+        pet={appointment?.pet}
+        petParent={appointment?.petParent}
+        veterinarian={appointment?.veterinarian}
       />
     </div>
   );

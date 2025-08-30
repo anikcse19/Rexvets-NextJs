@@ -12,6 +12,9 @@ export interface PetParent extends User {
   phoneNumber: string;
   state: string;
   isActive: boolean;
+  name: string;
+  address: string;
+  profileImage: string;
   isDeleted: boolean;
   locale: string;
   pets: any[]; // you can replace `any[]` with a proper Pet type if you have one
@@ -257,4 +260,39 @@ export interface CreateAvailabilityRequest {
     start: string;
     end: string;
   }[];
+}
+
+export interface MedicationDetail {
+  name: string;
+  form: string;
+  medicationQuantity: number;
+  quantityUnit: string;
+  strength: number;
+  strengthUnit: string;
+}
+
+export interface UsageInstruction {
+  refills: number;
+  refillsGap: number;
+  directionForUse: string;
+}
+
+export interface Pharmacy {
+  canUseGenericSubs: boolean;
+  canFilledHumanPharmacy: boolean;
+  noteToPharmacist: string;
+}
+
+export interface Prescription {
+  _id: string;
+  veterinarian: Doctor;
+  petParent: PetParent;
+  appointment: Appointment;
+  pet: Pet;
+  medication_details: MedicationDetail[];
+  usage_instruction: UsageInstruction;
+  pharmacy: Pharmacy;
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
 }
