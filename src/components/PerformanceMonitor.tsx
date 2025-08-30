@@ -72,7 +72,18 @@ export default function PerformanceMonitor({
       detectedTimezone.length > 0 &&
       !session?.user?.timezone
     ) {
-      setShowTimezoneModal(true);
+      const addedTimezone = async () => {
+        await fetch(`/api/user/timezone/${session.user.id}`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            timezone: detectedTimezone,
+          }),
+        });
+      };
+      addedTimezone();
     }
     console.log("TIMEZONE:", session?.user?.timezone);
   }, [detectedTimezone]);
