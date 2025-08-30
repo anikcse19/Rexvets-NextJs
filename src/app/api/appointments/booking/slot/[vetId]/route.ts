@@ -66,7 +66,7 @@ export const GET = async (
     };
     // console.log("availableParams", availableParams);
     const response = await getSlotsByVetId(availableParams);
-    // console.log("Response from getSlotsByVetId:", response);
+    console.log("Response from getSlotsByVetId:", response);
     const sensResponseData: ISendResponse<any> = {
       statusCode: 200,
       success: true,

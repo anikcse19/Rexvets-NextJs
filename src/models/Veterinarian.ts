@@ -436,19 +436,17 @@ const veterinarianSchema = new Schema<IVeterinarian>(
 );
 
 // Indexes (email is auto-created by unique)
-veterinarianSchema.index({ isDeleted: 1});
+veterinarianSchema.index({ isDeleted: 1 });
 veterinarianSchema.index({ isActive: 1 });
 veterinarianSchema.index({ isApproved: 1 });
 veterinarianSchema.index({ city: 1 }); // Index for location-based queries// no need to index city
 veterinarianSchema.index({ state: 1 }); // Index for state-based queries
-
 
 // Unique index for license numbers to prevent duplicates
 veterinarianSchema.index(
   { "licenses.licenseNumber": 1 },
   { unique: true, sparse: true }
 );
-
 
 export default mongoose.models.Veterinarian ||
   mongoose.model<IVeterinarian, IVeterinarianModel>(

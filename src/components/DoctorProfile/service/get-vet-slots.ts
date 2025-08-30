@@ -1,4 +1,5 @@
 import config from "@/config/env.config";
+import { SlotStatus } from "@/lib";
 
 export const getVetSlots = async ({
   id,
@@ -11,7 +12,7 @@ export const getVetSlots = async ({
 }) => {
   // Fetch only available slots (excludes booked, blocked, and past slots)
   const res = await fetch(
-    `${config.BASE_URL}/api/appointments/booking/slot/${id}?limit=1000&status=available&startDate=${startDate}&endDate=${endDate}`,
+    `${config.BASE_URL}/api/appointments/booking/slot/${id}?limit=1000&status=${SlotStatus.AVAILABLE}&startDate=${startDate}&endDate=${endDate}`,
     {
       method: "GET",
       headers: { "Content-Type": "application/json" },
