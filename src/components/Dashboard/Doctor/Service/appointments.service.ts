@@ -157,7 +157,7 @@ export class AppointmentsService {
 
     // Map database status to component status
     const statusMap: Record<AppointmentStatus, TransformedAppointment['status']> = {
-      [AppointmentStatus.SCHEDULED]: 'confirmed',
+      [AppointmentStatus.UPCOMING]: 'confirmed',
       [AppointmentStatus.COMPLETED]: 'completed',
       [AppointmentStatus.CANCELLED]: 'cancelled',
       [AppointmentStatus.RESCHEDULED]: 'rescheduled',

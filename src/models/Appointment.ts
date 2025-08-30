@@ -3,6 +3,7 @@ import {
   AppointmentType,
   PaymentStatus,
 } from "@/lib/types/appointment";
+import moment from "moment";
 import mongoose, { Document, model, Schema, Types } from "mongoose";
 
 // Re-export from shared types to maintain backward compatibility
@@ -51,8 +52,13 @@ const AppointmentSchema = new Schema<IAppointment>(
       type: Date,
       required: [true, "Appointment date is required"],
       validate: {
-        validator: (value: Date) => value > new Date(),
-        message: "Appointment date must be in the future",
+        validator: (value: Date) => {
+          // Use moment to compare only the date part (ignore time)
+          const appointmentDate = moment(value).startOf("day");
+          const today = moment().startOf("day");
+          return appointmentDate.isSameOrAfter(today);
+        },
+        message: "Appointment date must be today or in the future",
       },
     },
     durationMinutes: {

@@ -11,12 +11,13 @@ import {
 
 export async function PATCH(
   _req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     await connectToDatabase();
 
-    const doc = await DataAssessmentPlanModel.findById(params.id);
+    const doc = await DataAssessmentPlanModel.findById(id);
     if (!doc || doc.isDeleted) {
       const response: IErrorResponse = {
         success: false,

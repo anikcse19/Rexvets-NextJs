@@ -1,5 +1,6 @@
 import { authOptions } from "@/lib/auth";
 import { connectToDatabase } from "@/lib/mongoose";
+import { isValidTimezone } from "@/lib/timezone";
 import {
   IErrorResponse,
   ISendResponse,
@@ -26,61 +27,121 @@ export const GET = async (
   { params }: { params: Promise<{ vetId: string }> }
 ) => {
   try {
-    console.log("HIT VET ID");
     await connectToDatabase();
     const { vetId } = await params;
     const { searchParams } = new URL(req.url);
     const startDate = searchParams.get("startDate");
     const endDate = searchParams.get("endDate");
+    const timezone = searchParams.get("timezone"); // Timezone for display conversion
     const page = parseInt(searchParams.get("page") as string) || 1;
     const limit = parseInt(searchParams.get("limit") as string) || 1000;
+    const slotStatus =
+      (searchParams.get("status") as SlotStatus) || SlotStatus.AVAILABLE;
+
+    // Validate vetId
     if (!vetId || !new Types.ObjectId(vetId)) {
-      throw Error("Invalid vetId");
+      const errResp: IErrorResponse = {
+        success: false,
+        message: "Invalid veterinarian ID",
+        errorCode: "INVALID_VET_ID",
+        errors: null,
+      };
+      return throwAppError(errResp, 400);
     }
+
+    // Validate date range
+    if (!startDate || !endDate) {
+      const errResp: IErrorResponse = {
+        success: false,
+        message: "Start date and end date are required",
+        errorCode: "MISSING_DATE_RANGE",
+        errors: null,
+      };
+      return throwAppError(errResp, 400);
+    }
+
+    // Validate timezone if provided
+    if (timezone && !isValidTimezone(timezone)) {
+      const errResp: IErrorResponse = {
+        success: false,
+        message: `Invalid timezone: ${timezone}`,
+        errorCode: "INVALID_TIMEZONE",
+        errors: null,
+      };
+      return throwAppError(errResp, 400);
+    }
+
+    // Check if veterinarian exists and is active
     const isVetExist = await Veterinarian.findOne({
       _id: vetId,
       isDeleted: false,
       isActive: true,
     });
+
     if (!isVetExist) {
-      throw Error("Veterinarian not found");
-      // return throwAppError(errResp, 404);
-    }
-    if (!startDate || !endDate) {
-      // return throwAppError(errResp, 400);
-      throw Error("Invalid date range");
+      const errResp: IErrorResponse = {
+        success: false,
+        message: "Veterinarian not found or inactive",
+        errorCode: "VET_NOT_FOUND",
+        errors: null,
+      };
+      return throwAppError(errResp, 404);
     }
 
+    // Prepare parameters for slot retrieval
     const paramsFn: IGetSlotsParams = {
       vetId,
       dateRange: {
         start: new Date(startDate),
         end: new Date(endDate),
-      } as any,
-      status: SlotStatus.ALL,
+      },
+      timezone: timezone || undefined, // Pass timezone for display conversion
+      status: slotStatus,
       limit,
       page,
     };
+
+    console.log("Fetching slots with params:", {
+      vetId,
+      startDate,
+      endDate,
+      timezone,
+      status: slotStatus,
+    });
+
     const response = await getSlotsByVetId(paramsFn);
+    console.log("Raw slots response:", response);
+    
     const slotPeriods = groupSlotsIntoPeriods(response.data);
+    console.log("Grouped slot periods:", slotPeriods);
+
     const responseFormat: ISendResponse<any> = {
       statusCode: 200,
       success: true,
       message: "Veterinarian slots retrieved successfully",
-      data: slotPeriods,
+      data: {
+        periods: slotPeriods,
+        meta: response.meta,
+        filters: {
+          ...response.filters,
+          timezone: timezone || "server_default",
+        },
+      },
     };
 
     return sendResponse(responseFormat);
   } catch (error: any) {
+    console.error("Error in slot-summary GET:", error);
     const errResp: IErrorResponse = {
       success: false,
       message: error?.message || "Failed to retrieve veterinarian slots",
       errorCode: "FAILED_TO_RETRIEVE_SLOTS",
       errors: null,
     };
-    return throwAppError(errResp);
+    return throwAppError(errResp, 500);
   }
 };
+
 export const PATCH = async (
   req: NextRequest,
   { params }: { params: Promise<{ vetId: string }> }
@@ -128,16 +189,19 @@ export const PATCH = async (
       message: "Slot status updated successfully",
       data: response,
     };
-  } catch (error) {
+    return sendResponse(responseFormat);
+  } catch (error: any) {
+    console.error("Error in slot-summary PATCH:", error);
     const errResp: IErrorResponse = {
       success: false,
-      message: "Failed to update slot status",
+      message: error?.message || "Failed to update slot status",
       errorCode: "FAILED_TO_UPDATE_SLOT_STATUS",
       errors: null,
     };
-    return throwAppError(errResp);
+    return throwAppError(errResp, 500);
   }
 };
+
 export const PUT = async (
   req: NextRequest,
   { params }: { params: Promise<{ vetId: string }> }
@@ -146,8 +210,7 @@ export const PUT = async (
     const { vetId } = await params;
     const body = await req.json();
     const { status, slotIds } = body;
-    console.log("status", status);
-    console.log("slotIds", slotIds);
+    console.log("Updating slot status:", { status, slotIds });
     const response = await updateSlotStatusBulk({
       vetId,
       slotIds,
@@ -161,12 +224,13 @@ export const PUT = async (
     };
     return sendResponse(responseFormat);
   } catch (error: any) {
+    console.error("Error in slot-summary PUT:", error);
     const errResp: IErrorResponse = {
       success: false,
-      message: error.message || "Failed to update slot status",
+      message: error?.message || "Failed to update slot status",
       errorCode: "FAILED_TO_UPDATE_SLOT_STATUS",
       errors: null,
     };
-    return throwAppError(errResp);
+    return throwAppError(errResp, 500);
   }
 };

@@ -36,6 +36,7 @@ export const authOptions = {
           name: profile.name,
           email: profile.email,
           image: profile.picture,
+          role: "pet_parent", // Default role for Google OAuth users
         };
       },
     }),

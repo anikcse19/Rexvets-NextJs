@@ -19,6 +19,7 @@ declare global {
 
 const cached: MongooseCache = global.mongoose || { conn: null, promise: null };
 
+// Only use global caching in development to avoid memory leaks in production
 if (config.NODE_ENVIRONMENT === "development") {
   global.mongoose = cached;
 }

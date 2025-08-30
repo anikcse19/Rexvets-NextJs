@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -10,10 +10,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { Clock, Plus, Trash2, Save } from "lucide-react";
-import { SlotPeriod, DateRange } from "@/lib/types";
+import { DateRange, SlotPeriod } from "@/lib/types";
 import { formatDisplayTime, generateTimeOptions } from "@/lib/utils";
+import { Clock, Plus, Save, Trash2 } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
 
 interface TimeSlotCreatorProps {
@@ -68,7 +68,7 @@ export default function TimeSlotCreator({
   const validateSlots = (): boolean => {
     // Check if we have at least one valid slot
     if (slots.length === 0) return false;
-    
+
     for (const slot of slots) {
       if (!slot.startTime || !slot.endTime) return false;
       if (slot.startTime >= slot.endTime) return false;
@@ -78,7 +78,9 @@ export default function TimeSlotCreator({
 
   const handleSave = async () => {
     if (!selectedRange || !validateSlots()) {
-      toast.error("Please select a date range and ensure all time slots are valid");
+      toast.error(
+        "Please select a date range and ensure all time slots are valid"
+      );
       return;
     }
 
@@ -102,7 +104,7 @@ export default function TimeSlotCreator({
       console.log("Slot periods:", slotPeriods);
 
       await onSaveSlots(slotPeriods);
-      
+
       // Reset slots to default after successful save
       setSlots([{ id: "1", startTime: "09:00", endTime: "17:00" }]);
     } catch (error) {

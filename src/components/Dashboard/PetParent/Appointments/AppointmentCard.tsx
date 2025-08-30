@@ -97,7 +97,7 @@ export default function AppointmentCard({ appointment }: AppointmentCardProps) {
         </Avatar> */}
         <div>
           <p className="font-semibold">{appointment.petParent?.name}</p>
-          <p className="text-xs text-gray-500">Pet Owner</p>
+          <p className="text-xs text-gray-500">Pet Parent</p>
         </div>
       </div>
 

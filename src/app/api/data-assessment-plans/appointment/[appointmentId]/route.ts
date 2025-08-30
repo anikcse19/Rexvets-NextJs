@@ -5,11 +5,12 @@ import { ISendResponse, sendResponse } from "@/lib/utils/send.response";
 
 export async function GET(
   _req: Request,
-  { params }: { params: { appointmentId: string } }
+  { params }: { params: Promise<{ appointmentId: string }> }
 ) {
+  const { appointmentId } = await params;
   try {
     await connectToDatabase();
-    const { appointmentId } = params;
+
 
     console.log("Fetching plans for appointment:", appointmentId);
 

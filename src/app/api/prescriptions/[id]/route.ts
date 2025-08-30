@@ -10,10 +10,11 @@ import "@/models/Appointment";
 
 export async function GET(
   _: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   await connectToDatabase();
-  const prescription = await PrescriptionModel.findById(params.id)
+  const prescription = await PrescriptionModel.findById(id)
     .populate("veterinarian")
     .populate("petParent")
     .populate("appointment")
@@ -25,8 +26,9 @@ export async function GET(
 
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   await connectToDatabase();
 
   const formData = await req.formData();
@@ -44,7 +46,7 @@ export async function PUT(
   if (formData.get("pharmacy"))
     updateData.pharmacy = JSON.parse(formData.get("pharmacy") as string);
 
-  const existing = await PrescriptionModel.findById(params.id);
+  const existing = await PrescriptionModel.findById(id);
   if (!existing)
     return NextResponse.json({ message: "Not found" }, { status: 404 });
 
@@ -75,22 +77,19 @@ export async function PUT(
     }
   }
 
-  const updated = await PrescriptionModel.findByIdAndUpdate(
-    params.id,
-    updateData,
-    {
-      new: true,
-    }
-  );
+  const updated = await PrescriptionModel.findByIdAndUpdate(id, updateData, {
+    new: true,
+  });
   return NextResponse.json(updated);
 }
 
 export async function DELETE(
   _: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   await connectToDatabase();
-  const existing = await PrescriptionModel.findById(params.id);
+  const existing = await PrescriptionModel.findById(id);
   if (!existing)
     return NextResponse.json({ message: "Not found" }, { status: 404 });
 

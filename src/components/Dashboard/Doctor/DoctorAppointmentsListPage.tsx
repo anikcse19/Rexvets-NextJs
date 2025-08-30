@@ -252,25 +252,20 @@ export default function AppointmentsPage() {
                         <p className="text-gray-500">
                           No appointments found in this category.
                         </p>
-                        {(searchTerm || filterDate) && (
-                          <p className="text-gray-400 text-sm mt-2">
-                            Try adjusting your search or date filter.
-                          </p>
-                        )}
                       </Card>
-                    </div>
-                  ) : (
-                    filtered.map((appointment) => (
-                      <AppointmentCard
-                        key={appointment.id}
-                        appointment={appointment as Appointment}
-                      />
-                    ))
-                  )}
-                </div>
-              </TabsContent>
-            );
-          })}
+                  </div>
+                ) : (
+                  filtered.map((appointment) => (
+                    <AppointmentCard
+                      key={appointment.id}
+                      appointment={appointment as unknown as Appointment}
+                    />
+                  ))
+                )}
+              </div>
+            </TabsContent>
+          );
+        })}
         </Tabs>
       )}
     </div>

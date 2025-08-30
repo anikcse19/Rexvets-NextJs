@@ -1,19 +1,45 @@
 "use client";
 
-import React from "react";
-import { Card, CardContent, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { User, Mail, Phone, MapPin, Shield, ExternalLink } from "lucide-react";
 import { PetParent } from "@/lib/types";
+import { Card, CardContent, CardTitle } from "@/components/ui/card";
 
 interface ParentInfoCardProps {
   parent: PetParent;
 }
 
 export default function ParentInfoCard({ parent }: ParentInfoCardProps) {
-  const formatDate = (dateString: string) => {
+  if (!parent) {
+    return (
+      <Card className="shadow-lg border-0 bg-white overflow-hidden">
+        <div className="bg-gradient-to-r from-blue-600 to-cyan-600 p-6 text-white">
+          <div className="flex items-center gap-4">
+            <div className="bg-white/20 p-3 rounded-xl">
+              <User className="w-6 h-6" />
+            </div>
+            <div>
+              <CardTitle className="text-xl font-bold text-white">
+                Pet Parent Information
+              </CardTitle>
+              <p className="text-blue-100">
+                Contact details and relationship info
+              </p>
+            </div>
+          </div>
+        </div>
+        <CardContent className="p-6">
+          <div className="text-center text-gray-500">
+            <p>Parent information not available</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const formatDate = (dateString: string | undefined) => {
     if (!dateString) return "Not available";
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
@@ -30,12 +56,15 @@ export default function ParentInfoCard({ parent }: ParentInfoCardProps) {
   };
 
   const handleEmail = () => {
-    if (parent.email) {
+    if (parent?.email) {
       window.open(`mailto:${parent.email}`, "_self");
     }
   };
 
-  const getInitials = (name: string) => {
+  const getInitials = (name: string | undefined) => {
+    if (!name || typeof name !== "string" || name.length === 0) {
+      return "PP";
+    }
     return name
       .split(" ")
       .map((n) => n.charAt(0))
@@ -67,21 +96,21 @@ export default function ParentInfoCard({ parent }: ParentInfoCardProps) {
           <div className="text-center">
             <Avatar className="w-20 h-20 mx-auto mb-4 border-4 border-blue-100 shadow-lg">
               <AvatarImage
-                src={parent.profileImage}
-                alt={parent.name}
+                src={parent?.profileImage}
+                alt={parent?.name || "Pet Parent"}
                 className="object-cover"
               />
               <AvatarFallback className="text-xl font-bold text-gray-800 bg-gradient-to-br from-blue-100 to-cyan-100">
-                {getInitials(parent.name)}
+                {getInitials(parent?.name)}
               </AvatarFallback>
             </Avatar>
             <h3 className="text-xl font-bold text-gray-900 mb-1">
-              {parent.name}
+              {parent?.name || "Pet Parent"}
             </h3>
             <Badge className="bg-blue-100 text-blue-700 border-blue-300 mb-3">
               Pet Parent
             </Badge>
-            {parent.createdAt && (
+            {parent?.createdAt && (
               <p className="text-sm text-gray-600">
                 Member since {formatDate(parent.createdAt)}
               </p>
@@ -102,7 +131,9 @@ export default function ParentInfoCard({ parent }: ParentInfoCardProps) {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-600">Email</p>
-                  <p className="font-semibold text-gray-900">{parent.email}</p>
+                  <p className="font-semibold text-gray-900">
+                    {parent?.email || "Email not available"}
+                  </p>
                 </div>
               </div>
               <Button
@@ -141,7 +172,7 @@ export default function ParentInfoCard({ parent }: ParentInfoCardProps) {
             )}
 
             {/* State/Location */}
-            {parent.state && (
+            {parent?.state && (
               <div className="p-3 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg border border-purple-200">
                 <div className="flex items-center gap-3">
                   <div className="bg-purple-500 text-white p-2 rounded-lg">
@@ -152,7 +183,7 @@ export default function ParentInfoCard({ parent }: ParentInfoCardProps) {
                       Location
                     </p>
                     <p className="font-semibold text-purple-900">
-                      {parent.state}
+                      {parent?.state}
                     </p>
                   </div>
                 </div>
@@ -161,7 +192,7 @@ export default function ParentInfoCard({ parent }: ParentInfoCardProps) {
           </div>
 
           {/* Address */}
-          {parent.address && (
+          {parent?.address && (
             <div>
               <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
                 <MapPin className="w-4 h-4 text-purple-600" />
@@ -169,7 +200,7 @@ export default function ParentInfoCard({ parent }: ParentInfoCardProps) {
               </h4>
               <div className="p-4 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg border border-purple-200">
                 <p className="text-gray-900 font-medium leading-relaxed">
-                  {parent.address}
+                  {parent?.address}
                 </p>
               </div>
             </div>

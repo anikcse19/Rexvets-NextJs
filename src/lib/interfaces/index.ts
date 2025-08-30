@@ -165,6 +165,7 @@ export interface Slot {
   date: string;
   startTime: string;
   endTime: string;
+  timezone?: string; // Timezone of the appointment slot
   status: string;
   createdAt: string;
   __v: number;
@@ -172,11 +173,11 @@ export interface Slot {
   formattedDate: string;
   formattedStartTime: string;
   formattedEndTime: string;
+  displayTimezone?: string; // Timezone used for display conversion
 }
 export enum SlotStatus {
   AVAILABLE = "available",
   BOOKED = "booked",
-  BLOCKED = "blocked",
-  PENDING = "pending",
+  DISABLED = "disabled",
   ALL = "all",
 }

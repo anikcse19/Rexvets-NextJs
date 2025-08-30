@@ -29,3 +29,23 @@ export { PetModel } from "./Pet";
 
 export { default as UserModel } from "./User";
 export type { IUser, IUserModel, UserRole } from "./User";
+
+// Add missing models that are needed for populate to work
+export { PrescriptionModel } from "./Prescription";
+
+export { AppointmentSlot, SlotStatus } from "./AppointmentSlot";
+export type { IAvailabilitySlot } from "./AppointmentSlot";
+
+export { DataAssessmentPlanModel } from "./DataAssessmentPlan";
+export type { IDataAssessmentPlan } from "./DataAssessmentPlan";
+
+export { BlockListModel } from "./BlockList";
+export type { IBlockList } from "./BlockList";
+
+export { ChatConversation } from "./ChatConversation";
+export type { IChatConversation, IChatBotMessage } from "./ChatConversation";
+
+export { DoctorModel } from "./Doctor";
+export type { IDoctor, IDoctorDocument } from "./Doctor";
+
+export { MessageModel } from "./Message";
