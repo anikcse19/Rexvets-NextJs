@@ -1,10 +1,24 @@
 "use client";
 
 import AvailabilityScheduler from "@/components/Dashboard/Doctor/RatesAndAvailability/AvailabilityScheduler";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useDashboardContext } from "@/hooks/DashboardContext";
-import { getTodayUTC, getUserTimezone } from "@/lib/timezone";
+import {
+  getTimezoneOffset,
+  getTodayUTC,
+  getUserTimezone,
+} from "@/lib/timezone";
 import { CreateAvailabilityRequest, DateRange, SlotPeriod } from "@/lib/types";
 import { format } from "date-fns";
+import { AlertTriangle, Clock, Globe } from "lucide-react";
 import moment from "moment";
 import { useSession } from "next-auth/react";
 import React, { useCallback, useEffect, useState } from "react";
@@ -16,6 +30,14 @@ interface SessionUserWithRefId {
   refId: string;
   timezone?: string;
   // other user properties can be added here
+}
+
+interface TimezoneModalState {
+  isOpen: boolean;
+  userTimezone: string;
+  currentTimezone: string;
+  slotPeriods: SlotPeriod[];
+  onConfirm: (selectedTimezone: string) => Promise<void>;
 }
 
 const AvailabilityManager: React.FC = () => {
@@ -32,6 +54,12 @@ const AvailabilityManager: React.FC = () => {
 
   // const [userTimezone, setUserTimezone] = useState<string>("");
   const userTimezone = user?.timezone || "";
+  const currentTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+  // Timezone modal state
+  const [timezoneModal, setTimezoneModal] = useState<TimezoneModalState | null>(
+    null
+  );
 
   // Get user's timezone on component mount
   // useEffect(() => {
@@ -45,20 +73,43 @@ const AvailabilityManager: React.FC = () => {
       return;
     }
 
+    // Check if timezones are different
+    if (userTimezone && currentTimeZone && userTimezone !== currentTimeZone) {
+      // Show timezone selection modal
+      setTimezoneModal({
+        isOpen: true,
+        userTimezone,
+        currentTimezone: currentTimeZone,
+        slotPeriods,
+        onConfirm: async (selectedTimezone: string) => {
+          // console.log("selectedTimezone", selectedTimezone);
+          // console.log("slot periods ", slotPeriods);
+          await createSlots(slotPeriods, selectedTimezone);
+          setTimezoneModal(null);
+        },
+      });
+      return;
+    }
+
+    // If timezones are the same or user has no timezone, proceed normally
+    await createSlots(slotPeriods, userTimezone || currentTimeZone);
+  };
+
+  const createSlots = async (slotPeriods: SlotPeriod[], timezone: string) => {
     try {
       // Convert SlotPeriod[] to CreateAvailabilityRequest
       const requestData: CreateAvailabilityRequest = {
         dateRange: {
-          start: format(selectedRange.start, "yyyy-MM-dd"),
-          end: format(selectedRange.end, "yyyy-MM-dd"),
+          start: format(selectedRange!.start, "yyyy-MM-dd"),
+          end: format(selectedRange!.end, "yyyy-MM-dd"),
         },
         slotPeriods: slotPeriods.map((slot) => ({
           start: slot.start.toTimeString().slice(0, 5), // Format as "HH:mm"
           end: slot.end.toTimeString().slice(0, 5), // Format as "HH:mm"
         })),
-        timezone: userTimezone, // Include user's timezone
+        timezone: timezone, // Use selected timezone
       };
-
+      console.log("requestData", requestData);
       const response = await fetch(
         `/api/appointments/generate-appointment-slot/${user?.refId}`,
         {
@@ -152,6 +203,7 @@ const AvailabilityManager: React.FC = () => {
           <div className="text-xs text-yellow-700 space-y-1">
             <p>User refId: {user?.refId || "Not available"}</p>
             <p>User timezone: {userTimezone || "Not available"}</p>
+            <p>Current timezone: {currentTimeZone}</p>
             <p>User ID: {(user as any)?.id || "Not available"}</p>
             <p>
               Selected Range:{" "}
@@ -203,6 +255,131 @@ const AvailabilityManager: React.FC = () => {
           /> */}
         </div>
       </div>
+
+      {/* Timezone Selection Modal */}
+      {timezoneModal && (
+        <Dialog
+          open={timezoneModal.isOpen}
+          onOpenChange={(open) => !open && setTimezoneModal(null)}
+        >
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-lg font-semibold">
+                <AlertTriangle className="w-5 h-5 text-yellow-600" />
+                Different Timezone Detected
+              </DialogTitle>
+              <DialogDescription className="text-gray-600">
+                We detected that your current timezone is different from your
+                saved timezone. Please choose which timezone you'd like to use
+                for creating your availability slots.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-4 mt-6">
+              {/* User's Saved Timezone */}
+              <Card className="border-2 border-blue-200 hover:border-blue-300 transition-colors">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                        <Globe className="w-5 h-5 text-blue-600" />
+                      </div>
+                      <div>
+                        <h3 className="font-medium text-gray-900">
+                          Your Saved Timezone
+                        </h3>
+                        <p className="text-sm text-gray-600">
+                          {timezoneModal.userTimezone} (
+                          {getTimezoneOffset(timezoneModal.userTimezone)})
+                        </p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          Current time:{" "}
+                          {moment
+                            .tz(timezoneModal.userTimezone)
+                            .format("h:mm A")}
+                        </p>
+                      </div>
+                    </div>
+                    <Button
+                      onClick={() =>
+                        timezoneModal.onConfirm(timezoneModal.userTimezone)
+                      }
+                      variant="outline"
+                      className="border-blue-300 text-blue-700 hover:bg-blue-50"
+                    >
+                      Use This
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Current Detected Timezone */}
+              <Card className="border-2 border-green-200 hover:border-green-300 transition-colors">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                        <Clock className="w-5 h-5 text-green-600" />
+                      </div>
+                      <div>
+                        <h3 className="font-medium text-gray-900">
+                          Current Detected Timezone
+                        </h3>
+                        <p className="text-sm text-gray-600">
+                          {timezoneModal.currentTimezone} (
+                          {getTimezoneOffset(timezoneModal.currentTimezone)})
+                        </p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          Current time:{" "}
+                          {moment
+                            .tz(timezoneModal.currentTimezone)
+                            .format("h:mm A")}
+                        </p>
+                      </div>
+                    </div>
+                    <Button
+                      onClick={() =>
+                        timezoneModal.onConfirm(timezoneModal.currentTimezone)
+                      }
+                      variant="outline"
+                      className="border-green-300 text-green-700 hover:bg-green-50"
+                    >
+                      Use This
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Timezone Difference Info */}
+              <div className="bg-gray-50 rounded-lg p-4">
+                <h4 className="font-medium text-gray-900 mb-2">
+                  Timezone Difference
+                </h4>
+                <p className="text-sm text-gray-600">
+                  The time difference between these timezones is{" "}
+                  <span className="font-medium">
+                    {moment
+                      .tz(timezoneModal.currentTimezone)
+                      .diff(
+                        moment.tz(timezoneModal.userTimezone),
+                        "hours"
+                      )}{" "}
+                    hours
+                  </span>
+                  . This means your availability slots will appear at different
+                  times depending on which timezone you choose.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 mt-6">
+              <Button variant="ghost" onClick={() => setTimezoneModal(null)}>
+                Cancel
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 };

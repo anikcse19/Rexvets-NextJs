@@ -1,4 +1,5 @@
 "use client";
+import { convertTimesToUserTimezone } from "@/lib/timezone/index";
 import { IAppointment } from "@/models";
 import {
   Calendar,
@@ -10,10 +11,68 @@ import {
   Video,
   VideoOff,
 } from "lucide-react";
+import moment from "moment";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { useEffect, useRef, useState } from "react";
 import Webcam from "react-webcam";
 import { toast } from "sonner";
+
+// Custom hook for countdown timer
+const useCountdownTimer = (targetDate: string | null) => {
+  const [timeLeft, setTimeLeft] = useState<{
+    days: number;
+    hours: number;
+    minutes: number;
+    seconds: number;
+    isExpired: boolean;
+  }>({
+    days: 0,
+    hours: 0,
+    minutes: 0,
+    seconds: 0,
+    isExpired: false,
+  });
+
+  useEffect(() => {
+    if (!targetDate) return;
+
+    const updateTimer = () => {
+      const now = moment();
+      const target = moment(targetDate);
+      const diff = target.diff(now);
+
+      if (diff <= 0) {
+        setTimeLeft({
+          days: 0,
+          hours: 0,
+          minutes: 0,
+          seconds: 0,
+          isExpired: true,
+        });
+        return;
+      }
+
+      const duration = moment.duration(diff);
+      setTimeLeft({
+        days: Math.floor(duration.asDays()),
+        hours: duration.hours(),
+        minutes: duration.minutes(),
+        seconds: duration.seconds(),
+        isExpired: false,
+      });
+    };
+
+    // Update immediately
+    updateTimer();
+
+    // Update every second
+    const interval = setInterval(updateTimer, 1000);
+
+    return () => clearInterval(interval);
+  }, [targetDate]);
+
+  return timeLeft;
+};
 
 const VideoCallPreview: React.FC = () => {
   const searchParams = useSearchParams();
@@ -21,9 +80,7 @@ const VideoCallPreview: React.FC = () => {
   const vetId = searchParams.get("vetId");
   const petId = searchParams.get("petId");
   const petParentId = searchParams.get("petParentId");
-  console.log("appointmentId:", appointmentId);
-  console.log("vetId:", vetId);
-  console.log("petId:", petId);
+
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const [isVideoEnabled, setIsVideoEnabled] = useState(false);
@@ -32,6 +89,10 @@ const VideoCallPreview: React.FC = () => {
   const [appointmentDetails, setAppointmentDetails] =
     useState<IAppointment | null>(null);
   const webcamRef = useRef<Webcam>(null);
+
+  // Use countdown timer hook
+  const timeLeft = useCountdownTimer(appointmentDetails?.appointmentDate?.toString() || null);
+
   const getAppointmentDetails = async () => {
     setIsLoading(true);
     try {
@@ -47,15 +108,47 @@ const VideoCallPreview: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-
-    // Fetch appointment details using the ID
   };
+
   useEffect(() => {
     if (appointmentId && !appointmentDetails) {
       getAppointmentDetails();
     }
   }, [appointmentId]);
-  console.log("appointment details:", appointmentDetails);
+
+  // Format appointment date using convertTimesToUserTimezone
+  const formatAppointmentDateTime = () => {
+    if (!appointmentDetails?.appointmentDate) return { date: "", time: "" };
+
+    const appointmentDate = moment(appointmentDetails.appointmentDate);
+    const dateStr = appointmentDate.format("YYYY-MM-DD");
+    const timeStr = appointmentDate.format("HH:mm");
+
+    try {
+      const { formattedDate, formattedStartTime } = convertTimesToUserTimezone(
+        timeStr,
+        timeStr, // Using same time for start and end since we only need the start time
+        dateStr,
+        "UTC" // Assuming appointmentDate is stored in UTC
+      );
+
+      return {
+        date: moment(formattedDate).format("dddd, MMMM DD, YYYY"),
+        time: formattedStartTime,
+      };
+    } catch (error) {
+      // Fallback to direct formatting if timezone conversion fails
+      return {
+        date: appointmentDate.format("dddd, MMMM DD, YYYY"),
+        time: appointmentDate.format("h:mm A"),
+      };
+    }
+  };
+
+  const { date: formattedDate, time: formattedTime } = formatAppointmentDateTime();
+
+  console.log("appointment details:", appointmentDetails?.appointmentDate);
+  
   const toggleVideo = () => {
     if (!hasInitializedCamera) {
       setHasInitializedCamera(true);
@@ -66,6 +159,7 @@ const VideoCallPreview: React.FC = () => {
   const toggleAudio = () => {
     setIsAudioEnabled((prev) => !prev);
   };
+
   if (isLoading) {
     return (
       <div className="h-screen flex gap-x-3 items-center justify-center">
@@ -92,6 +186,7 @@ const VideoCallPreview: React.FC = () => {
       </div>
     );
   }
+
   return (
     <div
       style={{
@@ -103,7 +198,7 @@ const VideoCallPreview: React.FC = () => {
       <div className="max-w-[1200px] w-full mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Left Side - Appointment Details */}
-          <div className="flex flex-col justify-center  rounded-2xl p-8  h-[450px]">
+          <div className="flex flex-col justify-center rounded-2xl p-8 h-[450px]">
             <div className="mb-8">
               <h1 className="text-3xl md:text-4xl font-semibold text-white leading-tight mb-1">
                 Appointment with Dr.
@@ -119,12 +214,60 @@ const VideoCallPreview: React.FC = () => {
             <div className="flex items-center space-x-8 mb-8">
               <div className="flex items-center text-white/70">
                 <Calendar className="w-4 h-4 mr-2" />
-                <span className="text-sm">August 6, 2025</span>
+                <span className="text-sm">{formattedDate}</span>
               </div>
               <div className="flex items-center text-white/70">
                 <Clock className="w-4 h-4 mr-2" />
-                <span className="text-sm">04:00 PM</span>
+                <span className="text-sm">{formattedTime}</span>
               </div>
+            </div>
+
+            {/* Countdown Timer */}
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-5 mb-8 border border-white/20">
+              {timeLeft.isExpired ? (
+                <div className="text-center">
+                  <div className="text-white/90 text-lg font-semibold mb-2">
+                    Call Time!
+                  </div>
+                  <div className="text-white/70 text-sm">
+                    Your appointment is ready to start
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center">
+                  <div className="text-white/90 text-sm mb-3">
+                    Time until your appointment:
+                  </div>
+                  <div className="flex justify-center space-x-4">
+                    {timeLeft.days > 0 && (
+                      <div className="text-center">
+                        <div className="text-white text-2xl font-bold">
+                          {timeLeft.days.toString().padStart(2, '0')}
+                        </div>
+                        <div className="text-white/60 text-xs">Days</div>
+                      </div>
+                    )}
+                    <div className="text-center">
+                      <div className="text-white text-2xl font-bold">
+                        {timeLeft.hours.toString().padStart(2, '0')}
+                      </div>
+                      <div className="text-white/60 text-xs">Hours</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-white text-2xl font-bold">
+                        {timeLeft.minutes.toString().padStart(2, '0')}
+                      </div>
+                      <div className="text-white/60 text-xs">Minutes</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-white text-2xl font-bold">
+                        {timeLeft.seconds.toString().padStart(2, '0')}
+                      </div>
+                      <div className="text-white/60 text-xs">Seconds</div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-5 mb-8 border border-white/20">
