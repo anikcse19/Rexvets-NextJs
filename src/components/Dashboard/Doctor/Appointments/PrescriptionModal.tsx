@@ -22,17 +22,20 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Pill, Save, Send, Plus, Trash2, User, Calendar } from "lucide-react";
-import { Doctor, Pet, PetParent } from "@/lib/types";
+import { Appointment, Doctor, Pet, PetParent } from "@/lib/types";
 import {
   PrescriptionFormData,
   prescriptionSchema,
 } from "@/lib/validation/prescription";
 import { useRouter } from "next/navigation";
+import PrescriptionPDF from "./PrescriptionPDF";
+import { pdf } from "@react-pdf/renderer";
 
 interface PrescriptionModalProps {
   isOpen: boolean;
   onClose: () => void;
   appointmentId: string;
+  appointment: Appointment;
   pet: Pet;
   petParent: PetParent;
   veterinarian: Doctor;
@@ -42,11 +45,14 @@ export default function PrescriptionModal({
   isOpen,
   onClose,
   appointmentId,
+  appointment,
   pet,
   petParent,
   veterinarian,
 }: PrescriptionModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // console.log(pet, petParent, veterinarian, "check ids");
 
   const {
     register,
@@ -89,37 +95,19 @@ export default function PrescriptionModal({
   const onSubmit = async (data: PrescriptionFormData) => {
     setIsSubmitting(true);
     try {
-      console.log("Saving prescription:", data);
+      // console.log("Saving prescription:", data);
 
-      const doc = new jsPDF();
+      const pdfBlob = await pdf(
+        <PrescriptionPDF
+          appointment={appointment}
+          veterinarian={veterinarian}
+          petParent={petParent}
+          pet={pet}
+          values={data}
+        />
+      ).toBlob();
 
-      doc.setFontSize(16);
-      doc.text("Prescription", 105, 20, { align: "center" });
-
-      doc.setFontSize(12);
-      doc.text(`Veterinarian: ${veterinarian?.name || ""}`, 20, 40);
-      doc.text(`Pet: ${pet?.name || ""}`, 20, 50);
-      doc.text(`Pet Parent: ${petParent?.name || ""}`, 20, 60);
-      doc.text(`Appointment ID: ${appointmentId || ""}`, 20, 70);
-
-      // Medications
-      let y = 90;
-      data.medications.forEach((med, index) => {
-        doc.text(`${index + 1}. ${med.name} - ${med.dose}`, 20, y);
-        y += 10;
-      });
-
-      // Usage Instructions
-      y += 10;
-      doc.text("Usage Instructions:", 20, y);
-      y += 10;
-      data.usageInstructions.forEach((inst, index) => {
-        doc.text(`${index + 1}. ${inst}`, 25, y);
-        y += 10;
-      });
-
-      // 2️⃣ Convert PDF to blob
-      const pdfBlob = doc.output("blob");
+      // console.log("pdfblob", pdfBlob);
 
       const formData = new FormData();
 
@@ -141,12 +129,12 @@ export default function PrescriptionModal({
       formData.append("pharmacy", JSON.stringify(data.pharmacy));
 
       // PDF link (string)
-      formData.append(
-        "pdfLink",
-        "https://res.cloudinary.com/demo/prescriptions/prescription-123.pdf"
-      );
+      formData.append("pdf", pdfBlob, "prescription.pdf");
 
-      console.log("payload", formData);
+      // console.log("payload", formData);
+      // for (const [key, value] of formData.entries()) {
+      //   console.log(key, value);
+      // }
 
       const res = await fetch("/api/prescriptions", {
         method: "POST",

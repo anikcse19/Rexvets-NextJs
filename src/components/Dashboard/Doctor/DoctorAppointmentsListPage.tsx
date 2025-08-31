@@ -15,13 +15,17 @@ import {
 } from "./Service/appointments.service";
 import { useVeterinarian } from "@/hooks/useVeterinarian";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useSession } from "next-auth/react";
+import { getVeterinarianAppointments } from "./Service/get-all-appointments";
+
+type AppointmentCategory = "upcoming" | "past" | "actionNeeded";
 
 export default function AppointmentsPage() {
   const [activeTab, setActiveTab] = useState("upcoming");
   const [searchTerm, setSearchTerm] = useState("");
   const [filterDate, setFilterDate] = useState("");
   const [appointments, setAppointments] = useState<
-    Record<string, TransformedAppointment[]>
+    Record<AppointmentCategory, Appointment[]>
   >({
     upcoming: [],
     past: [],
@@ -30,11 +34,8 @@ export default function AppointmentsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const {
-    veterinarian,
-    isLoading: isVetLoading,
-    error: vetError,
-  } = useVeterinarian();
+  const { data: session } = useSession();
+  const veterinarian = session?.user;
 
   // Fetch appointments function
   const fetchAppointments = async () => {
@@ -46,12 +47,27 @@ export default function AppointmentsPage() {
       setIsLoading(true);
       setError(null);
 
-      const categorizedAppointments =
-        await appointmentsService.getVeterinarianAppointmentsByCategory(
-          veterinarian.refId
-        );
+      const data = await getVeterinarianAppointments(veterinarian?.refId);
 
-      setAppointments(categorizedAppointments);
+      console.log("Fetched appointments:", data);
+
+      const now = new Date();
+      const grouped = {
+        upcoming: data?.data?.filter(
+          (a: Appointment) =>
+            new Date(a.appointmentDate) >= now && a.status !== "completed"
+        ),
+        past: data?.data?.filter(
+          (a: Appointment) =>
+            new Date(a.appointmentDate) < now || a.status === "completed"
+        ),
+        actionNeeded: data?.data?.filter(
+          (a: Appointment) =>
+            new Date(a.appointmentDate) < now || a.status === "cancelled"
+        ),
+      };
+
+      setAppointments(grouped);
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Failed to fetch appointments"
@@ -69,15 +85,21 @@ export default function AppointmentsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [veterinarian?.refId]);
 
+  console.log("appointments", appointments);
+
   // Function to filter appointments based on search and date
-  const filterAppointments = (appointmentList: TransformedAppointment[]) => {
+  const filterAppointments = (appointmentList: Appointment[]) => {
     return appointmentList.filter((appointment) => {
       const matchesSearch =
-        appointment.petName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        appointment.parentName.toLowerCase().includes(searchTerm.toLowerCase());
+        appointment?.pet?.name
+          ?.toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
+        appointment?.petParent?.name
+          ?.toLowerCase()
+          .includes(searchTerm.toLowerCase());
 
       const matchesDate = filterDate
-        ? appointment.appointmentDate === filterDate
+        ? appointment?.appointmentDate === filterDate
         : true;
 
       return matchesSearch && matchesDate;
@@ -85,7 +107,7 @@ export default function AppointmentsPage() {
   };
 
   // Show loading state while fetching veterinarian data or appointments
-  if (isVetLoading || isLoading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
@@ -97,13 +119,13 @@ export default function AppointmentsPage() {
   }
 
   // Show error state
-  if (vetError || error) {
+  if (error) {
     return (
       <div className="space-y-6">
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            {vetError || error || "Failed to load appointments"}
+            {error || "Failed to load appointments"}
           </AlertDescription>
         </Alert>
         <Button
@@ -243,6 +265,8 @@ export default function AppointmentsPage() {
           {Object.entries(appointments).map(([tabKey, appointmentList]) => {
             const filtered = filterAppointments(appointmentList);
 
+            console.log("filtered", filtered);
+
             return (
               <TabsContent key={tabKey} value={tabKey} className="mt-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -253,19 +277,19 @@ export default function AppointmentsPage() {
                           No appointments found in this category.
                         </p>
                       </Card>
-                  </div>
-                ) : (
-                  filtered.map((appointment) => (
-                    <AppointmentCard
-                      key={appointment.id}
-                      appointment={appointment as unknown as Appointment}
-                    />
-                  ))
-                )}
-              </div>
-            </TabsContent>
-          );
-        })}
+                    </div>
+                  ) : (
+                    filtered.map((appointment) => (
+                      <AppointmentCard
+                        key={appointment.id}
+                        appointment={appointment as unknown as Appointment}
+                      />
+                    ))
+                  )}
+                </div>
+              </TabsContent>
+            );
+          })}
         </Tabs>
       )}
     </div>

@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 
-import cloudinary from "@/lib/cloudinary";
+import cloudinary, { uploadToCloudinary } from "@/lib/cloudinary";
 import { connectToDatabase } from "@/lib/mongoose";
 import { PrescriptionModel } from "@/models";
 import {
@@ -101,6 +101,8 @@ export async function POST(req: NextRequest) {
     const formData = await req.formData();
     const pdfFile = formData.get("pdf") as File | null;
 
+    console.log("pdf from server", pdfFile);
+
     const prescriptionData: any = {
       veterinarian: formData.get("veterinarian"),
       petParent: formData.get("petParent"),
@@ -116,19 +118,10 @@ export async function POST(req: NextRequest) {
     };
 
     if (pdfFile) {
-      const arrayBuffer = await pdfFile.arrayBuffer();
-      const buffer = Buffer.from(arrayBuffer);
-
-      const uploadRes = await new Promise<any>((resolve, reject) => {
-        cloudinary.uploader
-          .upload_stream(
-            { folder: "prescriptions", resource_type: "auto" },
-            (err, result) => {
-              if (err) reject(err);
-              else resolve(result);
-            }
-          )
-          .end(buffer);
+      // ✅ Just call your util, it auto-detects PDF vs image
+      const uploadRes = await uploadToCloudinary(pdfFile, {
+        folder: "prescriptions", // goes under /prescriptions
+        public_id: `prescription_${Date.now()}`, // optional: name
       });
 
       prescriptionData.pdfLink = uploadRes.secure_url;
@@ -138,6 +131,7 @@ export async function POST(req: NextRequest) {
     console.log("Creating prescription with data:", prescriptionData);
 
     const created = await PrescriptionModel.create(prescriptionData);
+
     const response: ISendResponse<typeof created> = {
       success: true,
       data: created,

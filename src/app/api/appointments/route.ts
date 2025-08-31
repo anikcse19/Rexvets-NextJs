@@ -15,6 +15,8 @@ import { Types } from "mongoose";
 import { getServerSession } from "next-auth/next";
 import { NextRequest } from "next/server";
 import z from "zod";
+import "@/models/Veterinarian";
+
 const appointmentSchema = z.object({
   veterinarian: z.string().refine((val) => Types.ObjectId.isValid(val), {
     message: "Invalid veterinarian ID",
@@ -128,15 +130,17 @@ export async function POST(req: NextRequest) {
 
     // Create appointment document with proper timezone handling
     const slotDate = new Date(existingSlot.date);
-    const timezone = existingSlot.timezone || 'UTC';
-    
+    const timezone = existingSlot.timezone || "UTC";
+
     // Convert the slot date to the slot's timezone to get the correct local date
     const slotDateInTimezone = moment.tz(slotDate, timezone);
-    const dateString = slotDateInTimezone.format('YYYY-MM-DD');
-    
+    const dateString = slotDateInTimezone.format("YYYY-MM-DD");
+
     // Create the appointment date in the slot's timezone
-    const appointmentDateTime = moment.tz(`${dateString}T${existingSlot.startTime}:00`, timezone).toDate();
-    
+    const appointmentDateTime = moment
+      .tz(`${dateString}T${existingSlot.startTime}:00`, timezone)
+      .toDate();
+
     console.log("Slot date in timezone:", slotDateInTimezone.format());
     console.log("Slot date string:", dateString);
     console.log("Created appointment date:", appointmentDateTime);
@@ -249,7 +253,7 @@ export async function GET(req: NextRequest) {
     // Fetch data with pagination and sorting
     const [appointments, total] = await Promise.all([
       AppointmentModel.find(query)
-        .populate("veterinarian petParent pet") // Populate related data if needed
+        .populate("veterinarian pet petParent")
         .skip(skip)
         .limit(limit)
         .sort({ appointmentDate: -1 })

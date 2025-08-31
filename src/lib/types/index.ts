@@ -120,6 +120,7 @@ export interface Pet {
   weightUnit: string;
   dateOfBirth: string;
   parentId: string;
+  seenBy: string[];
   allergies: string[];
   medicalConditions: string[];
   currentMedications: string[];
@@ -296,5 +297,6 @@ export interface Prescription {
   pharmacy: Pharmacy;
   createdAt: string;
   updatedAt: string;
+  pdfLink?: string;
   __v: number;
 }

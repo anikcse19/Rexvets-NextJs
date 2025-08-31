@@ -53,11 +53,11 @@ export async function GET(
       //   { veterinarian: new Types.ObjectId(String(userIdToMatch)) },
       //   { petParent: new Types.ObjectId(String(userIdToMatch)) },
       // ],
-    });
-    // .populate("veterinarian")
-    // .populate("petParent")
-    // .populate("pet")
-    // .lean();
+    })
+      .populate("veterinarian")
+      .populate("petParent")
+      .populate("pet")
+      .lean();
 
     // console.log("appointment-------------------", appointment);
     console.log("appointment", appointment);

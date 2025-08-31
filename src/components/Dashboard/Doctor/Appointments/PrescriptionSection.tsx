@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Pill, Plus, Download, Calendar, User, Clock } from "lucide-react";
 import { Prescription } from "@/lib/types";
+import { toast } from "sonner";
 
 interface PrescriptionSectionProps {
   appointmentId: string;
@@ -66,6 +67,8 @@ export default function PrescriptionSection({
   const [prescriptionsData, setPrescriptionsData] = useState<Prescription[]>(
     []
   );
+
+  // console.log("iddd", appointmentId);
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
@@ -82,15 +85,25 @@ export default function PrescriptionSection({
 
   const handleDownloadPrescription = (prescriptionId: string) => {
     // This would generate and download a PDF prescription
-    console.log(`Downloading prescription ${prescriptionId}`);
+    // console.log(`Downloading prescription ${prescriptionId}`);
     // Implementation would involve PDF generation
   };
 
   const fetchPrescription = async () => {
-    const res = await fetch(`/api/prescriptions/appointment/${appointmentId}`);
-    const data = await res.json();
-    console.log("prescription data by appointment id", data.data);
-    setPrescriptionsData(data?.data);
+    try {
+      const res = await fetch(
+        `/api/prescriptions/appointment/${appointmentId}`
+      );
+      // console.log("respone", res);
+      if (!res.ok) {
+        throw new Error();
+      }
+      const data = await res.json();
+      // console.log("prescription data by appointment id", data.data);
+      setPrescriptionsData(data?.data);
+    } catch (error) {
+      setPrescriptionsData([]);
+    }
   };
 
   useEffect(() => {
@@ -183,7 +196,7 @@ export default function PrescriptionSection({
                           <div className="flex items-center gap-2">
                             <Button
                               onClick={() =>
-                                handleDownloadPrescription(prescription._id)
+                                window.open(prescription?.pdfLink, "_blank")
                               }
                               variant="outline"
                               size="sm"
