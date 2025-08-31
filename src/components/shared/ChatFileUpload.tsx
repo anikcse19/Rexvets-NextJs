@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 
 interface ChatFileUploadProps {
   appointmentId: string;
-  onFileUploaded: (fileUrl: string, fileName: string, messageType: string) => void;
+  onFileUploaded: (fileUrl: string, fileName: string, messageType: string, fileSize?: number) => void;
   onError?: (error: string) => void;
   disabled?: boolean;
 }
@@ -30,8 +30,23 @@ const ChatFileUpload: React.FC<ChatFileUploadProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const getFileType = (file: File): "image" | "video" | "file" => {
+    // Check MIME type first
     if (file.type.startsWith('image/')) return 'image';
     if (file.type.startsWith('video/')) return 'video';
+    
+    // Fallback to file extension if MIME type is not available
+    const fileName = file.name.toLowerCase();
+    const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.svg', '.ico'];
+    const videoExtensions = ['.mp4', '.avi', '.mov', '.wmv', '.flv', '.webm', '.mkv', '.m4v', '.3gp'];
+    
+    for (const ext of imageExtensions) {
+      if (fileName.endsWith(ext)) return 'image';
+    }
+    
+    for (const ext of videoExtensions) {
+      if (fileName.endsWith(ext)) return 'video';
+    }
+    
     return 'file';
   };
 
@@ -43,9 +58,9 @@ const ChatFileUpload: React.FC<ChatFileUploadProps> = ({
     };
 
     const allowedFormats = {
-      image: ['jpg', 'jpeg', 'png', 'gif', 'webp'],
-      video: ['mp4', 'avi', 'mov', 'wmv', 'flv', 'webm'],
-      file: ['pdf', 'doc', 'docx', 'txt', 'xls', 'xlsx', 'ppt', 'pptx'],
+      image: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg', 'ico'],
+      video: ['mp4', 'avi', 'mov', 'wmv', 'flv', 'webm', 'mkv', 'm4v', '3gp'],
+      file: ['pdf', 'doc', 'docx', 'txt', 'xls', 'xlsx', 'ppt', 'pptx', 'zip', 'rar', '7z'],
     };
 
     const fileType = getFileType(file);
@@ -53,12 +68,12 @@ const ChatFileUpload: React.FC<ChatFileUploadProps> = ({
     const allowedFormatsList = allowedFormats[fileType];
 
     if (file.size > maxSize) {
-      return { valid: false, error: `File size must be less than ${Math.round(maxSize / 1024 / 1024)}MB` };
+      return { valid: false, error: `${fileType.charAt(0).toUpperCase() + fileType.slice(1)} file size must be less than ${Math.round(maxSize / 1024 / 1024)}MB` };
     }
 
     const fileExtension = file.name.split('.').pop()?.toLowerCase();
     if (!fileExtension || !allowedFormatsList.includes(fileExtension)) {
-      return { valid: false, error: `File format not allowed. Allowed formats: ${allowedFormatsList.join(', ')}` };
+      return { valid: false, error: `${fileType.charAt(0).toUpperCase() + fileType.slice(1)} format not allowed. Allowed formats: ${allowedFormatsList.join(', ')}` };
     }
 
     return { valid: true };
@@ -72,6 +87,7 @@ const ChatFileUpload: React.FC<ChatFileUploadProps> = ({
     }
 
     const fileType = getFileType(file);
+
     const uploadingFile: UploadingFile = {
       file,
       progress: 0,
@@ -108,7 +124,7 @@ const ChatFileUpload: React.FC<ChatFileUploadProps> = ({
       );
 
       // Call the callback with uploaded file info
-      onFileUploaded(result.fileUrl, result.fileName, result.messageType);
+      onFileUploaded(result.fileUrl, result.fileName, result.messageType, result.fileSize);
 
       // Remove from uploading files after a delay
       setTimeout(() => {
@@ -116,7 +132,7 @@ const ChatFileUpload: React.FC<ChatFileUploadProps> = ({
       }, 2000);
 
     } catch (error) {
-      console.error('Upload error:', error);
+      console.error('❌ Upload error:', error);
       
       // Update file status to error
       setUploadingFiles(prev => 
@@ -193,36 +209,23 @@ const ChatFileUpload: React.FC<ChatFileUploadProps> = ({
         onClick={() => !disabled && fileInputRef.current?.click()}
       >
         <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-gray-600 mb-1">
           Drag and drop files here or click to browse
         </p>
-        <p className="text-xs text-gray-500 mt-1">
+        <p className="text-xs text-gray-500">
           Images (5MB), Videos (50MB), Documents (10MB)
         </p>
-        
-        <input
-          ref={fileInputRef}
-          type="file"
-          multiple
-          accept="image/*,video/*,.pdf,.doc,.docx,.txt,.xls,.xlsx,.ppt,.pptx"
-          onChange={(e) => handleFileSelect(e.target.files)}
-          className="hidden"
-          disabled={disabled}
-        />
       </div>
 
-      {/* Uploading Files List */}
+      {/* Uploading Files */}
       {uploadingFiles.length > 0 && (
         <div className="mt-4 space-y-2">
           {uploadingFiles.map((uploadingFile, index) => (
-            <div
-              key={index}
-              className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border"
-            >
+            <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
               <div className="flex items-center space-x-3">
                 {getFileIcon(uploadingFile.file)}
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 truncate">
+                <div>
+                  <p className="text-sm font-medium text-gray-700">
                     {uploadingFile.file.name}
                   </p>
                   <p className="text-xs text-gray-500">
@@ -234,31 +237,51 @@ const ChatFileUpload: React.FC<ChatFileUploadProps> = ({
               <div className="flex items-center space-x-2">
                 {uploadingFile.status === 'uploading' && (
                   <>
-                    <div className="w-16 bg-gray-200 rounded-full h-2">
-                      <div 
-                        className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                        style={{ width: `${uploadingFile.progress}%` }}
-                      />
-                    </div>
-                    <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
+                    <Loader2 className="w-4 h-4 animate-spin text-blue-500" />
+                    <span className="text-xs text-gray-500">Uploading...</span>
                   </>
                 )}
                 
                 {uploadingFile.status === 'success' && (
-                  <CheckCircle className="w-5 h-5 text-green-600" />
+                  <>
+                    <CheckCircle className="w-4 h-4 text-green-500" />
+                    <span className="text-xs text-green-600">Success</span>
+                  </>
                 )}
                 
                 {uploadingFile.status === 'error' && (
-                  <div className="flex items-center space-x-1">
-                    <AlertCircle className="w-4 h-4 text-red-600" />
-                    <span className="text-xs text-red-600">{uploadingFile.error}</span>
-                  </div>
+                  <>
+                    <AlertCircle className="w-4 h-4 text-red-500" />
+                    <span className="text-xs text-red-600">Failed</span>
+                  </>
                 )}
+                
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setUploadingFiles(prev => prev.filter((_, i) => i !== index));
+                  }}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
               </div>
             </div>
           ))}
         </div>
       )}
+
+      {/* Hidden File Input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        multiple
+        accept="image/*,video/*,.pdf,.doc,.docx,.txt,.xls,.xlsx,.ppt,.pptx,.zip,.rar,.7z"
+        onChange={(e) => handleFileSelect(e.target.files)}
+        className="hidden"
+        disabled={disabled}
+      />
     </div>
   );
 };

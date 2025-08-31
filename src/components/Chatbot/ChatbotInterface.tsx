@@ -44,13 +44,13 @@ export const ChatbotInterface: React.FC<ChatbotInterfaceProps> = ({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const scrollToBottom = () => {
-    // messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
+  // const scrollToBottom = () => {
+  //   // messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  // };
 
-  useEffect(() => {
-    // scrollToBottom();
-  }, [messages]);
+  // useEffect(() => {
+  //   // scrollToBottom();
+  // }, [messages]);
 
   const sendMessage = async (content: string) => {
     if (!content.trim() || isLoading) return;

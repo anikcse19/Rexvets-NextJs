@@ -1,65 +1,54 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
+import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { connectToDatabase } from "@/lib/mongoose";
-import { uploadToCloudinary, validateFile } from "@/lib/cloudinary";
+import { connectDB } from "@/lib/db";
 import { AppointmentModel } from "@/models/Appointment";
-import { z } from "zod";
-import type { Session } from "next-auth";
-
-// Schema for file upload validation
-const fileUploadSchema = z.object({
-  appointmentId: z.string().min(1, "Appointment ID is required"),
-  messageType: z.enum(["image", "video", "file"]).default("file"),
-});
+import { uploadToCloudinary, validateFile } from "@/lib/cloudinary";
 
 export async function POST(req: NextRequest) {
   try {
-    const session: Session | null = await getServerSession(authOptions as any);
+    // Validate session
+    const session = await getServerSession(authOptions);
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    await connectToDatabase();
+    // Connect to database
+    await connectDB();
 
+    // Parse form data
     const formData = await req.formData();
-    const file = formData.get('file') as File;
-    const appointmentId = formData.get('appointmentId') as string;
-    const messageType = formData.get('messageType') as string;
+    const file = formData.get("file") as File;
+    const appointmentId = formData.get("appointmentId") as string;
+    const messageType = formData.get("messageType") as string;
 
-    // Validate request data
-    const validation = fileUploadSchema.safeParse({ appointmentId, messageType });
-    if (!validation.success) {
-      return NextResponse.json({ 
-        error: "Invalid request data", 
-        details: validation.error.issues 
-      }, { status: 400 });
-    }
-
-    if (!file || file.size === 0) {
-      return NextResponse.json({ error: "No file provided" }, { status: 400 });
+    if (!file || !appointmentId || !messageType) {
+      return NextResponse.json(
+        { error: "Missing required fields" },
+        { status: 400 }
+      );
     }
 
     // Verify appointment exists and user has access
-    const appointment = await AppointmentModel.findById(appointmentId)
-      .populate("petParent", "name email")
-      .populate("veterinarian", "name email");
-
+    const appointment = await AppointmentModel.findById(appointmentId);
     if (!appointment) {
-      return NextResponse.json({ error: "Appointment not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Appointment not found" },
+        { status: 404 }
+      );
     }
 
+    // Check authorization
     const userRefId = (session.user as any).refId;
-    const appointmentPetParentId = appointment.petParent?._id?.toString();
-    const appointmentVeterinarianId = appointment.veterinarian?._id?.toString();
-
-    // Check if user is authorized to upload files for this appointment
     const isAuthorized = 
-      (session.user.role === "pet_parent" && appointmentPetParentId === userRefId) ||
-      (session.user.role === "veterinarian" && appointmentVeterinarianId === userRefId);
+      appointment.petParent.toString() === userRefId ||
+      appointment.veterinarian.toString() === userRefId;
 
     if (!isAuthorized) {
-      return NextResponse.json({ error: "Access denied" }, { status: 403 });
+      return NextResponse.json(
+        { error: "Not authorized to access this appointment" },
+        { status: 403 }
+      );
     }
 
     // Validate file based on message type
@@ -69,7 +58,7 @@ export async function POST(req: NextRequest) {
     switch (messageType) {
       case "image":
         fileValidation = validateFile(file, {
-          allowed_formats: ["jpg", "jpeg", "png", "gif", "webp"],
+          allowed_formats: ["jpg", "jpeg", "png", "gif", "webp", "bmp", "svg", "ico"],
           max_bytes: 5 * 1024 * 1024, // 5MB for images
         });
         uploadConfig = {
@@ -81,7 +70,7 @@ export async function POST(req: NextRequest) {
       
       case "video":
         fileValidation = validateFile(file, {
-          allowed_formats: ["mp4", "avi", "mov", "wmv", "flv", "webm"],
+          allowed_formats: ["mp4", "avi", "mov", "wmv", "flv", "webm", "mkv", "m4v", "3gp"],
           max_bytes: 50 * 1024 * 1024, // 50MB for videos
         });
         uploadConfig = {
@@ -93,12 +82,15 @@ export async function POST(req: NextRequest) {
       case "file":
       default:
         fileValidation = validateFile(file, {
-          allowed_formats: ["pdf", "doc", "docx", "txt", "xls", "xlsx", "ppt", "pptx"],
+          allowed_formats: ["pdf", "doc", "docx", "txt", "xls", "xlsx", "ppt", "pptx", "zip", "rar", "7z"],
           max_bytes: 10 * 1024 * 1024, // 10MB for files
         });
         uploadConfig = {
           folder: "rexvets/chat/files",
           resource_type: "raw" as const,
+          access_mode: "public" as const,
+          delivery_type: "upload" as const,
+          type: "upload" as const,
         };
         break;
     }
@@ -114,44 +106,39 @@ export async function POST(req: NextRequest) {
     const lastDotIndex = file.name.lastIndexOf('.');
     const fileExtension = lastDotIndex !== -1 ? file.name.substring(lastDotIndex + 1).toLowerCase() : '';
     
-    // Create filename without double extensions
+    // Create filename with extension for signed uploads
     const baseFilename = `chat_${appointmentId}_${timestamp}`;
     const prefixedFilename = fileExtension ? `${baseFilename}.${fileExtension}` : baseFilename;
 
-    // Upload to Cloudinary
-    console.log('Uploading file to Cloudinary:', {
-      fileName: file.name,
-      fileSize: file.size,
-      fileType: file.type,
-      prefixedFilename,
-      uploadConfig
-    });
+    try {
+      const uploadResult = await uploadToCloudinary(file, {
+        ...uploadConfig,
+        public_id: prefixedFilename,
+        max_bytes: fileValidation.max_bytes || 10 * 1024 * 1024,
+        allowed_formats: fileValidation.allowed_formats || ["jpg", "jpeg", "png", "gif", "webp"],
+      });
 
-    const uploadResult = await uploadToCloudinary(file, {
-      ...uploadConfig,
-      public_id: prefixedFilename,
-    });
+      return NextResponse.json({
+        success: true,
+        fileUrl: uploadResult.secure_url,
+        publicId: uploadResult.public_id,
+        fileName: file.name,
+        fileSize: file.size,
+        messageType: messageType,
+      });
 
-    console.log('Cloudinary upload result:', {
-      publicId: uploadResult.public_id,
-      secureUrl: uploadResult.secure_url,
-      format: uploadResult.format,
-      bytes: uploadResult.bytes
-    });
-
-    return NextResponse.json({
-      success: true,
-      fileUrl: uploadResult.secure_url,
-      publicId: uploadResult.public_id,
-      fileName: file.name,
-      fileSize: file.size,
-      messageType: messageType,
-    });
+    } catch (uploadError) {
+      console.error('❌ Cloudinary upload failed:', uploadError);
+      return NextResponse.json(
+        { error: `Upload failed: ${uploadError instanceof Error ? uploadError.message : 'Unknown error'}` },
+        { status: 500 }
+      );
+    }
 
   } catch (error: any) {
-    console.error("Error uploading chat file:", error);
+    console.error("❌ Error uploading chat file:", error);
     return NextResponse.json(
-      { error: "Failed to upload file" },
+      { error: `Failed to upload file: ${error.message}` },
       { status: 500 }
     );
   }
