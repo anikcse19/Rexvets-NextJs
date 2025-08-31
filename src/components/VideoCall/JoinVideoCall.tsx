@@ -1,485 +1,53 @@
 "use client";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import React from "react";
+import { useVideoCall } from "../../hooks/useVideoCall";
+import PostCallModal from "../PostCallReviewModal";
 import {
-  Drawer,
-  DrawerClose,
-  DrawerContent,
-  DrawerDescription,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerTrigger,
-} from "@/components/ui/drawer";
-import { Input } from "@/components/ui/input";
-import config from "@/config/env.config";
-import NextImage from "next/image";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import React, { useCallback, useEffect, useRef, useState } from "react";
-import { AiOutlineCamera } from "react-icons/ai";
-import {
-  FaComments,
-  FaMicrophone,
-  FaMicrophoneSlash,
-  FaPhoneSlash,
-  FaTimes,
-  FaVideoSlash,
-} from "react-icons/fa";
-// Add strongly-typed Agora imports
-import AgoraRTC, {
-  IAgoraRTCClient,
-  ILocalAudioTrack,
-  ILocalVideoTrack,
-} from "agora-rtc-sdk-ng";
+  ErrorScreen,
+  LoadingScreen,
+  LocalVideoPreview,
+  VideoCallControls,
+  VideoCallHeader,
+  VideoCallLogo,
+  VideoCallMainArea,
+  VideoCallSidebar,
+} from "./components";
 
-type CallState = "connecting" | "waiting" | "active" | "ended" | "failed";
 interface VideoCallProps {
   onEndCall?: () => void;
 }
 
-const APP_ID = config.AGORA_PUBLIC_ID;
-const CHANNEL = "testChannel";
-const IS_PUBLISHER = true;
-
-// Virtual background images (using project images)
-const VIRTUAL_BACKGROUNDS = [
-  { id: 1, name: "Blur", url: "blur", image: "/images/how-it-works/SecondImg.webp" },
-  { id: 2, name: "Office", url: "/images/donate-page/Texture.webp", image: "/images/donate-page/Texture.webp" },
-  { id: 3, name: "Beach", url: "/images/mission/dog.webp", image: "/images/mission/dog.webp" },
-  { id: 4, name: "Nature", url: "/images/about/About1.webp", image: "/images/about/About1.webp" },
-  { id: 5, name: "Space", url: "/images/how-it-works/PrincipalImgWorks.webp", image: "/images/how-it-works/PrincipalImgWorks.webp" },
-  { id: 6, name: "None", url: "none", image: "/images/Logo.svg" },
-];
-
 const VideoCall: React.FC<VideoCallProps> = ({ onEndCall }) => {
-  const router = useRouter();
-  const [isAudioEnabled, setIsAudioEnabled] = useState(true);
-  const [isVideoEnabled, setIsVideoEnabled] = useState(true);
-  const [callState, setCallState] = useState<CallState>("connecting");
-  const [isFrontCamera, setIsFrontCamera] = useState(true);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [agoraLoaded, setAgoraLoaded] = useState(false);
-  const [clientInitialized, setClientInitialized] = useState(false);
-  const [remoteUsersState, setRemoteUsersState] = useState<{
-    [uid: string]: any;
-  }>({});
-  const [isVirtualBackgroundSupported, setIsVirtualBackgroundSupported] = useState(false);
-  const [selectedBackground, setSelectedBackground] = useState<string | null>(null);
-  const [isProcessingVirtualBg, setIsProcessingVirtualBg] = useState(false);
+  const {
+    petParent,
+    appointmentDetails,
+    isLoading,
+    isOpen,
+    setIsOpen,
+    isAudioEnabled,
+    isVideoEnabled,
+    callState,
+    errorMessage,
+    remoteUsersState,
+    isVirtualBackgroundSupported,
+    selectedBackground,
+    localVideoRef,
+    remoteVideoRef,
+    localVideoTrack,
+    toggleAudio,
+    toggleVideo,
+    endCall,
+    switchCamera,
+    applyVirtualBackground,
+  } = useVideoCall();
 
-  // Agora refs with types
-  const client = useRef<IAgoraRTCClient | null>(null);
-  const localVideoTrack = useRef<ILocalVideoTrack | null>(null);
-  const localAudioTrack = useRef<ILocalAudioTrack | null>(null);
-  const localVideoRef = useRef<HTMLDivElement>(null);
-  const remoteVideoRef = useRef<HTMLDivElement>(null);
-  const remoteUsers = useRef<{ [uid: string]: any }>({});
-  const isJoiningRef = useRef(false);
-  const isJoinedRef = useRef(false);
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
 
-  // Virtual background extension/processor
-  const vbExtensionRef = useRef<any>(null);
-  const virtualBackgroundProcessor = useRef<any>(null);
-
-  // Generate unique UID
-  const [uid] = useState(Math.floor(Math.random() * 100000));
-
-  // Check if virtual background is supported using the extension API
-  useEffect(() => {
-    (async () => {
-      try {
-        if (typeof window === "undefined") return;
-        const { default: VirtualBackgroundExtension } = await import("agora-extension-virtual-background");
-        const ext = new VirtualBackgroundExtension();
-        const supported = ext.checkCompatibility();
-        setIsVirtualBackgroundSupported(!!supported);
-      } catch (e) {
-        setIsVirtualBackgroundSupported(false);
-      }
-    })();
-  }, []);
-
-  // Load AgoraRTC (flag)
-  useEffect(() => {
-    try {
-      AgoraRTC.setLogLevel(1);
-      setAgoraLoaded(true);
-    } catch (error) {
-      console.error("Failed to load AgoraRTC:", error);
-      setErrorMessage("Failed to load video call library.");
-      setCallState("failed");
-    }
-  }, []);
-
-  // Initialize Agora client
-  useEffect(() => {
-    if (agoraLoaded && !client.current) {
-      try {
-        client.current = AgoraRTC.createClient({ mode: "rtc", codec: "vp8" });
-        setClientInitialized(true);
-      } catch (error) {
-        console.error("Failed to initialize Agora client:", error);
-        setErrorMessage("Failed to initialize video call client.");
-        setCallState("failed");
-      }
-    }
-  }, [agoraLoaded]);
-
-  // Fetch token
-  const fetchToken = useCallback(
-    async (channelName: string, id: number, isPublisher: boolean) => {
-      try {
-        const res = await fetch(
-          `/api/agora-token?channelName=${channelName}&uid=${id}&isPublisher=${isPublisher}`
-        );
-        if (!res.ok) throw new Error(`Token fetch failed with status: ${res.status}`);
-        const data = await res.json();
-        if (!data.token) throw new Error("No token received from server");
-        return data.token as string;
-      } catch (error) {
-        console.error("Error fetching token:", error);
-        setErrorMessage("Failed to authenticate. Please try again.");
-        setCallState("failed");
-        return null;
-      }
-    },
-    []
-  );
-
-  // Apply virtual background using the extension API
-  const applyVirtualBackground = useCallback(
-    async (backgroundType: string | null) => {
-      if (!localVideoTrack.current) return;
-      setIsProcessingVirtualBg(true);
-      setSelectedBackground(backgroundType);
-      try {
-        // Initialize extension once
-        if (!vbExtensionRef.current) {
-          const { default: VirtualBackgroundExtension } = await import("agora-extension-virtual-background");
-          const ext = new VirtualBackgroundExtension();
-          if (!ext.checkCompatibility()) {
-            setIsProcessingVirtualBg(false);
-            return;
-          }
-          AgoraRTC.registerExtensions([ext]);
-          vbExtensionRef.current = ext;
-        }
-        // Remove existing processor if any
-        if (virtualBackgroundProcessor.current) {
-          try {
-            await virtualBackgroundProcessor.current.disable();
-          } catch {}
-          try {
-            (localVideoTrack.current as any).unpipe();
-            virtualBackgroundProcessor.current.unpipe();
-          } catch {}
-          virtualBackgroundProcessor.current = null;
-        }
-        // None selected → exit
-        if (!backgroundType || backgroundType === "none") {
-          setIsProcessingVirtualBg(false);
-          return;
-        }
-        // Create and init processor, inject into pipeline
-        const processor = vbExtensionRef.current.createProcessor();
-        await processor.init();
-        (localVideoTrack.current as any)
-          .pipe(processor)
-          .pipe((localVideoTrack.current as any).processorDestination);
-        // Configure options
-        if (backgroundType === "blur") {
-          await processor.setOptions({ type: "blur", blurDegree: 2 });
-        } else {
-          // Load image into HTMLImageElement
-          await new Promise<void>((resolve, reject) => {
-            if (typeof window === "undefined") {
-              reject(new Error("Window is undefined"));
-              return;
-            }
-            const img = new window.Image();
-            img.crossOrigin = "anonymous";
-            img.onload = async () => {
-              try {
-                await processor.setOptions({ type: "img", source: img });
-                resolve();
-              } catch (e) {
-                reject(e);
-              }
-            };
-            img.onerror = () => reject(new Error("Failed to load background image"));
-            img.src = backgroundType;
-          });
-        }
-        await processor.enable();
-        virtualBackgroundProcessor.current = processor;
-      } catch (error) {
-        console.error("Failed to apply virtual background:", error);
-        setErrorMessage("Failed to apply virtual background. Please try again.");
-      } finally {
-        setIsProcessingVirtualBg(false);
-      }
-    },
-    []
-  );
-
-  // Join call function with guards to avoid double-join
-  const joinCall = useCallback(async () => {
-    if (isJoiningRef.current || isJoinedRef.current) return;
-    if (!client.current || !clientInitialized) return;
-    const state = (client.current as any).connectionState as string | undefined;
-    if (state && state !== "DISCONNECTED") return;
-    isJoiningRef.current = true;
-    try {
-      if (!APP_ID) throw new Error("Missing Agora App ID");
-      setCallState("connecting");
-      setErrorMessage(null);
-
-      client.current.on("user-joined", (user: any) => {
-        remoteUsers.current[user.uid] = user;
-        setRemoteUsersState((prev) => ({ ...prev, [user.uid]: user }));
-        setCallState("active");
-      });
-      client.current.on("user-published", async (user: any, mediaType: "audio" | "video") => {
-        try {
-          await client.current!.subscribe(user, mediaType);
-          remoteUsers.current[user.uid] = user;
-          setRemoteUsersState((prev) => ({ ...prev, [user.uid]: user }));
-          if (mediaType === "video" && remoteVideoRef.current) user.videoTrack?.play(remoteVideoRef.current);
-          if (mediaType === "audio") user.audioTrack?.play();
-        } catch (error) {
-          console.error("Error in user-published:", error);
-          setErrorMessage("Failed to subscribe to user stream.");
-        }
-      });
-      client.current.on("user-unpublished", (user: any, mediaType: string) => {
-        if (mediaType === "video") {
-          remoteUsers.current[user.uid] = { ...remoteUsers.current[user.uid], videoTrack: null };
-          setRemoteUsersState((prev) => ({ ...prev, [user.uid]: { ...prev[user.uid], videoTrack: null } }));
-        }
-        if (Object.keys(remoteUsers.current).length <= 1) setCallState("waiting");
-      });
-      client.current.on("user-left", (user: any) => {
-        delete remoteUsers.current[user.uid];
-        setRemoteUsersState((prev) => { const next = { ...prev }; delete next[user.uid]; return next; });
-        if (Object.keys(remoteUsers.current).length === 0) setCallState("waiting");
-      });
-
-      // Create and publish local tracks
-      if (IS_PUBLISHER) {
-        try {
-          localVideoTrack.current = await AgoraRTC.createCameraVideoTrack();
-          localAudioTrack.current = await AgoraRTC.createMicrophoneAudioTrack();
-        } catch (error) {
-          console.error("Error accessing media devices:", error);
-          setErrorMessage("Please allow camera and microphone access.");
-          setCallState("failed");
-          isJoiningRef.current = false;
-          return;
-        }
-        if (localVideoRef.current && localVideoTrack.current) {
-          try {
-            localVideoTrack.current.play(localVideoRef.current);
-          } catch (error) {
-            console.error("Error playing local video:", error);
-            setErrorMessage("Failed to display local video.");
-          }
-        }
-      }
-
-      // Join and publish
-      const token = await fetchToken(CHANNEL, uid, IS_PUBLISHER);
-      if (!token) throw new Error("Failed to fetch token");
-      await client.current.join(APP_ID, CHANNEL, token, uid);
-      isJoinedRef.current = true;
-      if (IS_PUBLISHER && localVideoTrack.current && localAudioTrack.current) {
-        await client.current.publish([localVideoTrack.current, localAudioTrack.current]);
-      }
-      setCallState("waiting");
-    } catch (error: any) {
-      console.error("Failed to join call:", error);
-      setCallState("failed");
-      setErrorMessage(`Failed to join call: ${error.message || "Unknown error"}`);
-    } finally {
-      isJoiningRef.current = false;
-    }
-  }, [clientInitialized, fetchToken, uid]);
-
-  useEffect(() => {
-    if (clientInitialized) joinCall();
-  }, [clientInitialized, joinCall]);
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      const cleanupAgora = async () => {
-        try {
-          if (virtualBackgroundProcessor.current && localVideoTrack.current) {
-            try { await virtualBackgroundProcessor.current.disable(); } catch {}
-            try { (localVideoTrack.current as any).unpipe(); virtualBackgroundProcessor.current.unpipe(); } catch {}
-          }
-          virtualBackgroundProcessor.current = null;
-          if (localVideoTrack.current) { localVideoTrack.current.stop(); localVideoTrack.current.close(); localVideoTrack.current = null; }
-          if (localAudioTrack.current) { localAudioTrack.current.stop(); localAudioTrack.current.close(); localAudioTrack.current = null; }
-          if (client.current) { await client.current.leave(); client.current.removeAllListeners(); client.current = null; }
-          isJoinedRef.current = false;
-          remoteUsers.current = {}; setRemoteUsersState({});
-        } catch (error) { console.error("Error during Agora cleanup:", error); }
-      };
-      cleanupAgora();
-    };
-  }, []);
-
-  // Toggle audio
-  const toggleAudio = useCallback(async () => {
-    if (!localAudioTrack.current) return;
-    try {
-      const shouldMute = isAudioEnabled;
-      await localAudioTrack.current.setEnabled(!shouldMute);
-      setIsAudioEnabled(!shouldMute);
-      console.log("Audio toggled:", !shouldMute);
-    } catch (error) {
-      console.error("Error toggling audio:", error);
-      setErrorMessage("Failed to toggle audio.");
-    }
-  }, [isAudioEnabled]);
-
-  // Toggle video
-  const toggleVideo = useCallback(async () => {
-    if (!localVideoTrack.current) return;
-    try {
-      const shouldMute = isVideoEnabled;
-      await localVideoTrack.current.setEnabled(!shouldMute);
-      setIsVideoEnabled(!shouldMute);
-      console.log("Video toggled:", !shouldMute);
-    } catch (error) {
-      console.error("Error toggling video:", error);
-      setErrorMessage("Failed to toggle video.");
-    }
-  }, [isVideoEnabled]);
-
-  // Switch camera
-  const switchCamera = useCallback(async () => {
-    if (!localVideoTrack.current || !agoraLoaded) {
-      console.warn("No video track or AgoraRTC available for camera switch");
-      setErrorMessage("Camera switch unavailable: No active video track.");
-      return;
-    }
-
-    try {
-      const devices = await AgoraRTC.getCameras();
-      if (devices.length === 0) {
-        console.warn("No cameras found");
-        setErrorMessage("No cameras available.");
-        return;
-      }
-
-      const currentSettings = localVideoTrack.current
-        .getMediaStreamTrack()
-        .getSettings();
-      const currentDeviceId = currentSettings.deviceId;
-      let targetDeviceId = null;
-      let newIsFrontCameraValue = isFrontCamera;
-
-      const frontCameras = devices.filter(
-        (device: any) =>
-          device.label.toLowerCase().includes("front") ||
-          device.label.toLowerCase().includes("user")
-      );
-      const backCameras = devices.filter(
-        (device: any) =>
-          device.label.toLowerCase().includes("back") ||
-          device.label.toLowerCase().includes("environment")
-      );
-
-      const isCurrentCameraFront = frontCameras.some(
-        (d: { deviceId: any }) => d.deviceId === currentDeviceId
-      );
-      const isCurrentCameraBack = backCameras.some(
-        (d: { deviceId: any }) => d.deviceId === currentDeviceId
-      );
-
-      if (isCurrentCameraFront && backCameras.length > 0) {
-        targetDeviceId = backCameras[0].deviceId;
-        newIsFrontCameraValue = false;
-      } else if (isCurrentCameraBack && frontCameras.length > 0) {
-        targetDeviceId = frontCameras[0].deviceId;
-        newIsFrontCameraValue = true;
-      } else if (devices.length > 1) {
-        const currentIndex = devices.findIndex(
-          (device: any) => device.deviceId === currentDeviceId
-        );
-        const nextIndex = (currentIndex + 1) % devices.length;
-        const newCamera = devices[nextIndex];
-        targetDeviceId = newCamera.deviceId;
-        newIsFrontCameraValue =
-          newCamera.label.toLowerCase().includes("front") ||
-          newCamera.label.toLowerCase().includes("user");
-      } else {
-        console.warn(
-          "Only one camera found or no clear front/back distinction"
-        );
-        setErrorMessage(
-          "Only one camera available or no clear front/back distinction."
-        );
-        return;
-      }
-
-      if (targetDeviceId && targetDeviceId !== currentDeviceId) {
-        await (localVideoTrack.current as any).setDevice(targetDeviceId);
-        console.log(`Switched to camera with deviceId: ${targetDeviceId}`);
-        setIsFrontCamera(newIsFrontCameraValue);
-        setErrorMessage(null);
-      } else {
-        console.log(
-          "No suitable camera to switch to or already on desired camera."
-        );
-        setErrorMessage("No alternative camera to switch to.");
-      }
-    } catch (error) {
-      console.error("Failed to switch camera:", error);
-      setErrorMessage("Failed to switch camera. Please try again.");
-    }
-  }, [isFrontCamera, agoraLoaded]);
-
-  // End call
-  const endCall = useCallback(async () => {
-    try {
-      if (localVideoTrack.current) {
-        localVideoTrack.current.stop();
-        localVideoTrack.current.close();
-        localVideoTrack.current = null;
-        console.log("Local video track stopped and closed");
-      }
-      if (localAudioTrack.current) {
-        localAudioTrack.current.stop();
-        localAudioTrack.current.close();
-        localAudioTrack.current = null;
-        console.log("Local audio track stopped and closed");
-      }
-      if (client.current) {
-        await client.current.leave();
-        client.current.removeAllListeners();
-        client.current = null;
-        console.log("Client left and cleaned up");
-      }
-      remoteUsers.current = {};
-      setRemoteUsersState({});
-      setCallState("ended");
-      setErrorMessage(null);
-    } catch (error) {
-      console.error("Error ending call:", error);
-      setErrorMessage("Failed to end call.");
-      setCallState("ended");
-    } finally {
-      if (onEndCall) {
-        onEndCall();
-      } else {
-        router.back();
-      }
-    }
-  }, [onEndCall, router]);
+  if (!appointmentDetails && !isLoading) {
+    return <ErrorScreen />;
+  }
 
   return (
     <div
@@ -492,279 +60,47 @@ const VideoCall: React.FC<VideoCallProps> = ({ onEndCall }) => {
       <div className="max-w-[1200px] w-full flex flex-col md:flex-row gap-7 py-5 md:py-24 px-4">
         {/* Left Main Section */}
         <div className="flex-1 bg-black/20 backdrop-blur-sm rounded-2xl flex flex-col relative">
-          {/* Logo */}
-          <div className="absolute -top-11 left-6">
-            <Link href="/" aria-label="Homepage">
-              <NextImage
-                src="/images/Logo.svg"
-                alt="Logo RexVet"
-                width={120}
-                height={100}
-                quality={100}
-              />
-            </Link>
-          </div>
-
-          {/* Top Header */}
-          <div className="flex items-center justify-between p-6 absolute top-0 left-0 right-0 z-10">
-            <div className="flex items-center gap-3">
-              <Avatar className="w-10 h-10">
-                <AvatarImage src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face" />
-                <AvatarFallback>MM</AvatarFallback>
-              </Avatar>
-              <div className="text-white">
-                <div className="font-semibold text-lg">Mohammed Mohiuddin</div>
-                <div className="flex items-center gap-1">
-                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <span className="text-sm text-gray-300">Online</span>
-                </div>
-              </div>
-            </div>
-
-            <Button
-              onClick={endCall}
-              className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg flex items-center gap-2"
-            >
-              <FaPhoneSlash className="w-4 h-4" />
-              End Call
-            </Button>
-          </div>
-
-          {/* Main Video Area */}
-          <div className="flex-1 flex items-center justify-center p-6 pt-24">
-            <div className="relative flex gap-4 w-full h-full">
-              {callState === "connecting" && !errorMessage && (
-                <div className="text-white text-lg">Connecting...</div>
-              )}
-              {callState === "failed" && errorMessage && (
-                <div className="text-red-500 text-lg">{errorMessage}</div>
-              )}
-              {callState !== "connecting" &&
-                !errorMessage &&
-                Object.keys(remoteUsersState).length !== 0 && (
-                  <div className="w-full h-full rounded-[2.5rem] p-2 shadow-2xl">
-                    <div className="w-full h-full bg-gray-900 rounded-[2rem] flex flex-col items-center justify-center relative overflow-hidden">
-                      <div
-                        ref={remoteVideoRef}
-                        className="w-full h-full flex items-center justify-center"
-                        style={{ minHeight: "100%", minWidth: "100%" }}
-                      ></div>
-                    </div>
-                  </div>
-                )}
-              {callState !== "connecting" &&
-                !errorMessage &&
-                Object.keys(remoteUsersState).length === 0 && (
-                  <div className="h-full w-full flex items-center justify-center">
-                    <div>
-                      <div className="flex flex-col items-center text-center">
-                        <Avatar className="w-[120px] h-[120px] mb-4 border-4 border-white shadow-lg">
-                          <AvatarImage src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=150&h=150&fit=crop&crop=face" />
-                          <AvatarFallback>MM</AvatarFallback>
-                        </Avatar>
-                        <div className="text-white">
-                          <h2 className="text-xl font-semibold mb-1">
-                            Waiting for Mohammed Mohiuddin...
-                          </h2>
-                          <p className="text-gray-300 text-sm">
-                            Please wait while we establish the connection
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-            </div>
-          </div>
-
-          {/* Local Video Preview */}
-          <div className="w-[174px] h-[234px] border border-gray-100 absolute top-20 right-4 z-50 bg-black rounded-lg overflow-hidden">
-            <div
-              ref={localVideoRef}
-              className="w-full h-full flex items-center justify-center"
-            >
-              {!localVideoTrack.current && (
-                <div className="text-white text-sm">Local Video</div>
-              )}
-              {!isVideoEnabled && localVideoTrack.current && (
-                <div className="absolute inset-0 bg-black flex items-center justify-center">
-                  <FaVideoSlash className="text-white text-4xl opacity-50" />
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Bottom Controls */}
-          <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2">
-            <div className="flex items-center gap-4">
-              <Button
-                onClick={toggleAudio}
-                className={`w-14 h-14 rounded-full flex items-center justify-center ${
-                  isAudioEnabled
-                    ? "bg-green-500 hover:bg-green-600"
-                    : "bg-red-500 hover:bg-red-600"
-                }`}
-              >
-                {isAudioEnabled ? (
-                  <FaMicrophone className="text-white text-lg" />
-                ) : (
-                  <FaMicrophoneSlash className="text-white text-lg" />
-                )}
-              </Button>
-
-              <Button
-                onClick={endCall}
-                className="w-14 h-14 rounded-full bg-red-500 hover:bg-red-600 flex items-center justify-center"
-              >
-                <FaPhoneSlash className="text-white text-lg" />
-              </Button>
-
-              <Button
-                onClick={toggleVideo}
-                className={`w-14 h-14 rounded-full flex items-center justify-center ${
-                  isVideoEnabled
-                    ? "bg-green-500 hover:bg-green-600"
-                    : "bg-red-500 hover:bg-red-600"
-                }`}
-              >
-                <FaVideoSlash className="text-white text-lg" />
-              </Button>
-
-              {/* Virtual Background Drawer Trigger */}
-              <Drawer>
-                <DrawerTrigger asChild>
-                  <Button className="w-14 h-14 rounded-full bg-gray-600 hover:bg-gray-700 flex items-center justify-center">
-                    <FaComments className="text-white text-lg" />
-                  </Button>
-                </DrawerTrigger>
-                <DrawerContent className="bg-gray-900 text-white">
-                  <DrawerHeader>
-                    <DrawerTitle>Virtual Background</DrawerTitle>
-                    <DrawerDescription>
-                      Select a background for your video
-                    </DrawerDescription>
-                  </DrawerHeader>
-                  <div className="p-4">
-                    {!isVirtualBackgroundSupported && (
-                      <div className="text-yellow-500 mb-4 text-sm">
-                        Virtual background is not supported on your device/browser.
-                      </div>
-                    )}
-                    <div className="grid grid-cols-3 gap-4">
-                      {VIRTUAL_BACKGROUNDS.map((bg) => (
-                        <div
-                          key={bg.id}
-                          className={`flex flex-col items-center cursor-pointer p-2 rounded-lg ${
-                            selectedBackground === bg.url
-                              ? "bg-blue-600"
-                              : "bg-gray-800 hover:bg-gray-700"
-                          }`}
-                          onClick={() => applyVirtualBackground(bg.url)}
-                        >
-                          <div className="w-[180px] h-[180px] rounded-md overflow-hidden mb-2">
-                            <img
-                              src={bg.image}
-                              alt={bg.name}
-                              width={180}
-                              height={180}
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                          <span className="text-xs">{bg.name}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  <DrawerFooter>
-                    <DrawerClose asChild>
-                      <Button variant="outline" className="bg-gray-800 text-white">
-                        Close
-                      </Button>
-                    </DrawerClose>
-                  </DrawerFooter>
-                </DrawerContent>
-              </Drawer>
-
-              <Button
-                onClick={switchCamera}
-                className="w-14 h-14 rounded-full bg-gray-600 hover:bg-gray-700 flex items-center justify-center"
-              >
-                <AiOutlineCamera className="text-white text-lg" />
-              </Button>
-            </div>
-          </div>
+          <VideoCallLogo />
+          <VideoCallHeader petParent={petParent} />
+          <VideoCallMainArea
+            callState={callState}
+            errorMessage={errorMessage}
+            remoteUsersState={remoteUsersState}
+            remoteVideoRef={remoteVideoRef as React.RefObject<HTMLDivElement>}
+            petParent={petParent}
+          />
+          <LocalVideoPreview
+            localVideoRef={localVideoRef as React.RefObject<HTMLDivElement>}
+            localVideoTrack={localVideoTrack}
+            isVideoEnabled={isVideoEnabled}
+          />
+          <VideoCallControls
+            isAudioEnabled={isAudioEnabled}
+            isVideoEnabled={isVideoEnabled}
+            onToggleAudio={toggleAudio}
+            onToggleVideo={toggleVideo}
+            onEndCall={endCall}
+            onSwitchCamera={switchCamera}
+          />
         </div>
 
-        {/* Right Sidebar — Hidden below md */}
-        <div className="hidden md:block w-full md:w-[30%] bg-[#4346a0]/20 backdrop-blur-sm p-6 relative rounded-2xl">
-          <Button
-            onClick={onEndCall}
-            variant="ghost"
-            size="sm"
-            className="absolute top-4 right-4 text-white hover:bg-white/10 w-8 h-8 p-0"
-          >
-            <FaTimes className="w-4 h-4" />
-          </Button>
-
-          {/* Patient Avatar and Info */}
-          <div className="text-center mb-8 pt-8">
-            <div className="relative inline-block mb-4">
-              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center shadow-lg">
-                <div className="text-white text-2xl">🐾</div>
-              </div>
-              <div className="absolute -top-2 -right-2">
-                <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-lg">
-                  <div className="w-6 h-6 bg-blue-500 rounded-full"></div>
-                </div>
-              </div>
-            </div>
-
-            <h3 className="text-white text-xl font-semibold mb-1">
-              new image 2
-            </h3>
-            <p className="text-gray-200 text-sm mb-1">
-              Amphibian • Male Neutered • fsdaf
-            </p>
-            <p className="text-gray-200 text-sm mb-3">Weight: 20</p>
-
-            <Badge className="bg-green-500 text-white px-3 py-1 rounded-full text-xs font-medium">
-              Active
-            </Badge>
-          </div>
-
-          {/* Reason for appointment */}
-          <div className="mb-8">
-            <h4 className="text-white font-semibold mb-3 text-lg">
-              Reason for appointment
-            </h4>
-            <Input
-              value="Nutrition"
-              readOnly
-              className="bg-white/20 border-white/30 text-white placeholder-gray-300 h-12 text-base"
-            />
-          </div>
-
-          {/* Veterinarian Details */}
-          <div>
-            <h4 className="text-white font-semibold mb-4 text-lg">
-              Veterinarian Details
-            </h4>
-            <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-4">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-purple-500 rounded-xl flex items-center justify-center">
-                  <span className="text-white font-bold text-lg">MM</span>
-                </div>
-                <div className="flex-1">
-                  <h5 className="text-white font-semibold text-base">
-                    Mohammed Mohiuddin
-                  </h5>
-                  <p className="text-gray-200 text-sm">America/New_York</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        {/* Right Sidebar */}
+        <VideoCallSidebar
+          onEndCall={onEndCall || endCall}
+          isVirtualBackgroundSupported={isVirtualBackgroundSupported}
+          selectedBackground={selectedBackground}
+          onApplyVirtualBackground={applyVirtualBackground}
+          petParent={petParent}
+        />
       </div>
+
+      <PostCallModal
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+        doctorId="123"
+        docType="Parent"
+        appointmentDetails={appointmentDetails}
+      />
     </div>
   );
 };

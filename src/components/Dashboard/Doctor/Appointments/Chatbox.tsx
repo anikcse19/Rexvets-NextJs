@@ -26,7 +26,7 @@ import MessageAttachment from "@/components/shared/MessageAttachment";
 interface ChatBoxProps {
   appointmentId: string;
   parentName: string;
-  parentImage: string;
+  parentImage?: string;
 }
 
 interface Message {
@@ -52,7 +52,22 @@ export default function ChatBox({
   parentName,
   parentImage,
 }: ChatBoxProps) {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
+  console.log("session------------------", session?.user.image);
+  // Log session status changes
+  useEffect(() => {
+    console.log("🔄 Session status changed:", status);
+    console.log("📊 Session data:", session);
+  }, [session, status]);
+
+  // Log component mount
+  useEffect(() => {
+    console.log("🚀 ChatBox component mounted");
+    return () => {
+      console.log("🔚 ChatBox component unmounted");
+    };
+  }, []);
+
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -85,13 +100,13 @@ export default function ChatBox({
     return () => clearInterval(interval);
   }, [appointmentId, isLoading]);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
+  // const scrollToBottom = () => {
+  //   // messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  // };
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+  // useEffect(() => {
+  //   // scrollToBottom();
+  // }, [messages]);
 
   const fetchMessages = async () => {
     if (!appointmentId) return;
@@ -224,18 +239,20 @@ export default function ChatBox({
           </div>
           <div className="flex-1">
             <CardTitle className="text-lg font-bold text-white">
-              Chat with {parentName}
+              Chat with {parentName || "Pet Parent"}
             </CardTitle>
             {/* <p className="text-teal-100 text-sm">Real-time communication</p> */}
           </div>
           <div className="flex items-center gap-2">
             <Avatar className="w-8 h-8 border-2 border-white/30">
-              <AvatarImage src={parentImage} alt={parentName} />
+              <AvatarImage src={parentImage} alt={parentName || "Pet Parent"} />
               <AvatarFallback className="text-xs">
                 {parentName
-                  .split(" ")
-                  .map((n) => n.charAt(0))
-                  .join("")}
+                  ? parentName
+                      .split(" ")
+                      .map((n) => n.charAt(0))
+                      .join("")
+                  : "PP"}
               </AvatarFallback>
             </Avatar>
             <div className="w-2 h-2 bg-green-400 rounded-full"></div>
@@ -244,7 +261,7 @@ export default function ChatBox({
       </div>
 
       {/* Messages Area */}
-      <CardContent className="flex-1 p-0 overflow-hidden">
+      <CardContent className="p-0 overflow-hidden">
         <div className="h-full overflow-y-auto p-4 space-y-4">
           {isLoading && messages.length === 0 && (
             <div className="flex items-center justify-center h-32">
@@ -278,9 +295,9 @@ export default function ChatBox({
                     .join("")}
                 </AvatarFallback>
               </Avatar>
-
+{/* text message color is black  theis for message text color and all */}
               <div
-                className={`flex-1 max-w-[70%] ${
+                className={`max-w-[70%] ${
                   isDoctor(message.senderId) ? "text-right" : "text-left"
                 }`}
               >
@@ -303,10 +320,10 @@ export default function ChatBox({
                 <div
                   className={`rounded-2xl px-4 py-3 ${
                     isDoctor(message.senderId)
-                      ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white"
+                      ? "bg-gradient-to-r from-gray-500 to-blue-600 text-white"
                       : message.messageType === "assessment" ||
                         message.messageType === "prescription"
-                      ? "bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200"
+                      ? "bg-gradient-to-r from-gray-50 to-emerald-50 border border-green-200"
                       : "bg-gray-100 text-gray-900"
                   }`}
                 >
@@ -324,15 +341,30 @@ export default function ChatBox({
                     </div>
                   ) : message.messageType === "image" || message.messageType === "video" || message.messageType === "file" ? (
                     <div className="space-y-2">
-                      {message.attachments && message.attachments.map((attachment, index) => (
-                        <MessageAttachment
-                          key={index}
-                          url={attachment.url}
-                          fileName={attachment.fileName}
-                          messageType={message.messageType as "image" | "video" | "file"}
-                          fileSize={attachment.fileSize}
-                        />
-                      ))}
+                      {message.attachments && message.attachments.map((attachment, index) => {
+                        console.log('Attachment data:', {
+                          url: attachment.url,
+                          urlType: typeof attachment.url,
+                          fileName: attachment.fileName,
+                          messageType: message.messageType
+                        });
+                        
+                        // Only render if URL is valid
+                        if (typeof attachment.url !== 'string' || !attachment.url) {
+                          console.error('Invalid attachment URL:', attachment);
+                          return null;
+                        }
+                        
+                        return (
+                          <MessageAttachment
+                            key={index}
+                            url={attachment.url}
+                            fileName={attachment.fileName}
+                            messageType={message.messageType as "image" | "video" | "file"}
+                            fileSize={attachment.fileSize}
+                          />
+                        );
+                      })}
                     </div>
                   ) : (
                     <p className="text-sm leading-relaxed whitespace-pre-line">

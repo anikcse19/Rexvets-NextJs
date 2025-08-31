@@ -1,26 +1,52 @@
 "use client";
 
-import React from "react";
-import { Card, CardContent, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  Heart,
-  Calendar,
-  Weight,
-  Palette,
-  Shield,
-  AlertTriangle,
-  Pill,
-  Syringe,
-} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Pet } from "@/lib/types";
+import {
+  AlertTriangle,
+  Calendar,
+  Heart,
+  Palette,
+  Pill,
+  Shield,
+  Syringe,
+  Weight,
+} from "lucide-react";
+import React from "react";
 
 interface PetCardProps {
-  pet: Pet;
+  pet: Pet | null | undefined;
 }
 export const PetInfoCard = ({ pet }: PetCardProps) => {
-  const formatDate = (dateString: string) => {
+  if (!pet) {
+    return (
+      <Card className="shadow-lg border-0 bg-white overflow-hidden">
+        <div className="bg-gradient-to-r from-pink-600 to-rose-600 p-6 text-white">
+          <div className="flex items-center gap-4">
+            <div className="bg-white/20 p-3 rounded-xl">
+              <Heart className="w-6 h-6" />
+            </div>
+            <div>
+              <CardTitle className="text-xl font-bold text-white">
+                Pet Information
+              </CardTitle>
+              <p className="text-pink-100">Your pet's complete profile</p>
+            </div>
+          </div>
+        </div>
+        <CardContent className="p-6">
+          <div className="text-center text-gray-500">
+            <p>Pet information not available</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const formatDate = (dateString: string | undefined) => {
+    if (!dateString) return "Date not available";
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",
@@ -28,7 +54,15 @@ export const PetInfoCard = ({ pet }: PetCardProps) => {
     });
   };
 
-  function calculatePetAge(dob: string) {
+  function getInitial(name: string | undefined | null): string {
+    if (!name || typeof name !== 'string' || name.length === 0) {
+      return "P";
+    }
+    return name.charAt(0).toUpperCase();
+  }
+
+  function calculatePetAge(dob: string | undefined) {
+    if (!dob) return "Age not available";
     const birthDate = new Date(dob);
     const today = new Date();
 
@@ -80,16 +114,16 @@ export const PetInfoCard = ({ pet }: PetCardProps) => {
                 alt={pet?.name}
                 className="object-cover"
               />
-              <AvatarFallback className="text-2xl font-bold text-gray-800 bg-gradient-to-br from-pink-100 to-rose-100">
-                {pet?.name.charAt(0)}
-              </AvatarFallback>
+              {/* <AvatarFallback className="text-2xl font-bold text-gray-800 bg-gradient-to-br from-pink-100 to-rose-100">
+                {getInitial(pet?.name)}
+              </AvatarFallback> */}
             </Avatar>
             <h3 className="text-2xl font-bold text-gray-900 mb-1">
-              {pet?.name}
+              {pet?.name || "Pet"}
             </h3>
-            <p className="text-gray-600 mb-3">{pet?.breed}</p>
+            <p className="text-gray-600 mb-3">{pet?.breed || "Breed not specified"}</p>
             <Badge className="bg-pink-100 text-pink-700 border-pink-300">
-              Patient ID: {pet?._id}
+              Patient ID: {pet?._id || "N/A"}
             </Badge>
           </div>
 
@@ -103,17 +137,17 @@ export const PetInfoCard = ({ pet }: PetCardProps) => {
             <InfoItem
               icon={<Weight className="w-4 h-4 text-green-600" />}
               label="Weight"
-              value={Number(pet?.weight).toFixed(1) + pet?.weightUnit}
+              value={pet?.weight ? `${Number(pet.weight || 0).toFixed(1)} ${pet.weightUnit || 'kg'}` : "Weight not available"}
             />
             <InfoItem
               icon={<Heart className="w-4 h-4 text-pink-600" />}
               label="Gender"
-              value={pet?.gender}
+              value={pet?.gender || "Not specified"}
             />
             <InfoItem
               icon={<Palette className="w-4 h-4 text-purple-600" />}
               label="Color"
-              value={pet?.primaryColor}
+              value={pet?.primaryColor || "Not specified"}
             />
           </div>
 
@@ -140,7 +174,7 @@ export const PetInfoCard = ({ pet }: PetCardProps) => {
                 Allergies
               </h4>
               <div className="flex flex-wrap gap-2">
-                {pet?.allergies.map((allergy, index) => (
+                {pet?.allergies?.map((allergy, index) => (
                   <Badge
                     key={index}
                     className="bg-red-100 text-red-700 border-red-300"

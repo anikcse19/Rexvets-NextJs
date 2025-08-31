@@ -1,32 +1,32 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
-import { Card, CardContent, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { useSession } from "next-auth/react";
 import {
-  MessageCircle,
-  Send,
-  Paperclip,
-  Image,
-  Video,
-  Smile,
   Check,
   CheckCheck,
-  Loader2,
-  X,
   File,
+  Image,
+  Loader2,
+  MessageCircle,
+  Paperclip,
+  Send,
+  Smile,
+  Video,
+  X,
 } from "lucide-react";
+import React, { useEffect, useRef, useState } from "react";
 import ChatFileUpload from "@/components/shared/ChatFileUpload";
 import MessageAttachment from "@/components/shared/MessageAttachment";
 
 interface ChatBoxProps {
   appointmentId: string;
   doctorName: string;
-  doctorImage: string;
+  doctorImage?: string;
 }
 
 interface Message {
@@ -86,11 +86,11 @@ export default function ChatBox({
   }, [appointmentId, isLoading]);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    // messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   useEffect(() => {
-    scrollToBottom();
+    // scrollToBottom();
   }, [messages]);
 
   const fetchMessages = async () => {
@@ -224,18 +224,20 @@ export default function ChatBox({
           </div>
           <div className="flex-1">
             <CardTitle className="text-lg font-bold text-white">
-              Chat with {doctorName}
+              Chat with Dr. {doctorName || "Doctor"}
             </CardTitle>
             {/* <p className="text-teal-100 text-sm">Real-time communication</p> */}
           </div>
           <div className="flex items-center gap-2">
             <Avatar className="w-8 h-8 border-2 border-white/30">
-              <AvatarImage src={doctorImage} alt={doctorName} />
+              <AvatarImage src={doctorImage} alt={doctorName || "Doctor"} />
               <AvatarFallback className="text-xs">
                 {doctorName
-                  .split(" ")
-                  .map((n) => n.charAt(0))
-                  .join("")}
+                  ? doctorName
+                      .split(" ")
+                      .map((n) => n.charAt(0))
+                      .join("")
+                  : "DR"}
               </AvatarFallback>
             </Avatar>
             <div className="w-2 h-2 bg-green-400 rounded-full"></div>
@@ -280,7 +282,7 @@ export default function ChatBox({
               </Avatar>
 
               <div
-                className={`flex-1 max-w-[70%] ${
+                className={`min-w-[30%] ${
                   isParent(message.senderId) ? "text-right" : "text-left"
                 }`}
               >
@@ -299,40 +301,55 @@ export default function ChatBox({
                     </span>
                   )}
                 </div>
-
+{/* this text message color is black */}
                 <div
-                  className={`rounded-2xl px-4 py-3 ${
+                  className={`rounded-2xl px-4 py-3 ${ // this text message color is black
                     isParent(message.senderId)
-                      ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white"
+                      ? "text-black bg-gray-100"
                       : message.messageType === "assessment" ||
                         message.messageType === "prescription"
-                      ? "bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200"
+                      ? ""
                       : "bg-gray-100 text-gray-900"
                   }`}
                 >
                   {message.messageType === "assessment" ||
                   message.messageType === "prescription" ? (
                     <div className="space-y-2">
-                      <Badge className="bg-green-100 text-green-700 border-green-300 text-xs">
+                      <Badge className="text-xs text-black">
                         {message.messageType === "assessment"
                           ? "Medical Assessment"
                           : "Prescription"}
                       </Badge>
-                      <div className="text-sm text-green-900 whitespace-pre-line">
+                      <div className="text-sm text-black whitespace-pre-line">
                         {message.content}
                       </div>
                     </div>
                   ) : message.messageType === "image" || message.messageType === "video" || message.messageType === "file" ? (
                     <div className="space-y-2">
-                      {message.attachments && message.attachments.map((attachment, index) => (
-                        <MessageAttachment
-                          key={index}
-                          url={attachment.url}
-                          fileName={attachment.fileName}
-                          messageType={message.messageType as "image" | "video" | "file"}
-                          fileSize={attachment.fileSize}
-                        />
-                      ))}
+                      {message.attachments && message.attachments.map((attachment, index) => {
+                        console.log('Attachment data:', {
+                          url: attachment.url,
+                          urlType: typeof attachment.url,
+                          fileName: attachment.fileName,
+                          messageType: message.messageType
+                        });
+                        
+                        // Only render if URL is valid
+                        if (typeof attachment.url !== 'string' || !attachment.url) {
+                          console.error('Invalid attachment URL:', attachment);
+                          return null;
+                        }
+                        
+                        return (
+                          <MessageAttachment
+                            key={index}
+                            url={attachment.url}
+                            fileName={attachment.fileName}
+                            messageType={message.messageType as "image" | "video" | "file"}
+                            fileSize={attachment.fileSize}
+                          />
+                        );
+                      })}
                     </div>
                   ) : (
                     <p className="text-sm leading-relaxed whitespace-pre-line">

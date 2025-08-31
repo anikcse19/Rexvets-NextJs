@@ -38,3 +38,119 @@ export const formatTimeToUserTimezone = (
     timeZone: userTz,
   }).format(date);
 };
+
+// New functions for appointment slot timezone handling
+
+/**
+ * Convert a time from one timezone to another for a specific date
+ * @param time - Time in HH:mm format
+ * @param date - Date object
+ * @param fromTimezone - Source timezone
+ * @param toTimezone - Target timezone
+ * @returns Time in HH:mm format in target timezone
+ */
+export const convertTimeBetweenTimezones = (
+  time: string,
+  date: Date,
+  fromTimezone: string,
+  toTimezone: string
+): string => {
+  const dateStr = moment(date).format("YYYY-MM-DD");
+  const fullDateTime = moment.tz(`${dateStr} ${time}`, fromTimezone);
+  return fullDateTime.tz(toTimezone).format("HH:mm");
+};
+
+/**
+ * Get the current time in a specific timezone
+ * @param timezone - Timezone identifier
+ * @returns Current time in HH:mm format
+ */
+export const getCurrentTimeInTimezone = (timezone: string): string => {
+  return moment.tz(timezone).format("HH:mm");
+};
+
+/**
+ * Check if a time is in the past for a specific date and timezone
+ * @param time - Time in HH:mm format
+ * @param date - Date object
+ * @param timezone - Timezone identifier
+ * @returns boolean
+ */
+export const isTimeInPast = (
+  time: string,
+  date: Date,
+  timezone: string
+): boolean => {
+  const dateStr = moment(date).format("YYYY-MM-DD");
+  const slotDateTime = moment.tz(`${dateStr} ${time}`, timezone);
+  const now = moment.tz(timezone);
+  return slotDateTime.isBefore(now);
+};
+
+/**
+ * Validate if a timezone is valid
+ * @param timezone - Timezone identifier
+ * @returns boolean
+ */
+export const isValidTimezone = (timezone: string): boolean => {
+  return moment.tz.names().includes(timezone);
+};
+
+/**
+ * Format a slot time for display in user's timezone
+ * @param time - Time in HH:mm format
+ * @param date - Date object
+ * @param slotTimezone - Timezone of the slot
+ * @param userTimezone - Timezone of the user
+ * @returns Formatted time string
+ */
+export const formatSlotTimeForUser = (
+  time: string,
+  date: Date,
+  slotTimezone: string,
+  userTimezone: string
+): string => {
+  if (slotTimezone === userTimezone) {
+    return moment(`2000-01-01 ${time}`).format("hh:mm A");
+  }
+  
+  const dateStr = moment(date).format("YYYY-MM-DD");
+  const slotDateTime = moment.tz(`${dateStr} ${time}`, slotTimezone);
+  return slotDateTime.tz(userTimezone).format("hh:mm A");
+};
+
+/**
+ * Get timezone offset string (e.g., "UTC-5")
+ * @param timezone - Timezone identifier
+ * @returns Timezone offset string
+ */
+export const getTimezoneOffset = (timezone: string): string => {
+  return moment.tz(timezone).format("Z");
+};
+
+/**
+ * Check if a date is today in a timezone-agnostic way
+ * This function compares dates without considering timezone differences
+ * @param date - Date to check
+ * @returns boolean
+ */
+export const isDateToday = (date: Date): boolean => {
+  const today = new Date();
+  const dateToCheck = new Date(date);
+  
+  return (
+    dateToCheck.getFullYear() === today.getFullYear() &&
+    dateToCheck.getMonth() === today.getMonth() &&
+    dateToCheck.getDate() === today.getDate()
+  );
+};
+
+/**
+ * Get a timezone-agnostic today's date
+ * This ensures consistent date handling regardless of user's timezone
+ * @returns Date object representing today in UTC
+ */
+export const getTodayUTC = (): Date => {
+  const today = new Date();
+  return new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate()));
+};

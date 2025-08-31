@@ -1,22 +1,37 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardTitle } from "@/components/ui/card";
+import { convertTimesToUserTimezone } from "@/lib/timezone/index";
 import {
   Calendar as CalendarIcon,
-  Clock,
   CheckCircle,
   ChevronDown,
   ChevronUp,
+  Clock,
 } from "lucide-react";
+import React, { useEffect, useState } from "react";
 import { DayPicker } from "react-day-picker";
 import "react-day-picker/dist/style.css";
-import { Doctor } from "./type";
 import { getVetSlots } from "./service/get-vet-slots";
+import { Doctor } from "./type";
 
 interface Slot {
-  time: string;
+  _id: string;
+  vetId: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  timezone?: string; // Timezone of the appointment slot
+  status: string;
+  createdAt: string;
+  __v: number;
+  updatedAt: string;
+  formattedDate: string;
+  formattedStartTime: string;
+  formattedEndTime: string;
+  displayTimezone?: string; // Timezone used for display conversion
+  slotTime: string;
 }
 
 interface BookingSystemProps {
@@ -36,10 +51,10 @@ export default function BookingSystem({
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [showCalendar, setShowCalendar] = useState(false);
-  const [slots, setSlots] = useState<any[]>([]);
-
+  const [slots, setSlots] = useState<Slot[]>([]);
+  const [veterinarianTimezone, setVeterinarianTimezone] = useState("");
   const toLocalDateString = (date: Date) => date.toLocaleDateString("en-CA"); // YYYY-MM-DD
-
+  const currentTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString("en-US", {
@@ -81,38 +96,7 @@ export default function BookingSystem({
     return days;
   };
 
-  // Generate slots from schedule (every 30 mins)
-  const generateSlots = (date: string): Slot[] => {
-    if (!doctorData?.schedule) return [];
-
-    const dayName = new Date(date)
-      .toLocaleDateString("en-US", { weekday: "long" })
-      .toLowerCase();
-
-    const schedule =
-      doctorData?.schedule[dayName as keyof typeof doctorData.schedule];
-    if (!schedule || !schedule.available) return [];
-
-    const slots: Slot[] = [];
-    const [startH, startM] = schedule.start.split(":").map(Number);
-    const [endH, endM] = schedule.end.split(":").map(Number);
-
-    const startMinutes = startH * 60 + startM;
-    const endMinutes = endH * 60 + endM;
-
-    for (let mins = startMinutes; mins < endMinutes; mins += 30) {
-      const h = Math.floor(mins / 60);
-      const m = mins % 60;
-      const hh = h.toString().padStart(2, "0");
-      const mm = m.toString().padStart(2, "0");
-      slots.push({ time: `${hh}:${mm}` });
-    }
-
-    return slots;
-  };
-
   const availableDays = getNextFewDays();
-  const availableTimeSlots = generateSlots(selectedDate);
 
   console.log("selectedDate", selectedDate, selectedSlot);
 
@@ -124,11 +108,18 @@ export default function BookingSystem({
     });
     // Sort by startTime (assumes format 'HH:mm')
     const sorted = (data || []).slice().sort((a: any, b: any) => {
-      if (!a.formattedStartTime || !b.formattedStartTime) return 0;
-      return a.formattedStartTime.localeCompare(b.formattedStartTime);
+      if (!a.startTime || !b.startTime) return 0;
+      return a.startTime.localeCompare(b.startTime);
     });
     setSlots(sorted);
-    console.log("fetched slots", sorted);
+    if (data && data.length > 0) {
+      setVeterinarianTimezone(data[0]?.timezone || "UTC");
+      console.log("Slot timezone conversion:", {
+        userTimezone: currentTimezone,
+        vetTimezone: data[0]?.timezone,
+        sampleSlot: data[0],
+      });
+    }
   };
 
   useEffect(() => {
@@ -220,28 +211,86 @@ export default function BookingSystem({
 
           {/* Time Slots */}
           <div>
-            <Label className="text-sm font-medium text-gray-700 mb-3 block">
-              Available Times
-            </Label>
+            <div className="flex items-center justify-between">
+              <Label className="text-sm font-medium text-gray-700 mb-3 block">
+                Available Times
+              </Label>
+              <div className="text-right">
+                <Label className="text-sm font-medium text-gray-700 mb-1 block">
+                  Your Timezone:{" "}
+                  <span className="text-blue-600 font-semibold">
+                    {currentTimezone}
+                  </span>
+                </Label>
+                {veterinarianTimezone && (
+                  <Label className="text-xs text-gray-500">
+                    Vet Timezone: {veterinarianTimezone}
+                  </Label>
+                )}
+              </div>
+            </div>
             {slots.length > 0 ? (
-              <div className="grid grid-cols-2 gap-2">
-                {slots.map((slot) => (
-                  <button
-                    key={slot._id}
-                    onClick={() => {
-                      setSelectedSlot(slot._id);
-                      setSelectedTime(slot.formattedStartTime);
-                    }}
-                    className={`p-3 rounded-lg border text-center transition-all cursor-pointer ${
-                      selectedSlot === slot._id
-                        ? "border-green-500 bg-green-50 text-green-900"
-                        : "border-gray-200 hover:border-green-300 hover:bg-green-50"
-                    }`}
-                  >
-                    <p className="font-medium">{slot.formattedStartTime}</p>
-                    <p className="text-xs text-gray-600">GMT+6</p>
-                  </button>
-                ))}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {slots.map((slot) => {
+                  const {
+                    formattedEndTime,
+                    formattedStartTime,
+                    formattedDate,
+                  } = convertTimesToUserTimezone(
+                    slot.startTime,
+                    slot.endTime,
+                    slot.date,
+                    slot.timezone || "UTC"
+                  );
+
+                  const isSelected = selectedSlot === slot._id;
+
+                  return (
+                    <button
+                      key={slot._id}
+                      onClick={() => {
+                        setSelectedSlot(slot._id);
+                        setSelectedTime(slot.formattedStartTime);
+                      }}
+                      className={`
+                relative p-4 rounded-xl items-center  justify-center flex flex-col border-2 text-left transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]
+                ${
+                  isSelected
+                    ? "border-blue-500 bg-blue-50 shadow-lg shadow-blue-100"
+                    : "border-gray-200 hover:border-blue-300 hover:bg-blue-50 hover:shadow-md"
+                }
+              `}
+                    >
+                      {/* Selection indicator */}
+                      {isSelected && (
+                        <div className="absolute -top-2 -right-2 bg-blue-500 rounded-full p-1">
+                          <CheckCircle className="w-4 h-4 text-white" />
+                        </div>
+                      )}
+
+                      {/* Time display */}
+                      <div className="flex items-center justify-center w-full mb-2">
+                        {/* <Clock
+                          className={`w-4 h-4 mr-2 ${
+                            isSelected ? "text-blue-600" : "text-gray-500"
+                          }`}
+                        /> */}
+                      </div>
+
+                      {/* Duration */}
+                      <div
+                        className={`text-sm flex flex-col items-center justify-center w-full ${
+                          isSelected ? "text-blue-600" : "text-gray-600"
+                        }`}
+                      >
+                        <p className="text-sm font-medium">
+                          {formattedStartTime}
+                        </p>
+                        <p className="text-xs">to {formattedEndTime}</p>
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
             ) : (
               selectedDate && (
@@ -269,7 +318,10 @@ export default function BookingSystem({
                 </p>
               </div>
               <p className="text-green-700 text-sm">
-                {formatDate(selectedDate)} at {selectedTime} (GMT+6)
+                {formatDate(selectedDate)} at {selectedTime}
+              </p>
+              <p className="text-green-600 text-xs mt-1">
+                Times shown in your local timezone ({currentTimezone})
               </p>
             </div>
           )}

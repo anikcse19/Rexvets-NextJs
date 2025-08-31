@@ -1,33 +1,19 @@
 import { useDashboardContext } from "@/hooks/DashboardContext";
 import { Slot, SlotStatus } from "@/lib";
+import { getTimezoneOffset } from "@/lib/timezone";
+import { convertTimesToUserTimezone } from "@/lib/timezone/index";
 import { cn } from "@/lib/utils";
 import moment from "moment";
-import React, { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
+import React from "react";
 import {
   FiCalendar,
-  FiChevronUp,
   FiClock,
   FiEdit2,
+  FiGlobe,
   FiLoader,
-  FiTrash2,
 } from "react-icons/fi";
-import { Button } from "../../../ui/button";
-import {
-  Drawer,
-  DrawerContent,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerTitle,
-} from "../../../ui/drawer";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "../../../ui/sheet";
+import { Sheet, SheetContent } from "../../../ui/sheet";
 import { Switch } from "../../../ui/switch";
 import BookingSlotsPeriods from "./BookingSlotsPeriods";
 
@@ -36,6 +22,7 @@ interface Period {
   endTime: string;
   totalHours: number;
   slots: Slot[];
+  timezone?: string; // Add timezone information
 }
 
 interface DayAvailability {
@@ -46,12 +33,34 @@ interface DayAvailability {
   periods: Period[];
   numberOfPeriods: number;
   numberOfDays: number;
+  timezone?: string; // Add timezone information
 }
 
-type AvailabilityData = DayAvailability[];
+interface SessionUserWithRefId {
+  refId: string;
+  timezone?: string;
+  // other user properties can be added here
+}
 
 interface Props {
-  data?: AvailabilityData | null;
+  data?: {
+    periods: DayAvailability[];
+    meta: {
+      page?: number;
+      limit?: number;
+      totalPages?: number;
+      totalItems: number;
+    };
+    filters: {
+      dateRange: {
+        start: Date;
+        end: Date;
+      };
+      status?: SlotStatus | "ALL";
+      search?: string;
+      timezone?: string;
+    };
+  } | null;
   loading?: boolean;
   error?: string | null;
 }
@@ -61,9 +70,6 @@ const AvailabilityScheduler: React.FC<Props> = ({
   loading = false,
   error = null,
 }) => {
-  const [selectedSlotIds, setSelectedSlotIds] = useState<string[]>([]);
-  // const [selectedSlot, setSelectedSlot] = useState<Slot[] | null>(null);
-
   const {
     setSelectedSlot,
     setSlotStatus,
@@ -75,53 +81,82 @@ const AvailabilityScheduler: React.FC<Props> = ({
     disabledSlotIds,
     setDisabledSlotIds,
   } = useDashboardContext();
-  // console.log("slotStatus", slotStatus);
-  const handleSlotSelect = (slot: Slot) => {
-    // setSelectedSlotIds((prev) => [...prev, slot._id]);
-    // Handle booking logic here
-  };
-  // Helper functions
-  const formatDate = (dateStr: string) => {
-    return moment.utc(dateStr).local().format("dddd, MMM DD, YYYY, hh:mm A");
+
+  const { data: session } = useSession();
+  const user = session?.user as SessionUserWithRefId | undefined;
+
+  const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+  // Helper functions for timezone-aware formatting using convertTimesToUserTimezone
+  const formatDate = (dateStr: string, timezone?: string) => {
+    if (timezone) {
+      // Convert the date to user's timezone
+      const { formattedDate } = convertTimesToUserTimezone(
+        "00:00", // dummy time for date conversion
+        "00:00", // dummy time for date conversion
+        dateStr,
+        timezone
+      );
+      return moment(formattedDate).format("dddd, MMM DD, YYYY");
+    }
+    return moment(dateStr).format("dddd, MMM DD, YYYY");
   };
 
-  const formatTime = (dateStr: string) => {
-    return moment.utc(dateStr).local().format("hh:mm A");
+  const formatTime = (timeStr: string, dateStr: string, timezone?: string) => {
+    if (timezone) {
+      // Use convertTimesToUserTimezone for proper timezone conversion
+      const { formattedStartTime } = convertTimesToUserTimezone(
+        timeStr,
+        timeStr, // same time for start and end since we only need start
+        dateStr,
+        timezone
+      );
+      return formattedStartTime;
+    }
+    return moment(`2000-01-01 ${timeStr}`).format("h:mm A");
   };
 
-  const formatDateRange = (periods: AvailabilityData) => {
-    if (periods.length === 0) return "";
+  const formatDateRange = (periods: DayAvailability[]) => {
+    if (periods?.length === 0) return "";
 
-    const firstDate = periods[0].periods[0]?.startTime;
-    const lastDate = periods[periods.length - 1].periods[0]?.startTime;
+    const firstPeriod = periods?.[0]?.periods?.[0];
+    const lastPeriod = periods?.[periods.length - 1]?.periods?.[0];
+
+    if (!firstPeriod || !lastPeriod) return "";
+
+    const firstDate = periods?.[0]?.date?.start;
+    const lastDate = periods?.[periods.length - 1]?.date?.start;
+    const timezone = periods?.[0]?.timezone;
 
     if (!firstDate || !lastDate) return "";
 
-    const start = formatDate(firstDate);
-    const end = formatDate(lastDate);
+    const start = formatDate(firstDate, timezone);
+    const end = formatDate(lastDate, timezone);
 
     return start === end ? start : `${start} - ${end}`;
   };
 
   // Calculate summary statistics
-  const calculateSummary = (data: AvailabilityData) => {
-    const totalDays = data.length;
-    const totalPeriods = data.reduce(
-      (sum, day) => sum + day.numberOfPeriods,
-      0
-    );
-    const totalHours = data.reduce(
-      (sum, day) =>
-        sum +
-        day.periods.reduce((daySum, period) => daySum + period.totalHours, 0),
-      0
-    );
+  const calculateSummary = (periods: DayAvailability[]) => {
+    const totalDays = periods?.length || 0;
+    const totalPeriods =
+      periods?.reduce((sum, day) => sum + (day?.numberOfPeriods || 0), 0) || 0;
+    const totalHours =
+      periods?.reduce(
+        (sum, day) =>
+          sum +
+          (day?.periods?.reduce(
+            (daySum, period) => daySum + (period?.totalHours || 0),
+            0
+          ) || 0),
+        0
+      ) || 0;
 
     return {
       totalDays,
       totalPeriods,
       totalHours,
-      averagePeriodsPerDay: totalPeriods / totalDays || 0,
+      averagePeriodsPerDay: totalDays > 0 ? totalPeriods / totalDays : 0,
     };
   };
 
@@ -161,11 +196,39 @@ const AvailabilityScheduler: React.FC<Props> = ({
     );
   }
 
+  const filterButtons = () => {
+    return (
+      <div className="flex flex-wrap gap-2 mb-6 mt-1 px-3">
+        {Object.values(SlotStatus).map((status) => (
+          <button
+            key={status}
+            onClick={() => {
+              setSlotStatus(status);
+              console.log("slotStatus", status);
+            }}
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
+              slotStatus === status
+                ? "bg-blue-500 text-white shadow-md"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+            }`}
+          >
+            {status.charAt(0).toUpperCase() + status.slice(1)}
+          </button>
+        ))}
+      </div>
+    );
+  };
+
+  // Extract periods from API response data
+  const periods = data?.periods || [];
+  const currentUserTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
   // No data state
-  if (!data || data.length === 0) {
+  if (!data || !periods || periods.length === 0) {
     return (
       <div className="max-w-2xl mx-auto p-6 bg-gray-50 min-h-screen">
         <div className="bg-white rounded-lg shadow-sm p-8">
+          {filterButtons()}
           <div className="text-center text-gray-600">
             <FiCalendar className="text-4xl mx-auto mb-4 text-gray-400" />
             <p>No availability data found for the selected period.</p>
@@ -175,8 +238,8 @@ const AvailabilityScheduler: React.FC<Props> = ({
     );
   }
 
-  const summary = calculateSummary(data);
-  const dateRange = formatDateRange(data);
+  const summary = calculateSummary(periods);
+  const dateRange = formatDateRange(periods);
 
   return (
     <div className="max-w-2xl mx-auto p-6 bg-gray-50 min-h-screen">
@@ -189,10 +252,24 @@ const AvailabilityScheduler: React.FC<Props> = ({
               Existing Availability
             </h2>
           </div>
-          <div className="flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">
-            <span className="font-medium">{summary.totalDays} days</span>
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">
+              <span className="font-medium">{summary.totalDays} days</span>
+            </div>
+            {userTimezone && (
+              <div className="flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">
+                <FiGlobe className="w-3 h-3" />
+                <span className="font-medium">{userTimezone}</span>
+                <span className="text-xs opacity-75">
+                  ({getTimezoneOffset(userTimezone)})
+                </span>
+              </div>
+            )}
           </div>
         </div>
+
+        {/* Filter Buttons */}
+        {filterButtons()}
 
         {/* Availability Group */}
         <div className="p-4">
@@ -208,6 +285,12 @@ const AvailabilityScheduler: React.FC<Props> = ({
                 <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded-full font-medium">
                   {summary.totalDays} days
                 </span>
+                {periods?.[0]?.timezone &&
+                  periods[0].timezone !== currentUserTimezone && (
+                    <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full font-medium">
+                      Timezone: {periods[0].timezone} → {currentUserTimezone}
+                    </span>
+                  )}
               </div>
             </div>
           </div>
@@ -216,11 +299,16 @@ const AvailabilityScheduler: React.FC<Props> = ({
           <div className="flex items-center gap-1 text-sm text-gray-500 mb-4">
             <FiClock size={14} />
             <span>{summary.totalHours} hours total</span>
+            {periods?.[0]?.timezone && (
+              <span className="ml-2 text-xs text-gray-400">
+                (in {periods[0].timezone} timezone)
+              </span>
+            )}
           </div>
 
           {/* Time Slots by Day */}
           <div className="space-y-4">
-            {data.map((dayData, dayIndex) => (
+            {periods?.map((dayData, dayIndex) => (
               <div
                 key={dayIndex}
                 className="border border-gray-200 rounded-lg p-3 bg-gray-50"
@@ -228,19 +316,25 @@ const AvailabilityScheduler: React.FC<Props> = ({
                 {/* Day Header */}
                 <div className="flex items-center justify-between mb-3">
                   <h4 className="font-medium text-gray-800">
-                    {formatDate(dayData.periods[0]?.startTime)}
+                    {formatDate(dayData?.date?.start || "", dayData?.timezone)}
                   </h4>
-                  <div className="text-xs text-gray-500 flex-row items-center  flex">
-                    {dayData.numberOfPeriods} period
-                    {dayData.numberOfPeriods > 1 ? "s" : ""} •{" "}
-                    {dayData.periods.reduce((sum, p) => sum + p.totalHours, 0)}h
-                    total
+                  <div className="text-xs text-gray-500 flex-row items-center flex">
+                    {dayData?.numberOfPeriods || 0} period
+                    {(dayData?.numberOfPeriods || 0) > 1 ? "s" : ""} •{" "}
+                    {dayData?.periods?.reduce(
+                      (sum, p) => sum + (p?.totalHours || 0),
+                      0
+                    ) || 0}
+                    h total
+                    {dayData?.timezone && (
+                      <span className="ml-1">• {dayData.timezone}</span>
+                    )}
                   </div>
                 </div>
 
                 {/* Day's Time Slots */}
                 <div className="space-y-2">
-                  {dayData.periods.map((period, periodIndex) => (
+                  {dayData?.periods?.map((period, periodIndex) => (
                     <div
                       key={periodIndex}
                       className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200"
@@ -250,31 +344,49 @@ const AvailabilityScheduler: React.FC<Props> = ({
                           Periods: {periodIndex + 1}
                         </span>
                         <span className="text-sm text-gray-600">
-                          {formatTime(period.startTime)} -{" "}
-                          {formatTime(period.endTime)}
+                          {formatTime(
+                            period?.startTime || "",
+                            dayData?.date?.start || "",
+                            period?.timezone
+                          )}{" "}
+                          -{" "}
+                          {formatTime(
+                            period?.endTime || "",
+                            dayData?.date?.start || "",
+                            period?.timezone
+                          )}
                         </span>
                         <div className="flex items-center gap-1 text-xs">
                           <span className="px-1.5 py-0.5 bg-green-100 text-green-700 rounded">
                             Available
                           </span>
+                          {period?.timezone &&
+                            period.timezone !== userTimezone && (
+                              <span className="px-1.5 py-0.5 bg-yellow-100 text-yellow-700 rounded">
+                                {period.timezone}
+                              </span>
+                            )}
                         </div>
                       </div>
                       <span className="text-sm font-medium text-gray-500">
-                        {period.totalHours}h
+                        {period?.totalHours || 0}h
                       </span>
-                      <div className=" flex items-center gap-x-3">
-                        <div className="flex items-center gap-0 ml-1  gap-x-3">
+                      <div className="flex items-center gap-x-3">
+                        <div className="flex items-center gap-0 ml-1 gap-x-3">
                           <Switch
                             id="notifications"
-                            checked={period.slots.some((slot) =>
-                              disabledSlotIds.includes(slot._id)
-                            )}
+                            checked={
+                              period?.slots?.some((slot) =>
+                                disabledSlotIds?.includes(slot?._id || "")
+                              ) || false
+                            }
                             onCheckedChange={() => {
-                              const slotIds = period?.slots?.map(
-                                (slot) => slot?._id
-                              );
+                              const slotIds =
+                                period?.slots
+                                  ?.map((slot) => slot?._id)
+                                  ?.filter(Boolean) || [];
                               console.log("slotIds:", slotIds);
-                              setDisabledSlotIds(slotIds || []);
+                              setDisabledSlotIds(slotIds);
                               setEnabled(!enabled);
                             }}
                             className={cn(
@@ -287,8 +399,8 @@ const AvailabilityScheduler: React.FC<Props> = ({
                         <button
                           onClick={() => {
                             setOpen(true);
-                            console.log("slots", period.slots);
-                            setSelectedSlot(period.slots);
+                            console.log("slots", period?.slots);
+                            setSelectedSlot(period?.slots || []);
                           }}
                           className="p-1.5 cursor-pointer text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded transition-colors"
                         >
@@ -318,6 +430,14 @@ const AvailabilityScheduler: React.FC<Props> = ({
                     {summary.totalHours}h
                   </span>
                 </span>
+                {periods?.[0]?.timezone && (
+                  <span className="text-gray-600">
+                    Timezone:{" "}
+                    <span className="font-medium text-gray-900">
+                      {periods[0].timezone}
+                    </span>
+                  </span>
+                )}
               </div>
               <span className="text-xs text-gray-500">
                 {summary.averagePeriodsPerDay.toFixed(1)} periods/day avg
@@ -327,15 +447,51 @@ const AvailabilityScheduler: React.FC<Props> = ({
             {/* Weekly Schedule Pattern */}
             <div className="mt-3 text-xs text-gray-600">
               <span className="font-medium">Pattern:</span> Daily availability
-              with {data[0]?.numberOfPeriods || 0} time slots per day
-              {data[0]?.periods && (
+              with {periods?.[0]?.numberOfPeriods || 0} time slots per day
+              {periods?.[0]?.periods && (
                 <span className="ml-1">
-                  ({formatTime(data[0].periods[0]?.startTime)} -{" "}
-                  {formatTime(data[0].periods[0]?.endTime)},{" "}
-                  {formatTime(data[0].periods[1]?.startTime)} -{" "}
-                  {formatTime(data[0].periods[1]?.endTime)})
+                  (
+                  {(() => {
+                    const firstPeriod = periods[0].periods[0];
+                    if (!firstPeriod) return "";
+
+                    const { formattedStartTime, formattedEndTime } =
+                      convertTimesToUserTimezone(
+                        firstPeriod.startTime,
+                        firstPeriod.endTime,
+                        periods[0].date.start,
+                        periods[0].timezone || "UTC"
+                      );
+
+                    let patternText = `${formattedStartTime} - ${formattedEndTime}`;
+
+                    // Add second period if it exists
+                    if (periods[0].periods[1]) {
+                      const secondPeriod = periods[0].periods[1];
+                      const {
+                        formattedStartTime: secondStart,
+                        formattedEndTime: secondEnd,
+                      } = convertTimesToUserTimezone(
+                        secondPeriod.startTime,
+                        secondPeriod.endTime,
+                        periods[0].date.start,
+                        periods[0].timezone || "UTC"
+                      );
+                      patternText += `, ${secondStart} - ${secondEnd}`;
+                    }
+
+                    return patternText;
+                  })()}
+                  )
                 </span>
               )}
+              {periods?.[0]?.timezone &&
+                periods[0].timezone !== currentUserTimezone && (
+                  <span className="ml-1 text-blue-600">
+                    • Times converted from {periods[0].timezone} to{" "}
+                    {currentUserTimezone}
+                  </span>
+                )}
             </div>
           </div>
         </div>
@@ -352,12 +508,13 @@ const AvailabilityScheduler: React.FC<Props> = ({
 };
 
 export default AvailabilityScheduler;
+
 interface IRightProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
+
 const RightDrawer: React.FC<IRightProps> = ({ open, onOpenChange }) => {
-  const { selectedSlot } = useDashboardContext();
   return (
     <>
       <Sheet open={open} onOpenChange={onOpenChange}>

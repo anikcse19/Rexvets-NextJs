@@ -78,6 +78,10 @@ export default function PetParentAppointmentDetailsPage({
   );
 
   console.log("appointmentDetails", appointmentDetails);
+  console.log("veterinarian data:", appointmentDetails?.veterinarian);
+  console.log("veterinarian name:", appointmentDetails?.veterinarian?.name);
+  console.log("veterinarian type:", typeof appointmentDetails?.veterinarian);
+  console.log("veterinarian name type:", typeof appointmentDetails?.veterinarian?.name);
 
   useEffect(() => {
     const fetchAppointmentDetails = async () => {
@@ -247,7 +251,7 @@ export default function PetParentAppointmentDetailsPage({
             {appointmentDetails?._id && appointmentDetails?.veterinarian && (
               <ChatBox
                 appointmentId={appointmentDetails._id}
-                doctorName={appointmentDetails.veterinarian.name}
+                doctorName={appointmentDetails.veterinarian.name || "Doctor"}
                 doctorImage={appointmentDetails.veterinarian.profileImage || ""}
               />
             )}

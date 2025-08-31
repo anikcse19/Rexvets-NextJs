@@ -109,13 +109,34 @@ export async function POST(req: NextRequest) {
 
     // Create prefixed filename for better organization
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
-    const fileExtension = file.name.split('.').pop();
-    const prefixedFilename = `chat_${appointmentId}_${timestamp}.${fileExtension}`;
+    
+    // Get file extension safely
+    const lastDotIndex = file.name.lastIndexOf('.');
+    const fileExtension = lastDotIndex !== -1 ? file.name.substring(lastDotIndex + 1).toLowerCase() : '';
+    
+    // Create filename without double extensions
+    const baseFilename = `chat_${appointmentId}_${timestamp}`;
+    const prefixedFilename = fileExtension ? `${baseFilename}.${fileExtension}` : baseFilename;
 
     // Upload to Cloudinary
+    console.log('Uploading file to Cloudinary:', {
+      fileName: file.name,
+      fileSize: file.size,
+      fileType: file.type,
+      prefixedFilename,
+      uploadConfig
+    });
+
     const uploadResult = await uploadToCloudinary(file, {
       ...uploadConfig,
       public_id: prefixedFilename,
+    });
+
+    console.log('Cloudinary upload result:', {
+      publicId: uploadResult.public_id,
+      secureUrl: uploadResult.secure_url,
+      format: uploadResult.format,
+      bytes: uploadResult.bytes
     });
 
     return NextResponse.json({

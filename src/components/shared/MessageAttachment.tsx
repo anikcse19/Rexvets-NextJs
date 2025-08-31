@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { Image, Video, File, Download, ExternalLink, Play, Pause } from 'lucide-react';
+import { Image, Video, File, Download, ExternalLink, Play, Pause, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { debugCloudinaryUrl, cleanCloudinaryUrl } from '@/lib/utils/cloudinary';
 
 interface MessageAttachmentProps {
   url: string;
@@ -26,12 +27,26 @@ const MessageAttachment: React.FC<MessageAttachmentProps> = ({
   const [showFullImage, setShowFullImage] = useState(false);
   const [imageLoading, setImageLoading] = useState(true);
   const [imageUrl, setImageUrl] = useState(url);
+  const [retryCount, setRetryCount] = useState(0);
+  const [errorMessage, setErrorMessage] = useState<string>('');
 
   // Update imageUrl when url prop changes
   useEffect(() => {
+    // Validate that url is a string
+    if (typeof url !== 'string') {
+      console.error('Invalid URL provided to MessageAttachment:', url);
+      setImageUrl('');
+      setImageError(true);
+      setErrorMessage('Invalid image URL provided');
+      setImageLoading(false);
+      return;
+    }
+    
     setImageUrl(url);
     setImageLoading(true);
     setImageError(false);
+    setRetryCount(0);
+    setErrorMessage('');
   }, [url]);
 
   const formatFileSize = (bytes: number) => {
@@ -77,8 +92,82 @@ const MessageAttachment: React.FC<MessageAttachmentProps> = ({
     setShowFullImage(true);
   };
 
+  const handleImageError = async (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    const target = e.target as HTMLImageElement;
+    const errorMsg = `Failed to load image: ${fileName}`;
+    
+    console.error('Image failed to load:', {
+      url: imageUrl,
+      urlType: typeof imageUrl,
+      fileName,
+      retryCount
+    });
+    
+    // Debug the Cloudinary URL if it's a Cloudinary URL
+    if (typeof imageUrl === 'string' && imageUrl.includes('cloudinary.com')) {
+      try {
+        const debugInfo = await debugCloudinaryUrl(imageUrl);
+        console.error('Cloudinary URL debug info:', debugInfo);
+        
+        if (debugInfo.recommendations.length > 0) {
+          setErrorMessage(`${errorMsg} - ${debugInfo.recommendations[0]}`);
+        } else {
+          setErrorMessage(errorMsg);
+        }
+      } catch (debugError) {
+        console.error('Failed to debug Cloudinary URL:', debugError);
+        setErrorMessage(errorMsg);
+      }
+    } else {
+      setErrorMessage(errorMsg);
+    }
+    
+    setImageError(true);
+    setImageLoading(false);
+  };
+
+  const handleImageLoad = () => {
+    console.log('Image loaded successfully:', imageUrl);
+    setImageLoading(false);
+    setImageError(false);
+    setErrorMessage('');
+  };
+
+  const handleRetry = () => {
+    if (retryCount < 3 && typeof imageUrl === 'string') {
+      setRetryCount(prev => prev + 1);
+      setImageLoading(true);
+      setImageError(false);
+      setErrorMessage('');
+      
+      // Clean the URL first, then add cache-busting parameter
+      const cleanUrl = cleanCloudinaryUrl(imageUrl);
+      const separator = cleanUrl.includes('?') ? '&' : '?';
+      setImageUrl(`${cleanUrl}${separator}_retry=${retryCount + 1}&_t=${Date.now()}`);
+    }
+  };
+
   // Image Attachment
   if (messageType === 'image') {
+    // Don't render if URL is invalid
+    if (typeof imageUrl !== 'string' || !imageUrl) {
+      return (
+        <div className={`relative group ${className}`}>
+          <div className="flex flex-col space-y-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                {getFileIcon()}
+                <span className="text-sm font-medium text-gray-700">{fileName}</span>
+              </div>
+            </div>
+            <div className="text-xs text-red-600 bg-red-50 p-2 rounded">
+              Invalid image URL provided
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <>
         <div className={`relative group ${className}`}>
@@ -90,50 +179,61 @@ const MessageAttachment: React.FC<MessageAttachmentProps> = ({
                 </div>
               )}
               <div className="relative">
-                {/* Clean image display with background-image */}
-                <div
-                  className="max-w-xs max-h-64 rounded-lg cursor-pointer"
+                {/* Clean image display with img tag */}
+                <img
+                  src={imageUrl}
+                  alt={fileName}
+                  className="max-w-xs max-h-64 rounded-lg cursor-pointer object-contain"
                   style={{
-                    backgroundImage: `url(${imageUrl})`,
-                    backgroundSize: 'contain',
-                    backgroundRepeat: 'no-repeat',
-                    backgroundPosition: 'center',
-                    minHeight: '200px',
-                    minWidth: '200px',
-                    backgroundColor: 'transparent'
+                    maxHeight: '256px',
+                    maxWidth: '320px',
+                    minHeight: 'auto',
+                    minWidth: 'auto'
                   }}
                   onClick={handleImageClick}
-                >
-                  {/* Hidden img for onload detection */}
-                  <img
-                    src={imageUrl}
-                    alt={fileName}
-                    style={{ display: 'none' }}
-                    onError={(e) => {
-                      console.error('Image failed to load:', imageUrl);
-                      setImageError(true);
-                      setImageLoading(false);
-                    }}
-                    onLoad={(e) => {
-                      console.log('Image loaded successfully:', imageUrl);
-                      setImageLoading(false);
-                    }}
-                  />
-                </div>
+                  onError={handleImageError}
+                  onLoad={handleImageLoad}
+                />
               </div>
             </div>
           ) : (
-            <div className="flex flex-col space-y-2 p-3 bg-gray-100 rounded-lg">
-              <div className="flex items-center space-x-2">
-                {getFileIcon()}
-                <span className="text-sm text-gray-600">{fileName}</span>
-                <Button size="sm" variant="outline" onClick={handleDownload}>
-                  <Download className="w-4 h-4" />
-                </Button>
+            <div className="flex flex-col space-y-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  {getFileIcon()}
+                  <span className="text-sm font-medium text-gray-700">{fileName}</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  {retryCount < 3 && (
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      onClick={handleRetry}
+                      className="text-xs"
+                    >
+                      <RefreshCw className="w-3 h-3 mr-1" />
+                      Retry
+                    </Button>
+                  )}
+                  <Button size="sm" variant="outline" onClick={handleDownload}>
+                    <Download className="w-4 h-4" />
+                  </Button>
+                </div>
               </div>
+              
+              <div className="text-xs text-red-600 bg-red-50 p-2 rounded">
+                {errorMessage}
+              </div>
+              
               <div className="text-xs text-gray-500 break-all">
-                URL: {imageUrl}
+                <strong>URL:</strong> {imageUrl}
               </div>
+              
+              {retryCount >= 3 && (
+                <div className="text-xs text-orange-600 bg-orange-50 p-2 rounded">
+                  Maximum retry attempts reached. The image may be temporarily unavailable.
+                </div>
+              )}
             </div>
           )}
         </div>

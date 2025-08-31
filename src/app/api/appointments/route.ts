@@ -1,29 +1,3 @@
-/*
-  Appointments API
-  -----------------
-  This file exposes two handlers for appointments:
-
-  1) POST /api/appointments
-     - Authenticated endpoint (requires NextAuth session)
-     - Validates input using zod schema (IDs, slotId, concerns, optional meetingLink)
-     - Verifies the requested slot is AVAILABLE and belongs to the veterinarian
-     - Verifies veterinarian and pet parent exist and are active
-     - Creates an Appointment using the slot's date (and stores meetingLink if provided)
-     - Marks the slot as BOOKED
-     - Sends confirmation emails to both veterinarian and pet parent (server-side)
-       using saved appointment data (meetingLink, date, time, pet name)
-
-  2) GET /api/appointments
-     - Returns a paginated list of appointments
-     - Supports filtering by status, appointmentType, paymentStatus, veterinarian, petParent, isFollowUp and search (concerns)
-     - Populates references to `veterinarian`, `petParent`, and `pet`
-
-  Notes
-  -----
-  - Meeting links are generated on the client and passed in the POST body, then saved here.
-  - Emails are sent on the server after a successful save to ensure reliability (mirrors signup email behavior).
-  - Error handling standardizes responses via send.response utils.
-*/
 import { authOptions } from "@/lib/auth";
 import { connectToDatabase } from "@/lib/mongoose";
 import {
@@ -36,12 +10,11 @@ import { VeterinarianModel } from "@/models";
 import { AppointmentModel } from "@/models/Appointment";
 import { AppointmentSlot, SlotStatus } from "@/models/AppointmentSlot";
 import PetParent from "@/models/PetParent";
+import moment from "moment-timezone";
 import { Types } from "mongoose";
 import { getServerSession } from "next-auth/next";
 import { NextRequest } from "next/server";
 import z from "zod";
-import { sendAppointmentConfirmationEmails } from "@/lib/email";
-import { PetModel } from "@/models/Pet";
 const appointmentSchema = z.object({
   veterinarian: z.string().refine((val) => Types.ObjectId.isValid(val), {
     message: "Invalid veterinarian ID",
@@ -64,7 +37,6 @@ const appointmentSchema = z.object({
     message: "Invalid slot ID",
   }),
   concerns: z.array(z.string()).min(1, "At least one concern is required"),
-  meetingLink: z.string().url().optional(),
 });
 
 export async function POST(req: NextRequest) {
@@ -177,14 +149,32 @@ export async function POST(req: NextRequest) {
       reminderSent,
       slotId: appointmentSlotId,
       concerns,
-      meetingLink,
     } = parsed.data;
-    // Create appointment document
+    console.log("existingSlot.date", existingSlot.date);
+    console.log("existingSlot.startTime", existingSlot.startTime);
+
+    // Create appointment document with proper timezone handling
+    const slotDate = new Date(existingSlot.date);
+    const timezone = existingSlot.timezone || 'UTC';
+    
+    // Convert the slot date to the slot's timezone to get the correct local date
+    const slotDateInTimezone = moment.tz(slotDate, timezone);
+    const dateString = slotDateInTimezone.format('YYYY-MM-DD');
+    
+    // Create the appointment date in the slot's timezone
+    const appointmentDateTime = moment.tz(`${dateString}T${existingSlot.startTime}:00`, timezone).toDate();
+    
+    console.log("Slot date in timezone:", slotDateInTimezone.format());
+    console.log("Slot date string:", dateString);
+    console.log("Created appointment date:", appointmentDateTime);
+    console.log("Slot timezone:", timezone);
+    console.log("Current time:", new Date());
+
     const appointment = new AppointmentModel({
       veterinarian: new Types.ObjectId(veterinarian),
       petParent: new Types.ObjectId(petParent),
       pet: new Types.ObjectId(pet),
-      appointmentDate: existingSlot.date,
+      appointmentDate: appointmentDateTime,
       notes,
       feeUSD,
       isFollowUp,
@@ -193,37 +183,26 @@ export async function POST(req: NextRequest) {
       reminderSent,
       slotId: new Types.ObjectId(appointmentSlotId),
       concerns,
-      meetingLink,
     });
     await appointment.validate();
     const newAppointment = await appointment.save();
+    const link_URL =
+      process.env.NODE_ENV === "development"
+        ? "http://localhost:3000"
+        : "https://rexvets-nextjs.vercel.app";
+
+    // Generate meeting link
+    const meetingLink = `${link_URL}/video-call/?appointmentId=${encodeURIComponent(
+      newAppointment._id
+    )}&vetId=${encodeURIComponent(veterinarian)}&petId=${encodeURIComponent(
+      pet
+    )}&petParentId=${encodeURIComponent(petParent)}`;
+
+    // Save meetingLink to the appointment
+    newAppointment.meetingLink = meetingLink;
+    await newAppointment.save({ validateBeforeSave: true });
     existingSlot.status = SlotStatus.BOOKED;
     await existingSlot.save({ validateBeforeSave: false });
-
-    // Send confirmation emails (server-side, similar to signup email flow)
-    try {
-      const petDoc = await PetModel.findById(pet).select("name");
-      const petName = petDoc?.name || "Pet";
-
-      const appointmentDateStr = new Date(existingSlot.date)
-        .toISOString()
-        .split("T")[0];
-      const appointmentTimeStr = existingSlot.startTime;
-
-      await sendAppointmentConfirmationEmails({
-        doctorEmail: (existingVet as any)?.email || "",
-        doctorName: `Dr. ${(existingVet as any)?.name || ""}`,
-        parentEmail: (existingPetOwner as any)?.email || "",
-        parentName: (existingPetOwner as any)?.name || "",
-        petName,
-        appointmentDate: appointmentDateStr,
-        appointmentTime: appointmentTimeStr,
-        meetingLink: newAppointment.meetingLink || "",
-      });
-    } catch (emailErr) {
-      console.error("Failed to send appointment confirmation emails:", emailErr);
-      // Do not fail the request if email sending fails
-    }
     const response: ISendResponse<any> = {
       success: true,
       data: newAppointment,
@@ -232,7 +211,7 @@ export async function POST(req: NextRequest) {
     };
     return sendResponse(response);
   } catch (err: any) {
-    console.error("Error creating appointment:", err);
+    console.error("Error creating appointment:", err.message);
 
     if (err.name === "ValidationError") {
       const errors: Record<string, string | undefined> = {};
@@ -304,8 +283,6 @@ export async function GET(req: NextRequest) {
         .exec(),
       AppointmentModel.countDocuments(query),
     ]);
-
-
 
     return sendResponse({
       statusCode: 200,

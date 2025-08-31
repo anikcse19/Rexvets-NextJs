@@ -1,72 +1,115 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { toast } from "sonner";
-
 import AvailabilityScheduler from "@/components/Dashboard/Doctor/RatesAndAvailability/AvailabilityScheduler";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useDashboardContext } from "@/hooks/DashboardContext";
 import {
-  CreateAvailabilityRequest,
-  ExistsingAvailability as ExistingAvailabilityType,
-  SlotPeriod,
-} from "@/lib/types";
-import { getDaysBetween } from "@/lib/utils";
+  getTimezoneOffset,
+  getTodayUTC,
+  getUserTimezone,
+} from "@/lib/timezone";
+import { CreateAvailabilityRequest, DateRange, SlotPeriod } from "@/lib/types";
 import { format } from "date-fns";
+import { AlertTriangle, Clock, Globe } from "lucide-react";
 import moment from "moment";
 import { useSession } from "next-auth/react";
+import React, { useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
 import DateRangeCalendar from "./DateRangeCalender";
 import TimeSlotCreator from "./TimeSlotCreator";
 
 interface SessionUserWithRefId {
   refId: string;
+  timezone?: string;
   // other user properties can be added here
 }
 
-export default function AvailabilityManager() {
-  const [existingAvailabilities, setExistingAvailabilities] = useState<
-    ExistingAvailabilityType[]
-  >([]);
+interface TimezoneModalState {
+  isOpen: boolean;
+  userTimezone: string;
+  currentTimezone: string;
+  slotPeriods: SlotPeriod[];
+  onConfirm: (selectedTimezone: string) => Promise<void>;
+}
 
-  const { data: session } = useSession();
+const AvailabilityManager: React.FC = () => {
   const {
-    availableSlotsApiResponse,
     getAvailableSlots,
+    availableSlotsApiResponse,
     selectedRange,
     setSelectedRange,
+    slotStatus,
   } = useDashboardContext();
 
+  const { data: session } = useSession();
   const user = session?.user as SessionUserWithRefId | undefined;
 
-  // console.log("Session data:", session);
-  // console.log("Session user:", user);
-  // console.log("Selected range:", selectedRange);
-  // console.log("User refId:", user?.refId);
-  console.log("SELECTED DATE RANGE:", selectedRange);
+  // const [userTimezone, setUserTimezone] = useState<string>("");
+  const userTimezone = user?.timezone || "";
+  const currentTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+  // Timezone modal state
+  const [timezoneModal, setTimezoneModal] = useState<TimezoneModalState | null>(
+    null
+  );
+
+  // Get user's timezone on component mount
+  // useEffect(() => {
+  //   const timezone = getUserTimezone();
+  //   setUserTimezone(timezone);
+  // }, []);
+
   const handleSaveSlots = async (slotPeriods: SlotPeriod[]) => {
     if (!selectedRange || !user?.refId) {
       toast.error("Please select a date range and ensure you are logged in");
       return;
     }
 
-    console.log("slots from final save", slotPeriods);
+    // Check if timezones are different
+    if (userTimezone && currentTimeZone && userTimezone !== currentTimeZone) {
+      // Show timezone selection modal
+      setTimezoneModal({
+        isOpen: true,
+        userTimezone,
+        currentTimezone: currentTimeZone,
+        slotPeriods,
+        onConfirm: async (selectedTimezone: string) => {
+          // console.log("selectedTimezone", selectedTimezone);
+          // console.log("slot periods ", slotPeriods);
+          await createSlots(slotPeriods, selectedTimezone);
+          setTimezoneModal(null);
+        },
+      });
+      return;
+    }
+
+    // If timezones are the same or user has no timezone, proceed normally
+    await createSlots(slotPeriods, userTimezone || currentTimeZone);
+  };
+
+  const createSlots = async (slotPeriods: SlotPeriod[], timezone: string) => {
     try {
-      const dateRange = {
-        start: format(selectedRange.start, "yyyy-MM-dd"),
-        end: format(selectedRange.end, "yyyy-MM-dd"),
-      };
-      // Prepare the API request data
+      // Convert SlotPeriod[] to CreateAvailabilityRequest
       const requestData: CreateAvailabilityRequest = {
-        dateRange: dateRange,
+        dateRange: {
+          start: format(selectedRange!.start, "yyyy-MM-dd"),
+          end: format(selectedRange!.end, "yyyy-MM-dd"),
+        },
         slotPeriods: slotPeriods.map((slot) => ({
           start: slot.start.toTimeString().slice(0, 5), // Format as "HH:mm"
           end: slot.end.toTimeString().slice(0, 5), // Format as "HH:mm"
         })),
+        timezone: timezone, // Use selected timezone
       };
-
-      console.log("API Request Data:", JSON.stringify(requestData, null, 2));
-      console.log("User refId:", user?.refId);
-
-      // Make the API call
+      console.log("requestData", requestData);
       const response = await fetch(
         `/api/appointments/generate-appointment-slot/${user?.refId}`,
         {
@@ -78,82 +121,38 @@ export default function AvailabilityManager() {
         }
       );
 
-      console.log("API Response:", response);
       if (!response.ok) {
         const errorData = await response.json();
-        console.error("API Error:", errorData);
-        toast.error("Failed to create availability", {
-          description: errorData.message || "Unknown error occurred",
-        });
-        return;
+        throw new Error(
+          errorData.message || "Failed to create availability slots"
+        );
       }
 
       const result = await response.json();
+      toast.success("Availability slots created successfully!");
 
-      // Refresh the available slots after successful creation
-      const formattedStartDate = format(selectedRange.start, "yyyy-MM-dd");
-      const formattedEndDate = format(selectedRange.end, "yyyy-MM-dd");
-      await getAvailableSlots(formattedStartDate, formattedEndDate, user.refId);
-
-      // Add to existing availabilities for local state
-      const newAvailability: ExistingAvailabilityType = {
-        id: Date.now().toString(),
-        date: selectedRange.start,
-        dateRange: selectedRange,
-        slots: slotPeriods,
-      };
-
-      setExistingAvailabilities((prev) => [...prev, newAvailability]);
-
-      toast.success("Availability created successfully!", {
-        description: `Created ${slotPeriods.length} time slot${
-          slotPeriods.length > 1 ? "s" : ""
-        } for the selected date range.`,
-      });
-    } catch (error) {
-      console.error("Error creating availability:", error);
-      toast.error("Failed to create availability", {
-        description:
-          "Please try again or contact support if the problem persists.",
+      // Refresh the available slots after creating new ones
+      if (selectedRange) {
+        await fetchAvailableSlots();
+      }
+    } catch (error: any) {
+      console.error("Error creating availability slots:", error);
+      toast.error("Failed to create availability slots", {
+        description: error.message || "Please try again.",
       });
     }
   };
 
-  const handleEditAvailability = (id: string) => {
-    toast.info("Edit functionality", {
-      description: "Edit functionality would be implemented here.",
-    });
-  };
+  const fetchAvailableSlots = useCallback(async () => {
+    if (!selectedRange || !user?.refId) {
+      return;
+    }
 
-  const handleDeleteAvailability = (id: string) => {
-    setExistingAvailabilities((prev) => prev.filter((item) => item.id !== id));
-    toast.success("Availability deleted successfully!");
-  };
-
-  // GET available slots based on selected range
-  const fetchAvailableSlots = async () => {
     try {
-      if (!selectedRange?.end || !selectedRange?.start) {
-        console.log("No valid date range selected");
-        return;
-      }
-      if (!user?.refId) {
-        console.error("User refId is missing");
-        toast.error("Please log in to view availability");
-        return;
-      }
+      const startDate = format(selectedRange.start, "yyyy-MM-dd");
+      const endDate = format(selectedRange.end, "yyyy-MM-dd");
 
-      const formattedStartDate = format(selectedRange.start, "yyyy-MM-dd");
-      const formattedEndDate = format(selectedRange.end, "yyyy-MM-dd");
-
-      console.log(
-        "Fetching slots for date range:",
-        formattedStartDate,
-        "to",
-        formattedEndDate
-      );
-
-      await getAvailableSlots(formattedStartDate, formattedEndDate, user.refId);
+      await getAvailableSlots(startDate, endDate, user.refId, userTimezone);
 
       const diff = getDaysBetween(selectedRange);
       console.log("Days between selected range:", diff);
@@ -163,30 +162,35 @@ export default function AvailabilityManager() {
         description: "Please try refreshing the page or contact support.",
       });
     }
-  };
+  }, [selectedRange, user?.refId, userTimezone, getAvailableSlots]);
 
   // console.log("selectedRange", selectedRange);
   useEffect(() => {
     // Only fetch if we have both selectedRange and user refId
-    if (selectedRange && user?.refId) {
+    if (selectedRange && user?.refId && userTimezone) {
       fetchAvailableSlots();
     }
-  }, [selectedRange, user?.refId]);
+  }, [
+    selectedRange,
+    user?.refId,
+    slotStatus,
+    userTimezone,
+    fetchAvailableSlots,
+  ]);
 
   // Initialize with today's date when component mounts and user is available
   useEffect(() => {
     if (user?.refId && !selectedRange) {
-      const today = new Date();
+      // Use timezone-agnostic date to ensure slots are always visible
+      // regardless of the user's current timezone
+      const todayUTC = getTodayUTC();
+
       setSelectedRange({
-        start: today,
-        end: today,
+        start: todayUTC,
+        end: todayUTC,
       });
     }
   }, [user?.refId, selectedRange, setSelectedRange]);
-
-  console.log("selectedRange", selectedRange);
-  console.log("availableSlotsApiResponse", availableSlotsApiResponse);
-  console.log("User refId:", user?.refId);
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -198,6 +202,9 @@ export default function AvailabilityManager() {
           </h3>
           <div className="text-xs text-yellow-700 space-y-1">
             <p>User refId: {user?.refId || "Not available"}</p>
+            <p>User timezone: {userTimezone || "Not available"}</p>
+            <p>Current timezone: {currentTimeZone}</p>
+            <p>User ID: {(user as any)?.id || "Not available"}</p>
             <p>
               Selected Range:{" "}
               {selectedRange
@@ -214,7 +221,9 @@ export default function AvailabilityManager() {
             <p>
               API Data:{" "}
               {availableSlotsApiResponse.data
-                ? `${availableSlotsApiResponse.data.length} items`
+                ? `${
+                    availableSlotsApiResponse.data.periods?.length || 0
+                  } periods`
                 : "None"}
             </p>
           </div>
@@ -246,6 +255,142 @@ export default function AvailabilityManager() {
           /> */}
         </div>
       </div>
+
+      {/* Timezone Selection Modal */}
+      {timezoneModal && (
+        <Dialog
+          open={timezoneModal.isOpen}
+          onOpenChange={(open) => !open && setTimezoneModal(null)}
+        >
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-lg font-semibold">
+                <AlertTriangle className="w-5 h-5 text-yellow-600" />
+                Different Timezone Detected
+              </DialogTitle>
+              <DialogDescription className="text-gray-600">
+                We detected that your current timezone is different from your
+                saved timezone. Please choose which timezone you'd like to use
+                for creating your availability slots.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-4 mt-6">
+              {/* User's Saved Timezone */}
+              <Card className="border-2 border-blue-200 hover:border-blue-300 transition-colors">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                        <Globe className="w-5 h-5 text-blue-600" />
+                      </div>
+                      <div>
+                        <h3 className="font-medium text-gray-900">
+                          Your Saved Timezone
+                        </h3>
+                        <p className="text-sm text-gray-600">
+                          {timezoneModal.userTimezone} (
+                          {getTimezoneOffset(timezoneModal.userTimezone)})
+                        </p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          Current time:{" "}
+                          {moment
+                            .tz(timezoneModal.userTimezone)
+                            .format("h:mm A")}
+                        </p>
+                      </div>
+                    </div>
+                    <Button
+                      onClick={() =>
+                        timezoneModal.onConfirm(timezoneModal.userTimezone)
+                      }
+                      variant="outline"
+                      className="border-blue-300 text-blue-700 hover:bg-blue-50"
+                    >
+                      Use This
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Current Detected Timezone */}
+              <Card className="border-2 border-green-200 hover:border-green-300 transition-colors">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                        <Clock className="w-5 h-5 text-green-600" />
+                      </div>
+                      <div>
+                        <h3 className="font-medium text-gray-900">
+                          Current Detected Timezone
+                        </h3>
+                        <p className="text-sm text-gray-600">
+                          {timezoneModal.currentTimezone} (
+                          {getTimezoneOffset(timezoneModal.currentTimezone)})
+                        </p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          Current time:{" "}
+                          {moment
+                            .tz(timezoneModal.currentTimezone)
+                            .format("h:mm A")}
+                        </p>
+                      </div>
+                    </div>
+                    <Button
+                      onClick={() =>
+                        timezoneModal.onConfirm(timezoneModal.currentTimezone)
+                      }
+                      variant="outline"
+                      className="border-green-300 text-green-700 hover:bg-green-50"
+                    >
+                      Use This
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Timezone Difference Info */}
+              <div className="bg-gray-50 rounded-lg p-4">
+                <h4 className="font-medium text-gray-900 mb-2">
+                  Timezone Difference
+                </h4>
+                <p className="text-sm text-gray-600">
+                  The time difference between these timezones is{" "}
+                  <span className="font-medium">
+                    {moment
+                      .tz(timezoneModal.currentTimezone)
+                      .diff(
+                        moment.tz(timezoneModal.userTimezone),
+                        "hours"
+                      )}{" "}
+                    hours
+                  </span>
+                  . This means your availability slots will appear at different
+                  times depending on which timezone you choose.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 mt-6">
+              <Button variant="ghost" onClick={() => setTimezoneModal(null)}>
+                Cancel
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
-}
+};
+
+// Helper function to calculate days between dates
+const getDaysBetween = (dateRange: DateRange): number => {
+  const start = new Date(dateRange.start);
+  const end = new Date(dateRange.end);
+  const diffTime = Math.abs(end.getTime() - start.getTime());
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  return diffDays + 1; // Include both start and end dates
+};
+
+export default AvailabilityManager;

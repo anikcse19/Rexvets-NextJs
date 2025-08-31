@@ -1,34 +1,65 @@
 "use client";
 
-import React from "react";
-import { Card, CardContent, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardTitle } from "@/components/ui/card";
+import { Doctor } from "@/lib/types";
 import {
-  User,
+  Award,
+  Building,
+  ExternalLink,
+  GraduationCap,
   Mail,
   Phone,
-  Award,
-  ExternalLink,
-  Star,
-  GraduationCap,
-  Building,
   Shield,
+  Star,
+  User,
 } from "lucide-react";
-import { Doctor } from "@/lib/types";
+import React from "react";
 
 interface DoctorInfoCardProps {
-  doctor: Doctor;
+  doctor: Doctor | null | undefined;
 }
 
 export default function DoctorInfoCard({ doctor }: DoctorInfoCardProps) {
+  if (!doctor) {
+    return (
+      <Card className="shadow-lg border-0 bg-white overflow-hidden">
+        <div className="bg-gradient-to-r from-blue-600 to-cyan-600 p-6 text-white">
+          <div className="flex items-center gap-4">
+            <div className="bg-white/20 p-3 rounded-xl">
+              <User className="w-6 h-6" />
+            </div>
+            <div>
+              <CardTitle className="text-xl font-bold text-white">
+                Your Doctor
+              </CardTitle>
+              <p className="text-blue-100">
+                Professional veterinarian information
+              </p>
+            </div>
+          </div>
+        </div>
+        <CardContent className="p-6">
+          <div className="text-center text-gray-500">
+            <p>Doctor information not available</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   const handleCall = () => {
-    window.open(`tel:${doctor.phoneNumber}`, "_self");
+    if (doctor.phoneNumber) {
+      window.open(`tel:${doctor.phoneNumber}`, "_self");
+    }
   };
 
   const handleEmail = () => {
-    window.open(`mailto:${doctor.email}`, "_self");
+    if (doctor.email) {
+      window.open(`mailto:${doctor.email}`, "_self");
+    }
   };
 
   return (
@@ -61,13 +92,13 @@ export default function DoctorInfoCard({ doctor }: DoctorInfoCardProps) {
               />
               <AvatarFallback className="text-xl font-bold text-gray-800 bg-gradient-to-br from-blue-100 to-cyan-100">
                 {doctor.name
-                  .split(" ")
-                  .map((n) => n.charAt(0))
-                  .join("")}
+                  ?.split(" ")
+                  ?.map((n) => n.charAt(0))
+                  ?.join("") || "DR"}
               </AvatarFallback>
             </Avatar>
             <h3 className="text-xl font-bold text-gray-900 mb-2">
-              {doctor.name}
+              {doctor.name || "Doctor"}
             </h3>
 
             {/* Rating */}
@@ -85,12 +116,12 @@ export default function DoctorInfoCard({ doctor }: DoctorInfoCardProps) {
                 ))}
               </div>
               <span className="text-sm font-medium text-gray-700">
-                {doctor.rating} ({doctor.reviewsCount} reviews)
+                {doctor.rating || 0} ({doctor.reviewsCount || 0} reviews)
               </span>
             </div>
 
             <Badge className="bg-blue-100 text-blue-700 border-blue-300 mb-2">
-              {doctor.yearsOfExperience} Experience
+              {doctor.yearsOfExperience || "Experienced"} Experience
             </Badge>
           </div>
 
@@ -121,7 +152,7 @@ export default function DoctorInfoCard({ doctor }: DoctorInfoCardProps) {
               <div>
                 <p className="font-semibold text-purple-900 mb-1">Education</p>
                 <p className="text-purple-800 text-sm leading-relaxed">
-                  {doctor.education}
+                  {doctor.education || "Education information not available"}
                 </p>
               </div>
             </div>
@@ -175,7 +206,7 @@ export default function DoctorInfoCard({ doctor }: DoctorInfoCardProps) {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-600">Email</p>
-                  <p className="font-semibold text-gray-900">{doctor.email}</p>
+                  <p className="font-semibold text-gray-900">{doctor.email || "Email not available"}</p>
                 </div>
               </div>
               <Button
@@ -197,7 +228,7 @@ export default function DoctorInfoCard({ doctor }: DoctorInfoCardProps) {
                 <div>
                   <p className="text-sm font-medium text-gray-600">Phone</p>
                   <p className="font-semibold text-gray-900">
-                    {doctor.phoneNumber}
+                    {doctor.phoneNumber || "Phone not available"}
                   </p>
                 </div>
               </div>
