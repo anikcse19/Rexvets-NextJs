@@ -161,10 +161,16 @@ export const useVideoCall = () => {
 
       // Check for existing review after getting appointment details
       if (data?.data?.veterinarian && data?.data?.petParent) {
-        await checkExistingReview(
-          data.data.veterinarian.toString(),
-          data.data.petParent.toString()
-        );
+        const vet_id =
+          typeof data.data.veterinarian === "object"
+            ? data.data.veterinarian?._id
+            : data.data.veterinarian;
+        const parent_id =
+          typeof data.data.petParent === "object"
+            ? data.data.petParent?._id
+            : data.data.petParent;
+        console.log("VET ID FORMAT", vet_id, parent_id);
+        await checkExistingReview(vet_id, parent_id);
       }
     } catch (error: any) {
       toast.error(error.message || "Failed to fetch appointment details");

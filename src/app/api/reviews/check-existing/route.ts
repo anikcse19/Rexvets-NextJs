@@ -23,7 +23,8 @@ export async function GET(request: NextRequest) {
         { status: 400 }
       );
     }
-
+    console.log("VET ID:", vetId);
+    console.log("PARENT ID:", parentId);
     // Validate ObjectId format
     if (!mongoose.Types.ObjectId.isValid(vetId)) {
       return NextResponse.json(
@@ -58,20 +59,21 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: existingReview 
-        ? "Review already exists for this veterinarian" 
+      message: existingReview
+        ? "Review already exists for this veterinarian"
         : "No existing review found",
       data: {
         hasReview: !!existingReview,
-        review: existingReview ? {
-          id: existingReview._id,
-          rating: existingReview.rating,
-          comment: existingReview.comment,
-          createdAt: existingReview.createdAt,
-        } : null,
+        review: existingReview
+          ? {
+              id: existingReview._id,
+              rating: existingReview.rating,
+              comment: existingReview.comment,
+              createdAt: existingReview.createdAt,
+            }
+          : null,
       },
     });
-
   } catch (error) {
     console.error("Error checking existing review:", error);
     return NextResponse.json(

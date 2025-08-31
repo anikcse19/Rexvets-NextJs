@@ -67,13 +67,22 @@ const PostCallModal: React.FC<PostCallModalProps> = ({
       if (!reviewText.trim()) {
         throw new Error("Please add a comment before submitting");
       }
-
+      const vetId =
+        typeof appointmentDetails?.veterinarian === "string"
+          ? appointmentDetails?.veterinarian
+          : appointmentDetails?.veterinarian?._id;
+      const parentId =
+        typeof appointmentDetails?.petParent === "string"
+          ? appointmentDetails?.petParent
+          : appointmentDetails?.petParent?._id;
+      console.log("vetId:", vetId);
+      console.log("parentId:", parentId);
       const reviewData: ICreateReview = {
         rating,
         comment: reviewText.trim(),
         appointmentDate: appointmentDetails?.appointmentDate as any,
-        vetId: appointmentDetails?.veterinarian as any,
-        parentId: appointmentDetails?.petParent as any,
+        vetId: vetId as any,
+        parentId: parentId as any,
       };
 
       const res = await fetch("/api/reviews", {
@@ -86,7 +95,9 @@ const PostCallModal: React.FC<PostCallModalProps> = ({
 
       if (!res.ok) {
         const errorData = await res.json();
-        throw new Error(errorData?.message || `Failed to submit review: ${res.status}`);
+        throw new Error(
+          errorData?.message || `Failed to submit review: ${res.status}`
+        );
       }
 
       const data = await res.json();
@@ -95,7 +106,7 @@ const PostCallModal: React.FC<PostCallModalProps> = ({
 
       setReviewSubmitted(true);
       setSubmitted(true);
-      
+
       // Close modal and redirect to home after successful review
       setTimeout(() => {
         onClose();
