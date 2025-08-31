@@ -5,137 +5,221 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { useSession } from "next-auth/react";
 import {
   Check,
   CheckCheck,
+  File,
   Image,
+  Loader2,
   MessageCircle,
   Paperclip,
   Send,
   Smile,
   Video,
+  X,
 } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
+import ChatFileUpload from "@/components/shared/ChatFileUpload";
+import MessageAttachment from "@/components/shared/MessageAttachment";
 
 interface ChatBoxProps {
   appointmentId: string;
   doctorName: string;
-  doctorImage: string;
+  doctorImage?: string;
 }
 
 interface Message {
-  id: string;
+  _id: string;
   senderId: string;
   senderName: string;
-  senderImage: string;
+  senderImage?: string;
   content: string;
-  type: "text" | "image" | "video" | "assessment" | "prescription";
-  timestamp: string;
+  messageType: "text" | "image" | "video" | "assessment" | "prescription" | "file";
+  attachments?: Array<{
+    url: string;
+    fileName: string;
+    fileSize?: number;
+  }>;
   isRead: boolean;
   isDelivered: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
-// Mock messages for pet parent view
-const mockMessages: Message[] = [
-  {
-    id: "1",
-    senderId: "parent-1",
-    senderName: "Sarah Johnson",
-    senderImage:
-      "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=100&h=100&fit=crop&crop=face",
-    content:
-      "Hi Dr. Rahman, I'm a bit worried about Max. He's been less active today.",
-    type: "text",
-    timestamp: "2025-01-15T09:15:00Z",
-    isRead: true,
-    isDelivered: true,
-  },
-  {
-    id: "2",
-    senderId: "doctor-1",
-    senderName: "Dr. Anik Rahman",
-    senderImage:
-      "https://images.pexels.com/photos/5327585/pexels-photo-5327585.jpeg?auto=compress&cs=tinysrgb&w=100&h=100&fit=crop&crop=face",
-    content:
-      "Thank you for letting me know, Sarah. I'll make sure to examine Max thoroughly during our appointment today. Any other symptoms you've noticed?",
-    type: "text",
-    timestamp: "2025-01-15T09:18:00Z",
-    isRead: true,
-    isDelivered: true,
-  },
-  {
-    id: "3",
-    senderId: "parent-1",
-    senderName: "Sarah Johnson",
-    senderImage:
-      "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=100&h=100&fit=crop&crop=face",
-    content:
-      "He's eating normally, but he seems to be sleeping more than usual. Should I be concerned?",
-    type: "text",
-    timestamp: "2025-01-15T09:22:00Z",
-    isRead: true,
-    isDelivered: true,
-  },
-  {
-    id: "4",
-    senderId: "doctor-1",
-    senderName: "Dr. Anik Rahman",
-    senderImage:
-      "https://images.pexels.com/photos/5327585/pexels-photo-5327585.jpeg?auto=compress&cs=tinysrgb&w=100&h=100&fit=crop&crop=face",
-    content:
-      "📋 **Assessment Added**\n\nI've completed Max's examination. Temperature is slightly elevated at 101.5°F. Heart and lung sounds are normal. Prescribing antibiotics for mild infection.",
-    type: "assessment",
-    timestamp: "2025-01-15T10:45:00Z",
-    isRead: true,
-    isDelivered: true,
-  },
-  {
-    id: "5",
-    senderId: "doctor-1",
-    senderName: "Dr. Anik Rahman",
-    senderImage:
-      "https://images.pexels.com/photos/5327585/pexels-photo-5327585.jpeg?auto=compress&cs=tinysrgb&w=100&h=100&fit=crop&crop=face",
-    content:
-      "💊 **Prescription Written**\n\n**Medications:**\n• Amoxicillin 250mg - Twice daily for 7 days\n• Metacam 1.5mg - Once daily for 5 days\n\n**Notes:** Monitor for any adverse reactions. Return if symptoms persist after 3 days.",
-    type: "prescription",
-    timestamp: "2025-01-15T10:50:00Z",
-    isRead: true,
-    isDelivered: true,
-  },
-];
-
-export default function ChatBox({ doctorName, doctorImage }: ChatBoxProps) {
-  const [messages, setMessages] = useState<Message[]>(mockMessages);
+export default function ChatBox({
+  appointmentId,
+  doctorName,
+  doctorImage,
+}: ChatBoxProps) {
+  const { data: session } = useSession();
+  const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
-  const [isTyping] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSending, setIsSending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [showFileUpload, setShowFileUpload] = useState(false);
+  const [uploadedFiles, setUploadedFiles] = useState<Array<{
+    url: string;
+    fileName: string;
+    messageType: string;
+    fileSize?: number;
+  }>>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
+
+  // Fetch messages on component mount and when appointmentId changes
+  useEffect(() => {
+    if (appointmentId) {
+      fetchMessages();
+    }
+  }, [appointmentId]);
+
+  // Set up polling to fetch new messages every 5 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (appointmentId && !isLoading) {
+        fetchMessages();
+      }
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [appointmentId, isLoading]);
+
+  // Check if user is at bottom of messages
+  const isAtBottom = () => {
+    if (!messagesContainerRef.current) return true;
+    const { scrollTop, scrollHeight, clientHeight } = messagesContainerRef.current;
+    return scrollTop + clientHeight >= scrollHeight - 10; // 10px threshold
+  };
+
+  // Handle scroll events to determine if we should auto-scroll
+  const handleScroll = () => {
+    setShouldAutoScroll(isAtBottom());
+  };
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+    }
   };
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+    // Only auto-scroll if user is at bottom or if it's the first load
+    if (shouldAutoScroll || messages.length === 0) {
+      scrollToBottom();
+    }
+  }, [messages, shouldAutoScroll]);
 
-  const handleSendMessage = () => {
-    if (newMessage.trim()) {
-      const message: Message = {
-        id: Date.now().toString(),
-        senderId: "parent-1",
-        senderName: "Sarah Johnson",
-        senderImage:
-          "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=100&h=100&fit=crop&crop=face",
-        content: newMessage,
-        type: "text",
-        timestamp: new Date().toISOString(),
-        isRead: false,
-        isDelivered: true,
-      };
+  // Add scroll event listener
+  useEffect(() => {
+    const container = messagesContainerRef.current;
+    if (container) {
+      container.addEventListener('scroll', handleScroll);
+      return () => container.removeEventListener('scroll', handleScroll);
+    }
+  }, []);
 
-      setMessages([...messages, message]);
-      setNewMessage("");
+  const fetchMessages = async () => {
+    if (!appointmentId) return;
+    
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      const response = await fetch(`/api/appointment-chat/messages?appointmentId=${appointmentId}`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch messages');
+      }
+      
+      const data = await response.json();
+      setMessages(data.messages || []);
+    } catch (err) {
+      console.error('Error fetching messages:', err);
+      setError('Failed to load messages');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleFileUploaded = (fileUrl: string, fileName: string, messageType: string, fileSize?: number) => {
+    setUploadedFiles(prev => [...prev, { url: fileUrl, fileName, messageType, fileSize }]);
+  };
+
+  const handleRemoveFile = (index: number) => {
+    setUploadedFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleSendMessage = async () => {
+    if ((!newMessage.trim() && uploadedFiles.length === 0) || !appointmentId || isSending) return;
+
+    try {
+      setIsSending(true);
+      setError(null);
+
+      // Force auto-scroll when user sends a message
+      setShouldAutoScroll(true);
+
+      // Send text message if there's text content
+      if (newMessage.trim()) {
+        const textResponse = await fetch('/api/appointment-chat/messages', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            appointmentId,
+            content: newMessage.trim(),
+            messageType: 'text',
+          }),
+        });
+
+        if (!textResponse.ok) {
+          throw new Error('Failed to send text message');
+        }
+      }
+
+      // Send file messages for each uploaded file
+      for (const file of uploadedFiles) {
+        const fileResponse = await fetch('/api/appointment-chat/messages', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            appointmentId,
+            content: file.fileName,
+            messageType: file.messageType as "image" | "video" | "file",
+            attachments: [{
+              url: file.url,
+              fileName: file.fileName,
+              fileSize: file.fileSize,
+            }],
+          }),
+        });
+
+        if (!fileResponse.ok) {
+          throw new Error(`Failed to send file message: ${file.fileName}`);
+        }
+      }
+
+      setNewMessage('');
+      setUploadedFiles([]);
+      setShowFileUpload(false);
+      
+      // Fetch latest messages to ensure consistency
+      setTimeout(() => {
+        fetchMessages();
+      }, 500);
+      
+    } catch (err) {
+      console.error('Error sending message:', err);
+      setError('Failed to send message');
+    } finally {
+      setIsSending(false);
     }
   };
 
@@ -159,10 +243,13 @@ export default function ChatBox({ doctorName, doctorImage }: ChatBoxProps) {
     });
   };
 
-  const isParent = (senderId: string) => senderId.startsWith("parent");
+  const isParent = (senderId: string) => {
+    // Check if the sender is the current user (pet parent) using refId
+    return (session?.user as any)?.refId === senderId;
+  };
 
   return (
-    <Card className="shadow-lg border-0 bg-white overflow-hidden h-[600px] flex flex-col">
+    <Card className="shadow-lg border-0 bg-white overflow-hidden h-[700px] flex flex-col">
       <div className="bg-gradient-to-r from-teal-600 to-cyan-600 p-4 text-white">
         <div className="flex items-center gap-3">
           <div className="bg-white/20 p-2 rounded-lg">
@@ -170,18 +257,20 @@ export default function ChatBox({ doctorName, doctorImage }: ChatBoxProps) {
           </div>
           <div className="flex-1">
             <CardTitle className="text-lg font-bold text-white">
-              Chat with {doctorName}
+              Chat with Dr. {doctorName || "Doctor"}
             </CardTitle>
-            <p className="text-teal-100 text-sm">Real-time communication</p>
+            {/* <p className="text-teal-100 text-sm">Real-time communication</p> */}
           </div>
           <div className="flex items-center gap-2">
             <Avatar className="w-8 h-8 border-2 border-white/30">
-              <AvatarImage src={doctorImage} alt={doctorName} />
+              <AvatarImage src={doctorImage} alt={doctorName || "Doctor"} />
               <AvatarFallback className="text-xs">
                 {doctorName
-                  .split(" ")
-                  .map((n) => n.charAt(0))
-                  .join("")}
+                  ? doctorName
+                      .split(" ")
+                      .map((n) => n.charAt(0))
+                      .join("")
+                  : "DR"}
               </AvatarFallback>
             </Avatar>
             <div className="w-2 h-2 bg-green-400 rounded-full"></div>
@@ -191,17 +280,30 @@ export default function ChatBox({ doctorName, doctorImage }: ChatBoxProps) {
 
       {/* Messages Area */}
       <CardContent className="flex-1 p-0 overflow-hidden">
-        <div className="h-full overflow-y-auto p-4 space-y-4">
+        <div ref={messagesContainerRef} className="h-full overflow-y-auto p-4 pb-8 space-y-4">
+          {isLoading && messages.length === 0 && (
+            <div className="flex items-center justify-center h-32">
+              <Loader2 className="w-6 h-6 animate-spin text-teal-600" />
+              <span className="ml-2 text-gray-600">Loading messages...</span>
+            </div>
+          )}
+
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-red-700 text-sm">
+              {error}
+            </div>
+          )}
+
           {messages.map((message) => (
             <div
-              key={message.id}
+              key={message._id}
               className={`flex gap-3 ${
                 isParent(message.senderId) ? "flex-row-reverse" : "flex-row"
               }`}
             >
               <Avatar className="w-8 h-8 flex-shrink-0">
                 <AvatarImage
-                  src={message.senderImage}
+                  src={message.senderImage || ""}
                   alt={message.senderName}
                 />
                 <AvatarFallback className="text-xs">
@@ -213,18 +315,28 @@ export default function ChatBox({ doctorName, doctorImage }: ChatBoxProps) {
               </Avatar>
 
               <div
-                className={`flex-1 max-w-[70%] ${
-                  isParent(message.senderId) ? "text-right" : "text-left"
+                className={`${
+                  isParent(message.senderId) 
+                    ? "text-right" 
+                    : message.messageType === "assessment" || message.messageType === "prescription"
+                      ? "text-left min-w-[85%] max-w-[95%]"
+                      : "text-left min-w-[30%]"
                 }`}
               >
-                <div className="flex items-center gap-2 mb-1">
+                <div className={`flex items-center gap-2 mb-1 ${
+                  isParent(message.senderId) 
+                    ? "justify-end" 
+                    : message.messageType === "assessment" || message.messageType === "prescription"
+                      ? "justify-start"
+                      : "justify-start"
+                }`}>
                   {!isParent(message.senderId) && (
                     <span className="text-xs font-medium text-gray-600">
                       {message.senderName}
                     </span>
                   )}
                   <span className="text-xs text-gray-500">
-                    {formatTime(message.timestamp)}
+                    {formatTime(message.createdAt)}
                   </span>
                   {isParent(message.senderId) && (
                     <span className="text-xs font-medium text-gray-600">
@@ -232,33 +344,54 @@ export default function ChatBox({ doctorName, doctorImage }: ChatBoxProps) {
                     </span>
                   )}
                 </div>
-
+{/* this text message color is black */}
                 <div
-                  className={`rounded-2xl px-4 py-3 ${
+                  className={`rounded-2xl px-4 py-3 ${ // this text message color is black
                     isParent(message.senderId)
-                      ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white"
-                      : message.type === "assessment" ||
-                        message.type === "prescription"
-                      ? "bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200"
+                      ? "text-black bg-gray-100"
+                      : message.messageType === "assessment" ||
+                        message.messageType === "prescription"
+                      ? "bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 shadow-lg"
                       : "bg-gray-100 text-gray-900"
                   }`}
                 >
-                  {message.type === "assessment" ||
-                  message.type === "prescription" ? (
-                    <div className="space-y-2">
-                      <Badge className="bg-green-100 text-green-700 border-green-300 text-xs">
-                        {message.type === "assessment"
-                          ? "Medical Assessment"
-                          : "Prescription"}
+                  {message.messageType === "assessment" ||
+                  message.messageType === "prescription" ? (
+                    <div className="space-y-3">
+                      <Badge className="bg-blue-100 text-blue-700 border-blue-300 text-xs font-medium">
+                        {message.messageType === "assessment"
+                          ? "📋 Data Assessment"
+                          : "💊 Prescription"}
                       </Badge>
-                      <div className="text-sm text-green-900 whitespace-pre-line">
+                      <div className="text-sm text-gray-800 whitespace-pre-line leading-relaxed font-normal">
                         {message.content}
                       </div>
                     </div>
+                  ) : message.messageType === "image" || message.messageType === "video" || message.messageType === "file" ? (
+                    <div className="space-y-2">
+                      {message.attachments && message.attachments.map((attachment, index) => {
+                        // Only render if URL is valid
+                        if (typeof attachment.url !== 'string' || !attachment.url) {
+                          return null;
+                        }
+                        
+                        return (
+                          <MessageAttachment
+                            key={index}
+                            url={attachment.url}
+                            fileName={attachment.fileName}
+                            messageType={message.messageType as "image" | "video" | "file"}
+                            fileSize={attachment.fileSize}
+                          />
+                        );
+                      })}
+                    </div>
                   ) : (
-                    <p className="text-sm leading-relaxed whitespace-pre-line">
-                      {message.content}
-                    </p>
+                    <div className="max-h-32 overflow-y-auto text-start">
+                      <p className="text-sm leading-relaxed whitespace-pre-line">
+                        {message.content}
+                      </p>
+                    </div>
                   )}
                 </div>
 
@@ -279,15 +412,12 @@ export default function ChatBox({ doctorName, doctorImage }: ChatBoxProps) {
             </div>
           ))}
 
-          {isTyping && (
-            <div className="flex gap-3">
-              <Avatar className="w-8 h-8">
-                <AvatarImage src={doctorImage} alt={doctorName} />
+          {isSending && (
+            <div className="flex gap-3 flex-row-reverse">
+              <Avatar className="w-8 h-8 flex-shrink-0">
+                <AvatarImage src={session?.user?.image || ""} alt="You" />
                 <AvatarFallback className="text-xs">
-                  {doctorName
-                    .split(" ")
-                    .map((n) => n.charAt(0))
-                    .join("")}
+                  {session?.user?.name?.split(" ").map((n: string) => n.charAt(0)).join("") || "U"}
                 </AvatarFallback>
               </Avatar>
               <div className="bg-gray-100 rounded-2xl px-4 py-3">
@@ -312,30 +442,71 @@ export default function ChatBox({ doctorName, doctorImage }: ChatBoxProps) {
 
       {/* Message Input */}
       <div className="p-4 border-t border-gray-200 bg-gray-50">
+        {/* File Upload Section */}
+        {showFileUpload && (
+          <div className="mb-4">
+            <ChatFileUpload
+              appointmentId={appointmentId}
+              onFileUploaded={handleFileUploaded}
+              onError={(error) => setError(error)}
+              disabled={isSending}
+            />
+          </div>
+        )}
+
+        {/* Uploaded Files Preview */}
+        {uploadedFiles.length > 0 && (
+          <div className="mb-4 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-gray-700">Files to send:</span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setUploadedFiles([])}
+                className="text-red-600 hover:text-red-700"
+              >
+                Clear all
+              </Button>
+            </div>
+            <div className="space-y-2">
+              {uploadedFiles.map((file, index) => (
+                <div key={index} className="flex items-center justify-between p-2 bg-gray-100 rounded-lg">
+                  <div className="flex items-center space-x-2">
+                    {file.messageType === 'image' && <Image className="w-4 h-4 text-blue-600" />}
+                    {file.messageType === 'video' && <Video className="w-4 h-4 text-purple-600" />}
+                    {file.messageType === 'file' && <File className="w-4 h-4 text-gray-600" />}
+                    <span className="text-sm text-gray-700 truncate">{file.fileName}</span>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleRemoveFile(index)}
+                    className="text-red-600 hover:text-red-700 p-1"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="flex items-center gap-2">
           <div className="flex gap-1">
             <Button
               variant="outline"
               size="sm"
-              onClick={() => handleFileUpload("image")}
-              className="border-gray-300 hover:bg-gray-100"
-            >
-              <Image className="w-4 h-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleFileUpload("video")}
-              className="border-gray-300 hover:bg-gray-100"
-            >
-              <Video className="w-4 h-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
+              onClick={() => setShowFileUpload(!showFileUpload)}
               className="border-gray-300 hover:bg-gray-100"
             >
               <Paperclip className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="border-gray-300 hover:bg-gray-100"
+            >
+              <Smile className="w-4 h-4" />
             </Button>
           </div>
 
@@ -347,34 +518,20 @@ export default function ChatBox({ doctorName, doctorImage }: ChatBoxProps) {
               placeholder="Type your message..."
               className="pr-12 border-gray-300 focus:border-teal-500 focus:ring-teal-500"
             />
-            <Button
-              variant="ghost"
-              size="sm"
-              className="absolute right-1 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-            >
-              <Smile className="w-4 h-4" />
-            </Button>
           </div>
 
           <Button
             onClick={handleSendMessage}
-            disabled={!newMessage.trim()}
+            disabled={(!newMessage.trim() && uploadedFiles.length === 0) || isSending}
             className="bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 text-white"
           >
-            <Send className="w-4 h-4" />
+            {isSending ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Send className="w-4 h-4" />
+            )}
           </Button>
         </div>
-
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*,video/*"
-          className="hidden"
-          onChange={(e) => {
-            // Handle file upload
-            console.log("File selected:", e.target.files?.[0]);
-          }}
-        />
       </div>
     </Card>
   );

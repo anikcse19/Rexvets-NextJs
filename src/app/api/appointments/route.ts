@@ -77,7 +77,7 @@ export async function POST(req: NextRequest) {
       status: SlotStatus.AVAILABLE,
       vetId: body.veterinarian,
     });
-    console.log("existingSlot", existingSlot);
+
     if (!existingSlot) {
       const errResp: IErrorResponse = {
         success: false,
@@ -87,10 +87,24 @@ export async function POST(req: NextRequest) {
       };
       return throwAppError(errResp, 404);
     }
-    const existingVet = await VeterinarianModel.findOne({
+    // First try to find by the provided veterinarian ID
+    let existingVet = await VeterinarianModel.findOne({
       _id: body.veterinarian,
       isActive: true,
     });
+
+    // If not found and user is a veterinarian, try to find by session user's refId
+    if (!existingVet && (session.user as any)?.refId && session.user.role === "veterinarian") {
+      existingVet = await VeterinarianModel.findOne({
+        _id: (session.user as any).refId,
+        isActive: true,
+      });
+      
+      if (existingVet) {
+        // Update the body to use the correct Veterinarian ID
+        body.veterinarian = (session.user as any).refId;
+      }
+    }
     if (!existingVet) {
       const errResp: IErrorResponse = {
         success: false,
@@ -100,9 +114,22 @@ export async function POST(req: NextRequest) {
       };
       return throwAppError(errResp, 404);
     }
-    const existingPetOwner = await PetParent.findOne({
+    // First try to find by the provided petParent ID
+    let existingPetOwner = await PetParent.findOne({
       _id: body.petParent,
     });
+
+    // If not found, try to find by the session user's refId (PetParent ID)
+    if (!existingPetOwner && (session.user as any)?.refId) {
+      existingPetOwner = await PetParent.findOne({
+        _id: (session.user as any).refId,
+      });
+      
+      if (existingPetOwner) {
+        // Update the body to use the correct PetParent ID
+        body.petParent = (session.user as any).refId;
+      }
+    }
     if (!existingPetOwner) {
       const errResp: IErrorResponse = {
         success: false,

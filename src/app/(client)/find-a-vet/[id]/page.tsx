@@ -1,4 +1,3 @@
-// app/doctor/[id]/page.tsx
 import DoctorProfilePage from "@/components/DoctorProfile/DoctorProfilePage";
 import { getVetById } from "@/components/DoctorProfile/service/get-doctor-by-id";
 import React from "react";

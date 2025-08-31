@@ -1,11 +1,15 @@
+import GoogleAnalytics, {
+  GoogleAnalyticsScript,
+  GoogleTagManagerNoScript,
+} from "@/components/GoogleAnalytics";
+import PerformanceMonitor from "@/components/PerformanceMonitor";
 import { sameAs, siteName, siteUrl } from "@/lib";
+import RootLayoutProvider from "@/lib/Layoutes/RootLayoutProvider";
 import type { Metadata } from "next";
 import localFont from "next/font/local";
-import "./globals.css";
-import { Toaster } from "sonner";
-import GoogleAnalytics, { GoogleTagManagerNoScript, GoogleAnalyticsScript } from "@/components/GoogleAnalytics";
-import PerformanceMonitor from "@/components/PerformanceMonitor";
 import { Suspense } from "react";
+import { Toaster } from "sonner";
+import "./globals.css";
 
 const garet = localFont({
   src: [
@@ -415,20 +419,20 @@ export default function RootLayout({
         className={`${garet.variable} antialiased`}
         suppressHydrationWarning
       >
-        {/* Google Tag Manager NoScript */}
-        <GoogleTagManagerNoScript />
-        
-        <Toaster richColors position="top-right" />
-        
-        {/* Performance Monitor */}
-        <PerformanceMonitor>
-          {/* Google Analytics Provider */}
-          <Suspense fallback={<div>Loading...</div>}>
-            <GoogleAnalytics>
-              {children}
-            </GoogleAnalytics>
-          </Suspense>
-        </PerformanceMonitor>
+        <RootLayoutProvider>
+          {/* Google Tag Manager NoScript */}
+          <GoogleTagManagerNoScript />
+
+          <Toaster richColors position="top-right" />
+
+          {/* Performance Monitor */}
+          <PerformanceMonitor>
+            {/* Google Analytics Provider */}
+            <Suspense fallback={<div>Loading...</div>}>
+              <GoogleAnalytics>{children}</GoogleAnalytics>
+            </Suspense>
+          </PerformanceMonitor>
+        </RootLayoutProvider>
       </body>
     </html>
   );

@@ -38,12 +38,11 @@ const appointmentSlotSchema: Schema<IAvailabilitySlot & Document> = new Schema(
 
 // Index to prevent overlapping slots for the same vet, date, and timezone
 appointmentSlotSchema.index(
-  { vetId: 1, date: 1, startTime: 1, endTime: 1, timezone: 1 },
+  { date: 1, startTime: 1, endTime: 1, timezone: 1 },
   { unique: true }
 );
 
 // Index for efficient querying by date range and timezone
-appointmentSlotSchema.index({ vetId: 1, date: 1, timezone: 1 });
 
 export const AppointmentSlot: Model<IAvailabilitySlot & Document> =
   models.AppointmentSlot ||

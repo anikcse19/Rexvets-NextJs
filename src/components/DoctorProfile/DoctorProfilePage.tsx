@@ -1,24 +1,22 @@
 "use client";
 
-import React, { useState } from "react";
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import DonationModal from "@/components/Donation/DonationModal";
+import { ArrowLeft } from "lucide-react";
+import Link from "next/link";
+import React, { useState } from "react";
 
-import DoctorHeader from "./DoctorHeader";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import DonationFormWrapper from "../Donation/DonationFormWrapper";
 import AboutDoctor from "./AboutDoctor";
+import BookingCard from "./BookingCard";
 import ClinicAddress from "./ClinicAddress";
+import DoctorHeader from "./DoctorHeader";
+import ReviewsSection from "./ReviewsSection";
 import Specialties from "./Specialties";
 import SpeciesTreated from "./SpeciesTreated";
-import ReviewsSection from "./ReviewsSection";
-import { formatDate } from "./lib/utils";
 import { mockDoctor } from "./data";
 import { Doctor } from "./type";
-import BookingCard from "./BookingCard";
-import DonationFormWrapper from "../Donation/DonationFormWrapper";
-import { toast } from "sonner";
-import { useRouter } from "next/navigation";
 
 export default function DoctorProfilePage({
   doctorData,
@@ -29,7 +27,7 @@ export default function DoctorProfilePage({
   const [selectedDate, setSelectedDate] = useState("2025-01-16");
   const [selectedSlot, setSelectedSlot] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
-
+  console.log("doctorData", doctorData.name);
   const [showForm, setShowForm] = useState(false);
   const router = useRouter();
 
@@ -87,7 +85,7 @@ export default function DoctorProfilePage({
             {/* Booking */}
             <div className="xl:col-span-1">
               <BookingCard
-                doctorName={mockDoctor.name}
+                doctorName={doctorData?.name}
                 doctorData={doctorData}
                 onConfirm={(date: string, time: string, slot: string) => {
                   console.log(`Booking appointment for ${date} at ${time}`);

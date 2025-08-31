@@ -59,8 +59,15 @@ export async function GET(
       .populate("pet")
       .lean();
 
-    // console.log("appointment-------------------", appointment);
     console.log("appointment", appointment);
+    if (appointment) {
+      console.log(
+        "veterinarian populated:",
+        (appointment as any)?.veterinarian
+      );
+      console.log("petParent populated:", (appointment as any)?.petParent);
+      console.log("pet populated:", (appointment as any)?.pet);
+    }
     if (!appointment) {
       return throwAppError(
         {
