@@ -29,6 +29,8 @@ export default function PetParentAppointmentsListPage() {
 
   const parentId = session?.user?.refId as string;
 
+  console.log("parentId ---------- in appointments list page", parentId);
+
   const fetchAppointments = async () => {
     if (!parentId) return;
     try {

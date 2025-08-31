@@ -3,13 +3,9 @@ import { MessageSenderType } from "@/lib";
 import {
   File,
   Image,
-  Mic,
-  MicOff,
-  Music,
   Paperclip,
   PawPrint,
   Send,
-  X,
 } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 
@@ -34,31 +30,23 @@ interface Message {
 const ChatBox: React.FC<IProps> = ({ receiverId, isAdmin = true }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState("");
-  const [isRecording, setIsRecording] = useState(false);
-  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(
-    null
-  );
-  const [recordingTime, setRecordingTime] = useState(0);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const scrollToBottom = () => {
-    if (messagesContainerRef.current) {
-      messagesContainerRef.current.scrollTo({
-        top: messagesContainerRef.current.scrollHeight,
-        behavior: "smooth",
-      });
-    }
+    // if (messagesContainerRef.current) {
+    //   messagesContainerRef.current.scrollTo({
+    //     top: messagesContainerRef.current.scrollHeight,
+    //     behavior: "smooth",
+    //   });
+    // }
   };
 
   useEffect(() => {
-    scrollToBottom();
+    // scrollToBottom();
   }, [messages]);
-
-
 
   // ---------- API INTEGRATION ----------
   const fetchMessages = async () => {
@@ -154,61 +142,6 @@ const ChatBox: React.FC<IProps> = ({ receiverId, isAdmin = true }) => {
     }
   };
 
-  const startRecording = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const recorder = new MediaRecorder(stream);
-      const chunks: BlobPart[] = [];
-
-      recorder.ondataavailable = (event) => {
-        chunks.push(event.data);
-      };
-
-      recorder.onstop = () => {
-        const audioBlob = new Blob(chunks, { type: "audio/wav" });
-        const audioUrl = URL.createObjectURL(audioBlob);
-
-        const newMessage: Message = {
-          text: `Voice message (${recordingTime}s)`,
-          sender: isAdmin ? "admin" : "petParent",
-          timestamp: new Date(),
-          file: {
-            name: `voice-message-${Date.now()}.wav`,
-            type: "audio/wav",
-            size: audioBlob.size,
-            url: audioUrl,
-          },
-        };
-
-        setMessages((prev) => [...prev, newMessage]);
-        stream.getTracks().forEach((track) => track.stop());
-      };
-
-      recorder.start();
-      setMediaRecorder(recorder);
-      setIsRecording(true);
-      setRecordingTime(0);
-
-      recordingIntervalRef.current = setInterval(() => {
-        setRecordingTime((prev) => prev + 1);
-      }, 1000);
-    } catch (error) {
-      console.error("Error accessing microphone:", error);
-      alert("Could not access microphone. Please check permissions.");
-    }
-  };
-
-  const stopRecording = () => {
-    if (mediaRecorder && mediaRecorder.state !== "inactive") {
-      mediaRecorder.stop();
-      setMediaRecorder(null);
-      setIsRecording(false);
-      if (recordingIntervalRef.current) {
-        clearInterval(recordingIntervalRef.current);
-      }
-    }
-  };
-
   const formatFileSize = (bytes: number): string => {
     if (bytes === 0) return "0 Bytes";
     const k = 1024;
@@ -219,7 +152,6 @@ const ChatBox: React.FC<IProps> = ({ receiverId, isAdmin = true }) => {
 
   const getFileIcon = (type: string) => {
     if (type.startsWith("image/")) return <Image className="w-4 h-4" />;
-    if (type.startsWith("audio/")) return <Music className="w-4 h-4" />;
     return <File className="w-4 h-4" />;
   };
 
@@ -279,8 +211,8 @@ const ChatBox: React.FC<IProps> = ({ receiverId, isAdmin = true }) => {
                 </p>
 
                 {message.file && (
-                  <div className="mt-2 p-2 rounded-lg bg-white border border-gray-200 shadow-sm">
-                    <div className="flex items-center space-x-2">
+                  <div className="mt-2">
+                    <div className="flex items-center space-x-2 mb-2">
                       <div className="flex-shrink-0 text-gray-600">
                         {getFileIcon(message.file.type)}
                       </div>
@@ -294,21 +226,28 @@ const ChatBox: React.FC<IProps> = ({ receiverId, isAdmin = true }) => {
                       </div>
                     </div>
 
-                    {message.file.type.startsWith("audio/") && (
-                      <audio controls className="w-full mt-2 h-8 sm:h-10">
-                        <source
-                          src={message.file.url}
-                          type={message.file.type}
-                        />
-                        Your browser does not support the audio element.
-                      </audio>
-                    )}
-
                     {message.file.type.startsWith("image/") && (
                       <img
                         src={message.file.url}
                         alt={message.file.name}
-                        className="w-full max-h-48 object-cover rounded mt-2"
+                        className="w-full max-h-48 object-contain rounded mt-2"
+                        style={{
+                          display: 'block',
+                          maxWidth: '100%',
+                          height: 'auto'
+                        }}
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                          // Show a fallback message
+                          const fallback = document.createElement('div');
+                          fallback.className = 'w-full max-h-48 rounded mt-2 flex items-center justify-center text-gray-500 text-sm';
+                          fallback.textContent = 'Image failed to load';
+                          target.parentNode?.appendChild(fallback);
+                        }}
+                        onLoad={(e) => {
+                          console.log('ChatBox image loaded:', message.file?.url);
+                        }}
                       />
                     )}
                   </div>
@@ -328,26 +267,6 @@ const ChatBox: React.FC<IProps> = ({ receiverId, isAdmin = true }) => {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Recording indicator */}
-        {isRecording && (
-          <div className="px-3 sm:px-4 py-2 bg-red-50 border-t border-red-100 shadow-md">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-                <span className="text-gray-700 text-sm">
-                  Recording... {recordingTime}s
-                </span>
-              </div>
-              <button
-                onClick={stopRecording}
-                className="p-1 hover:bg-red-100 rounded-full transition-colors"
-              >
-                <X className="w-5 h-5 text-red-600" />
-              </button>
-            </div>
-          </div>
-        )}
-
         {/* Input area */}
         <div className="bg-white border-t border-gray-200 p-3 sm:p-4">
           <div className="flex items-center space-x-3">
@@ -356,7 +275,7 @@ const ChatBox: React.FC<IProps> = ({ receiverId, isAdmin = true }) => {
               ref={fileInputRef}
               onChange={handleFileUpload}
               className="hidden"
-              accept="image/*,audio/*,.pdf,.doc,.docx,.txt"
+              accept="image/*,.pdf,.doc,.docx,.txt"
             />
 
             <button
@@ -387,22 +306,6 @@ const ChatBox: React.FC<IProps> = ({ receiverId, isAdmin = true }) => {
                 }}
               />
             </div>
-
-            <button
-              onClick={isRecording ? stopRecording : startRecording}
-              className={`p-2 rounded-full transition-colors flex-shrink-0 ${
-                isRecording
-                  ? "bg-red-500 hover:bg-red-600"
-                  : "hover:bg-gray-100"
-              }`}
-              title={isRecording ? "Stop recording" : "Start voice recording"}
-            >
-              {isRecording ? (
-                <MicOff className="w-6 h-6 text-white" />
-              ) : (
-                <Mic className="w-6 h-6 text-gray-600 hover:text-gray-800" />
-              )}
-            </button>
 
             <button
               onClick={handleSendMessage}

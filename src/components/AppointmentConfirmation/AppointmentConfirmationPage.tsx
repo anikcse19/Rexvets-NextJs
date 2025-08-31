@@ -139,17 +139,9 @@ export default function AppointmentConfirmation() {
     setIsProcessing(true);
 
     try {
-      console.log({
-        doctor: veterinarian,
-        selectedPets: selectedPet,
-        concerns: allConcerns,
-        details: moreDetails,
-      });
-
       // Generate meeting link
       const roomId = `${session.user.refId?.slice(0, 4)}${veterinarian?._id?.slice(0, 4)}${Date.now().toString(36)}`;
       const meetingLink = `https://rexvets-nextjs.vercel.app/video-call/?${encodeURIComponent(roomId)}`;
-      console.log("Generated meeting link:", meetingLink);
 
       const appointmentCreateData = {
         veterinarian: veterinarian?._id,
@@ -166,6 +158,8 @@ export default function AppointmentConfirmation() {
         meetingLink: meetingLink,
       };
 
+
+
       const res = await fetch("/api/appointments", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -178,7 +172,6 @@ export default function AppointmentConfirmation() {
       }
 
       const data = await res.json();
-      console.log("Appointment created:", data);
       
       if (data.success) {
         // Mark donation as used

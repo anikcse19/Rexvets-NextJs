@@ -286,11 +286,27 @@ export default function AppointmentDetailsPage() {
 
         {/* Right Column - Chat */}
         <div className="xl:col-span-1">
-          <ChatBox
-            appointmentId={appointment?._id}
-            parentName={appointment?.petParent?.name || ""}
-            parentImage={appointment?.petParent?.profileImage || ""}
-          />
+          {(() => {
+            console.log("🔍 ChatBox Rendering Debug:", {
+              hasAppointmentId: !!appointment?._id,
+              hasPetParent: !!appointment?.petParent,
+              petParentName: appointment?.petParent?.name,
+              petParentImage: appointment?.petParent?.profileImage,
+              condition: !!(appointment?._id && appointment?.petParent)
+            });
+            
+            return appointment?._id && appointment?.petParent ? (
+              <ChatBox
+                appointmentId={appointment._id}
+                parentName={appointment.petParent.name || "Pet Parent"}
+                parentImage={appointment.petParent.profileImage || ""}
+              />
+            ) : (
+              <div className="text-center p-4 text-gray-500">
+                Chat not available
+              </div>
+            );
+          })()}
         </div>
       </div>
 

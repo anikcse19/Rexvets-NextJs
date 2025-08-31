@@ -49,3 +49,6 @@ export { DoctorModel } from "./Doctor";
 export type { IDoctor, IDoctorDocument } from "./Doctor";
 
 export { MessageModel } from "./Message";
+
+export { AppointmentChatModel, AppointmentMessageModel } from "./AppointmentChat";
+export type { IAppointmentChat, IAppointmentMessage } from "./AppointmentChat";
