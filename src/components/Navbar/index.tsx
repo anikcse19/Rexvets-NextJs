@@ -96,7 +96,9 @@ const Header: React.FC = () => {
         background:
           "linear-gradient(135deg, #0f0c29 0%, #24243e 25%, #302b63 50%, #0f3460 75%, #002366 100%)",
       }}
-      className=" relative py-3 h-auto md:py-1   w-full  backdrop-blur-sm px-3  border-b border-slate-800/50 z-[9998]"
+      className={` relative py-3 h-auto md:py-${
+        session?.user && session.user.role !== "veterinarian" ? "1" : "3"
+      }   w-full  backdrop-blur-sm px-3  border-b border-slate-800/50 z-[9998]`}
     >
       <nav className="flex items-center justify-between  mx-auto">
         {/* Logo */}
@@ -565,10 +567,11 @@ const Header: React.FC = () => {
                 </Button>
               </Link>
             )}
-
-            <div className="hidden 2xl:block">
-              <TalkToVetButton />
-            </div>
+            {session?.user.role !== "veterinarian" && (
+              <div className="hidden 2xl:block">
+                <TalkToVetButton />
+              </div>
+            )}
           </div>
         </div>
       </nav>
