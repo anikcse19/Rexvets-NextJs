@@ -187,7 +187,8 @@ export const VideoCallProvider: React.FC<VideoCallProviderProps> = ({
     setIsLoading(true);
     try {
       if (!petParentId) {
-        throw new Error("User reference ID is missing");
+        return;
+        // throw new Error("petParentId reference ID is missing");
       }
       const res = await fetch(`/api/pet-parent/${petParentId}`);
       if (!res.ok) {

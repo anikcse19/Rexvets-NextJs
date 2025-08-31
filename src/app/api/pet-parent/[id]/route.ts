@@ -6,14 +6,14 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Connect to database
     await connectToDatabase();
 
     // Get the pet parent ID from params
-    const { id } = params;
+    const { id } = await params;
 
     if (!id) {
       return NextResponse.json(
@@ -24,7 +24,6 @@ export async function GET(
 
     // Get session for authentication
     const session = await getServerSession(authOptions);
-
     if (!session?.user) {
       return NextResponse.json(
         { success: false, message: "Unauthorized" },
@@ -44,8 +43,8 @@ export async function GET(
 
     // Check if the user is authorized to access this pet parent data
     // Allow access if the user is the pet parent themselves or if they have admin privileges
-    const isAuthorized = 
-      session.user.id === petParent._id.toString() || 
+    const isAuthorized =
+      session.user.id === petParent._id.toString() ||
       session.user.role === "admin" ||
       session.user.role === "veterinarian";
 
@@ -116,8 +115,8 @@ export async function PUT(
     }
 
     // Check if the user is authorized to update this pet parent data
-    const isAuthorized = 
-      session.user.id === petParent._id.toString() || 
+    const isAuthorized =
+      session.user.id === petParent._id.toString() ||
       session.user.role === "admin";
 
     if (!isAuthorized) {
@@ -183,7 +182,10 @@ export async function DELETE(
     // Check if user is admin
     if (session.user.role !== "admin") {
       return NextResponse.json(
-        { success: false, message: "Access denied. Admin privileges required." },
+        {
+          success: false,
+          message: "Access denied. Admin privileges required.",
+        },
         { status: 403 }
       );
     }
