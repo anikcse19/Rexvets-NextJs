@@ -103,7 +103,10 @@ const VideoCallContent: React.FC<VideoCallContentProps> = ({ onEndCall }) => {
             onToggleVideo={toggleVideo}
             onEndCall={endCall}
             onSwitchCamera={switchCamera}
-            onVirtualBackgroundChange={applyVirtualBackground}
+            onApplyVirtualBackground={applyVirtualBackground}
+            selectedBackground={selectedBackground}
+            isVirtualBackgroundSupported={isVirtualBackgroundSupported}
+            isProcessingVirtualBg={isProcessingVirtualBg}
           />
         </div>
 
