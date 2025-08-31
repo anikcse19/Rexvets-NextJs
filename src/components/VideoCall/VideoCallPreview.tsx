@@ -260,18 +260,88 @@ const VideoCallPreview: React.FC = () => {
 
   if (!appointmentDetails && !isLoading) {
     return (
-      <div className="h-screen flex flex-col gap-y-3 items-center justify-center">
-        <h1 className="text-xl font-semibold">No appointment found</h1>
-        <p className="text-gray-600">
-          We couldn't find the appointment details. Please check the link or
-          contact support.
-        </p>
-        <button
-          onClick={() => router.push("/")}
-          className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
-        >
-          Go to Home
-        </button>
+      <div
+        style={{
+          background:
+            "linear-gradient(135deg, rgb(15, 12, 41) 0%, rgb(36, 36, 62) 25%, rgb(48, 43, 99) 50%, rgb(15, 52, 96) 75%, rgb(0, 35, 102) 100%)",
+        }}
+        className="min-h-screen w-full flex items-center justify-center p-4"
+      >
+        <div className="max-w-md w-full mx-auto text-center">
+          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/20">
+            {/* Icon */}
+            <div className="w-20 h-20 mx-auto mb-6 bg-red-500/20 rounded-full flex items-center justify-center">
+              <svg
+                className="w-10 h-10 text-red-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+                />
+              </svg>
+            </div>
+
+            {/* Title */}
+            <h1 className="text-2xl font-bold text-white mb-3">
+              Appointment Not Found
+            </h1>
+
+            {/* Description */}
+            <p className="text-white/70 text-base leading-relaxed mb-8">
+              We couldn't locate the appointment details for this link. This could be due to:
+            </p>
+
+            {/* Reasons List */}
+            <div className="text-left mb-8 space-y-3">
+              <div className="flex items-start space-x-3">
+                <div className="w-2 h-2 bg-red-400 rounded-full mt-2 flex-shrink-0"></div>
+                <p className="text-white/60 text-sm">
+                  The appointment link has expired or is invalid
+                </p>
+              </div>
+              <div className="flex items-start space-x-3">
+                <div className="w-2 h-2 bg-red-400 rounded-full mt-2 flex-shrink-0"></div>
+                <p className="text-white/60 text-sm">
+                  The appointment may have been cancelled or rescheduled
+                </p>
+              </div>
+              <div className="flex items-start space-x-3">
+                <div className="w-2 h-2 bg-red-400 rounded-full mt-2 flex-shrink-0"></div>
+                <p className="text-white/60 text-sm">
+                  You may not have permission to access this appointment
+                </p>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="space-y-4">
+              <button
+                onClick={() => router.push("/")}
+                className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg"
+              >
+                Return to Home
+              </button>
+              
+              <button
+                onClick={() => router.push("/contact")}
+                className="w-full bg-white/10 hover:bg-white/20 text-white font-medium py-3 px-6 rounded-xl border border-white/20 transition-all duration-200"
+              >
+                Contact Support
+              </button>
+            </div>
+
+            {/* Help Text */}
+            <p className="text-white/50 text-xs mt-6">
+              Need help? Our support team is available 24/7 to assist you.
+            </p>
+          </div>
+        </div>
       </div>
     );
   }
