@@ -68,6 +68,7 @@ export default function ChatBox({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
 
   // Fetch messages on component mount and when appointmentId changes
   useEffect(() => {
@@ -87,6 +88,18 @@ export default function ChatBox({
     return () => clearInterval(interval);
   }, [appointmentId, isLoading]);
 
+  // Check if user is at bottom of messages
+  const isAtBottom = () => {
+    if (!messagesContainerRef.current) return true;
+    const { scrollTop, scrollHeight, clientHeight } = messagesContainerRef.current;
+    return scrollTop + clientHeight >= scrollHeight - 10; // 10px threshold
+  };
+
+  // Handle scroll events to determine if we should auto-scroll
+  const handleScroll = () => {
+    setShouldAutoScroll(isAtBottom());
+  };
+
   const scrollToBottom = () => {
     if (messagesContainerRef.current) {
       messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
@@ -94,8 +107,20 @@ export default function ChatBox({
   };
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+    // Only auto-scroll if user is at bottom or if it's the first load
+    if (shouldAutoScroll || messages.length === 0) {
+      scrollToBottom();
+    }
+  }, [messages, shouldAutoScroll]);
+
+  // Add scroll event listener
+  useEffect(() => {
+    const container = messagesContainerRef.current;
+    if (container) {
+      container.addEventListener('scroll', handleScroll);
+      return () => container.removeEventListener('scroll', handleScroll);
+    }
+  }, []);
 
   const fetchMessages = async () => {
     if (!appointmentId) return;
@@ -134,6 +159,9 @@ export default function ChatBox({
     try {
       setIsSending(true);
       setError(null);
+
+      // Force auto-scroll when user sends a message
+      setShouldAutoScroll(true);
 
       // Send text message if there's text content
       if (newMessage.trim()) {
