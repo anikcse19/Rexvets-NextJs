@@ -53,14 +53,18 @@ export async function GET(
       //   { veterinarian: new Types.ObjectId(String(userIdToMatch)) },
       //   { petParent: new Types.ObjectId(String(userIdToMatch)) },
       // ],
-    });
-    // .populate("veterinarian")
-    // .populate("petParent")
-    // .populate("pet")
-    // .lean();
+    })
+    .populate("veterinarian", "name email profileImage specialization")
+    .populate("petParent", "name email profileImage phone")
+    .populate("pet", "name species breed age weight gender color image")
+    .lean();
 
-    // console.log("appointment-------------------", appointment);
     console.log("appointment", appointment);
+    if (appointment) {
+      console.log("veterinarian populated:", (appointment as any)?.veterinarian);
+      console.log("petParent populated:", (appointment as any)?.petParent);
+      console.log("pet populated:", (appointment as any)?.pet);
+    }
     if (!appointment) {
       return throwAppError(
         {

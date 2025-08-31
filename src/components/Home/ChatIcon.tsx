@@ -44,16 +44,16 @@ export default function ChatIcon() {
 
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
-  const scrollToBottom = () => {
-    if (messagesContainerRef.current) {
-      messagesContainerRef.current.scrollTop =
-        messagesContainerRef.current.scrollHeight;
-    }
-  };
+  // const scrollToBottom = () => {
+    // if (messagesContainerRef.current) {
+    //   messagesContainerRef.current.scrollTop =
+    //     messagesContainerRef.current.scrollHeight;
+    // }
+  // };
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+  // useEffect(() => {
+  //   // scrollToBottom();
+  // }, [messages]);
 
   // Check if user is logged in or has submitted info
   useEffect(() => {

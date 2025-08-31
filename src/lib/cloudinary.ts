@@ -1,5 +1,21 @@
 import { v2 as cloudinary } from 'cloudinary';
 
+// Check if Cloudinary environment variables are set
+const requiredEnvVars = {
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+};
+
+const missingVars = Object.entries(requiredEnvVars)
+  .filter(([key, value]) => !value)
+  .map(([key]) => key);
+
+if (missingVars.length > 0) {
+  console.error('❌ Missing Cloudinary environment variables:', missingVars);
+  throw new Error(`Missing required Cloudinary environment variables: ${missingVars.join(', ')}`);
+}
+
 // Configure Cloudinary (server-side only)
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -25,6 +41,10 @@ export interface UploadOptions {
   allowed_formats?: string[];
   max_bytes?: number;
   public_id?: string; // Custom filename for Cloudinary
+  access_mode?: 'public' | 'authenticated'; // Access mode for the uploaded file
+  delivery_type?: 'upload' | 'private' | 'authenticated'; // Delivery type
+  type?: 'upload' | 'private' | 'authenticated'; // Upload type
+  unsigned?: boolean; // Force unsigned upload
 }
 
 // Default upload options
@@ -37,7 +57,9 @@ const defaultOptions: UploadOptions = {
 
 // Validate file before upload (client-side safe)
 export const validateFile = (file: File, options: UploadOptions = {}): { valid: boolean; error?: string } => {
-  const { allowed_formats = defaultOptions.allowed_formats, max_bytes = defaultOptions.max_bytes } = options;
+  // Use provided options or defaults, but prioritize provided options
+  const allowed_formats = options.allowed_formats || defaultOptions.allowed_formats;
+  const max_bytes = options.max_bytes || defaultOptions.max_bytes;
   
   // Check file size
   if (file.size > max_bytes!) {
@@ -62,7 +84,7 @@ export const uploadToCloudinary = async (
   
   // Validate file if it's a File object
   if (file instanceof File) {
-    const validation = validateFile(file, uploadOptions);
+    const validation = validateFile(file, options);
     if (!validation.valid) {
       throw new Error(validation.error);
     }
@@ -80,15 +102,29 @@ export const uploadToCloudinary = async (
     }
     
     // Upload to Cloudinary
-    const result = await cloudinary.uploader.upload(fileData, {
+    const uploadParams: any = {
       folder: uploadOptions.folder,
       resource_type: uploadOptions.resource_type,
       transformation: uploadOptions.transformation,
       public_id: uploadOptions.public_id, // Use custom filename if provided
-      use_filename: !uploadOptions.public_id, // Only use filename if no custom public_id
-      unique_filename: !uploadOptions.public_id, // Only use unique filename if no custom public_id
-      overwrite: false,
-    });
+    };
+
+    // Add parameters for signed uploads (default case)
+    if (!uploadOptions.unsigned) {
+      uploadParams.use_filename = !uploadOptions.public_id;
+      uploadParams.unique_filename = !uploadOptions.public_id;
+      uploadParams.overwrite = false;
+      uploadParams.access_mode = uploadOptions.access_mode;
+      uploadParams.delivery_type = uploadOptions.delivery_type;
+      uploadParams.type = uploadOptions.type;
+    }
+
+    // Add unsigned parameter if specified
+    if (uploadOptions.unsigned) {
+      uploadParams.unsigned = true;
+    }
+
+    const result = await cloudinary.uploader.upload(fileData, uploadParams);
     
     return {
       public_id: result.public_id,
@@ -101,8 +137,8 @@ export const uploadToCloudinary = async (
       pages: result.pages,
     };
   } catch (error) {
-    console.error('Cloudinary upload error:', error);
-    throw new Error('Failed to upload file to Cloudinary');
+    console.error('❌ Cloudinary upload error:', error);
+    throw new Error(`Failed to upload file to Cloudinary: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 };
 
