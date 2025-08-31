@@ -40,6 +40,8 @@ const VideoCallContent: React.FC<VideoCallContentProps> = ({ onEndCall }) => {
     endCall,
     switchCamera,
     applyVirtualBackground,
+    veterinarian,
+    profileInfo,
   } = useVideoCall();
 
   // Log when component mounts (only once)
@@ -71,6 +73,7 @@ const VideoCallContent: React.FC<VideoCallContentProps> = ({ onEndCall }) => {
   if (!appointmentDetails && !isLoading) {
     return <ErrorScreen />;
   }
+  console.log("profileInfo", profileInfo);
   return (
     <div
       style={{
@@ -83,7 +86,7 @@ const VideoCallContent: React.FC<VideoCallContentProps> = ({ onEndCall }) => {
         {/* Left Main Section */}
         <div className="flex-1 bg-black/20 backdrop-blur-sm rounded-2xl flex flex-col relative">
           <VideoCallLogo />
-          <VideoCallHeader petParent={petParent} />
+          <VideoCallHeader profile={profileInfo} />
           <VideoCallMainArea
             callState={callState}
             errorMessage={errorMessage}

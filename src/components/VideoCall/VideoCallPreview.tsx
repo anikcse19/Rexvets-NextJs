@@ -91,7 +91,7 @@ const useCountdownTimer = (targetDate: string | null) => {
 
 const VideoCallPreview: React.FC = () => {
   const { data: session } = useSession();
-  console.log("session", session?.user);
+  console.log("session", session?.user.role);
   const userRole = session?.user.role as any;
   const searchParams = useSearchParams();
   const appointmentId = searchParams.get("appointmentId");
@@ -388,26 +388,18 @@ const VideoCallPreview: React.FC = () => {
             <div className="flex flex-col justify-center rounded-2xl p-8 h-[450px]">
               <div className="mb-8">
                 <h1 className="text-3xl md:text-4xl font-semibold text-white leading-tight mb-1">
-                  {userRole === "veterinarian" ||
-                  userRole === "technician" ||
-                  userRole === "admin"
+                  {userRole === "veterinarian"
                     ? "Appointment with"
                     : "Appointment with Dr."}
                 </h1>
                 <h2 className="text-3xl md:text-4xl font-semibold text-white leading-tight mb-1">
-                  {userRole === "veterinarian" ||
-                  userRole === "technician" ||
-                  userRole === "admin"
-                    ? petParentInfo
-                      ? petParentInfo.firstName && petParentInfo.lastName
-                        ? `${petParentInfo.firstName} ${petParentInfo.lastName}`
-                        : petParentInfo.name || "Pet Parent"
-                      : "Loading..."
-                    : veterinarianInfo
-                    ? veterinarianInfo.firstName && veterinarianInfo.lastName
-                      ? `${veterinarianInfo.firstName} ${veterinarianInfo.lastName}`
-                      : veterinarianInfo.name || "Veterinarian"
-                    : "Loading..."}
+                  {userRole === "veterinarian"
+                    ? petParentInfo && petParentInfo.name
+                      ? petParentInfo.name
+                      : "Pet Parent"
+                    : veterinarianInfo && veterinarianInfo.name
+                    ? veterinarianInfo.name
+                    : "Veterinarian"}
                 </h2>
                 {userRole === "veterinarian" &&
                   veterinarianInfo?.specialization && (

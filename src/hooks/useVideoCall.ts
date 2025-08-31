@@ -1,6 +1,6 @@
 "use client";
 import config from "@/config/env.config";
-import { IAppointment, IUser } from "@/models";
+import { IAppointment, IUser, IVeterinarian } from "@/models";
 import AgoraRTC, {
   IAgoraRTCClient,
   ILocalAudioTrack,
@@ -25,6 +25,8 @@ export const useVideoCall = () => {
 
   // State
   const [petParent, setPetParent] = useState<IUser | null>(null);
+  const [veterinarian, setVeterinarian] = useState<IVeterinarian | null>(null);
+  const [profileInfo, setProfileInfo] = useState<IUser | null>(null);
   const [appointmentDetails, setAppointmentDetails] =
     useState<IAppointment | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -128,7 +130,23 @@ export const useVideoCall = () => {
     },
     []
   );
-
+  const fetchVetInfo = async () => {
+    try {
+      if (!vetId) {
+        return;
+      }
+      const res = await fetch(`/api/veterinarian/${vetId}`);
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || "Failed to fetch veterinarian info");
+      }
+      const data = await res.json();
+      setVeterinarian(data.data);
+    } catch (error: any) {
+      toast.error(error?.message || "Failed to fetch veterinarian info");
+      console.error("Error fetching veterinarian info:", error);
+    }
+  };
   // Fetch appointment details
   const getAppointmentDetails = async () => {
     setIsLoading(true);
@@ -154,19 +172,33 @@ export const useVideoCall = () => {
       setIsLoading(false);
     }
   };
+  // fetch my profile
+  const fetchMyProfile = async () => {
+    try {
+      if (!user?.id) {
+        return;
+      }
+      const res = await fetch(`/api/user/profile`);
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || "Failed to fetch my profile");
+      }
+      const data = await res.json();
+      setProfileInfo(data.data);
+    } catch (error: any) {
+      toast.error(error.message || "Failed to fetch my profile");
+      console.error("Error fetching my profile:", error);
+    }
+  };
 
   // Fetch pet parent details
   const getPetParentDetails = async () => {
     setIsLoading(true);
     try {
-      const userId =
-        process.env.NODE_ENV === "development"
-          ? "68a7067782bef66bac0d6b27"
-          : user?.id;
-      if (!user?.refId) {
-        throw new Error("User reference ID is missing");
+      if (!petParentId) {
+        return;
       }
-      const res = await fetch(`/api/user/${userId}`);
+      const res = await fetch(`/api/pet-parent/${petParentId}`);
       if (!res.ok) {
         const error = await res.json();
         throw new Error(error.message || "Failed to fetch pet parent details");
@@ -825,11 +857,18 @@ export const useVideoCall = () => {
     if (user && !isInitializedRef.current) {
       getPetParentDetails();
     }
+    if (user?.id && !isInitializedRef.current) {
+      fetchMyProfile();
+    }
+
+    if (vetId && !isInitializedRef.current) {
+      fetchVetInfo();
+    }
     if (appointmentId && !isInitializedRef.current) {
       getAppointmentDetails();
       isInitializedRef.current = true;
     }
-  }, [appointmentId, user]);
+  }, [appointmentId, user, vetId, isInitializedRef]);
 
   useEffect(() => {
     return () => {
@@ -878,7 +917,9 @@ export const useVideoCall = () => {
     isVirtualBackgroundSupported,
     selectedBackground,
     isProcessingVirtualBg,
-
+    veterinarian,
+    hasExistingReview,
+    profileInfo,
     // Refs
     localVideoRef,
     remoteVideoRef,
