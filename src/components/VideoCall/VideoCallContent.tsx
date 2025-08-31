@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect } from "react";
-import { useVideoCall } from "../../hooks/useVideoCall";
+import { useVideoCall } from "../../hooks/VideoCallContext";
 import PostCallModal from "../PostCallReviewModal";
 import {
   ErrorScreen,

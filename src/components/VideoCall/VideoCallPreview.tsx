@@ -46,6 +46,9 @@ const useCountdownTimer = (targetDate: string | null) => {
   });
 
   useEffect(() => {
+    // Only run on client side
+    if (typeof window === "undefined") return;
+    
     if (!targetDate) return;
 
     const updateTimer = () => {
@@ -116,6 +119,9 @@ const VideoCallPreview: React.FC = () => {
 
   // Check if appointment is more than 30 minutes away
   const isMoreThan30MinutesAway = () => {
+    // Only run on client side
+    if (typeof window === "undefined") return false;
+    
     if (!appointmentDetails?.appointmentDate) return false;
     const now = moment();
     const appointmentTime = moment(appointmentDetails.appointmentDate);
@@ -124,6 +130,9 @@ const VideoCallPreview: React.FC = () => {
   };
 
   const getAppointmentDetails = async () => {
+    // Only run on client side
+    if (typeof window === "undefined") return;
+    
     setIsLoading(true);
     try {
       const res = await fetch(`/api/appointments/${appointmentId}`);
@@ -150,6 +159,9 @@ const VideoCallPreview: React.FC = () => {
   };
 
   const fetchVeterinarianInfo = async (vetId: string) => {
+    // Only run on client side
+    if (typeof window === "undefined") return;
+    
     try {
       const res = await fetch(`/api/veterinarian/${vetId}`);
       if (res.ok) {
@@ -162,6 +174,9 @@ const VideoCallPreview: React.FC = () => {
   };
 
   const fetchPetParentInfo = async (parentId: string) => {
+    // Only run on client side
+    if (typeof window === "undefined") return;
+    
     try {
       const res = await fetch(`/api/pet-parent?id=${parentId}`);
       if (res.ok) {
@@ -174,6 +189,9 @@ const VideoCallPreview: React.FC = () => {
   };
 
   const fetchPetInfo = async (petId: string) => {
+    // Only run on client side
+    if (typeof window === "undefined") return;
+    
     try {
       const res = await fetch(`/api/pet/${petId}`);
       if (res.ok) {
@@ -186,6 +204,9 @@ const VideoCallPreview: React.FC = () => {
   };
 
   useEffect(() => {
+    // Only run on client side
+    if (typeof window === "undefined") return;
+    
     if (appointmentId && !appointmentDetails) {
       getAppointmentDetails();
     }
@@ -193,6 +214,9 @@ const VideoCallPreview: React.FC = () => {
 
   // Format appointment date using convertTimesToUserTimezone
   const formatAppointmentDateTime = () => {
+    // Only run on client side
+    if (typeof window === "undefined") return { date: "", time: "" };
+    
     if (!appointmentDetails?.appointmentDate) return { date: "", time: "" };
 
     const appointmentDate = moment(appointmentDetails.appointmentDate);
@@ -226,6 +250,9 @@ const VideoCallPreview: React.FC = () => {
   console.log("appointment details:", appointmentDetails?.appointmentDate);
 
   const toggleVideo = () => {
+    // Only run on client side
+    if (typeof window === "undefined") return;
+    
     if (!hasInitializedCamera) {
       setHasInitializedCamera(true);
     }
@@ -233,10 +260,16 @@ const VideoCallPreview: React.FC = () => {
   };
 
   const toggleAudio = () => {
+    // Only run on client side
+    if (typeof window === "undefined") return;
+    
     setIsAudioEnabled((prev) => !prev);
   };
 
   const handleJoinVideoCall = () => {
+    // Only run on client side
+    if (typeof window === "undefined") return;
+    
     // if (isMoreThan30MinutesAway()) {
     //   setShowEarlyAccessModal(true);
     // } else {
