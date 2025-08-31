@@ -1,6 +1,9 @@
 // src/app/find-vet/page.tsx
 import { NextPage } from "next";
 
+// Make this page dynamic to avoid build-time API calls
+export const dynamic = "force-dynamic";
+
 // Define the type for a veterinarian (adjust based on your API response)
 interface Veterinarian {
   id: number;
@@ -20,7 +23,7 @@ async function getAvailableVets(): Promise<Veterinarian[]> {
         headers: {
           "Content-Type": "application/json",
         },
-        cache: "no-store",
+        // Remove cache: "no-store" to allow proper caching
       }
     );
 
