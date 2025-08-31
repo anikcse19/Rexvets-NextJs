@@ -1,6 +1,6 @@
 "use client";
 import dynamic from "next/dynamic";
-import React, { Suspense, useEffect, useState } from "react";
+import React, { Suspense } from "react";
 import PostCallModal from "../PostCallReviewModal";
 
 interface VideoCallProps {
@@ -27,17 +27,6 @@ const VideoCallContent = dynamic(
 );
 
 const JoinVideoCall: React.FC<VideoCallProps> = ({ onEndCall }) => {
-  const [isClient, setIsClient] = useState(false);
-
-  useEffect(() => {
-    setIsClient(true);
-    console.log("JoinVideoCall - Component mounted");
-  }, []);
-
-  if (!isClient) {
-    return <AgoraLoadingScreen />;
-  }
-
   return (
     <Suspense fallback={<AgoraLoadingScreen />}>
       <VideoCallContent onEndCall={onEndCall} />

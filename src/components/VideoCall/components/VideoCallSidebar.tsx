@@ -64,98 +64,37 @@ const VIRTUAL_BACKGROUNDS = [
   },
   { id: 6, name: "None", url: "none", image: "/images/Logo.svg" },
 ];
-const virtualBackgrounds: VirtualBackground[] = [
-  {
-    id: "none",
-    name: "No Background",
-    type: "image",
-    value: "none",
-    icon: <FaImage className="w-5 h-5" />,
-  },
-  {
-    id: "blur",
-    name: "Blur Background",
-    type: "blur",
-    value: "blur",
-    icon: <FaPalette className="w-5 h-5" />,
-  },
-  {
-    id: "office",
-    name: "Modern Office",
-    type: "image",
-    value: "/images/donate-page/Texture.webp",
-    icon: <FaBuilding className="w-5 h-5" />,
-    preview: "/images/donate-page/Texture.webp",
-  },
-  {
-    id: "home",
-    name: "Cozy Home",
-    type: "image",
-    value: "/images/mission/dog.webp",
-    icon: <FaHome className="w-5 h-5" />,
-    preview: "/images/mission/dog.webp",
-  },
-  {
-    id: "nature",
-    name: "Nature Scene",
-    type: "image",
-    value: "/images/about/About1.webp",
-    icon: <FaTree className="w-5 h-5" />,
-    preview: "/images/about/About1.webp",
-  },
-  {
-    id: "mountain",
-    name: "Mountain View",
-    type: "image",
-    value: "/images/how-it-works/PrincipalImgWorks.webp",
-    icon: <FaMountain className="w-5 h-5" />,
-    preview: "/images/how-it-works/PrincipalImgWorks.webp",
-  },
-  {
-    id: "ocean",
-    name: "Ocean Waves",
-    type: "image",
-    value: "/images/how-it-works/SecondImg.webp",
-    icon: <FaWater className="w-5 h-5" />,
-    preview: "/images/how-it-works/SecondImg.webp",
-  },
-  {
-    id: "city",
-    name: "City Skyline",
-    type: "image",
-    value: "/images/about/About2.webp",
-    icon: <FaCity className="w-5 h-5" />,
-    preview: "/images/about/About2.webp",
-  },
-  {
-    id: "gradient-blue",
-    name: "Blue Gradient",
-    type: "color",
-    value: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-    icon: <FaPalette className="w-5 h-5" />,
-  },
-  {
-    id: "gradient-purple",
-    name: "Purple Gradient",
-    type: "color",
-    value: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
-    icon: <FaPalette className="w-5 h-5" />,
-  },
-  {
-    id: "gradient-green",
-    name: "Green Gradient",
-    type: "color",
-    value: "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)",
-    icon: <FaPalette className="w-5 h-5" />,
-  },
-  {
-    id: "gradient-orange",
-    name: "Orange Gradient",
-    type: "color",
-    value: "linear-gradient(135deg, #fa709a 0%, #fee140 100%)",
-    icon: <FaPalette className="w-5 h-5" />,
-  },
-];
+// Convert VIRTUAL_BACKGROUNDS to VirtualBackground format
+const virtualBackgrounds: VirtualBackground[] = VIRTUAL_BACKGROUNDS.map((bg) => {
+  if (bg.url === "blur") {
+    return {
+      id: bg.id.toString(),
+      name: bg.name,
+      type: "blur" as const,
+      value: "blur",
+      icon: <FaPalette className="w-5 h-5" />,
+      preview: bg.image,
+    };
+  } else if (bg.url === "none") {
+    return {
+      id: bg.id.toString(),
+      name: bg.name,
+      type: "image" as const,
+      value: "none",
+      icon: <FaImage className="w-5 h-5" />,
+      preview: bg.image,
+    };
+  } else {
+    return {
+      id: bg.id.toString(),
+      name: bg.name,
+      type: "image" as const,
+      value: bg.url,
+      icon: <FaImage className="w-5 h-5" />,
+      preview: bg.image,
+    };
+  }
+});
 const VideoCallSidebar: React.FC<VideoCallSidebarProps> = ({
   onEndCall,
   isVirtualBackgroundSupported,
@@ -270,47 +209,7 @@ const VideoCallSidebar: React.FC<VideoCallSidebarProps> = ({
             </div>
           )}
 
-          {/* <div className="grid grid-cols-2 gap-1.5">
-            {VIRTUAL_BACKGROUNDS.map((bg) => (
-              <div
-                key={bg.id}
-                className={`group relative flex flex-col items-center cursor-pointer p-1.5 rounded-lg transition-all duration-300 transform hover:scale-105 ${
-                  selectedBackground === bg.url
-                    ? "bg-gradient-to-br from-purple-500/20 to-pink-500/20 border-2 border-purple-400/50 shadow-lg shadow-purple-500/25"
-                    : "bg-white/10 hover:bg-white/20 border border-white/20 hover:border-white/30"
-                }`}
-                onClick={() => onApplyVirtualBackground(bg.url)}
-              >
-                <div className="relative w-[40px] h-[40px] rounded-lg overflow-hidden mb-1 group-hover:shadow-lg transition-all duration-300">
-                  <NextImage
-                    src={bg.image}
-                    alt={bg.name}
-                    width={40}
-                    height={40}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                    quality={90}
-                    priority={bg.id <= 3}
-                  />
-                  {selectedBackground === bg.url && (
-                    <div className="absolute inset-0 bg-gradient-to-t from-purple-500/30 to-transparent flex items-end justify-center pb-1">
-                      <div className="bg-purple-500 text-white px-1 py-0.5 rounded-full text-xs font-semibold">
-                        ✓
-                      </div>
-                    </div>
-                  )}
-                </div>
-                <span
-                  className={`text-xs font-medium transition-colors duration-300 text-center ${
-                    selectedBackground === bg.url
-                      ? "text-purple-300"
-                      : "text-gray-300 group-hover:text-white"
-                  }`}
-                >
-                  {bg.name}
-                </span>
-              </div>
-            ))}
-          </div> */}
+
           <div className="grid grid-cols-2 gap-4">
             {virtualBackgrounds.map((background) => (
               <div
@@ -326,6 +225,9 @@ const VideoCallSidebar: React.FC<VideoCallSidebarProps> = ({
                 } ${
                   isProcessingVirtualBg ? "opacity-50 cursor-not-allowed" : ""
                 }`}
+                style={{
+                  pointerEvents: isProcessingVirtualBg ? "none" : "auto"
+                }}
               >
                 {/* Background Preview */}
                 <div className="aspect-video relative">
@@ -358,20 +260,24 @@ const VideoCallSidebar: React.FC<VideoCallSidebarProps> = ({
                     </p>
                   </div>
 
-                  {/* Selected indicator */}
+                  {/* Selected indicator or loading indicator */}
                   {selectedBackground === background.value && (
                     <div className="absolute top-2 right-2 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
-                      <svg
-                        className="w-4 h-4 text-white"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
+                      {isProcessingVirtualBg ? (
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      ) : (
+                        <svg
+                          className="w-4 h-4 text-white"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      )}
                     </div>
                   )}
                 </div>

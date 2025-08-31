@@ -47,9 +47,45 @@ export const useVideoCall = () => {
   const [selectedBackground, setSelectedBackground] = useState<string | null>(
     null
   );
-  const [isProcessingVirtualBg, setIsProcessingVirtualBg] = useState(false);
+     const [isProcessingVirtualBg, setIsProcessingVirtualBg] = useState(false);
 
-  // Refs
+   // Helper function to clean up virtual background processor
+   const cleanupVirtualBackgroundProcessor = useCallback(async () => {
+     if (virtualBackgroundProcessor.current && localVideoTrack.current) {
+       try {
+         // First disable the processor
+         await virtualBackgroundProcessor.current.disable();
+       } catch (error) {
+         console.warn("Error disabling virtual background processor:", error);
+       }
+       
+       try {
+         // Unpipe the processor from the video track
+         virtualBackgroundProcessor.current.unpipe();
+       } catch (error) {
+         console.warn("Error unpiping virtual background processor:", error);
+       }
+       
+       try {
+         // Unpipe the video track from the processor
+         (localVideoTrack.current as any).unpipe();
+       } catch (error) {
+         console.warn("Error unpiping video track:", error);
+       }
+       
+       try {
+         // Unpipe the processor destination if it exists
+         if ((localVideoTrack.current as any).processorDestination) {
+           (localVideoTrack.current as any).processorDestination.unpipe();
+         }
+       } catch (error) {
+         console.warn("Error unpiping processor destination:", error);
+       }
+     }
+     virtualBackgroundProcessor.current = null;
+   }, []);
+
+   // Refs
   const client = useRef<IAgoraRTCClient | null>(null);
   const localVideoTrack = useRef<ILocalVideoTrack | null>(null);
   const localAudioTrack = useRef<ILocalAudioTrack | null>(null);
@@ -60,6 +96,7 @@ export const useVideoCall = () => {
   const isJoinedRef = useRef(false);
   const vbExtensionRef = useRef<any>(null);
   const virtualBackgroundProcessor = useRef<any>(null);
+  const isInitializedRef = useRef(false);
 
   // Generate unique UID
   const [uid] = useState(Math.floor(Math.random() * 100000));
@@ -165,10 +202,19 @@ export const useVideoCall = () => {
     []
   );
 
-  // Apply virtual background
-  const applyVirtualBackground = useCallback(
-    async (backgroundType: string | null) => {
-      if (!localVideoTrack.current) return;
+     // Apply virtual background
+   const applyVirtualBackground = useCallback(
+     async (backgroundType: string | null) => {
+       if (!localVideoTrack.current) {
+         console.warn("No local video track available for virtual background");
+         return;
+       }
+       
+       // Check if video track is enabled
+       if (!localVideoTrack.current.enabled) {
+         console.warn("Video track is disabled, cannot apply virtual background");
+         return;
+       }
       setIsProcessingVirtualBg(true);
       setSelectedBackground(backgroundType);
       try {
@@ -184,55 +230,214 @@ export const useVideoCall = () => {
           AgoraRTC.registerExtensions([ext]);
           vbExtensionRef.current = ext;
         }
-        if (virtualBackgroundProcessor.current) {
-          try {
-            await virtualBackgroundProcessor.current.disable();
-          } catch {}
-          try {
-            (localVideoTrack.current as any).unpipe();
-            virtualBackgroundProcessor.current.unpipe();
-          } catch {}
-          virtualBackgroundProcessor.current = null;
-        }
-        if (!backgroundType || backgroundType === "none") {
-          setIsProcessingVirtualBg(false);
-          return;
-        }
-        const processor = vbExtensionRef.current.createProcessor();
-        await processor.init();
-        (localVideoTrack.current as any)
-          .pipe(processor)
-          .pipe((localVideoTrack.current as any).processorDestination);
-        if (backgroundType === "blur") {
+                          // Clean up any existing virtual background processor
+         await cleanupVirtualBackgroundProcessor();
+         
+         // Small delay to ensure cleanup is complete
+         await new Promise(resolve => setTimeout(resolve, 50));
+         
+         if (!backgroundType || backgroundType === "none") {
+           setIsProcessingVirtualBg(false);
+           return;
+         }
+                          const processor = vbExtensionRef.current.createProcessor();
+         await processor.init();
+         
+         // Ensure clean piping by unpiping any existing connections first
+         try {
+           // Unpipe the video track from any existing processors
+           (localVideoTrack.current as any).unpipe();
+         } catch (error) {
+           console.warn("Error unpiping video track before new processor:", error);
+         }
+         
+         try {
+           // Unpipe the processor destination if it exists
+           if ((localVideoTrack.current as any).processorDestination) {
+             (localVideoTrack.current as any).processorDestination.unpipe();
+           }
+         } catch (error) {
+           console.warn("Error unpiping processor destination before new processor:", error);
+         }
+         
+         // Create the new pipe chain
+         try {
+           // First pipe the video track to the processor
+           (localVideoTrack.current as any).pipe(processor);
+           
+           // Then pipe the processor to the destination
+           if ((localVideoTrack.current as any).processorDestination) {
+             processor.pipe((localVideoTrack.current as any).processorDestination);
+           } else {
+             console.warn("No processor destination found, virtual background may not work properly");
+           }
+         } catch (pipeError) {
+           console.error("Error creating pipe chain:", pipeError);
+           // If piping fails, try to clean up and throw error
+           await cleanupVirtualBackgroundProcessor();
+           throw new Error("Failed to set up virtual background processing pipeline");
+         }
+         
+         // Small delay to ensure pipe chain is established
+         await new Promise(resolve => setTimeout(resolve, 100));
+         
+         if (backgroundType === "blur") {
           await processor.setOptions({ type: "blur", blurDegree: 2 });
-        } else {
+        } else if (backgroundType.startsWith("linear-gradient")) {
+          // Handle color gradients by creating a canvas with the gradient
           await new Promise<void>((resolve, reject) => {
             if (typeof window === "undefined") {
               reject(new Error("Window is undefined"));
               return;
             }
-            const img = new window.Image();
-            img.crossOrigin = "anonymous";
-            img.onload = async () => {
-              try {
-                await processor.setOptions({ type: "img", source: img });
-                resolve();
-              } catch (e) {
-                reject(e);
+            
+            const canvas = document.createElement('canvas');
+            canvas.width = 1920;
+            canvas.height = 1080;
+            const ctx = canvas.getContext('2d');
+            
+            if (!ctx) {
+              reject(new Error("Failed to get canvas context"));
+              return;
+            }
+            
+            // Create gradient
+            const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+            
+                         // Parse the linear-gradient string
+             const gradientMatch = backgroundType.match(/linear-gradient\(([^)]+)\)/);
+             if (!gradientMatch) {
+               reject(new Error("Invalid gradient format"));
+               return;
+             }
+             
+             const gradientStr = gradientMatch[1];
+             console.log('Original gradient string:', gradientStr);
+             
+             // Remove the angle/direction part (e.g., "135deg") and split by commas
+             const colorStopsStr = gradientStr.replace(/^\d+deg\s*/, '');
+             console.log('Color stops string:', colorStopsStr);
+             const colorStops = colorStopsStr.split(',').map(s => s.trim());
+             console.log('Parsed color stops:', colorStops);
+             
+             // Extract colors and positions
+             const colors = [];
+             for (let i = 0; i < colorStops.length; i++) {
+               const stop = colorStops[i];
+               if (stop.includes('%')) {
+                 // Handle color stops with percentages like "#667eea 0%"
+                 const parts = stop.split(/\s+/);
+                 if (parts.length >= 2) {
+                   const color = parts[0];
+                   const position = parseFloat(parts[1]) / 100;
+                   colors.push({ color, position });
+                 } else {
+                   colors.push({ color: stop, position: i / (colorStops.length - 1) });
+                 }
+               } else {
+                 // Handle color stops without percentages
+                 colors.push({ color: stop, position: i / (colorStops.length - 1) });
+               }
+             }
+            
+                         // Add gradient stops
+             colors.forEach(({ color, position }) => {
+               console.log(`Adding gradient stop: color=${color}, position=${position}`);
+               // Validate color format
+               if (!color || typeof color !== 'string') {
+                 throw new Error(`Invalid color: ${color}`);
+               }
+               // Ensure position is between 0 and 1
+               const validPosition = Math.max(0, Math.min(1, position));
+               gradient.addColorStop(validPosition, color);
+             });
+            
+            // Fill canvas with gradient
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Convert canvas to image
+            canvas.toBlob((blob) => {
+              if (!blob) {
+                reject(new Error("Failed to create gradient image"));
+                return;
               }
-            };
-            img.onerror = () =>
-              reject(new Error("Failed to load background image"));
-            img.src = backgroundType;
+              
+              const img = new window.Image();
+              img.onload = async () => {
+                try {
+                  await processor.setOptions({ type: "img", source: img });
+                  resolve();
+                } catch (e) {
+                  reject(e);
+                }
+              };
+              img.onerror = () => reject(new Error("Failed to load gradient image"));
+              img.src = URL.createObjectURL(blob);
+            }, 'image/png');
           });
-        }
+                 } else {
+           // Handle regular image backgrounds
+           await new Promise<void>((resolve, reject) => {
+             if (typeof window === "undefined") {
+               reject(new Error("Window is undefined"));
+               return;
+             }
+             const img = new window.Image();
+             img.crossOrigin = "anonymous";
+             img.onload = async () => {
+               try {
+                 await processor.setOptions({ type: "img", source: img });
+                 resolve();
+               } catch (e) {
+                 reject(e);
+               }
+             };
+             img.onerror = () => {
+               console.error("Failed to load image:", backgroundType);
+               reject(new Error("Failed to load background image"));
+             };
+             
+             // Handle both absolute URLs and relative paths
+             let imageUrl = backgroundType;
+             if (backgroundType.startsWith('/')) {
+               // Convert relative path to absolute URL
+               imageUrl = window.location.origin + backgroundType;
+             }
+             
+             console.log("Loading background image:", imageUrl);
+             img.src = imageUrl;
+           });
+         }
         await processor.enable();
         virtualBackgroundProcessor.current = processor;
+        
+                 // Show success message
+         if (backgroundType === "blur") {
+           toast.success("Blur background applied successfully");
+         } else if (backgroundType.startsWith("linear-gradient")) {
+           toast.success("Gradient background applied successfully");
+         } else if (backgroundType === "none") {
+           toast.success("Background removed successfully");
+         } else {
+           toast.success("Image background applied successfully");
+         }
       } catch (error) {
         console.error("Failed to apply virtual background:", error);
-        setErrorMessage(
-          "Failed to apply virtual background. Please try again."
-        );
+        const errorMessage = error instanceof Error ? error.message : "Unknown error";
+        
+                 if (errorMessage.includes("Failed to load background image")) {
+           setErrorMessage("Background image could not be loaded. Please try a different background.");
+         } else if (errorMessage.includes("Invalid gradient format")) {
+           setErrorMessage("Invalid background format. Please try a different background.");
+         } else if (errorMessage.includes("Failed to set up virtual background processing pipeline")) {
+           setErrorMessage("Failed to initialize virtual background. Please try again.");
+         } else {
+           setErrorMessage("Failed to apply virtual background. Please try again.");
+         }
+        
+        // Reset the selected background on error
+        setSelectedBackground(null);
       } finally {
         setIsProcessingVirtualBg(false);
       }
@@ -574,11 +779,12 @@ export const useVideoCall = () => {
   }, [clientInitialized, joinCall]);
 
   useEffect(() => {
-    if (user) {
+    if (user && !isInitializedRef.current) {
       getPetParentDetails();
     }
-    if (appointmentId) {
+    if (appointmentId && !isInitializedRef.current) {
       getAppointmentDetails();
+      isInitializedRef.current = true;
     }
   }, [appointmentId, user]);
 
@@ -586,16 +792,7 @@ export const useVideoCall = () => {
     return () => {
       const cleanupAgora = async () => {
         try {
-          if (virtualBackgroundProcessor.current && localVideoTrack.current) {
-            try {
-              await virtualBackgroundProcessor.current.disable();
-            } catch {}
-            try {
-              (localVideoTrack.current as any).unpipe();
-              virtualBackgroundProcessor.current.unpipe();
-            } catch {}
-          }
-          virtualBackgroundProcessor.current = null;
+          await cleanupVirtualBackgroundProcessor();
           if (localVideoTrack.current) {
             localVideoTrack.current.stop();
             localVideoTrack.current.close();
@@ -612,6 +809,7 @@ export const useVideoCall = () => {
             client.current = null;
           }
           isJoinedRef.current = false;
+          isInitializedRef.current = false;
           remoteUsers.current = {};
           setRemoteUsersState({});
         } catch (error) {

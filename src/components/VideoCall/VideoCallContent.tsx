@@ -42,16 +42,7 @@ const VideoCallContent: React.FC<VideoCallContentProps> = ({ onEndCall }) => {
     applyVirtualBackground,
   } = useVideoCall();
 
-  // Log current state for debugging
-  useEffect(() => {
-    console.log("VideoCallContent - Current state:", {
-      isVideoEnabled,
-      isAudioEnabled,
-      selectedBackground,
-    });
-  }, [isVideoEnabled, isAudioEnabled, selectedBackground]);
-
-  // Log when component mounts
+  // Log when component mounts (only once)
   useEffect(() => {
     console.log("VideoCallContent - Component mounted with initial state:", {
       isVideoEnabled,
@@ -71,16 +62,7 @@ const VideoCallContent: React.FC<VideoCallContentProps> = ({ onEndCall }) => {
     }, 100);
 
     return () => clearTimeout(timer);
-  }, []);
-
-  // Log when video state changes
-  useEffect(() => {
-    console.log("VideoCallContent - Video state changed:", {
-      isVideoEnabled,
-      localVideoTrack: !!localVideoTrack.current,
-      localVideoRef: !!localVideoRef.current,
-    });
-  }, [isVideoEnabled, localVideoTrack.current, localVideoRef.current]);
+  }, []); // Empty dependency array to run only once
 
   if (isLoading) {
     return <LoadingScreen />;
