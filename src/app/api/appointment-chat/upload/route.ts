@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { connectDB } from "@/lib/db";
+import { connectToDatabase } from "@/lib/mongoose";
 import { AppointmentModel } from "@/models/Appointment";
 import { uploadToCloudinary, validateFile } from "@/lib/cloudinary";
 
@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Connect to database
-    await connectDB();
+    await connectToDatabase();
 
     // Parse form data
     const formData = await req.formData();
@@ -114,8 +114,6 @@ export async function POST(req: NextRequest) {
       const uploadResult = await uploadToCloudinary(file, {
         ...uploadConfig,
         public_id: prefixedFilename,
-        max_bytes: fileValidation.max_bytes || 10 * 1024 * 1024,
-        allowed_formats: fileValidation.allowed_formats || ["jpg", "jpeg", "png", "gif", "webp"],
       });
 
       return NextResponse.json({
