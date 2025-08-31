@@ -1,9 +1,7 @@
 "use client";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import NextImage from "next/image";
 import {
   FaBuilding,
   FaCity,
@@ -265,7 +263,8 @@ const VideoCallSidebar: React.FC<VideoCallSidebarProps> = ({
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
                 <span className="text-yellow-400 text-xs font-medium">
-                  Virtual background is not supported on your device/browser. Try using Chrome or Edge for best compatibility.
+                  Virtual background is not supported on your device/browser.
+                  Try using Chrome or Edge for best compatibility.
                 </span>
               </div>
             </div>
@@ -316,12 +315,17 @@ const VideoCallSidebar: React.FC<VideoCallSidebarProps> = ({
             {virtualBackgrounds.map((background) => (
               <div
                 key={background.id}
-                onClick={() => !isProcessingVirtualBg && onApplyVirtualBackground(background.value)}
+                onClick={() =>
+                  !isProcessingVirtualBg &&
+                  onApplyVirtualBackground(background.value)
+                }
                 className={`relative cursor-pointer rounded-xl overflow-hidden transition-all duration-300 transform hover:scale-105 ${
                   selectedBackground === background.value
                     ? "ring-2 ring-blue-400 ring-offset-2 ring-offset-black"
                     : "hover:ring-2 hover:ring-white/30"
-                } ${isProcessingVirtualBg ? "opacity-50 cursor-not-allowed" : ""}`}
+                } ${
+                  isProcessingVirtualBg ? "opacity-50 cursor-not-allowed" : ""
+                }`}
               >
                 {/* Background Preview */}
                 <div className="aspect-video relative">

@@ -23,9 +23,5 @@ function LoadingFallback() {
 }
 
 export default function VideoCall() {
-  return (
-    <Suspense fallback={<LoadingFallback />}>
-      <VideoCallContent />
-    </Suspense>
-  );
+  return <VideoCallContent />;
 }

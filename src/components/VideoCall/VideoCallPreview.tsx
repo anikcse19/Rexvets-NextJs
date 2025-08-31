@@ -188,26 +188,10 @@ const VideoCallPreview: React.FC = () => {
     }
   };
 
-  const fetchPetInfo = async (petId: string) => {
-    // Only run on client side
-    if (typeof window === "undefined") return;
-
-    try {
-      const res = await fetch(`/api/pet/${petId}`);
-      if (res.ok) {
-        const data = await res.json();
-        setPetInfo(data?.data);
-      }
-    } catch (error) {
-      console.error("Failed to fetch pet info:", error);
-    }
-  };
-
   useEffect(() => {
     // Only run on client side
     if (typeof window === "undefined") return;
     if (petParentId) {
-      alert(petParentId);
       fetchPetParentInfo(petParentId);
     }
     if (vetId) {
