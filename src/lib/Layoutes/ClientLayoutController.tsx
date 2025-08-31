@@ -2,7 +2,6 @@
 
 import { Footer } from "@/components/Footer";
 import Header from "@/components/Navbar";
-import { VideoCallProvider } from "@/hooks/VideoCallContext";
 import { SessionProvider } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import React, { ReactNode, useMemo } from "react";
@@ -34,14 +33,9 @@ export default function LayoutController({
 
   return (
     <SessionProvider>
-      <VideoCallProvider>
-
-
       {!hideLayout && <Header />}
       <main className="overflow-x-hidden">{children}</main>
       {!hideLayout && <Footer />}
-
-      </VideoCallProvider>
     </SessionProvider>
   );
 }

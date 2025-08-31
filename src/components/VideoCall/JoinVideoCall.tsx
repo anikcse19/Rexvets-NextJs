@@ -1,5 +1,4 @@
 "use client";
-import { VideoCallProvider } from "@/hooks/VideoCallContext";
 import dynamic from "next/dynamic";
 import React, { Suspense, useEffect, useState } from "react";
 import PostCallModal from "../PostCallReviewModal";
@@ -19,16 +18,20 @@ const AgoraLoadingScreen = () => (
 );
 
 // Dynamically import the VideoCallContent component to prevent SSR issues
-const VideoCallContent = dynamic(() => import("./VideoCallContent").then(mod => mod.default), {
-  ssr: false,
-  loading: () => <AgoraLoadingScreen />,
-});
+const VideoCallContent = dynamic(
+  () => import("./VideoCallContent").then((mod) => mod.default),
+  {
+    ssr: false,
+    loading: () => <AgoraLoadingScreen />,
+  }
+);
 
-const VideoCall: React.FC<VideoCallProps> = ({ onEndCall }) => {
+const JoinVideoCall: React.FC<VideoCallProps> = ({ onEndCall }) => {
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
+    console.log("JoinVideoCall - Component mounted");
   }, []);
 
   if (!isClient) {
@@ -36,12 +39,10 @@ const VideoCall: React.FC<VideoCallProps> = ({ onEndCall }) => {
   }
 
   return (
-    <VideoCallProvider>
-      <Suspense fallback={<AgoraLoadingScreen />}>
-        <VideoCallContent onEndCall={onEndCall} />
-      </Suspense>
-    </VideoCallProvider>
+    <Suspense fallback={<AgoraLoadingScreen />}>
+      <VideoCallContent onEndCall={onEndCall} />
+    </Suspense>
   );
 };
 
-export default VideoCall;
+export default JoinVideoCall;

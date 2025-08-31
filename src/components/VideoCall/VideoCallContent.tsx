@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useEffect } from "react";
 import { useVideoCall } from "../../hooks/useVideoCall";
 import PostCallModal from "../PostCallReviewModal";
 import {
@@ -31,6 +31,7 @@ const VideoCallContent: React.FC<VideoCallContentProps> = ({ onEndCall }) => {
     remoteUsersState,
     isVirtualBackgroundSupported,
     selectedBackground,
+    isProcessingVirtualBg,
     localVideoRef,
     remoteVideoRef,
     localVideoTrack,
@@ -41,6 +42,46 @@ const VideoCallContent: React.FC<VideoCallContentProps> = ({ onEndCall }) => {
     applyVirtualBackground,
   } = useVideoCall();
 
+  // Log current state for debugging
+  useEffect(() => {
+    console.log("VideoCallContent - Current state:", {
+      isVideoEnabled,
+      isAudioEnabled,
+      selectedBackground,
+    });
+  }, [isVideoEnabled, isAudioEnabled, selectedBackground]);
+
+  // Log when component mounts
+  useEffect(() => {
+    console.log("VideoCallContent - Component mounted with initial state:", {
+      isVideoEnabled,
+      isAudioEnabled,
+    });
+
+    // Force a re-render of the video after a short delay to ensure it's displayed
+    const timer = setTimeout(() => {
+      if (localVideoTrack.current && localVideoRef.current) {
+        try {
+          localVideoTrack.current.play(localVideoRef.current);
+          console.log("Video re-displayed after mount");
+        } catch (error) {
+          console.error("Error re-displaying video after mount:", error);
+        }
+      }
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Log when video state changes
+  useEffect(() => {
+    console.log("VideoCallContent - Video state changed:", {
+      isVideoEnabled,
+      localVideoTrack: !!localVideoTrack.current,
+      localVideoRef: !!localVideoRef.current,
+    });
+  }, [isVideoEnabled, localVideoTrack.current, localVideoRef.current]);
+
   if (isLoading) {
     return <LoadingScreen />;
   }
@@ -48,7 +89,6 @@ const VideoCallContent: React.FC<VideoCallContentProps> = ({ onEndCall }) => {
   if (!appointmentDetails && !isLoading) {
     return <ErrorScreen />;
   }
-  console.log("appointmentDetails", appointmentDetails);
   return (
     <div
       style={{
@@ -93,6 +133,7 @@ const VideoCallContent: React.FC<VideoCallContentProps> = ({ onEndCall }) => {
           onApplyVirtualBackground={applyVirtualBackground}
           petParent={petParent}
           reasonForAppointment={appointmentDetails?.concerns}
+          isProcessingVirtualBg={isProcessingVirtualBg}
         />
       </div>
 

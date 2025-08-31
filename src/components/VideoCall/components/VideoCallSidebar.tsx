@@ -23,6 +23,7 @@ interface VideoCallSidebarProps {
   onApplyVirtualBackground: (backgroundType: string | null) => void;
   petParent: any;
   reasonForAppointment?: string[];
+  isProcessingVirtualBg?: boolean;
 }
 interface VirtualBackground {
   id: string;
@@ -84,61 +85,49 @@ const virtualBackgrounds: VirtualBackground[] = [
     id: "office",
     name: "Modern Office",
     type: "image",
-    value:
-      "https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&h=600&fit=crop",
+    value: "/images/donate-page/Texture.webp",
     icon: <FaBuilding className="w-5 h-5" />,
-    preview:
-      "https://images.unsplash.com/photo-1497366216548-37526070297c?w=200&h=150&fit=crop",
+    preview: "/images/donate-page/Texture.webp",
   },
   {
     id: "home",
     name: "Cozy Home",
     type: "image",
-    value:
-      "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=800&h=600&fit=crop",
+    value: "/images/mission/dog.webp",
     icon: <FaHome className="w-5 h-5" />,
-    preview:
-      "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=200&h=150&fit=crop",
+    preview: "/images/mission/dog.webp",
   },
   {
     id: "nature",
     name: "Nature Scene",
     type: "image",
-    value:
-      "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop",
+    value: "/images/about/About1.webp",
     icon: <FaTree className="w-5 h-5" />,
-    preview:
-      "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=200&h=150&fit=crop",
+    preview: "/images/about/About1.webp",
   },
   {
     id: "mountain",
     name: "Mountain View",
     type: "image",
-    value:
-      "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop",
+    value: "/images/how-it-works/PrincipalImgWorks.webp",
     icon: <FaMountain className="w-5 h-5" />,
-    preview:
-      "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=200&h=150&fit=crop",
+    preview: "/images/how-it-works/PrincipalImgWorks.webp",
   },
   {
     id: "ocean",
     name: "Ocean Waves",
     type: "image",
-    value:
-      "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop",
+    value: "/images/how-it-works/SecondImg.webp",
     icon: <FaWater className="w-5 h-5" />,
-    preview:
-      "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=200&h=150&fit=crop",
+    preview: "/images/how-it-works/SecondImg.webp",
   },
   {
     id: "city",
     name: "City Skyline",
     type: "image",
-    value:
-      "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=800&h=600&fit=crop",
+    value: "/images/about/About2.webp",
     icon: <FaCity className="w-5 h-5" />,
-    preview:
-      "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=200&h=150&fit=crop",
+    preview: "/images/about/About2.webp",
   },
   {
     id: "gradient-blue",
@@ -176,6 +165,7 @@ const VideoCallSidebar: React.FC<VideoCallSidebarProps> = ({
   onApplyVirtualBackground,
   petParent,
   reasonForAppointment,
+  isProcessingVirtualBg = false,
 }) => {
   return (
     <ScrollArea className="md:w-[30%] hidden md:block   h-full">
@@ -255,9 +245,17 @@ const VideoCallSidebar: React.FC<VideoCallSidebarProps> = ({
 
         {/* Virtual Background Section */}
         <div className="mb-4">
-          <h4 className="text-white font-semibold mb-2 text-base">
-            Virtual Background
-          </h4>
+          <div className="flex items-center justify-between mb-2">
+            <h4 className="text-white font-semibold text-base">
+              Virtual Background
+            </h4>
+            {isProcessingVirtualBg && (
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-blue-500 rounded-full animate-spin"></div>
+                <span className="text-blue-400 text-xs">Processing...</span>
+              </div>
+            )}
+          </div>
           <p className="text-gray-300 text-xs mb-2">
             Choose a beautiful background to enhance your video call experience
           </p>
@@ -267,7 +265,7 @@ const VideoCallSidebar: React.FC<VideoCallSidebarProps> = ({
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
                 <span className="text-yellow-400 text-xs font-medium">
-                  Virtual background is not supported on your device/browser
+                  Virtual background is not supported on your device/browser. Try using Chrome or Edge for best compatibility.
                 </span>
               </div>
             </div>
@@ -318,12 +316,12 @@ const VideoCallSidebar: React.FC<VideoCallSidebarProps> = ({
             {virtualBackgrounds.map((background) => (
               <div
                 key={background.id}
-                onClick={() => onApplyVirtualBackground(background.value)}
+                onClick={() => !isProcessingVirtualBg && onApplyVirtualBackground(background.value)}
                 className={`relative cursor-pointer rounded-xl overflow-hidden transition-all duration-300 transform hover:scale-105 ${
-                  selectedBackground === background.id
+                  selectedBackground === background.value
                     ? "ring-2 ring-blue-400 ring-offset-2 ring-offset-black"
                     : "hover:ring-2 hover:ring-white/30"
-                }`}
+                } ${isProcessingVirtualBg ? "opacity-50 cursor-not-allowed" : ""}`}
               >
                 {/* Background Preview */}
                 <div className="aspect-video relative">
@@ -357,7 +355,7 @@ const VideoCallSidebar: React.FC<VideoCallSidebarProps> = ({
                   </div>
 
                   {/* Selected indicator */}
-                  {selectedBackground === background.id && (
+                  {selectedBackground === background.value && (
                     <div className="absolute top-2 right-2 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
                       <svg
                         className="w-4 h-4 text-white"
