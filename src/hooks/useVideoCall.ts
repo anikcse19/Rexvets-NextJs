@@ -193,7 +193,6 @@ export const useVideoCall = () => {
 
   // Fetch pet parent details
   const getPetParentDetails = async () => {
-    setIsLoading(true);
     try {
       if (!petParentId) {
         return;

@@ -1,5 +1,6 @@
 "use client";
 import { useVideoCall } from "@/hooks/useVideoCall";
+import { useSession } from "next-auth/react";
 import React, { useEffect } from "react";
 import PostCallModal from "../PostCallReviewModal";
 import {
@@ -43,6 +44,8 @@ const VideoCallContent: React.FC<VideoCallContentProps> = ({ onEndCall }) => {
     veterinarian,
     profileInfo,
   } = useVideoCall();
+  const { data: session } = useSession();
+  const userRole = session?.user?.role;
 
   // Log when component mounts (only once)
   useEffect(() => {
@@ -110,19 +113,22 @@ const VideoCallContent: React.FC<VideoCallContentProps> = ({ onEndCall }) => {
             selectedBackground={selectedBackground}
             isVirtualBackgroundSupported={isVirtualBackgroundSupported}
             isProcessingVirtualBg={isProcessingVirtualBg}
+            userRole={userRole as string}
           />
         </div>
 
         {/* Right Sidebar */}
-        <VideoCallSidebar
-          onEndCall={onEndCall || endCall}
-          isVirtualBackgroundSupported={isVirtualBackgroundSupported}
-          selectedBackground={selectedBackground}
-          onApplyVirtualBackground={applyVirtualBackground}
-          petParent={petParent}
-          reasonForAppointment={appointmentDetails?.concerns}
-          isProcessingVirtualBg={isProcessingVirtualBg}
-        />
+        {userRole === "veterinarian" && (
+          <VideoCallSidebar
+            onEndCall={onEndCall || endCall}
+            isVirtualBackgroundSupported={isVirtualBackgroundSupported}
+            selectedBackground={selectedBackground}
+            onApplyVirtualBackground={applyVirtualBackground}
+            petParent={petParent}
+            reasonForAppointment={appointmentDetails?.concerns}
+            isProcessingVirtualBg={isProcessingVirtualBg}
+          />
+        )}
       </div>
 
       <PostCallModal

@@ -31,6 +31,7 @@ interface VideoCallControlsProps {
   selectedBackground: string | null;
   isVirtualBackgroundSupported: boolean;
   isProcessingVirtualBg?: boolean;
+  userRole: string;
 }
 interface VirtualBackground {
   id: string;
@@ -117,6 +118,7 @@ const VideoCallControls: React.FC<VideoCallControlsProps> = ({
   selectedBackground,
   isVirtualBackgroundSupported,
   isProcessingVirtualBg = false,
+  userRole,
 }) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
@@ -298,15 +300,17 @@ const VideoCallControls: React.FC<VideoCallControlsProps> = ({
         )}
 
         {/* Mobile Menu Button - Show for mobile devices when virtual backgrounds are supported */}
-        {isVirtualBackgroundSupported && (
-          <Sheet open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
-            <SheetTrigger asChild>
-              <Button className="md:hidden w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 flex items-center justify-center transition-all duration-300 shadow-lg hover:shadow-xl">
-                <HiDotsHorizontal className="text-white text-base" />
-              </Button>
-            </SheetTrigger>
-          </Sheet>
-        )}
+        {isVirtualBackgroundSupported &&
+          userRole &&
+          userRole === "veterinarian" && (
+            <Sheet open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
+              <SheetTrigger asChild>
+                <Button className="md:hidden w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 flex items-center justify-center transition-all duration-300 shadow-lg hover:shadow-xl">
+                  <HiDotsHorizontal className="text-white text-base" />
+                </Button>
+              </SheetTrigger>
+            </Sheet>
+          )}
       </div>
     </div>
   );
