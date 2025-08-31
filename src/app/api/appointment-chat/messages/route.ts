@@ -2,9 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { connectToDatabase } from "@/lib/mongoose";
-import { AppointmentChatModel } from "@/models/AppointmentChat";
-import { AppointmentModel } from "@/models/Appointment";
-import { PetModel } from "@/models/Pet";
+import { 
+  AppointmentChatModel, 
+  AppointmentModel, 
+  PetModel, 
+  PetParentModel, 
+  VeterinarianModel 
+} from "@/models";
 import { z } from "zod";
 import type { Session } from "next-auth";
 

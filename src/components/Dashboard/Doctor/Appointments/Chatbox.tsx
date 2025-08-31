@@ -253,7 +253,7 @@ export default function ChatBox({
 
       {/* Messages Area */}
       <CardContent className="p-0 overflow-hidden">
-        <div ref={messagesContainerRef} className="h-full overflow-y-auto p-4 space-y-4">
+        <div ref={messagesContainerRef} className="h-full overflow-y-auto p-4 pb-8 space-y-4">
           {isLoading && messages.length === 0 && (
             <div className="flex items-center justify-center h-32">
               <Loader2 className="w-6 h-6 animate-spin text-teal-600" />
@@ -303,7 +303,7 @@ export default function ChatBox({
                   </span>
                   {isDoctor(message.senderId) && (
                     <span className="text-xs font-medium text-gray-600">
-                      {message.senderName}
+                      You
                     </span>
                   )}
                 </div>
@@ -376,8 +376,8 @@ export default function ChatBox({
           ))}
 
           {isSending && (
-            <div className="flex gap-3">
-              <Avatar className="w-8 h-8">
+            <div className="flex gap-3 flex-row-reverse mb-8">
+              <Avatar className="w-8 h-8 flex-shrink-0">
                 <AvatarImage src={session?.user?.image || ""} alt="You" />
                 <AvatarFallback className="text-xs">
                   {session?.user?.name?.split(" ").map((n: string) => n.charAt(0)).join("") || "U"}
