@@ -100,6 +100,20 @@ export const useVideoCall = () => {
   const virtualBackgroundProcessor = useRef<any>(null);
   const isInitializedRef = useRef(false);
 
+  // Helper function to extract ID from appointment data
+  const extractId = (idData: any): string | null => {
+    if (!idData) return null;
+    
+    if (typeof idData === "object" && idData?._id) {
+      return idData._id.toString();
+    } else if (typeof idData === "string") {
+      return idData;
+    }
+    
+    console.warn("Invalid ID format:", idData);
+    return null;
+  };
+
   // Generate unique UID
   const [uid] = useState(Math.floor(Math.random() * 100000));
 
@@ -112,19 +126,37 @@ export const useVideoCall = () => {
   const checkExistingReview = useCallback(
     async (vetId: string, parentId: string) => {
       try {
-        const res = await fetch(
-          `/api/reviews/check-existing?vetId=${vetId}&parentId=${parentId}`
-        );
-        if (!res.ok) {
-          const error = await res.json();
-          throw new Error(error.message || "Failed to check existing review");
+        // Validate inputs
+        if (!vetId || !parentId) {
+          console.warn("Missing vetId or parentId for review check:", { vetId, parentId });
+          return false;
         }
+
+        console.log("Checking existing review for:", { vetId, parentId });
+        
+        const res = await fetch(
+          `/api/reviews/check-existing?vetId=${encodeURIComponent(vetId)}&parentId=${encodeURIComponent(parentId)}`
+        );
+        
+        if (!res.ok) {
+          const errorData = await res.json().catch(() => ({ message: "Unknown error" }));
+          console.error("Review check API error:", { status: res.status, error: errorData });
+          throw new Error(errorData.message || `Failed to check existing review (${res.status})`);
+        }
+        
         const data = await res.json();
-        setHasExistingReview(data.data.hasReview);
-        return data.data.hasReview;
+        console.log("Review check response:", data);
+        
+        if (data.success && data.data) {
+          setHasExistingReview(data.data.hasReview);
+          return data.data.hasReview;
+        } else {
+          console.warn("Unexpected review check response format:", data);
+          return false;
+        }
       } catch (error: any) {
         console.error("Error checking existing review:", error);
-        toast.error("Failed to check existing review");
+        // Don't show toast for this error as it's not critical to the user experience
         return false;
       }
     },
@@ -161,16 +193,18 @@ export const useVideoCall = () => {
 
       // Check for existing review after getting appointment details
       if (data?.data?.veterinarian && data?.data?.petParent) {
-        const vet_id =
-          typeof data.data.veterinarian === "object"
-            ? data.data.veterinarian?._id
-            : data.data.veterinarian;
-        const parent_id =
-          typeof data.data.petParent === "object"
-            ? data.data.petParent?._id
-            : data.data.petParent;
-        console.log("VET ID FORMAT", vet_id, parent_id);
-        await checkExistingReview(vet_id, parent_id);
+        const vet_id = extractId(data.data.veterinarian);
+        const parent_id = extractId(data.data.petParent);
+        
+        if (vet_id && parent_id) {
+          console.log("Checking review for appointment:", { vet_id, parent_id });
+          await checkExistingReview(vet_id, parent_id);
+        } else {
+          console.warn("Could not extract valid IDs for review check:", {
+            veterinarian: data.data.veterinarian,
+            petParent: data.data.petParent
+          });
+        }
       }
     } catch (error: any) {
       toast.error(error.message || "Failed to fetch appointment details");
@@ -786,19 +820,28 @@ export const useVideoCall = () => {
     } finally {
       // Check if review already exists before showing modal
       if (appointmentDetails?.veterinarian && appointmentDetails?.petParent) {
-        const hasReview = await checkExistingReview(
-          appointmentDetails.veterinarian.toString(),
-          appointmentDetails.petParent.toString()
-        );
+        const vet_id = extractId(appointmentDetails.veterinarian);
+        const parent_id = extractId(appointmentDetails.petParent);
+        
+        if (vet_id && parent_id) {
+          console.log("Checking review in endCall:", { vet_id, parent_id });
+          const hasReview = await checkExistingReview(vet_id, parent_id);
 
-        if (hasReview) {
-          toast.info(
-            "You have already reviewed this veterinarian. Redirecting to home..."
-          );
-          setTimeout(() => {
-            router.push("/");
-          }, 2000);
+          if (hasReview) {
+            toast.info(
+              "You have already reviewed this veterinarian. Redirecting to home..."
+            );
+            setTimeout(() => {
+              router.push("/");
+            }, 2000);
+          } else {
+            setIsOpen(true);
+          }
         } else {
+          console.warn("Could not extract valid IDs for review check in endCall:", {
+            veterinarian: appointmentDetails.veterinarian,
+            petParent: appointmentDetails.petParent
+          });
           setIsOpen(true);
         }
       } else {

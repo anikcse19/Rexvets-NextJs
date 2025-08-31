@@ -98,7 +98,7 @@ const Header: React.FC = () => {
       }}
       className={` relative py-3 h-auto md:py-${
         session?.user && session.user.role !== "veterinarian" ? "1" : "3"
-      }   w-full  backdrop-blur-sm px-3  border-b border-slate-800/50 z-[9998]`}
+      }   w-full  backdrop-blur-sm px-7  border-b border-slate-800/50 z-[9998]`}
     >
       <nav className="flex items-center justify-between  mx-auto">
         {/* Logo */}

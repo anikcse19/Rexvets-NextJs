@@ -11,8 +11,11 @@ export async function GET(request: NextRequest) {
     const vetId = searchParams.get("vetId");
     const parentId = searchParams.get("parentId");
 
+    console.log("Review check request - vetId:", vetId, "parentId:", parentId);
+
     // Validate required parameters
     if (!vetId || !parentId) {
+      console.warn("Missing parameters in review check:", { vetId, parentId });
       return NextResponse.json(
         {
           success: false,
@@ -23,10 +26,10 @@ export async function GET(request: NextRequest) {
         { status: 400 }
       );
     }
-    console.log("VET ID:", vetId);
-    console.log("PARENT ID:", parentId);
+
     // Validate ObjectId format
     if (!mongoose.Types.ObjectId.isValid(vetId)) {
+      console.warn("Invalid vetId format:", vetId);
       return NextResponse.json(
         {
           success: false,
@@ -39,6 +42,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (!mongoose.Types.ObjectId.isValid(parentId)) {
+      console.warn("Invalid parentId format:", parentId);
       return NextResponse.json(
         {
           success: false,
@@ -51,11 +55,15 @@ export async function GET(request: NextRequest) {
     }
 
     // Check if review exists
+    console.log("Querying database for review with vetId:", vetId, "parentId:", parentId);
+    
     const existingReview = await ReviewModel.findOne({
       vetId: new mongoose.Types.ObjectId(vetId),
       parentId: new mongoose.Types.ObjectId(parentId),
       isDeleted: { $ne: true },
     });
+
+    console.log("Review query result:", existingReview ? "Found" : "Not found");
 
     return NextResponse.json({
       success: true,
@@ -81,7 +89,7 @@ export async function GET(request: NextRequest) {
         success: false,
         message: "Failed to check existing review",
         errorCode: "CHECK_ERROR",
-        errors: null,
+        errors: error instanceof Error ? error.message : "Unknown error",
       },
       { status: 500 }
     );
