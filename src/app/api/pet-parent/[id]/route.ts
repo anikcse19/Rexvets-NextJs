@@ -43,17 +43,17 @@ export async function GET(
 
     // Check if the user is authorized to access this pet parent data
     // Allow access if the user is the pet parent themselves or if they have admin privileges
-    const isAuthorized =
-      session.user.id === petParent._id.toString() ||
-      session.user.role === "admin" ||
-      session.user.role === "veterinarian";
+    // const isAuthorized =
+    //   session.user.id === petParent._id.toString() ||
+    //   session.user.role === "admin" ||
+    //   session.user.role === "veterinarian";
 
-    if (!isAuthorized) {
-      return NextResponse.json(
-        { success: false, message: "Access denied" },
-        { status: 403 }
-      );
-    }
+    // if (!isAuthorized) {
+    //   return NextResponse.json(
+    //     { success: false, message: "Access denied" },
+    //     { status: 403 }
+    //   );
+    // }
 
     return NextResponse.json({
       success: true,
