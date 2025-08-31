@@ -53,20 +53,6 @@ export default function ChatBox({
   parentImage,
 }: ChatBoxProps) {
   const { data: session, status } = useSession();
-  console.log("session------------------", session?.user.image);
-  // Log session status changes
-  useEffect(() => {
-    console.log("🔄 Session status changed:", status);
-    console.log("📊 Session data:", session);
-  }, [session, status]);
-
-  // Log component mount
-  useEffect(() => {
-    console.log("🚀 ChatBox component mounted");
-    return () => {
-      console.log("🔚 ChatBox component unmounted");
-    };
-  }, []);
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
@@ -78,8 +64,10 @@ export default function ChatBox({
     url: string;
     fileName: string;
     messageType: string;
+    fileSize?: number;
   }>>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Fetch messages on component mount and when appointmentId changes
@@ -100,13 +88,15 @@ export default function ChatBox({
     return () => clearInterval(interval);
   }, [appointmentId, isLoading]);
 
-  // const scrollToBottom = () => {
-  //   // messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  // };
+  const scrollToBottom = () => {
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+    }
+  };
 
-  // useEffect(() => {
-  //   // scrollToBottom();
-  // }, [messages]);
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   const fetchMessages = async () => {
     if (!appointmentId) return;
@@ -131,8 +121,8 @@ export default function ChatBox({
     }
   };
 
-  const handleFileUploaded = (fileUrl: string, fileName: string, messageType: string) => {
-    setUploadedFiles(prev => [...prev, { url: fileUrl, fileName, messageType }]);
+  const handleFileUploaded = (fileUrl: string, fileName: string, messageType: string, fileSize?: number) => {
+    setUploadedFiles(prev => [...prev, { url: fileUrl, fileName, messageType, fileSize }]);
   };
 
   const handleRemoveFile = (index: number) => {
@@ -179,6 +169,7 @@ export default function ChatBox({
             attachments: [{
               url: file.url,
               fileName: file.fileName,
+              fileSize: file.fileSize,
             }],
           }),
         });
@@ -262,7 +253,7 @@ export default function ChatBox({
 
       {/* Messages Area */}
       <CardContent className="p-0 overflow-hidden">
-        <div className="h-full overflow-y-auto p-4 space-y-4">
+        <div ref={messagesContainerRef} className="h-full overflow-y-auto p-4 space-y-4">
           {isLoading && messages.length === 0 && (
             <div className="flex items-center justify-center h-32">
               <Loader2 className="w-6 h-6 animate-spin text-teal-600" />
@@ -342,16 +333,8 @@ export default function ChatBox({
                   ) : message.messageType === "image" || message.messageType === "video" || message.messageType === "file" ? (
                     <div className="space-y-2">
                       {message.attachments && message.attachments.map((attachment, index) => {
-                        console.log('Attachment data:', {
-                          url: attachment.url,
-                          urlType: typeof attachment.url,
-                          fileName: attachment.fileName,
-                          messageType: message.messageType
-                        });
-                        
                         // Only render if URL is valid
                         if (typeof attachment.url !== 'string' || !attachment.url) {
-                          console.error('Invalid attachment URL:', attachment);
                           return null;
                         }
                         
@@ -367,9 +350,11 @@ export default function ChatBox({
                       })}
                     </div>
                   ) : (
-                    <p className="text-sm leading-relaxed whitespace-pre-line">
-                      {message.content}
-                    </p>
+                    <div className="max-h-32 overflow-y-auto text-start">
+                      <p className="text-sm leading-relaxed whitespace-pre-line">
+                        {message.content}
+                      </p>
+                    </div>
                   )}
                 </div>
 

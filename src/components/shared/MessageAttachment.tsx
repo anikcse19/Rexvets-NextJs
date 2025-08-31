@@ -79,7 +79,18 @@ const MessageAttachment: React.FC<MessageAttachmentProps> = ({
   };
 
   const handleOpenInNewTab = () => {
-    window.open(url, '_blank');
+    // For PDFs and other files, try to open in new tab
+    // If it fails, fall back to download
+    try {
+      const newWindow = window.open(url, '_blank');
+      if (!newWindow) {
+        // If popup is blocked, try to download instead
+        handleDownload();
+      }
+    } catch (error) {
+      console.error('Failed to open file in new tab:', error);
+      handleDownload();
+    }
   };
 
   const handleVideoToggle = (event: React.MouseEvent) => {
@@ -287,22 +298,11 @@ const MessageAttachment: React.FC<MessageAttachmentProps> = ({
             <video
               src={url}
               className="max-w-xs max-h-64 rounded-lg"
-              controls={isVideoPlaying}
+              controls
+              preload="metadata"
               onError={() => setVideoError(true)}
               onLoadedData={() => setImageLoading(false)}
             />
-            {!isVideoPlaying && (
-              <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center rounded-lg">
-                <Button
-                  size="lg"
-                  variant="secondary"
-                  onClick={handleVideoToggle}
-                  className="bg-white/90 hover:bg-white"
-                >
-                  <Play className="w-6 h-6" />
-                </Button>
-              </div>
-            )}
             <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex space-x-1">
               <Button
                 size="sm"
@@ -323,12 +323,24 @@ const MessageAttachment: React.FC<MessageAttachmentProps> = ({
             </div>
           </div>
         ) : (
-          <div className="flex items-center space-x-2 p-3 bg-gray-100 rounded-lg">
-            {getFileIcon()}
-            <span className="text-sm text-gray-600">{fileName}</span>
-            <Button size="sm" variant="outline" onClick={handleDownload}>
-              <Download className="w-4 h-4" />
-            </Button>
+          <div className="flex flex-col space-y-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                {getFileIcon()}
+                <span className="text-sm font-medium text-gray-700">{fileName}</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Button size="sm" variant="outline" onClick={handleDownload}>
+                  <Download className="w-4 h-4" />
+                </Button>
+                <Button size="sm" variant="outline" onClick={handleOpenInNewTab}>
+                  <ExternalLink className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+            <div className="text-xs text-red-600 bg-red-50 p-2 rounded">
+              Video failed to load
+            </div>
           </div>
         )}
       </div>
@@ -337,15 +349,31 @@ const MessageAttachment: React.FC<MessageAttachmentProps> = ({
 
   // File Attachment
   if (messageType === 'file') {
+    const isPDF = fileName.toLowerCase().endsWith('.pdf');
+    const isImage = fileName.toLowerCase().match(/\.(jpg|jpeg|png|gif|webp|bmp|svg|ico)$/);
+    const isVideo = fileName.toLowerCase().match(/\.(mp4|avi|mov|wmv|flv|webm|mkv|m4v|3gp)$/);
+    
     return (
       <div className={`relative group ${className}`}>
-        <div className="flex items-center space-x-2 p-3 bg-gray-100 rounded-lg">
-          {getFileIcon()}
-          <span className="text-sm text-gray-600">{fileName}</span>
-          <Badge variant="outline">{formatFileSize(fileSize || 0)}</Badge>
-          <Button size="sm" variant="outline" onClick={handleDownload}>
-            <Download className="w-4 h-4" />
-          </Button>
+        <div className="flex items-center justify-between p-3 bg-gray-100 rounded-lg">
+          <div className="flex items-center space-x-2">
+            {getFileIcon()}
+            <div className="flex flex-col">
+              <span className="text-sm font-medium text-gray-700">{fileName}</span>
+              <Badge variant="outline" className="text-xs mt-1">{formatFileSize(fileSize || 0)}</Badge>
+            </div>
+          </div>
+          <div className="flex items-center space-x-2 text-black">
+            {/* Show appropriate buttons based on file type */}
+            {(isPDF || isImage || isVideo) && (
+              <Button size="sm" variant="outline" onClick={handleOpenInNewTab} title={`Open ${isPDF ? 'PDF' : isImage ? 'Image' : 'Video'}`}>
+                <ExternalLink className="w-4 h-4" />
+              </Button>
+            )}
+            <Button size="sm" variant="outline" onClick={handleDownload} title="Download file">
+              <Download className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
       </div>
     );
