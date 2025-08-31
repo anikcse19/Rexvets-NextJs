@@ -69,6 +69,7 @@ export default function ChatBox({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
 
   // Fetch messages on component mount and when appointmentId changes
   useEffect(() => {
@@ -88,6 +89,18 @@ export default function ChatBox({
     return () => clearInterval(interval);
   }, [appointmentId, isLoading]);
 
+  // Check if user is at bottom of messages
+  const isAtBottom = () => {
+    if (!messagesContainerRef.current) return true;
+    const { scrollTop, scrollHeight, clientHeight } = messagesContainerRef.current;
+    return scrollTop + clientHeight >= scrollHeight - 10; // 10px threshold
+  };
+
+  // Handle scroll events to determine if we should auto-scroll
+  const handleScroll = () => {
+    setShouldAutoScroll(isAtBottom());
+  };
+
   const scrollToBottom = () => {
     if (messagesContainerRef.current) {
       messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
@@ -95,8 +108,20 @@ export default function ChatBox({
   };
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+    // Only auto-scroll if user is at bottom or if it's the first load
+    if (shouldAutoScroll || messages.length === 0) {
+      scrollToBottom();
+    }
+  }, [messages, shouldAutoScroll]);
+
+  // Add scroll event listener
+  useEffect(() => {
+    const container = messagesContainerRef.current;
+    if (container) {
+      container.addEventListener('scroll', handleScroll);
+      return () => container.removeEventListener('scroll', handleScroll);
+    }
+  }, []);
 
   const fetchMessages = async () => {
     if (!appointmentId) return;
@@ -135,6 +160,9 @@ export default function ChatBox({
     try {
       setIsSending(true);
       setError(null);
+
+      // Force auto-scroll when user sends a message
+      setShouldAutoScroll(true);
 
       // Send text message if there's text content
       if (newMessage.trim()) {
@@ -222,7 +250,7 @@ export default function ChatBox({
   };
 
   return (
-    <Card className="shadow-lg border-0 bg-white overflow-hidden h-[600px] flex flex-col">
+    <Card className="shadow-lg border-0 bg-white overflow-hidden h-[700px] flex flex-col">
       <div className="bg-gradient-to-r from-teal-600 to-cyan-600 p-4 text-white">
         <div className="flex items-center gap-3">
           <div className="bg-white/20 p-2 rounded-lg">
@@ -252,7 +280,7 @@ export default function ChatBox({
       </div>
 
       {/* Messages Area */}
-      <CardContent className="p-0 overflow-hidden">
+      <CardContent className="flex-1 p-0 overflow-hidden">
         <div ref={messagesContainerRef} className="h-full overflow-y-auto p-4 pb-8 space-y-4">
           {isLoading && messages.length === 0 && (
             <div className="flex items-center justify-center h-32">
@@ -288,11 +316,19 @@ export default function ChatBox({
               </Avatar>
 {/* text message color is black  theis for message text color and all */}
               <div
-                className={`max-w-[70%] ${
-                  isDoctor(message.senderId) ? "text-right" : "text-left"
+                className={`${
+                  isDoctor(message.senderId) && message.messageType !== "assessment" && message.messageType !== "prescription"
+                    ? "text-right max-w-[70%]" 
+                    : message.messageType === "assessment" || message.messageType === "prescription"
+                      ? "text-left min-w-[85%] max-w-[95%]"
+                      : "text-left max-w-[70%]"
                 }`}
               >
-                <div className="flex items-center gap-2 mb-1">
+                <div className={`flex items-center gap-2 mb-1 ${
+                  isDoctor(message.senderId) && message.messageType !== "assessment" && message.messageType !== "prescription"
+                    ? "justify-end" 
+                    : "justify-start"
+                }`}>
                   {!isDoctor(message.senderId) && (
                     <span className="text-xs font-medium text-gray-600">
                       {message.senderName}
@@ -311,22 +347,25 @@ export default function ChatBox({
                 <div
                   className={`rounded-2xl px-4 py-3 ${
                     isDoctor(message.senderId)
-                      ? "bg-gradient-to-r from-gray-500 to-blue-600 text-white"
+                      ? message.messageType === "assessment" ||
+                        message.messageType === "prescription"
+                        ? "bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 shadow-lg"
+                        : "bg-gradient-to-r from-gray-500 to-blue-600 text-white"
                       : message.messageType === "assessment" ||
                         message.messageType === "prescription"
-                      ? "bg-gradient-to-r from-gray-50 to-emerald-50 border border-green-200"
+                      ? "bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 shadow-lg"
                       : "bg-gray-100 text-gray-900"
                   }`}
                 >
                   {message.messageType === "assessment" ||
                   message.messageType === "prescription" ? (
-                    <div className="space-y-2">
-                      <Badge className="bg-green-100 text-green-700 border-green-300 text-xs">
+                    <div className="space-y-3 text-left">
+                      <Badge className="bg-blue-100 text-blue-700 border-blue-300 text-xs font-medium">
                         {message.messageType === "assessment"
-                          ? "Assessment"
-                          : "Prescription"}
+                          ? "📋 Data Assessment"
+                          : "💊 Prescription"}
                       </Badge>
-                      <div className="text-sm text-green-900 whitespace-pre-line">
+                      <div className="text-sm text-gray-800 whitespace-pre-line leading-relaxed font-normal">
                         {message.content}
                       </div>
                     </div>

@@ -249,7 +249,7 @@ export default function ChatBox({
   };
 
   return (
-    <Card className="shadow-lg border-0 bg-white overflow-hidden h-[600px] flex flex-col">
+    <Card className="shadow-lg border-0 bg-white overflow-hidden h-[700px] flex flex-col">
       <div className="bg-gradient-to-r from-teal-600 to-cyan-600 p-4 text-white">
         <div className="flex items-center gap-3">
           <div className="bg-white/20 p-2 rounded-lg">
@@ -315,11 +315,21 @@ export default function ChatBox({
               </Avatar>
 
               <div
-                className={`min-w-[30%] ${
-                  isParent(message.senderId) ? "text-right" : "text-left"
+                className={`${
+                  isParent(message.senderId) 
+                    ? "text-right" 
+                    : message.messageType === "assessment" || message.messageType === "prescription"
+                      ? "text-left min-w-[85%] max-w-[95%]"
+                      : "text-left min-w-[30%]"
                 }`}
               >
-                <div className="flex items-center gap-2 mb-1">
+                <div className={`flex items-center gap-2 mb-1 ${
+                  isParent(message.senderId) 
+                    ? "justify-end" 
+                    : message.messageType === "assessment" || message.messageType === "prescription"
+                      ? "justify-start"
+                      : "justify-start"
+                }`}>
                   {!isParent(message.senderId) && (
                     <span className="text-xs font-medium text-gray-600">
                       {message.senderName}
@@ -341,19 +351,19 @@ export default function ChatBox({
                       ? "text-black bg-gray-100"
                       : message.messageType === "assessment" ||
                         message.messageType === "prescription"
-                      ? ""
+                      ? "bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 shadow-lg"
                       : "bg-gray-100 text-gray-900"
                   }`}
                 >
                   {message.messageType === "assessment" ||
                   message.messageType === "prescription" ? (
-                    <div className="space-y-2">
-                      <Badge className="text-xs text-black">
+                    <div className="space-y-3">
+                      <Badge className="bg-blue-100 text-blue-700 border-blue-300 text-xs font-medium">
                         {message.messageType === "assessment"
-                          ? "Medical Assessment"
-                          : "Prescription"}
+                          ? "📋 Data Assessment"
+                          : "💊 Prescription"}
                       </Badge>
-                      <div className="text-sm text-black whitespace-pre-line">
+                      <div className="text-sm text-gray-800 whitespace-pre-line leading-relaxed font-normal">
                         {message.content}
                       </div>
                     </div>

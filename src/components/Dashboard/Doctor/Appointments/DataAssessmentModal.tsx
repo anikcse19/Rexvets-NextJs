@@ -93,6 +93,62 @@ export default function DataAssessmentModal({
     }
   }, [assessment, reset]);
 
+  const sendAssessmentToChat = async (assessmentData: AssessmentFormData) => {
+    try {
+      // Format the assessment message content
+      const formatAssessmentForChat = (data: AssessmentFormData) => {
+        let formattedMessage = "";
+        
+        // Clinical Data Section
+        if (data.additionalData && data.additionalData.trim()) {
+          formattedMessage += "🔍 **Clinical Data:**\n";
+          formattedMessage += `${data.additionalData.trim()}\n\n`;
+        }
+        
+        // Assessment Section
+        formattedMessage += "🩺 **Doctor's Assessment:**\n";
+        formattedMessage += `${data.assessment}\n\n`;
+        
+        // Treatment Plan Section
+        formattedMessage += "💊 **Treatment Plan:**\n";
+        formattedMessage += `${data.plan}\n\n`;
+        
+        // formattedMessage += "---\n";
+        // formattedMessage += `*This assessment has been completed by your veterinarian for ${petName}. Please review and follow the treatment plan as outlined above. If you have any questions or concerns, feel free to ask.*`;
+        
+        return formattedMessage;
+      };
+
+      const assessmentMessage = formatAssessmentForChat(assessmentData);
+
+      const chatResponse = await fetch("/api/appointment-chat/messages", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          appointmentId: appointmentId,
+          content: assessmentMessage,
+          messageType: "assessment",
+        }),
+      });
+
+      if (!chatResponse.ok) {
+        throw new Error("Failed to send assessment to chat");
+      }
+
+      const chatResult = await chatResponse.json();
+      if (chatResult.success) {
+        toast.success("Assessment sent to chat successfully");
+      } else {
+        toast.error("Failed to send assessment to chat");
+      }
+    } catch (error) {
+      console.error("Error sending assessment to chat:", error);
+      toast.error("Failed to send assessment to chat");
+    }
+  };
+
   const onSubmit = async (data: AssessmentFormData, event?: any) => {
     try {
       const action = event?.nativeEvent?.submitter?.value;
@@ -102,6 +158,9 @@ export default function DataAssessmentModal({
       } else {
         setIsSubmitting(true);
       }
+      
+      let assessmentSaved = false;
+      
       if (assessment?._id) {
         const res = await fetch(
           "/api/data-assessment-plans/" + assessment._id,
@@ -128,6 +187,7 @@ export default function DataAssessmentModal({
         const result = await res.json();
 
         if (result.success) {
+          assessmentSaved = true;
           toast.success("Assessment saved successfully");
         } else {
           toast.error(result.message || "Failed to save assessment");
@@ -155,10 +215,16 @@ export default function DataAssessmentModal({
         const result = await res.json();
 
         if (result.success) {
+          assessmentSaved = true;
           toast.success("Assessment saved successfully");
         } else {
           toast.error(result.message || "Failed to save assessment");
         }
+      }
+
+      // Send assessment to chat if checkbox is checked and assessment is finalized
+      if (assessmentSaved && data.sendToChat && status === "FINALIZED") {
+        await sendAssessmentToChat(data);
       }
 
       reset();
