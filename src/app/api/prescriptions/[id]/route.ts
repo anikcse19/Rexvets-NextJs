@@ -2,7 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 
 import cloudinary from "@/lib/cloudinary";
 import { connectToDatabase } from "@/lib/mongoose";
-import { PrescriptionModel } from "@/models";
+import { PrescriptionModel } from "@/models/Prescription";
+import "@/models/Veterinarian";
+import "@/models/PetParent";
+import "@/models/Pet";
+import "@/models/Appointment";
 
 export async function GET(
   _: NextRequest,
@@ -10,7 +14,11 @@ export async function GET(
 ) {
   const { id } = await params;
   await connectToDatabase();
-  const prescription = await PrescriptionModel.findById(id);
+  const prescription = await PrescriptionModel.findById(id)
+    .populate("veterinarian")
+    .populate("petParent")
+    .populate("appointment")
+    .populate("pet");
   if (!prescription)
     return NextResponse.json({ message: "Not found" }, { status: 404 });
   return NextResponse.json(prescription);
@@ -69,13 +77,9 @@ export async function PUT(
     }
   }
 
-  const updated = await PrescriptionModel.findByIdAndUpdate(
-    id,
-    updateData,
-    {
-      new: true,
-    }
-  );
+  const updated = await PrescriptionModel.findByIdAndUpdate(id, updateData, {
+    new: true,
+  });
   return NextResponse.json(updated);
 }
 

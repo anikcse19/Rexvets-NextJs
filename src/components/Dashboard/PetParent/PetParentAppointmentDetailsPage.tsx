@@ -241,9 +241,13 @@ export default function PetParentAppointmentDetailsPage({
           {/* Middle Column - Data Assessment & Prescription */}
           <div className="xl:col-span-1 space-y-6">
             {appointmentDetails?._id && (
-              <DataAssessmentSection appointmentId={appointmentDetails?._id} />
+              <>
+                <DataAssessmentSection
+                  appointmentId={appointmentDetails?._id}
+                />
+                <PrescriptionSection appointmentId={appointmentDetails?._id} />
+              </>
             )}
-            <PrescriptionSection />
           </div>
 
           {/* Right Column - Chat */}
