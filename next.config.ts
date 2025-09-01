@@ -6,9 +6,10 @@ const isAnalyze = process.env.ANALYZE === "true";
 // Base Next.js config
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  experimental: {
-    serverComponentsExternalPackages: ["mongoose"],
-  },
+  serverExternalPackages: ["mongoose"],
+  // experimental: {
+  //   serverComponentsExternalPackages: ["mongoose"],
+  // },
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "widgets.guidestar.org" },

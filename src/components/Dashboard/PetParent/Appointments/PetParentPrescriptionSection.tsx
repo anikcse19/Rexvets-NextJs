@@ -85,10 +85,16 @@ export default function PrescriptionSection({
   };
 
   const fetchPrescription = async () => {
-    const res = await fetch(`/api/prescriptions/appointment/${appointmentId}`);
-    const data = await res.json();
-    console.log("prescription data by appointment id", data.data);
-    setPrescriptionsData(data?.data);
+    try {
+      const res = await fetch(`/api/prescriptions/appointment/${appointmentId}`);
+      const data = await res.json();
+      console.log("prescription data by appointment id", data.data);
+      // Ensure prescriptionsData is always an array
+      setPrescriptionsData(data?.data || []);
+    } catch (error) {
+      console.error("Error fetching prescriptions:", error);
+      setPrescriptionsData([]);
+    }
   };
 
   useEffect(() => {
@@ -117,7 +123,7 @@ export default function PrescriptionSection({
 
       <CardContent className="p-6">
         <div className="space-y-6">
-          {prescriptionsData.length === 0 ? (
+          {(!prescriptionsData || prescriptionsData.length === 0) ? (
             <div className="text-center py-12">
               <div className="bg-gray-100 p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
                 <Pill className="w-8 h-8 text-gray-400" />
@@ -128,8 +134,8 @@ export default function PrescriptionSection({
             </div>
           ) : (
             <div className="space-y-4">
-              {prescriptionsData
-                ?.slice()
+              {(prescriptionsData || [])
+                .slice()
                 .reverse()
                 .map((prescription, index) => (
                   <div key={prescription._id} className="group">
@@ -143,7 +149,7 @@ export default function PrescriptionSection({
                             </div>
                             <div>
                               <p className="font-semibold text-gray-900">
-                                Prescription #{prescriptionsData.length - index}
+                                Prescription #{(prescriptionsData?.length || 0) - index}
                               </p>
                               <div className="flex items-center gap-4 text-sm text-gray-600">
                                 <div className="flex items-center gap-1">
