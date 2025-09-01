@@ -142,7 +142,7 @@ const PrescriptionPDF = ({
 }: PrescriptionPDFProps) => {
   // console.log(signatureUrl, "sign", veterinarian, "doctr");
 
-  // console.log("appointment data from pdf", values);
+  console.log("appointment data from pdf", veterinarian);
   return (
     <Document>
       <Page size="A4" style={styles.page}>
@@ -160,7 +160,7 @@ const PrescriptionPDF = ({
         </View>
 
         {/* Prescriber */}
-        {/* <View style={styles.section}>
+        <View style={styles.section}>
           <Text style={styles.title}>Prescriber</Text>
           <Text style={styles.veterinarianTitle}>
             DR. {veterinarian?.name || "N/A"}
@@ -181,21 +181,24 @@ const PrescriptionPDF = ({
               {veterinarian?.licenses?.[0]?.licenseNumber || "-"}
             </Text>
           </View>
-          <Text style={styles.text}>
-            DEA #: {veterinarian?.licenses?.[0].deaNumber || "-"}
-          </Text>
-        </View> */}
+          <View style={styles.rowLine}>
+            <Text style={styles.label}>DEA #:</Text>
+            <Text style={styles.value}>
+              {veterinarian?.licenses?.[0].deaNumber || "-"}
+            </Text>
+          </View>
+        </View>
 
         {/* issue date */}
-        {/* <View style={styles.section}>
+        <View style={styles.section}>
           <Text style={styles.text}>
             Issued Date: {new Date().toLocaleDateString()}
           </Text>
-          <Text style={styles.text}>Reference #: {appointment.id}</Text>
-        </View> */}
+          <Text style={styles.text}>Reference #: {appointment._id}</Text>
+        </View>
 
         {/* Client & Patient */}
-        {/* <View style={styles.section}>
+        <View style={styles.section}>
           <View style={styles.row}>
             <View style={styles.col}>
               <Text style={styles.title}>Client</Text>
@@ -244,27 +247,38 @@ const PrescriptionPDF = ({
               </View>
             </View>
           </View>
-        </View> */}
+        </View>
 
         {/* Medicine */}
-        {/* <View style={styles.section}>
+        <View style={styles.section}>
           <Text style={styles.title}>Medicine</Text>
           <Text style={styles.text}>
-            {values.medications[0].name} {values.strength}
-            {values.strengthUnit}, {values.form}
+            {values.medications[0].name} {values.medications[0].form}{" "}
+            {values.medications[0].strength}{" "}
+            {values.medications[0].strengthUnit},
           </Text>
           <View style={styles.row}>
             <Text style={styles.label2}>Quantity:</Text>
-            <Text style={styles.value}>{values.medications[0].quantity}</Text>
+            <Text style={styles.value}>
+              {values.medications[0].medicationQuantity}
+            </Text>
           </View>
           <View style={styles.row}>
             <Text style={styles.label2}>Total Dispensed:</Text>
-            <Text style={styles.value}>{values.medications[0].quantity}</Text>
+            <Text style={styles.value}>
+              {values.medications[0].quantityUnit}
+            </Text>
           </View>
           <View style={styles.row}>
             <Text style={styles.label2}>Refills:</Text>
             <Text style={styles.value}>
               {values.usageInstructions.refills || 0}
+            </Text>
+          </View>
+          <View style={styles.row}>
+            <Text style={styles.label2}>Refills Gap:</Text>
+            <Text style={styles.value}>
+              {values.usageInstructions.refillsGap || 0}
             </Text>
           </View>
           <View></View>
@@ -280,32 +294,35 @@ const PrescriptionPDF = ({
               {values.pharmacy.canFilledHumanPharmacy ? "Yes" : "No"}
             </Text>
           </View>
-        </View> */}
+        </View>
 
-        {/* <View style={styles.section}>
+        <View style={styles.section}>
           <Text style={styles.title}>Directions</Text>
           <Text style={styles.text}>
             {values.usageInstructions.directionForUse}
           </Text>
-        </View> */}
+        </View>
 
         {/* Note */}
-        {/* <View style={styles.section}>
+        <View style={styles.section}>
           <Text style={styles.title}>Note to Pharmacist:</Text>
           <Text>{values?.pharmacy?.noteToPharmacist}</Text>
-        </View> */}
+        </View>
 
         {/* Signature */}
-        {/* <View style={styles.signatureSection}>
-          {veterinarian.signature ? (
-            <Image src={veterinarian.signature} style={{ width: 100 }} />
+        <View style={styles.signatureSection}>
+          {veterinarian.signatureImage ? (
+            <Image
+              src={veterinarian.signatureImage}
+              style={{ width: 50, height: 50, backgroundColor: "red" }}
+            />
           ) : (
             <>
               <View style={styles.signatureLine} />
               <Text style={styles.signatureLabel}>Signature of Prescriber</Text>
             </>
           )}
-        </View> */}
+        </View>
 
         {/* Footer */}
         <Text style={styles.footer}>

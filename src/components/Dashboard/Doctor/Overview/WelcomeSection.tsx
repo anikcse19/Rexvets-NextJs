@@ -1,8 +1,9 @@
 import React from "react";
 import { LocateIcon, Stethoscope } from "lucide-react";
 import { MdEmojiEvents } from "react-icons/md";
+import { Doctor } from "@/lib/types";
 
-const WelcomeSection = () => {
+const WelcomeSection = ({ vet }: { vet: Doctor }) => {
   return (
     <div
       style={{
@@ -15,7 +16,7 @@ const WelcomeSection = () => {
           {/* Left Content */}
           <div className="flex-1 mb-4 lg:mb-0 lg:mr-6">
             <h1 className="font-bold text-lg md:text-xl lg:text-2xl mb-1">
-              Welcome back, Dr. Delacruz! 👋
+              Welcome back, {vet?.name}! 👋
             </h1>
             <h2 className="text-sm md:text-lg mb-2">
               You're making a difference in veterinary telemedicine
@@ -27,11 +28,17 @@ const WelcomeSection = () => {
             <div className="flex gap-4 mt-2">
               <div className="flex items-center gap-1">
                 <LocateIcon size={16} />
-                <span className="text-sm">Hollywood, Florida</span>
+                <span className="text-sm">
+                  {vet?.city && vet?.state
+                    ? `${vet.city}, ${vet.state}`
+                    : "Unknown"}
+                </span>
               </div>
               <div className="flex items-center gap-1">
                 <MdEmojiEvents size={16} />
-                <span className="text-sm">Status: Approved</span>
+                <span className="text-sm">
+                  Status: {vet?.isActive ? "Approved" : "Pending"}
+                </span>
               </div>
             </div>
           </div>

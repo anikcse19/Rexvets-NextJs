@@ -4,8 +4,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
+  ArrowDown,
   ArrowLeft,
   Calendar,
+  ChevronDown,
   Clock,
   FileText,
   Stethoscope,
@@ -209,15 +211,17 @@ export default function AppointmentDetailsPage() {
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button
-                  variant="default"
-                  className={`${getStatusColor(
+                <div
+                  className={`flex items-center gap-2 px-4 py-2 rounded-md  text-sm font-semibold cursor-pointer ${getStatusColor(
                     appointment.status
-                  )} px-4 py-2 text-sm font-semibold cursor-pointer`}
+                  )}`}
                 >
-                  {appointment.status.charAt(0).toUpperCase() +
-                    appointment.status.slice(1)}
-                </Button>
+                  <button className="bg-transparent">
+                    {appointment.status.charAt(0).toUpperCase() +
+                      appointment.status.slice(1)}
+                  </button>
+                  <ChevronDown />
+                </div>
               </DropdownMenuTrigger>
 
               <DropdownMenuContent>
@@ -241,7 +245,7 @@ export default function AppointmentDetailsPage() {
           >
             {appointment.status.replace("-", " ").toUpperCase()}
           </Badge> */}
-          {appointment.meetingLink && (
+          {appointment.status === "upcoming" && appointment.meetingLink && (
             <Button
               onClick={handleJoinMeeting}
               className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
@@ -336,17 +340,17 @@ export default function AppointmentDetailsPage() {
 
         {/* Right Column - Chat */}
         <div className="xl:col-span-1">
-                  {appointment?._id && appointment?.petParent ? (
-          <ChatBox
-            appointmentId={appointment._id}
-            parentName={appointment.petParent.name || "Pet Parent"}
-            parentImage={appointment.petParent.profileImage || ""}
-          />
-        ) : (
-          <div className="text-center p-4 text-gray-500">
-            Chat not available
-          </div>
-        )}
+          {appointment?._id && appointment?.petParent ? (
+            <ChatBox
+              appointmentId={appointment._id}
+              parentName={appointment.petParent.name || "Pet Parent"}
+              parentImage={appointment.petParent.profileImage || ""}
+            />
+          ) : (
+            <div className="text-center p-4 text-gray-500">
+              Chat not available
+            </div>
+          )}
         </div>
       </div>
 

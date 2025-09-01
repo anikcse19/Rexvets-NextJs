@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Menu, Bell } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useSession } from "next-auth/react";
+import AnnouncementsDrawer from "../AnnouncementDrawer";
 
 interface TopbarProps {
   title?: string;
@@ -48,6 +49,11 @@ TopbarProps) {
           </Badge>
         </Button>
 
+        <AnnouncementsDrawer
+          userId={(session?.user as any)?.refId}
+          role={(session?.user as any)?.role}
+        />
+
         {/* User profile */}
         <div className="flex items-center gap-2 lg:gap-3">
           <div className="hidden sm:block text-right">
@@ -62,11 +68,11 @@ TopbarProps) {
 
           <Avatar className="w-8 h-8 lg:w-10 lg:h-10">
             <AvatarImage
-              src="https://images.pexels.com/photos/5327585/pexels-photo-5327585.jpeg?auto=compress&cs=tinysrgb&w=80&h=80&fit=crop&crop=face"
-              alt="Dr. Anik Rahman"
+              src={session?.user?.image!}
+              alt={session?.user?.name!}
             />
             <AvatarFallback className="text-black font-medium">
-              AR
+              {session?.user?.name?.charAt(0)}
             </AvatarFallback>
           </Avatar>
         </div>

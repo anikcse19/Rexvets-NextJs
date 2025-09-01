@@ -70,10 +70,12 @@ export default function PetParentAppointmentsListPage() {
         .includes(searchTerm.toLowerCase());
       // ||
       // appointment.parentName.toLowerCase().includes(searchTerm.toLowerCase());
+      const customDate = appointment.appointmentDate.split("T")[0];
 
-      const matchesDate = filterDate
-        ? appointment.appointmentDate === filterDate
-        : true;
+      console.log("filterDate", filterDate);
+      console.log("date", customDate);
+
+      const matchesDate = filterDate ? customDate === filterDate : true;
 
       return matchesSearch && matchesDate;
     });
@@ -108,7 +110,14 @@ export default function PetParentAppointmentsListPage() {
         <Input
           type="date"
           value={filterDate}
-          onChange={(e) => setFilterDate(e.target.value)}
+          onChange={(e) => {
+            const value = e.target.value;
+            if (value) {
+              setFilterDate(value);
+            } else {
+              setFilterDate("");
+            }
+          }}
           className="sm:w-48"
         />
         {filterDate || searchTerm ? (
