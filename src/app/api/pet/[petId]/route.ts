@@ -30,7 +30,7 @@ export async function GET(
       _id: petId,
       isDeleted: false,
     });
-
+    console.log("PET HIT", pet);
     if (!pet) {
       return throwAppError(
         {

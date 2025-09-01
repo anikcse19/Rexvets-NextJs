@@ -6,9 +6,11 @@ import React, { Suspense } from "react";
 
 function VideoCallContent() {
   return (
-    <div className="min-h-screen ">
-      <VideoCallPreview />
-    </div>
+    <>
+      <div className="min-h-screen ">
+        <VideoCallPreview />
+      </div>
+    </>
   );
 }
 
@@ -21,9 +23,5 @@ function LoadingFallback() {
 }
 
 export default function VideoCall() {
-  return (
-    <Suspense fallback={<LoadingFallback />}>
-      <VideoCallContent />
-    </Suspense>
-  );
+  return <VideoCallContent />;
 }

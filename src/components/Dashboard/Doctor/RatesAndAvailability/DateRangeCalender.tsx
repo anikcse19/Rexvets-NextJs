@@ -1,22 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { CalendarIcon, RotateCcw } from "lucide-react";
-import {
-  format,
-  addDays,
-  startOfToday,
-  endOfMonth,
-  addMonths,
-  isSameDay,
-  isWithinInterval,
-  isValid,
-  differenceInDays,
-} from "date-fns";
 import { DateRange } from "@/lib/types";
+import {
+  addDays,
+  addMonths,
+  differenceInDays,
+  endOfMonth,
+  format,
+  isSameDay,
+  isValid,
+  isWithinInterval,
+  startOfToday,
+} from "date-fns";
+import { CalendarIcon, RotateCcw } from "lucide-react";
+import { useEffect, useState } from "react";
 
 interface DateRangeCalendarProps {
   selectedRange: DateRange | null;
@@ -28,6 +28,13 @@ export default function DateRangeCalendar({
   onRangeSelect,
 }: DateRangeCalendarProps) {
   const [selectingStart, setSelectingStart] = useState(true);
+  const [mounted, setMounted] = useState(false);
+  
+  // Prevent hydration mismatch by only rendering after mount
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+  
   const today = startOfToday();
   const nextMonth = endOfMonth(addMonths(today, 2));
 
@@ -75,6 +82,20 @@ export default function DateRangeCalendar({
     return differenceInDays(selectedRange.end, selectedRange.start) + 1;
   };
 
+  // Don't render until mounted to prevent hydration mismatch
+  if (!mounted) {
+    return (
+      <Card className="w-full shadow-lg border-0 bg-gradient-to-br from-white to-blue-50/30">
+        <CardContent className="p-6">
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-200 rounded w-1/3 mb-4"></div>
+            <div className="h-64 bg-gray-200 rounded"></div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card className="w-full shadow-lg border-0 bg-gradient-to-br from-white to-blue-50/30">
       <CardHeader className="pb-4">
@@ -85,7 +106,7 @@ export default function DateRangeCalendar({
             </div>
             Select Date Range
           </CardTitle>
-          {selectedRange && (
+          {/* {selectedRange && (
             <Button
               variant="outline"
               size="sm"
@@ -95,7 +116,7 @@ export default function DateRangeCalendar({
               <RotateCcw className="h-4 w-4" />
               Clear
             </Button>
-          )}
+          )} */}
         </div>
         {selectedRange && (
           <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
@@ -122,6 +143,17 @@ export default function DateRangeCalendar({
       </CardHeader>
       <CardContent className="pt-0">
         <div className="bg-white rounded-xl border shadow-sm p-6">
+          {selectedRange && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleClearSelection}
+              className="flex items-center  justify-end ml-auto cursor-pointer gap-2 hover:bg-red-50 hover:border-red-200 hover:text-red-600 transition-colors"
+            >
+              <RotateCcw className="h-4 w-4" />
+              Clear
+            </Button>
+          )}
           <Calendar
             mode="single"
             selected={selectedRange?.start}
@@ -145,20 +177,20 @@ export default function DateRangeCalendar({
             }}
             modifiersStyles={{
               range_start: {
-                backgroundColor: "#3b82f6",
-                color: "white",
+                backgroundColor: "#2B7FFF !important",
+                color: "white !important",
                 borderRadius: "8px",
                 fontWeight: "600",
               },
               range_end: {
-                backgroundColor: "#3b82f6",
-                color: "white",
+                backgroundColor: "#2B7FFF !important",
+                color: "white !important",
                 borderRadius: "8px",
                 fontWeight: "600",
               },
               range_middle: {
-                backgroundColor: "#dbeafe",
-                color: "#1e40af",
+                backgroundColor: "#2B7FFF !important",
+                color: "white !important",
                 borderRadius: "8px",
               },
             }}
@@ -180,8 +212,8 @@ export default function DateRangeCalendar({
               row: "flex w-full mt-2",
               cell: "h-9 w-9 text-center text-sm p-0 relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected].day-outside)]:bg-accent/50 [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
               day: "h-9 w-9 p-0 font-normal aria-selected:opacity-100",
-              day_selected:
-                "bg-blue-500 text-white hover:bg-blue-600 focus:bg-blue-600",
+                             day_selected:
+                 "bg-[#2B7FFF] text-white hover:bg-[#2B7FFF] focus:bg-[#2B7FFF]",
               day_today: "bg-accent text-accent-foreground",
               day_outside:
                 "day-outside text-muted-foreground opacity-50 aria-selected:bg-accent/50 aria-selected:text-muted-foreground aria-selected:opacity-30",

@@ -54,6 +54,7 @@ export async function GET(
       //   { petParent: new Types.ObjectId(String(userIdToMatch)) },
       // ],
     })
+
       .populate("veterinarian")
       .populate("petParent")
       .populate("pet")
@@ -68,6 +69,7 @@ export async function GET(
       console.log("petParent populated:", (appointment as any)?.petParent);
       console.log("pet populated:", (appointment as any)?.pet);
     }
+
     if (!appointment) {
       return throwAppError(
         {
