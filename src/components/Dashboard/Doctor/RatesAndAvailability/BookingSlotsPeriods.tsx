@@ -123,7 +123,7 @@ const BookingSlotsPeriods: React.FC<BookingSlotsProps> = ({
   };
 
   const handleUpdateStatus = async () => {
-    if (!selectedStatus || selectedSlotIds.length === 0) {
+    if (selectedSlotIds.length === 0) {
       return;
     }
 
@@ -150,7 +150,7 @@ const BookingSlotsPeriods: React.FC<BookingSlotsProps> = ({
       }
 
       await onUpdateSelectedSlotStatus(
-        selectedStatus,
+        SlotStatus.DISABLED,
         user.refId,
         startDate,
         endDate
@@ -311,54 +311,13 @@ const BookingSlotsPeriods: React.FC<BookingSlotsProps> = ({
               </p>
 
               <div className="flex items-center gap-3">
-                {/* Status Dropdown */}
-                <div className="relative">
-                  <button
-                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                    className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <span className="text-sm">
-                      {selectedStatus
-                        ? getStatusDisplayName(selectedStatus)
-                        : "Select Status"}
-                    </span>
-                    <ChevronDown className="w-4 h-4" />
-                  </button>
-
-                  {isDropdownOpen && (
-                    <div className="absolute top-full left-0 mt-1 w-48 bg-white border border-gray-300 rounded-lg shadow-lg z-50">
-                      {Object.values(SlotStatus)
-                        .filter(
-                          (status) =>
-                            ![SlotStatus.AVAILABLE, SlotStatus.ALL].includes(
-                              status
-                            )
-                        )
-                        .map((status, index) => (
-                          <button
-                            key={index}
-                            onClick={() => handleStatusSelect(status)}
-                            className="w-full flex items-center justify-between px-4 py-2 text-left hover:bg-gray-50 first:rounded-t-lg last:rounded-b-lg"
-                          >
-                            <span className="text-sm">
-                              {getStatusDisplayName(status)}
-                            </span>
-                            {selectedStatus === status && (
-                              <Check className="w-4 h-4 text-blue-600" />
-                            )}
-                          </button>
-                        ))}
-                    </div>
-                  )}
-                </div>
-
                 {/* Update Button */}
                 <button
                   onClick={handleUpdateStatus}
-                  disabled={!selectedStatus || isUpdating}
+                  disabled={isUpdating}
                   className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  Update Status
+                  Disabled
                 </button>
               </div>
             </div>

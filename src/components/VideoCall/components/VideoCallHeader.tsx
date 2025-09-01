@@ -32,11 +32,15 @@ const VideoCallHeader: React.FC<VideoCallHeaderProps> = ({
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
     const secs = seconds % 60;
-    
+
     if (hours > 0) {
-      return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+      return `${hours.toString().padStart(2, "0")}:${minutes
+        .toString()
+        .padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
     }
-    return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    return `${minutes.toString().padStart(2, "0")}:${secs
+      .toString()
+      .padStart(2, "0")}`;
   };
 
   return (
@@ -77,11 +81,11 @@ const VideoCallHeader: React.FC<VideoCallHeaderProps> = ({
           </div>
         </div>
       </div>
-      
+
       {/* Call Duration Timer */}
       {isTimerRunning && isOnline && (
         <div className="flex items-center gap-2 bg-black/30 backdrop-blur-sm px-4 py-2 rounded-full border border-white/20">
-          <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+          {/* <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div> */}
           <span className="text-white font-mono text-lg font-semibold">
             {formatDuration(callDuration)}
           </span>

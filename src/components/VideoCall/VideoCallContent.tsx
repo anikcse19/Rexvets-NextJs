@@ -45,6 +45,7 @@ const VideoCallContent: React.FC<VideoCallContentProps> = ({ onEndCall }) => {
     profileInfo,
     callDuration,
     isTimerRunning,
+    hasError,
   } = useVideoCall();
   const { data: session } = useSession();
   const userRole = session?.user?.role;
@@ -70,12 +71,11 @@ const VideoCallContent: React.FC<VideoCallContentProps> = ({ onEndCall }) => {
     return <LoadingScreen />;
   }
 
-  if (!appointmentDetails && !isLoading) {
+  if (hasError && !isLoading) {
     return <ErrorScreen />;
   }
   // console.log("profileInfo", profileInfo);
-  console.log("appoitnment", appointmentDetails);
-  return (
+  return appointmentDetails ? (
     <div
       style={{
         background:
@@ -147,6 +147,8 @@ const VideoCallContent: React.FC<VideoCallContentProps> = ({ onEndCall }) => {
         appointmentDetails={appointmentDetails}
       />
     </div>
+  ) : (
+    <LoadingScreen />
   );
 };
 

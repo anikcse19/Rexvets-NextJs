@@ -31,7 +31,7 @@ const VideoCallMainArea: React.FC<VideoCallMainAreaProps> = ({
     <div className="flex-1 flex items-center justify-center p-6 pt-24">
       <div className="relative flex gap-4 w-full h-full">
         {callState === "connecting" && !errorMessage && (
-          <div className="flex flex-col items-center justify-center text-center">
+          <div className="flex flex-col items-center justify-center text-center w-full">
             <div className="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mb-4"></div>
             <div className="text-white text-xl font-semibold mb-2">
               Connecting...
