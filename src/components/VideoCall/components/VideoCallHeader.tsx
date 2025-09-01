@@ -7,6 +7,8 @@ interface VideoCallHeaderProps {
   appointment: IAppointment | null;
   userRole?: string;
   remoteUsersState: object;
+  callDuration: number;
+  isTimerRunning: boolean;
 }
 
 const VideoCallHeader: React.FC<VideoCallHeaderProps> = ({
@@ -14,6 +16,8 @@ const VideoCallHeader: React.FC<VideoCallHeaderProps> = ({
   appointment,
   userRole,
   remoteUsersState,
+  callDuration,
+  isTimerRunning,
 }) => {
   const displayInfo: any =
     userRole == "pet_parent"
@@ -23,6 +27,18 @@ const VideoCallHeader: React.FC<VideoCallHeaderProps> = ({
       : null;
   const isOnline = Object.keys(remoteUsersState).length !== 0;
   console.log("isOnline", isOnline);
+  // Format call duration
+  const formatDuration = (seconds: number) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    
+    if (hours > 0) {
+      return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
+    return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
   return (
     <div className="flex items-center justify-between p-6 absolute top-0 left-0 right-0 z-10">
       <div className="flex items-center gap-4">
@@ -61,6 +77,16 @@ const VideoCallHeader: React.FC<VideoCallHeaderProps> = ({
           </div>
         </div>
       </div>
+      
+      {/* Call Duration Timer */}
+      {isTimerRunning && isOnline && (
+        <div className="flex items-center gap-2 bg-black/30 backdrop-blur-sm px-4 py-2 rounded-full border border-white/20">
+          <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+          <span className="text-white font-mono text-lg font-semibold">
+            {formatDuration(callDuration)}
+          </span>
+        </div>
+      )}
     </div>
   );
 };

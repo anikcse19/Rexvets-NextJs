@@ -200,12 +200,12 @@ const VideoCallSidebar: React.FC<VideoCallSidebarProps> = ({
               </div>
 
               {/* Status Badge */}
-              <div className="mt-4">
+              {/* <div className="mt-4">
                 <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-500/20 text-green-300 border border-green-400/30">
                   <div className="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></div>
                   Active Session
                 </span>
-              </div>
+              </div> */}
             </div>
           </div>
         ) : (

@@ -50,6 +50,8 @@ export const useVideoCall = () => {
     null
   );
   const [isProcessingVirtualBg, setIsProcessingVirtualBg] = useState(false);
+  const [callDuration, setCallDuration] = useState(0);
+  const [isTimerRunning, setIsTimerRunning] = useState(false);
 
   // Helper function to clean up virtual background processor
   const cleanupVirtualBackgroundProcessor = useCallback(async () => {
@@ -610,6 +612,11 @@ export const useVideoCall = () => {
         remoteUsers.current[user.uid] = user;
         setRemoteUsersState((prev) => ({ ...prev, [user.uid]: user }));
         setCallState("active");
+        // Start timer when both users are in the call
+        if (Object.keys(remoteUsers.current).length >= 1) {
+          setIsTimerRunning(true);
+          setCallDuration(0);
+        }
       });
 
       client.current.on(
@@ -640,8 +647,11 @@ export const useVideoCall = () => {
             [user.uid]: { ...prev[user.uid], videoTrack: null },
           }));
         }
-        if (Object.keys(remoteUsers.current).length <= 1)
+        if (Object.keys(remoteUsers.current).length <= 1) {
           setCallState("waiting");
+          // Stop timer when users leave
+          setIsTimerRunning(false);
+        }
       });
 
       client.current.on("user-left", (user: any) => {
@@ -651,8 +661,11 @@ export const useVideoCall = () => {
           delete next[user.uid];
           return next;
         });
-        if (Object.keys(remoteUsers.current).length === 0)
+        if (Object.keys(remoteUsers.current).length === 0) {
           setCallState("waiting");
+          // Stop timer when all users leave
+          setIsTimerRunning(false);
+        }
       });
 
       // Ensure local tracks are initialized
@@ -813,6 +826,8 @@ export const useVideoCall = () => {
       setRemoteUsersState({});
       setCallState("ended");
       setErrorMessage(null);
+      // Stop timer when call ends
+      setIsTimerRunning(false);
     } catch (error) {
       console.error("Error ending call:", error);
       setErrorMessage("Failed to end call.");
@@ -901,6 +916,38 @@ export const useVideoCall = () => {
     if (clientInitialized) joinCall();
   }, [clientInitialized, joinCall]);
 
+  // Timer effect
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    
+    if (isTimerRunning) {
+      interval = setInterval(() => {
+        setCallDuration(prev => prev + 1);
+      }, 1000);
+    }
+
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
+  }, [isTimerRunning]);
+
+  // Stop timer when call ends or fails
+  useEffect(() => {
+    if (callState === "ended" || callState === "failed") {
+      setIsTimerRunning(false);
+    }
+  }, [callState]);
+
+  // Reset timer when starting a new call
+  useEffect(() => {
+    if (callState === "connecting") {
+      setCallDuration(0);
+      setIsTimerRunning(false);
+    }
+  }, [callState]);
+
   useEffect(() => {
     if (user && !isInitializedRef.current) {
       getPetParentDetails();
@@ -968,6 +1015,8 @@ export const useVideoCall = () => {
     veterinarian,
     hasExistingReview,
     profileInfo,
+    callDuration,
+    isTimerRunning,
     // Refs
     localVideoRef,
     remoteVideoRef,

@@ -43,6 +43,8 @@ const VideoCallContent: React.FC<VideoCallContentProps> = ({ onEndCall }) => {
     applyVirtualBackground,
     veterinarian,
     profileInfo,
+    callDuration,
+    isTimerRunning,
   } = useVideoCall();
   const { data: session } = useSession();
   const userRole = session?.user?.role;
@@ -90,6 +92,8 @@ const VideoCallContent: React.FC<VideoCallContentProps> = ({ onEndCall }) => {
             appointment={appointmentDetails}
             userRole={userRole}
             remoteUsersState={remoteUsersState}
+            callDuration={callDuration}
+            isTimerRunning={isTimerRunning}
           />
           <VideoCallMainArea
             callState={callState}

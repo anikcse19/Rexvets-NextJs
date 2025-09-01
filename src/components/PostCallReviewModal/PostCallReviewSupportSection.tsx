@@ -5,7 +5,7 @@ interface IProps {
 }
 const PostCallReviewSupportSection: React.FC<IProps> = ({ onClick }) => {
   return (
-    <div className="bg-[#120F2C] rounded-xl p-5 text-white text-center">
+    <div className=" rounded-xl p-5 text-white text-center">
       <div className="text-4xl mb-3">💝</div>
       <h3 className="text-xl font-bold mb-2">Support Our Mission</h3>
       <p className="text-sm mb-4 opacity-90 leading-tight">
