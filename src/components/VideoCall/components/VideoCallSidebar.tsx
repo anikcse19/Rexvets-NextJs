@@ -133,7 +133,7 @@ const VideoCallSidebar: React.FC<VideoCallSidebarProps> = ({
                   <Avatar className="h-20 w-20 ring-4 ring-white/30 shadow-lg">
                     <AvatarImage src={petInfo?.image} alt={petInfo?.name} />
                     <AvatarFallback className="bg-gradient-to-br from-blue-400 to-purple-500 text-white text-lg font-bold">
-                      {petInfo?.name?.charAt(0) || 'P'}
+                      {petInfo?.name?.charAt(0) || "P"}
                     </AvatarFallback>
                   </Avatar>
                   <div className="absolute -bottom-1 -right-1">
@@ -159,7 +159,7 @@ const VideoCallSidebar: React.FC<VideoCallSidebarProps> = ({
                     {petInfo?.species}
                   </p>
                 </div>
-                
+
                 <div className="bg-white/10 rounded-lg p-3 backdrop-blur-sm">
                   <p className="text-gray-300 text-xs font-medium uppercase tracking-wider mb-1">
                     Gender
@@ -168,7 +168,7 @@ const VideoCallSidebar: React.FC<VideoCallSidebarProps> = ({
                     {petInfo?.gender}
                   </p>
                 </div>
-                
+
                 <div className="bg-white/10 rounded-lg p-3 backdrop-blur-sm">
                   <p className="text-gray-300 text-xs font-medium uppercase tracking-wider mb-1">
                     Breed
@@ -177,7 +177,15 @@ const VideoCallSidebar: React.FC<VideoCallSidebarProps> = ({
                     {petInfo?.breed}
                   </p>
                 </div>
-                
+                <div className="bg-white/10 rounded-lg p-3 backdrop-blur-sm">
+                  <p className="text-gray-300 text-xs font-medium uppercase tracking-wider mb-1">
+                    Spayed Neutered
+                  </p>
+                  <p className="text-white text-sm font-semibold">
+                    {petInfo?.spayedNeutered}
+                  </p>
+                </div>
+
                 <div className="bg-white/10 rounded-lg p-3 backdrop-blur-sm">
                   <p className="text-gray-300 text-xs font-medium uppercase tracking-wider mb-1">
                     Weight
@@ -200,12 +208,26 @@ const VideoCallSidebar: React.FC<VideoCallSidebarProps> = ({
         ) : (
           <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 mb-6 border border-white/20 text-center">
             <div className="text-gray-300 mb-2">
-              <svg className="w-12 h-12 mx-auto mb-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+              <svg
+                className="w-12 h-12 mx-auto mb-3 opacity-50"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                />
               </svg>
             </div>
-            <p className="text-white/70 text-sm font-medium">Pet information not available</p>
-            <p className="text-gray-400 text-xs mt-1">Please check your appointment details</p>
+            <p className="text-white/70 text-sm font-medium">
+              Pet information not available
+            </p>
+            <p className="text-gray-400 text-xs mt-1">
+              Please check your appointment details
+            </p>
           </div>
         )}
 

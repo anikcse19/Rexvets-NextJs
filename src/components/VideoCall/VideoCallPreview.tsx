@@ -321,7 +321,8 @@ const VideoCallPreview: React.FC = () => {
     );
   }
 
-  if (!appointmentDetails && !isLoading) {
+  // Show error screen only after API call completes and appointment is not found
+  if (!isLoading && appointmentDetails === null) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
         <div className="max-w-md w-full">
@@ -428,11 +429,11 @@ const VideoCallPreview: React.FC = () => {
                     ) : (
                       <>
                         <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                          Appointment with Dr.
+                          Appointment with
                         </span>
                         <br />
                         <span className="text-white">
-                          {veterinarianInfo?.name || "Veterinarian"}
+                          Dr. {veterinarianInfo?.name || "Veterinarian"}
                         </span>
                       </>
                     )}
@@ -478,7 +479,7 @@ const VideoCallPreview: React.FC = () => {
                 </div>
 
                 {/* Countdown Timer */}
-                <div className="bg-gradient-to-r from-purple-500/20 to-blue-500/20 backdrop-blur-sm rounded-3xl p-8 border border-white/20">
+                <div className="bg-gradient-to-r  items-center justify-center flex flex-col from-purple-500/20 to-blue-500/20 backdrop-blur-sm rounded-3xl p-8 border border-white/20">
                   {timeLeft.isExpired ? (
                     <div className="text-center">
                       <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -492,11 +493,11 @@ const VideoCallPreview: React.FC = () => {
                       </p>
                     </div>
                   ) : (
-                    <div className="text-center">
+                    <div className="text-center  w-full">
                       <h3 className="text-lg font-semibold text-white/90 mb-6">
                         Your appointment will start
                       </h3>
-                      <div className="grid grid-cols-4 gap-4">
+                      <div className="grid grid-cols-4 gap-4   mx-auto">
                         {timeLeft.days > 0 && (
                           <div className="text-center">
                             <div className="bg-white/10 rounded-xl p-4 mb-2">
