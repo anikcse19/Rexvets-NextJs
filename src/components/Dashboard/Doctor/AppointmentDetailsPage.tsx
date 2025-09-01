@@ -12,15 +12,24 @@ import {
   Video,
 } from "lucide-react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import PetInfoCard from "./Appointments/PetInfoCard";
+import ParentInfoCard from "./Appointments/ParentInfoCard";
+import DataAssessmentSection from "./Appointments/DataAssessmentSection";
+import PrescriptionSection from "./Appointments/PrescriptionSection";
 import ChatBox from "./Appointments/Chatbox";
 import DataAssessmentModal from "./Appointments/DataAssessmentModal";
-import DataAssessmentSection from "./Appointments/DataAssessmentSection";
-import ParentInfoCard from "./Appointments/ParentInfoCard";
-import PetInfoCard from "./Appointments/PetInfoCard";
-import PrescriptionModal from "./Appointments/Prescriptionodal";
-import PrescriptionSection from "./Appointments/PrescriptionSection";
+import PrescriptionModal from "./Appointments/PrescriptionModal";
+import { Appointment, Doctor, Pet, PetParent } from "@/lib/types";
+import { routerServerGlobal } from "next/dist/server/lib/router-utils/router-server-context";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface AppointmentData {
   _id: string;
@@ -31,32 +40,9 @@ interface AppointmentData {
   meetingLink?: string;
   notes?: string;
   feeUSD: number;
-  veterinarian: {
-    _id: string;
-    name: string;
-    email: string;
-    specialization?: string;
-    profileImage?: string;
-  };
-  petParent: {
-    _id: string;
-    name: string;
-    email: string;
-    phone?: string;
-    address?: string;
-    profileImage?: string;
-  };
-  pet: {
-    _id: string;
-    name: string;
-    species: string;
-    breed?: string;
-    age?: string;
-    weight?: string;
-    gender?: string;
-    color?: string;
-    image?: string;
-  };
+  veterinarian: Doctor;
+  petParent: PetParent;
+  pet: Pet;
   concerns: string[];
   createdAt: string;
   updatedAt: string;
@@ -67,31 +53,36 @@ export default function AppointmentDetailsPage() {
   const [isPrescriptionModalOpen, setIsPrescriptionModalOpen] = useState(false);
   const [currentAssessment, setCurrentAssessment] = useState(null);
   const [currentPrescription, setCurrentPrescription] = useState(null);
-  const [appointment, setAppointment] = useState<AppointmentData | null>(null);
+  const [appointment, setAppointment] = useState<Appointment | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const params = useParams();
   const appointmentId = params.id as string;
 
-  useEffect(() => {
-    const fetchAppointment = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch(`/api/appointments/${appointmentId}`);
-        const data = await response.json();
+  const router = useRouter();
 
-        if (data.success) {
-          setAppointment(data.data);
-        } else {
-          setError(data.message || "Failed to fetch appointment");
-        }
-      } catch (err) {
-        setError("Failed to fetch appointment data");
-        console.error("Error fetching appointment:", err);
-      } finally {
-        setLoading(false);
+  const fetchAppointment = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`/api/appointments/${appointmentId}`);
+      const data = await response.json();
+
+      console.log("1", data?.data);
+
+      if (data.success) {
+        setAppointment(data?.data);
+      } else {
+        setError(data.message || "Failed to fetch appointment");
       }
-    };
+    } catch (err) {
+      setError("Failed to fetch appointment data");
+      console.error("Error fetching appointment:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     if (appointmentId) {
       fetchAppointment();
     }
@@ -102,6 +93,8 @@ export default function AppointmentDetailsPage() {
       window.open(appointment.meetingLink, "_blank");
     }
   };
+
+  console.log("appointment", appointment);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -133,6 +126,27 @@ export default function AppointmentDetailsPage() {
         return "bg-gradient-to-r from-purple-500 to-purple-600 text-white";
       default:
         return "bg-gradient-to-r from-gray-500 to-gray-600 text-white";
+    }
+  };
+
+  const updateStatus = async (newStatus: string) => {
+    try {
+      const res = await fetch("/api/appointments/update-status", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          appointmentId: appointment?._id,
+          newStatus,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to update status");
+
+      toast.success("Status updated successfully!");
+      fetchAppointment();
+    } catch (err: any) {
+      toast.error(err.message);
     }
   };
 
@@ -188,13 +202,45 @@ export default function AppointmentDetailsPage() {
         </div>
 
         <div className="flex items-center gap-3">
-          <Badge
+          <div className="flex items-center gap-2">
+            <label htmlFor="status" className="font-semibold">
+              Update Status:
+            </label>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="default"
+                  className={`${getStatusColor(
+                    appointment.status
+                  )} px-4 py-2 text-sm font-semibold cursor-pointer`}
+                >
+                  {appointment.status.charAt(0).toUpperCase() +
+                    appointment.status.slice(1)}
+                </Button>
+              </DropdownMenuTrigger>
+
+              <DropdownMenuContent>
+                <DropdownMenuItem onClick={() => updateStatus("upcoming")}>
+                  Upcoming
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => updateStatus("cancelled")}>
+                  Cancelled
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => updateStatus("completed")}>
+                  Completed
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
+          {/* <Badge
             className={`${getStatusColor(
               appointment.status
             )} px-4 py-2 text-sm font-semibold`}
           >
             {appointment.status.replace("-", " ").toUpperCase()}
-          </Badge>
+          </Badge> */}
           {appointment.meetingLink && (
             <Button
               onClick={handleJoinMeeting}
@@ -268,20 +314,24 @@ export default function AppointmentDetailsPage() {
         {/* Left Column - Pet & Parent Info */}
         <div className="xl:col-span-1 space-y-6">
           {/* <PetInfoCard pet={appointment?.pet} /> */}
-          <ParentInfoCard parent={appointment?.petParent} />
+          <ParentInfoCard parent={appointment?.petParent!} />
         </div>
 
         {/* Middle Column - Data Assessment & Prescription */}
         <div className="xl:col-span-1 space-y-6">
-          <DataAssessmentSection
-            appointmentId={appointment._id}
-            onOpenModal={() => setIsDataModalOpen(true)}
-            setCurrentAssessment={setCurrentAssessment}
-          />
-          <PrescriptionSection
-            appointmentId={appointment?._id}
-            onOpenModal={() => setIsPrescriptionModalOpen(true)}
-          />
+          {appointment && (
+            <>
+              <DataAssessmentSection
+                appointmentId={appointment._id}
+                onOpenModal={() => setIsDataModalOpen(true)}
+                setCurrentAssessment={setCurrentAssessment}
+              />
+              <PrescriptionSection
+                appointmentId={appointment?._id}
+                onOpenModal={() => setIsPrescriptionModalOpen(true)}
+              />
+            </>
+          )}
         </div>
 
         {/* Right Column - Chat */}
@@ -310,17 +360,19 @@ export default function AppointmentDetailsPage() {
         assessment={currentAssessment}
       />
 
-      <PrescriptionModal
-        isOpen={isPrescriptionModalOpen}
-        onClose={() => setIsPrescriptionModalOpen(false)}
-        appointmentId={appointment._id}
-        petName={appointment.pet.name}
-        petDetails={{
-          breed: appointment.pet.breed || "",
-          age: appointment.pet.age || "",
-          weight: appointment.pet.weight || "",
-        }}
-      />
+      {appointment && (
+        <PrescriptionModal
+          isOpen={isPrescriptionModalOpen}
+          onClose={() => {
+            setIsPrescriptionModalOpen(false);
+          }}
+          appointmentId={appointment._id}
+          appointment={appointment}
+          pet={appointment?.pet}
+          petParent={appointment?.petParent!}
+          veterinarian={appointment?.veterinarian}
+        />
+      )}
     </div>
   );
 }

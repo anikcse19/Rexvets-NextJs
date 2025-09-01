@@ -3,29 +3,12 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { User, Mail, Phone, MapPin, Shield, ExternalLink } from "lucide-react";
+import { PetParent } from "@/lib/types";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
-import {
-  ExternalLink,
-  Mail,
-  MapPin,
-  Phone,
-  Shield,
-  User,
-} from "lucide-react";
-import React from "react";
 
 interface ParentInfoCardProps {
-  parent: {
-    _id?: string;
-    name?: string;
-    email?: string;
-    phone?: string;
-    address?: string;
-    profileImage?: string;
-    phoneNumber?: string;
-    state?: string;
-    createdAt?: string;
-  } | null | undefined;
+  parent: PetParent;
 }
 
 export default function ParentInfoCard({ parent }: ParentInfoCardProps) {
@@ -66,7 +49,7 @@ export default function ParentInfoCard({ parent }: ParentInfoCardProps) {
   };
 
   const handleCall = () => {
-    const phoneNumber = parent?.phone || parent?.phoneNumber;
+    const phoneNumber = parent.phoneNumber || parent.phoneNumber;
     if (phoneNumber) {
       window.open(`tel:${phoneNumber}`, "_self");
     }
@@ -79,7 +62,7 @@ export default function ParentInfoCard({ parent }: ParentInfoCardProps) {
   };
 
   const getInitials = (name: string | undefined) => {
-    if (!name || typeof name !== 'string' || name.length === 0) {
+    if (!name || typeof name !== "string" || name.length === 0) {
       return "PP";
     }
     return name
@@ -148,7 +131,9 @@ export default function ParentInfoCard({ parent }: ParentInfoCardProps) {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-600">Email</p>
-                  <p className="font-semibold text-gray-900">{parent?.email || "Email not available"}</p>
+                  <p className="font-semibold text-gray-900">
+                    {parent?.email || "Email not available"}
+                  </p>
                 </div>
               </div>
               <Button
@@ -162,7 +147,7 @@ export default function ParentInfoCard({ parent }: ParentInfoCardProps) {
             </div>
 
             {/* Phone */}
-            {(parent?.phone || parent?.phoneNumber) && (
+            {(parent.phoneNumber || parent.phoneNumber) && (
               <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200">
                 <div className="flex items-center gap-3">
                   <div className="bg-blue-500 text-white p-2 rounded-lg">
@@ -171,7 +156,7 @@ export default function ParentInfoCard({ parent }: ParentInfoCardProps) {
                   <div>
                     <p className="text-sm font-medium text-gray-600">Phone</p>
                     <p className="font-semibold text-gray-900">
-                      {parent?.phone || parent?.phoneNumber}
+                      {parent.phoneNumber || parent.phoneNumber}
                     </p>
                   </div>
                 </div>
@@ -223,7 +208,7 @@ export default function ParentInfoCard({ parent }: ParentInfoCardProps) {
 
           {/* Quick Actions */}
           <div className="grid grid-cols-2 gap-3">
-            {(parent?.phone || parent?.phoneNumber) && (
+            {(parent.phoneNumber || parent.phoneNumber) && (
               <Button
                 onClick={handleCall}
                 className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white"

@@ -15,31 +15,10 @@ import {
   Syringe,
   FileText,
 } from "lucide-react";
+import { Pet } from "@/lib/types";
 
 interface PetInfoCardProps {
-  pet: {
-    _id: string;
-    name: string;
-    image?: string;
-    species: string;
-    breed?: string;
-    age?: string;
-    weight?: string | number;
-    gender?: string;
-    color?: string;
-    primaryColor?: string;
-    weightUnit?: string;
-    dateOfBirth?: string;
-    spayedNeutered?: string;
-    allergies?: string[];
-    medicalConditions?: string[];
-    currentMedications?: string[];
-    lastVisit?: string;
-    nextVaccination?: string;
-    healthStatus?: string;
-    emergencyContact?: string;
-    veterinarianNotes?: string;
-  };
+  pet: Pet;
 }
 
 export default function PetInfoCard({ pet }: PetInfoCardProps) {
@@ -58,8 +37,11 @@ export default function PetInfoCard({ pet }: PetInfoCardProps) {
     const today = new Date();
     const ageInYears = today.getFullYear() - birthDate.getFullYear();
     const monthDiff = today.getMonth() - birthDate.getMonth();
-    
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+
+    if (
+      monthDiff < 0 ||
+      (monthDiff === 0 && today.getDate() < birthDate.getDate())
+    ) {
       return `${ageInYears - 1} years`;
     }
     return `${ageInYears} years`;
@@ -67,8 +49,8 @@ export default function PetInfoCard({ pet }: PetInfoCardProps) {
 
   const formatWeight = (weight: string | number, unit?: string) => {
     if (!weight) return "Not available";
-    const weightValue = typeof weight === 'string' ? weight : weight.toString();
-    const weightUnit = unit || 'kg';
+    const weightValue = typeof weight === "string" ? weight : weight.toString();
+    const weightUnit = unit || "kg";
     return `${weightValue} ${weightUnit}`;
   };
 
@@ -118,7 +100,12 @@ export default function PetInfoCard({ pet }: PetInfoCardProps) {
             <InfoItem
               icon={<Calendar className="w-4 h-4 text-blue-600" />}
               label="Age"
-              value={pet.age || (pet.dateOfBirth ? calculateAge(pet.dateOfBirth) : "Not available")}
+              value={
+                pet?.dateOfBirth ||
+                (pet.dateOfBirth
+                  ? calculateAge(pet.dateOfBirth)
+                  : "Not available")
+              }
             />
             <InfoItem
               icon={<Weight className="w-4 h-4 text-green-600" />}
@@ -133,7 +120,7 @@ export default function PetInfoCard({ pet }: PetInfoCardProps) {
             <InfoItem
               icon={<Palette className="w-4 h-4 text-purple-600" />}
               label="Color"
-              value={pet.color || pet.primaryColor || "Not available"}
+              value={pet.primaryColor || pet.primaryColor || "Not available"}
             />
           </div>
 
@@ -253,8 +240,12 @@ export default function PetInfoCard({ pet }: PetInfoCardProps) {
                   <Syringe className="w-4 h-4" />
                 </div>
                 <div>
-                  <p className="font-semibold text-purple-900">Next Vaccination</p>
-                  <p className="text-purple-700">{formatDate(pet.nextVaccination)}</p>
+                  <p className="font-semibold text-purple-900">
+                    Next Vaccination
+                  </p>
+                  <p className="text-purple-700">
+                    {formatDate(pet.nextVaccination)}
+                  </p>
                 </div>
               </div>
             </div>
@@ -283,7 +274,9 @@ export default function PetInfoCard({ pet }: PetInfoCardProps) {
                   <Shield className="w-4 h-4" />
                 </div>
                 <div>
-                  <p className="font-semibold text-red-900">Emergency Contact</p>
+                  <p className="font-semibold text-red-900">
+                    Emergency Contact
+                  </p>
                   <p className="text-red-700">{pet.emergencyContact}</p>
                 </div>
               </div>
@@ -299,7 +292,9 @@ export default function PetInfoCard({ pet }: PetInfoCardProps) {
                 </div>
                 <div>
                   <p className="font-semibold text-indigo-900">Vet Notes</p>
-                  <p className="text-indigo-700 text-sm">{pet.veterinarianNotes}</p>
+                  <p className="text-indigo-700 text-sm">
+                    {pet.veterinarianNotes}
+                  </p>
                 </div>
               </div>
             </div>

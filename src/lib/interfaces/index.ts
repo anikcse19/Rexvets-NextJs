@@ -38,6 +38,7 @@ export interface IPet {
   healthStatus?: "Healthy" | "Under Treatment" | "Critical" | "Unknown";
   emergencyContact?: string;
   veterinarianNotes?: string;
+  seenBy?: string[];
   lastVisit?: string;
   nextVaccination?: string;
   isDeleted?: boolean;
