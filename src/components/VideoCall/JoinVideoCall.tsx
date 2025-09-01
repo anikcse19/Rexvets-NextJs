@@ -1,108 +1,37 @@
 "use client";
-import React from "react";
-import { useVideoCall } from "../../hooks/useVideoCall";
+import dynamic from "next/dynamic";
+import React, { Suspense } from "react";
 import PostCallModal from "../PostCallReviewModal";
-import {
-  ErrorScreen,
-  LoadingScreen,
-  LocalVideoPreview,
-  VideoCallControls,
-  VideoCallHeader,
-  VideoCallLogo,
-  VideoCallMainArea,
-  VideoCallSidebar,
-} from "./components";
 
 interface VideoCallProps {
   onEndCall?: () => void;
 }
 
-const VideoCall: React.FC<VideoCallProps> = ({ onEndCall }) => {
-  const {
-    petParent,
-    appointmentDetails,
-    isLoading,
-    isOpen,
-    setIsOpen,
-    isAudioEnabled,
-    isVideoEnabled,
-    callState,
-    errorMessage,
-    remoteUsersState,
-    isVirtualBackgroundSupported,
-    selectedBackground,
-    localVideoRef,
-    remoteVideoRef,
-    localVideoTrack,
-    toggleAudio,
-    toggleVideo,
-    endCall,
-    switchCamera,
-    applyVirtualBackground,
-  } = useVideoCall();
-
-  if (isLoading) {
-    return <LoadingScreen />;
-  }
-
-  if (!appointmentDetails && !isLoading) {
-    return <ErrorScreen />;
-  }
-
-  return (
-    <div
-      style={{
-        background:
-          "linear-gradient(135deg, rgb(0, 35, 102) 20%, rgb(36, 36, 62) 25%, rgb(48, 43, 99) 50%, rgb(15, 52, 96) 75%, rgb(15, 12, 41) 100%)",
-      }}
-      className="h-screen flex justify-center"
-    >
-      <div className="max-w-[1200px] w-full flex flex-col md:flex-row gap-7 py-5 md:py-24 px-4">
-        {/* Left Main Section */}
-        <div className="flex-1 bg-black/20 backdrop-blur-sm rounded-2xl flex flex-col relative">
-          <VideoCallLogo />
-          <VideoCallHeader petParent={petParent} />
-          <VideoCallMainArea
-            callState={callState}
-            errorMessage={errorMessage}
-            remoteUsersState={remoteUsersState}
-            remoteVideoRef={remoteVideoRef as React.RefObject<HTMLDivElement>}
-            petParent={petParent}
-          />
-          <LocalVideoPreview
-            localVideoRef={localVideoRef as React.RefObject<HTMLDivElement>}
-            localVideoTrack={localVideoTrack}
-            isVideoEnabled={isVideoEnabled}
-          />
-          <VideoCallControls
-            isAudioEnabled={isAudioEnabled}
-            isVideoEnabled={isVideoEnabled}
-            onToggleAudio={toggleAudio}
-            onToggleVideo={toggleVideo}
-            onEndCall={endCall}
-            onSwitchCamera={switchCamera}
-          />
-        </div>
-
-        {/* Right Sidebar */}
-        <VideoCallSidebar
-          onEndCall={onEndCall || endCall}
-          isVirtualBackgroundSupported={isVirtualBackgroundSupported}
-          selectedBackground={selectedBackground}
-          onApplyVirtualBackground={applyVirtualBackground}
-          petParent={petParent}
-        />
-      </div>
-
-      <PostCallModal
-        isOpen={isOpen}
-        onClose={() => setIsOpen(false)}
-        doctorId="123"
-        docType="Parent"
-        appointmentDetails={appointmentDetails}
-      />
+// Loading component for when Agora SDK is loading
+const AgoraLoadingScreen = () => (
+  <div className="h-screen flex items-center justify-center bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900">
+    <div className="text-center text-white">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+      <p className="text-lg">Initializing video call...</p>
     </div>
+  </div>
+);
+
+// Dynamically import the VideoCallContent component to prevent SSR issues
+const VideoCallContent = dynamic(
+  () => import("./VideoCallContent").then((mod) => mod.default),
+  {
+    ssr: false,
+    loading: () => <AgoraLoadingScreen />,
+  }
+);
+
+const JoinVideoCall: React.FC<VideoCallProps> = ({ onEndCall }) => {
+  return (
+    <Suspense fallback={<AgoraLoadingScreen />}>
+      <VideoCallContent onEndCall={onEndCall} />
+    </Suspense>
   );
 };
 
-export default VideoCall;
+export default JoinVideoCall;

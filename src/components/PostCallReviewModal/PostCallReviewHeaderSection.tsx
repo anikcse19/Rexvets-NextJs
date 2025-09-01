@@ -6,15 +6,7 @@ interface IProps {
 }
 const PostCallReviewHeaderSection: React.FC<IProps> = ({ onClose }) => {
   return (
-    <div className="bg-[#120F2C] p-5 rounded-t-2xl text-white text-center relative">
-      <motion.button
-        whileHover={{ scale: 1.1, backgroundColor: "rgba(255, 255, 255, 0.3)" }}
-        whileTap={{ scale: 0.9 }}
-        onClick={onClose}
-        className="absolute top-4 right-4 bg-[rgba(255,255,255,0.2)] text-white border-none rounded-full w-9 h-9 flex items-center justify-center cursor-pointer text-base transition-all"
-      >
-        <RxCross1 />
-      </motion.button>
+    <div className=" md:p-5 p-2 rounded-t-2xl text-white text-center relative">
       <div className="w-16 h-16 bg-[rgba(255,255,255,0.2)] rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">
         ✅
       </div>

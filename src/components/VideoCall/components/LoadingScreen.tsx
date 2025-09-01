@@ -16,9 +16,13 @@ const LoadingScreen: React.FC = () => {
           style={{ animationDirection: "reverse", animationDuration: "1.5s" }}
         ></div>
       </div>
-      <div className="text-center">
-        <h1 className="text-2xl font-bold text-white mb-2">Loading Video Call</h1>
-        <p className="text-gray-300 text-sm">Preparing your secure connection...</p>
+      <div className="text-center  flex items-center justify-center flex-col">
+        <h1 className="text-2xl  font-bold text-white mb-2">
+          Loading Video Call
+        </h1>
+        <p className="text-gray-300 text-sm">
+          Preparing your secure connection...
+        </p>
       </div>
     </div>
   );

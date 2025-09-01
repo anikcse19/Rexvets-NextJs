@@ -19,55 +19,6 @@ import PrescriptionSection from "./Appointments/PetParentPrescriptionSection";
 import ChatBox from "./Appointments/PetParentChatbox";
 import { Appointment } from "@/lib/types";
 
-// // Mock appointment data for pet parent view
-// const mockAppointment = {
-//   id: "1",
-//   appointmentDate: "2025-01-15",
-//   appointmentTime: "10:30 AM",
-//   timezone: "GMT+6",
-//   status: "in-progress" as const,
-//   service: "Routine Checkup",
-//   meetingLink: "https://meet.google.com/abc-defg-hij",
-
-//   pet: {
-//     id: "pet-1",
-//     name: "Max",
-//     image:
-//       "https://images.pexels.com/photos/1108099/pexels-photo-1108099.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop",
-//     breed: "Golden Retriever",
-//     age: "3 years",
-//     weight: "28 kg",
-//     gender: "Male",
-//     color: "Golden",
-//     microchipId: "123456789012345",
-//     allergies: ["Chicken", "Dairy"],
-//     medications: ["Heartgard Plus"],
-//     lastVisit: "2024-12-15",
-//     vaccinations: [
-//       { name: "Rabies", date: "2024-06-15", nextDue: "2025-06-15" },
-//       { name: "DHPP", date: "2024-06-15", nextDue: "2025-06-15" },
-//     ],
-//   },
-
-//   doctor: {
-//     id: "doctor-1",
-//     name: "Dr. Anik Rahman",
-//     image:
-//       "https://images.pexels.com/photos/5327585/pexels-photo-5327585.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop&crop=face",
-//     email: "anik@rexvet.com",
-//     phone: "+880 1234-567890",
-//     specialties: ["Small Animal Surgery", "Emergency Medicine", "Cardiology"],
-//     experience: "12 years",
-//     rating: 4.9,
-//     totalReviews: 847,
-//     education:
-//       "DVM from Bangladesh Agricultural University, PhD in Veterinary Medicine",
-//     clinicName: "RexVet Animal Hospital",
-//     clinicAddress: "456 Pet Care Avenue, Gulshan, Dhaka 1212",
-//     licenseNumber: "VET-BD-2012-001234",
-//   },
-// };
-
 export default function PetParentAppointmentDetailsPage({
   id,
 }: {
@@ -75,15 +26,6 @@ export default function PetParentAppointmentDetailsPage({
 }) {
   const [appointmentDetails, setAppointmentDetails] = useState<Appointment>(
     {} as Appointment
-  );
-
-  console.log("appointmentDetails", appointmentDetails);
-  console.log("veterinarian data:", appointmentDetails?.veterinarian);
-  console.log("veterinarian name:", appointmentDetails?.veterinarian?.name);
-  console.log("veterinarian type:", typeof appointmentDetails?.veterinarian);
-  console.log(
-    "veterinarian name type:",
-    typeof appointmentDetails?.veterinarian?.name
   );
 
   useEffect(() => {
@@ -260,12 +202,10 @@ export default function PetParentAppointmentDetailsPage({
           {/* Middle Column - Data Assessment & Prescription */}
           <div className="xl:col-span-1 space-y-6">
             {appointmentDetails?._id && (
-              <>
-                <DataAssessmentSection
-                  appointmentId={appointmentDetails?._id}
-                />
-                <PrescriptionSection appointmentId={appointmentDetails?._id} />
-              </>
+              <DataAssessmentSection appointmentId={appointmentDetails?._id} />
+            )}
+            {appointmentDetails?._id && (
+              <PrescriptionSection appointmentId={appointmentDetails._id} />
             )}
           </div>
 

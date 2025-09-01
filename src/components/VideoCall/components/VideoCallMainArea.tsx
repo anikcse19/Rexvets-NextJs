@@ -1,6 +1,6 @@
 "use client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { IUser } from "@/models";
+import { IAppointment, IUser } from "@/models";
 
 interface VideoCallMainAreaProps {
   callState: string;
@@ -8,6 +8,8 @@ interface VideoCallMainAreaProps {
   remoteUsersState: { [uid: string]: any };
   remoteVideoRef: React.RefObject<HTMLDivElement>;
   petParent: IUser | null;
+  appointment: IAppointment | null;
+  userRole?: string;
 }
 
 const VideoCallMainArea: React.FC<VideoCallMainAreaProps> = ({
@@ -16,12 +18,20 @@ const VideoCallMainArea: React.FC<VideoCallMainAreaProps> = ({
   remoteUsersState,
   remoteVideoRef,
   petParent,
+  appointment,
+  userRole,
 }) => {
+  const displayInfo: any =
+    userRole == "pet_parent"
+      ? appointment?.veterinarian
+      : userRole === "veterinarian"
+      ? appointment?.petParent
+      : null;
   return (
     <div className="flex-1 flex items-center justify-center p-6 pt-24">
       <div className="relative flex gap-4 w-full h-full">
         {callState === "connecting" && !errorMessage && (
-          <div className="flex flex-col items-center justify-center text-center">
+          <div className="flex flex-col items-center justify-center text-center w-full">
             <div className="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mb-4"></div>
             <div className="text-white text-xl font-semibold mb-2">
               Connecting...
@@ -62,10 +72,12 @@ const VideoCallMainArea: React.FC<VideoCallMainAreaProps> = ({
               <div className="text-center">
                 <div className="relative mb-6 flex flex-col items-center justify-center gap-4">
                   <Avatar className="w-[140px] h-[140px] border-4 items-center justify-center  border-white/20 shadow-2xl">
-                    <AvatarImage src={petParent?.profileImage} />
+                    <AvatarImage src={displayInfo?.profileImage} />
                     <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white text-3xl font-bold">
-                      {petParent?.name?.toUpperCase()?.split("").slice(0, 1) ||
-                        "MM"}
+                      {displayInfo?.name
+                        ?.toUpperCase()
+                        ?.split("")
+                        .slice(0, 1) || "MM"}
                     </AvatarFallback>
                   </Avatar>
                   {/* <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-green-500 rounded-full border-4 border-gray-900 animate-pulse"></div> */}

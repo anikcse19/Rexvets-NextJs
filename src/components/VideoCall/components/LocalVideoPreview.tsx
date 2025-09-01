@@ -13,7 +13,7 @@ const LocalVideoPreview: React.FC<LocalVideoPreviewProps> = ({
   isVideoEnabled,
 }) => {
   return (
-    <div className="w-[180px] h-[240px] absolute top-20 right-6 z-50 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-2xl p-1 shadow-2xl border border-white/10">
+    <div className="md:w-[180px] md:h-[240px] w-[120px] h-[160px] absolute md:top-20 top-1 md:right-6 right-0 z-50 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-2xl p-1 shadow-2xl border border-white/10">
       <div className="w-full h-full bg-black rounded-xl overflow-hidden relative">
         <div
           ref={localVideoRef}

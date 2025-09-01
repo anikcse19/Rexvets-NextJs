@@ -1,10 +1,10 @@
 "use client";
 import config from "@/config/env.config";
-import { IAppointment, IUser } from "@/models";
+import { IAppointment, IUser, IVeterinarian } from "@/models";
 import AgoraRTC, {
-    IAgoraRTCClient,
-    ILocalAudioTrack,
-    ILocalVideoTrack,
+  IAgoraRTCClient,
+  ILocalAudioTrack,
+  ILocalVideoTrack,
 } from "agora-rtc-sdk-ng";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -22,13 +22,19 @@ export const useVideoCall = () => {
   const { data: session } = useSession();
   const user = session?.user;
   const searchParams = useSearchParams();
-  
+
   // State
+  const [hasError, setHasError] = useState(false);
   const [petParent, setPetParent] = useState<IUser | null>(null);
-  const [appointmentDetails, setAppointmentDetails] = useState<IAppointment | null>(null);
+  const [veterinarian, setVeterinarian] = useState<IVeterinarian | null>(null);
+  const [profileInfo, setProfileInfo] = useState<IUser | null>(null);
+  const [appointmentDetails, setAppointmentDetails] =
+    useState<IAppointment | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
-  const [hasExistingReview, setHasExistingReview] = useState<boolean | null>(null);
+  const [hasExistingReview, setHasExistingReview] = useState<boolean | null>(
+    null
+  );
   const [isAudioEnabled, setIsAudioEnabled] = useState(true);
   const [isVideoEnabled, setIsVideoEnabled] = useState(true);
   const [callState, setCallState] = useState<CallState>("connecting");
@@ -36,10 +42,53 @@ export const useVideoCall = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [agoraLoaded, setAgoraLoaded] = useState(false);
   const [clientInitialized, setClientInitialized] = useState(false);
-  const [remoteUsersState, setRemoteUsersState] = useState<{ [uid: string]: any }>({});
-  const [isVirtualBackgroundSupported, setIsVirtualBackgroundSupported] = useState(false);
-  const [selectedBackground, setSelectedBackground] = useState<string | null>(null);
+  const [remoteUsersState, setRemoteUsersState] = useState<{
+    [uid: string]: any;
+  }>({});
+  const [isVirtualBackgroundSupported, setIsVirtualBackgroundSupported] =
+    useState(false);
+  const [selectedBackground, setSelectedBackground] = useState<string | null>(
+    null
+  );
   const [isProcessingVirtualBg, setIsProcessingVirtualBg] = useState(false);
+  const [callDuration, setCallDuration] = useState(0);
+  const [isTimerRunning, setIsTimerRunning] = useState(false);
+
+  // Helper function to clean up virtual background processor
+  const cleanupVirtualBackgroundProcessor = useCallback(async () => {
+    if (virtualBackgroundProcessor.current && localVideoTrack.current) {
+      try {
+        // First disable the processor
+        await virtualBackgroundProcessor.current.disable();
+      } catch (error) {
+        console.warn("Error disabling virtual background processor:", error);
+      }
+
+      try {
+        // Unpipe the processor from the video track
+        virtualBackgroundProcessor.current.unpipe();
+      } catch (error) {
+        console.warn("Error unpiping virtual background processor:", error);
+      }
+
+      try {
+        // Unpipe the video track from the processor
+        (localVideoTrack.current as any).unpipe();
+      } catch (error) {
+        console.warn("Error unpiping video track:", error);
+      }
+
+      try {
+        // Unpipe the processor destination if it exists
+        if ((localVideoTrack.current as any).processorDestination) {
+          (localVideoTrack.current as any).processorDestination.unpipe();
+        }
+      } catch (error) {
+        console.warn("Error unpiping processor destination:", error);
+      }
+    }
+    virtualBackgroundProcessor.current = null;
+  }, []);
 
   // Refs
   const client = useRef<IAgoraRTCClient | null>(null);
@@ -52,6 +101,21 @@ export const useVideoCall = () => {
   const isJoinedRef = useRef(false);
   const vbExtensionRef = useRef<any>(null);
   const virtualBackgroundProcessor = useRef<any>(null);
+  const isInitializedRef = useRef(false);
+
+  // Helper function to extract ID from appointment data
+  const extractId = (idData: any): string | null => {
+    if (!idData) return null;
+
+    if (typeof idData === "object" && idData?._id) {
+      return idData._id.toString();
+    } else if (typeof idData === "string") {
+      return idData;
+    }
+
+    console.warn("Invalid ID format:", idData);
+    return null;
+  };
 
   // Generate unique UID
   const [uid] = useState(Math.floor(Math.random() * 100000));
@@ -62,26 +126,79 @@ export const useVideoCall = () => {
   const petParentId = searchParams.get("petParentId");
 
   // Check for existing review
-  const checkExistingReview = useCallback(async (vetId: string, parentId: string) => {
+  const checkExistingReview = useCallback(
+    async (vetId: string, parentId: string) => {
+      try {
+        // Validate inputs
+        if (!vetId || !parentId) {
+          console.warn("Missing vetId or parentId for review check:", {
+            vetId,
+            parentId,
+          });
+          return false;
+        }
+
+        console.log("Checking existing review for:", { vetId, parentId });
+
+        const res = await fetch(
+          `/api/reviews/check-existing?vetId=${encodeURIComponent(
+            vetId
+          )}&parentId=${encodeURIComponent(parentId)}`
+        );
+
+        if (!res.ok) {
+          const errorData = await res
+            .json()
+            .catch(() => ({ message: "Unknown error" }));
+          console.error("Review check API error:", {
+            status: res.status,
+            error: errorData,
+          });
+          throw new Error(
+            errorData.message ||
+              `Failed to check existing review (${res.status})`
+          );
+        }
+
+        const data = await res.json();
+        console.log("Review check response:", data);
+
+        if (data.success && data.data) {
+          setHasExistingReview(data.data.hasReview);
+          return data.data.hasReview;
+        } else {
+          console.warn("Unexpected review check response format:", data);
+          return false;
+        }
+      } catch (error: any) {
+        console.error("Error checking existing review:", error);
+        // Don't show toast for this error as it's not critical to the user experience
+        return false;
+      }
+    },
+    []
+  );
+  const fetchVetInfo = async () => {
     try {
-      const res = await fetch(`/api/reviews/check-existing?vetId=${vetId}&parentId=${parentId}`);
+      if (!vetId) {
+        return;
+      }
+      const res = await fetch(`/api/veterinarian/${vetId}`);
       if (!res.ok) {
         const error = await res.json();
-        throw new Error(error.message || "Failed to check existing review");
+        throw new Error(error.message || "Failed to fetch veterinarian info");
       }
       const data = await res.json();
-      setHasExistingReview(data.data.hasReview);
-      return data.data.hasReview;
+      setVeterinarian(data.data);
     } catch (error: any) {
-      console.error("Error checking existing review:", error);
-      toast.error("Failed to check existing review");
-      return false;
+      toast.error(error?.message || "Failed to fetch veterinarian info");
+      console.error("Error fetching veterinarian info:", error);
     }
-  }, []);
-
+  };
   // Fetch appointment details
   const getAppointmentDetails = async () => {
     setIsLoading(true);
+    setHasError(false);
     try {
       const res = await fetch(`/api/appointments/${appointmentId}`);
       if (!res.ok) {
@@ -90,27 +207,58 @@ export const useVideoCall = () => {
       }
       const data = await res.json();
       setAppointmentDetails(data?.data);
-      
+
       // Check for existing review after getting appointment details
       if (data?.data?.veterinarian && data?.data?.petParent) {
-        await checkExistingReview(data.data.veterinarian.toString(), data.data.petParent.toString());
+        const vet_id = extractId(data.data.veterinarian);
+        const parent_id = extractId(data.data.petParent);
+
+        if (vet_id && parent_id) {
+          console.log("Checking review for appointment:", {
+            vet_id,
+            parent_id,
+          });
+          await checkExistingReview(vet_id, parent_id);
+        } else {
+          console.warn("Could not extract valid IDs for review check:", {
+            veterinarian: data.data.veterinarian,
+            petParent: data.data.petParent,
+          });
+        }
       }
     } catch (error: any) {
+      setHasError(true);
       toast.error(error.message || "Failed to fetch appointment details");
     } finally {
       setIsLoading(false);
     }
   };
+  // fetch my profile
+  const fetchMyProfile = async () => {
+    try {
+      if (!user?.id) {
+        return;
+      }
+      const res = await fetch(`/api/user/profile`);
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || "Failed to fetch my profile");
+      }
+      const data = await res.json();
+      setProfileInfo(data.data);
+    } catch (error: any) {
+      toast.error(error.message || "Failed to fetch my profile");
+      console.error("Error fetching my profile:", error);
+    }
+  };
 
   // Fetch pet parent details
   const getPetParentDetails = async () => {
-    setIsLoading(true);
     try {
-      const userId = process.env.NODE_ENV === "development" ? "68a7067782bef66bac0d6b27" : user?.id;
-      if (!user?.refId) {
-        throw new Error("User reference ID is missing");
+      if (!petParentId) {
+        return;
       }
-      const res = await fetch(`/api/user/${userId}`);
+      const res = await fetch(`/api/pet-parent/${petParentId}`);
       if (!res.ok) {
         const error = await res.json();
         throw new Error(error.message || "Failed to fetch pet parent details");
@@ -125,103 +273,328 @@ export const useVideoCall = () => {
   };
 
   // Fetch token
-  const fetchToken = useCallback(async (channelName: string, id: number, isPublisher: boolean) => {
-    try {
-      const res = await fetch(`/api/agora-token?channelName=${channelName}&uid=${id}&isPublisher=${isPublisher}`);
-      if (!res.ok) throw new Error(`Token fetch failed with status: ${res.status}`);
-      const data = await res.json();
-      if (!data.token) throw new Error("No token received from server");
-      return data.token as string;
-    } catch (error) {
-      console.error("Error fetching token:", error);
-      setErrorMessage("Failed to authenticate. Please try again.");
-      setCallState("failed");
-      return null;
-    }
-  }, []);
+  const fetchToken = useCallback(
+    async (channelName: string, id: number, isPublisher: boolean) => {
+      try {
+        const res = await fetch(
+          `/api/agora-token?channelName=${channelName}&uid=${id}&isPublisher=${isPublisher}`
+        );
+        if (!res.ok)
+          throw new Error(`Token fetch failed with status: ${res.status}`);
+        const data = await res.json();
+        if (!data.token) throw new Error("No token received from server");
+        return data.token as string;
+      } catch (error) {
+        console.error("Error fetching token:", error);
+        setErrorMessage("Failed to authenticate. Please try again.");
+        setCallState("failed");
+        return null;
+      }
+    },
+    []
+  );
 
   // Apply virtual background
-  const applyVirtualBackground = useCallback(async (backgroundType: string | null) => {
-    if (!localVideoTrack.current) return;
-    setIsProcessingVirtualBg(true);
-    setSelectedBackground(backgroundType);
-    try {
-      if (!vbExtensionRef.current) {
-        const { default: VirtualBackgroundExtension } = await import("agora-extension-virtual-background");
-        const ext = new VirtualBackgroundExtension();
-        if (!ext.checkCompatibility()) {
+  const applyVirtualBackground = useCallback(
+    async (backgroundType: string | null) => {
+      if (!localVideoTrack.current) {
+        console.warn("No local video track available for virtual background");
+        return;
+      }
+
+      // Check if video track is enabled
+      if (!localVideoTrack.current.enabled) {
+        console.warn(
+          "Video track is disabled, cannot apply virtual background"
+        );
+        return;
+      }
+      setIsProcessingVirtualBg(true);
+      setSelectedBackground(backgroundType);
+      try {
+        if (!vbExtensionRef.current) {
+          const { default: VirtualBackgroundExtension } = await import(
+            "agora-extension-virtual-background"
+          );
+          const ext = new VirtualBackgroundExtension();
+          if (!ext.checkCompatibility()) {
+            setIsProcessingVirtualBg(false);
+            return;
+          }
+          AgoraRTC.registerExtensions([ext]);
+          vbExtensionRef.current = ext;
+        }
+        // Clean up any existing virtual background processor
+        await cleanupVirtualBackgroundProcessor();
+
+        // Small delay to ensure cleanup is complete
+        await new Promise((resolve) => setTimeout(resolve, 50));
+
+        if (!backgroundType || backgroundType === "none") {
           setIsProcessingVirtualBg(false);
           return;
         }
-        AgoraRTC.registerExtensions([ext]);
-        vbExtensionRef.current = ext;
-      }
-      if (virtualBackgroundProcessor.current) {
+        const processor = vbExtensionRef.current.createProcessor();
+        await processor.init();
+
+        // Ensure clean piping by unpiping any existing connections first
         try {
-          await virtualBackgroundProcessor.current.disable();
-        } catch {}
-        try {
+          // Unpipe the video track from any existing processors
           (localVideoTrack.current as any).unpipe();
-          virtualBackgroundProcessor.current.unpipe();
-        } catch {}
-        virtualBackgroundProcessor.current = null;
-      }
-      if (!backgroundType || backgroundType === "none") {
-        setIsProcessingVirtualBg(false);
-        return;
-      }
-      const processor = vbExtensionRef.current.createProcessor();
-      await processor.init();
-      (localVideoTrack.current as any)
-        .pipe(processor)
-        .pipe((localVideoTrack.current as any).processorDestination);
-      if (backgroundType === "blur") {
-        await processor.setOptions({ type: "blur", blurDegree: 2 });
-      } else {
-        await new Promise<void>((resolve, reject) => {
-          if (typeof window === "undefined") {
-            reject(new Error("Window is undefined"));
-            return;
+        } catch (error) {
+          console.warn(
+            "Error unpiping video track before new processor:",
+            error
+          );
+        }
+
+        try {
+          // Unpipe the processor destination if it exists
+          if ((localVideoTrack.current as any).processorDestination) {
+            (localVideoTrack.current as any).processorDestination.unpipe();
           }
-          const img = new window.Image();
-          img.crossOrigin = "anonymous";
-          img.onload = async () => {
-            try {
-              await processor.setOptions({ type: "img", source: img });
-              resolve();
-            } catch (e) {
-              reject(e);
+        } catch (error) {
+          console.warn(
+            "Error unpiping processor destination before new processor:",
+            error
+          );
+        }
+
+        // Create the new pipe chain
+        try {
+          // First pipe the video track to the processor
+          (localVideoTrack.current as any).pipe(processor);
+
+          // Then pipe the processor to the destination
+          if ((localVideoTrack.current as any).processorDestination) {
+            processor.pipe(
+              (localVideoTrack.current as any).processorDestination
+            );
+          } else {
+            console.warn(
+              "No processor destination found, virtual background may not work properly"
+            );
+          }
+        } catch (pipeError) {
+          console.error("Error creating pipe chain:", pipeError);
+          // If piping fails, try to clean up and throw error
+          await cleanupVirtualBackgroundProcessor();
+          throw new Error(
+            "Failed to set up virtual background processing pipeline"
+          );
+        }
+
+        // Small delay to ensure pipe chain is established
+        await new Promise((resolve) => setTimeout(resolve, 100));
+
+        if (backgroundType === "blur") {
+          await processor.setOptions({ type: "blur", blurDegree: 2 });
+        } else if (backgroundType.startsWith("linear-gradient")) {
+          // Handle color gradients by creating a canvas with the gradient
+          await new Promise<void>((resolve, reject) => {
+            if (typeof window === "undefined") {
+              reject(new Error("Window is undefined"));
+              return;
             }
-          };
-          img.onerror = () => reject(new Error("Failed to load background image"));
-          img.src = backgroundType;
-        });
+
+            const canvas = document.createElement("canvas");
+            canvas.width = 1920;
+            canvas.height = 1080;
+            const ctx = canvas.getContext("2d");
+
+            if (!ctx) {
+              reject(new Error("Failed to get canvas context"));
+              return;
+            }
+
+            // Create gradient
+            const gradient = ctx.createLinearGradient(
+              0,
+              0,
+              canvas.width,
+              canvas.height
+            );
+
+            // Parse the linear-gradient string
+            const gradientMatch = backgroundType.match(
+              /linear-gradient\(([^)]+)\)/
+            );
+            if (!gradientMatch) {
+              reject(new Error("Invalid gradient format"));
+              return;
+            }
+
+            const gradientStr = gradientMatch[1];
+            console.log("Original gradient string:", gradientStr);
+
+            // Remove the angle/direction part (e.g., "135deg") and split by commas
+            const colorStopsStr = gradientStr.replace(/^\d+deg\s*/, "");
+            console.log("Color stops string:", colorStopsStr);
+            const colorStops = colorStopsStr.split(",").map((s) => s.trim());
+            console.log("Parsed color stops:", colorStops);
+
+            // Extract colors and positions
+            const colors = [];
+            for (let i = 0; i < colorStops.length; i++) {
+              const stop = colorStops[i];
+              if (stop.includes("%")) {
+                // Handle color stops with percentages like "#667eea 0%"
+                const parts = stop.split(/\s+/);
+                if (parts.length >= 2) {
+                  const color = parts[0];
+                  const position = parseFloat(parts[1]) / 100;
+                  colors.push({ color, position });
+                } else {
+                  colors.push({
+                    color: stop,
+                    position: i / (colorStops.length - 1),
+                  });
+                }
+              } else {
+                // Handle color stops without percentages
+                colors.push({
+                  color: stop,
+                  position: i / (colorStops.length - 1),
+                });
+              }
+            }
+
+            // Add gradient stops
+            colors.forEach(({ color, position }) => {
+              console.log(
+                `Adding gradient stop: color=${color}, position=${position}`
+              );
+              // Validate color format
+              if (!color || typeof color !== "string") {
+                throw new Error(`Invalid color: ${color}`);
+              }
+              // Ensure position is between 0 and 1
+              const validPosition = Math.max(0, Math.min(1, position));
+              gradient.addColorStop(validPosition, color);
+            });
+
+            // Fill canvas with gradient
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Convert canvas to image
+            canvas.toBlob((blob) => {
+              if (!blob) {
+                reject(new Error("Failed to create gradient image"));
+                return;
+              }
+
+              const img = new window.Image();
+              img.onload = async () => {
+                try {
+                  await processor.setOptions({ type: "img", source: img });
+                  resolve();
+                } catch (e) {
+                  reject(e);
+                }
+              };
+              img.onerror = () =>
+                reject(new Error("Failed to load gradient image"));
+              img.src = URL.createObjectURL(blob);
+            }, "image/png");
+          });
+        } else {
+          // Handle regular image backgrounds
+          await new Promise<void>((resolve, reject) => {
+            if (typeof window === "undefined") {
+              reject(new Error("Window is undefined"));
+              return;
+            }
+            const img = new window.Image();
+            img.crossOrigin = "anonymous";
+            img.onload = async () => {
+              try {
+                await processor.setOptions({ type: "img", source: img });
+                resolve();
+              } catch (e) {
+                reject(e);
+              }
+            };
+            img.onerror = () => {
+              console.error("Failed to load image:", backgroundType);
+              reject(new Error("Failed to load background image"));
+            };
+
+            // Handle both absolute URLs and relative paths
+            let imageUrl = backgroundType;
+            if (backgroundType.startsWith("/")) {
+              // Convert relative path to absolute URL
+              imageUrl = window.location.origin + backgroundType;
+            }
+
+            console.log("Loading background image:", imageUrl);
+            img.src = imageUrl;
+          });
+        }
+        await processor.enable();
+        virtualBackgroundProcessor.current = processor;
+
+        // Show success message
+        if (backgroundType === "blur") {
+          toast.success("Blur background applied successfully");
+        } else if (backgroundType.startsWith("linear-gradient")) {
+          toast.success("Gradient background applied successfully");
+        } else if (backgroundType === "none") {
+          toast.success("Background removed successfully");
+        } else {
+          toast.success("Image background applied successfully");
+        }
+      } catch (error) {
+        console.error("Failed to apply virtual background:", error);
+        const errorMessage =
+          error instanceof Error ? error.message : "Unknown error";
+
+        if (errorMessage.includes("Failed to load background image")) {
+          setErrorMessage(
+            "Background image could not be loaded. Please try a different background."
+          );
+        } else if (errorMessage.includes("Invalid gradient format")) {
+          setErrorMessage(
+            "Invalid background format. Please try a different background."
+          );
+        } else if (
+          errorMessage.includes(
+            "Failed to set up virtual background processing pipeline"
+          )
+        ) {
+          setErrorMessage(
+            "Failed to initialize virtual background. Please try again."
+          );
+        } else {
+          setErrorMessage(
+            "Failed to apply virtual background. Please try again."
+          );
+        }
+
+        // Reset the selected background on error
+        setSelectedBackground(null);
+      } finally {
+        setIsProcessingVirtualBg(false);
       }
-      await processor.enable();
-      virtualBackgroundProcessor.current = processor;
-    } catch (error) {
-      console.error("Failed to apply virtual background:", error);
-      setErrorMessage("Failed to apply virtual background. Please try again.");
-    } finally {
-      setIsProcessingVirtualBg(false);
-    }
-  }, []);
+    },
+    []
+  );
 
   // Initialize local video track immediately
   const initializeLocalVideo = useCallback(async () => {
     if (!agoraLoaded || localVideoTrack.current) return;
-    
+
     try {
       console.log("Initializing local video track...");
       localVideoTrack.current = await AgoraRTC.createCameraVideoTrack();
       localAudioTrack.current = await AgoraRTC.createMicrophoneAudioTrack();
-      
+
       // Play local video immediately
       if (localVideoRef.current && localVideoTrack.current) {
         console.log("Playing local video...");
         localVideoTrack.current.play(localVideoRef.current);
       }
-      
+
       console.log("Local video track initialized successfully");
     } catch (error) {
       console.error("Error initializing local video track:", error);
@@ -258,21 +631,29 @@ export const useVideoCall = () => {
         remoteUsers.current[user.uid] = user;
         setRemoteUsersState((prev) => ({ ...prev, [user.uid]: user }));
         setCallState("active");
-      });
-
-      client.current.on("user-published", async (user: any, mediaType: "audio" | "video") => {
-        try {
-          await client.current!.subscribe(user, mediaType);
-          remoteUsers.current[user.uid] = user;
-          setRemoteUsersState((prev) => ({ ...prev, [user.uid]: user }));
-          if (mediaType === "video" && remoteVideoRef.current)
-            user.videoTrack?.play(remoteVideoRef.current);
-          if (mediaType === "audio") user.audioTrack?.play();
-        } catch (error) {
-          console.error("Error in user-published:", error);
-          setErrorMessage("Failed to subscribe to user stream.");
+        // Start timer when both users are in the call
+        if (Object.keys(remoteUsers.current).length >= 1) {
+          setIsTimerRunning(true);
+          setCallDuration(0);
         }
       });
+
+      client.current.on(
+        "user-published",
+        async (user: any, mediaType: "audio" | "video") => {
+          try {
+            await client.current!.subscribe(user, mediaType);
+            remoteUsers.current[user.uid] = user;
+            setRemoteUsersState((prev) => ({ ...prev, [user.uid]: user }));
+            if (mediaType === "video" && remoteVideoRef.current)
+              user.videoTrack?.play(remoteVideoRef.current);
+            if (mediaType === "audio") user.audioTrack?.play();
+          } catch (error) {
+            console.error("Error in user-published:", error);
+            setErrorMessage("Failed to subscribe to user stream.");
+          }
+        }
+      );
 
       client.current.on("user-unpublished", (user: any, mediaType: string) => {
         if (mediaType === "video") {
@@ -285,7 +666,11 @@ export const useVideoCall = () => {
             [user.uid]: { ...prev[user.uid], videoTrack: null },
           }));
         }
-        if (Object.keys(remoteUsers.current).length <= 1) setCallState("waiting");
+        if (Object.keys(remoteUsers.current).length <= 1) {
+          setCallState("waiting");
+          // Stop timer when users leave
+          setIsTimerRunning(false);
+        }
       });
 
       client.current.on("user-left", (user: any) => {
@@ -295,7 +680,11 @@ export const useVideoCall = () => {
           delete next[user.uid];
           return next;
         });
-        if (Object.keys(remoteUsers.current).length === 0) setCallState("waiting");
+        if (Object.keys(remoteUsers.current).length === 0) {
+          setCallState("waiting");
+          // Stop timer when all users leave
+          setIsTimerRunning(false);
+        }
       });
 
       // Ensure local tracks are initialized
@@ -308,13 +697,18 @@ export const useVideoCall = () => {
       await client.current.join(APP_ID, CHANNEL, token, uid);
       isJoinedRef.current = true;
       if (IS_PUBLISHER && localVideoTrack.current && localAudioTrack.current) {
-        await client.current.publish([localVideoTrack.current, localAudioTrack.current]);
+        await client.current.publish([
+          localVideoTrack.current,
+          localAudioTrack.current,
+        ]);
       }
       setCallState("waiting");
     } catch (error: any) {
       console.error("Failed to join call:", error);
       setCallState("failed");
-      setErrorMessage(`Failed to join call: ${error.message || "Unknown error"}`);
+      setErrorMessage(
+        `Failed to join call: ${error.message || "Unknown error"}`
+      );
     } finally {
       isJoiningRef.current = false;
     }
@@ -362,7 +756,9 @@ export const useVideoCall = () => {
         return;
       }
 
-      const currentSettings = localVideoTrack.current.getMediaStreamTrack().getSettings();
+      const currentSettings = localVideoTrack.current
+        .getMediaStreamTrack()
+        .getSettings();
       const currentDeviceId = currentSettings.deviceId;
       let targetDeviceId = null;
       let newIsFrontCameraValue = isFrontCamera;
@@ -402,8 +798,12 @@ export const useVideoCall = () => {
           newCamera.label.toLowerCase().includes("front") ||
           newCamera.label.toLowerCase().includes("user");
       } else {
-        console.warn("Only one camera found or no clear front/back distinction");
-        setErrorMessage("Only one camera available or no clear front/back distinction.");
+        console.warn(
+          "Only one camera found or no clear front/back distinction"
+        );
+        setErrorMessage(
+          "Only one camera available or no clear front/back distinction."
+        );
         return;
       }
 
@@ -412,7 +812,9 @@ export const useVideoCall = () => {
         setIsFrontCamera(newIsFrontCameraValue);
         setErrorMessage(null);
       } else {
-        console.log("No suitable camera to switch to or already on desired camera.");
+        console.log(
+          "No suitable camera to switch to or already on desired camera."
+        );
         setErrorMessage("No alternative camera to switch to.");
       }
     } catch (error) {
@@ -443,6 +845,8 @@ export const useVideoCall = () => {
       setRemoteUsersState({});
       setCallState("ended");
       setErrorMessage(null);
+      // Stop timer when call ends
+      setIsTimerRunning(false);
     } catch (error) {
       console.error("Error ending call:", error);
       setErrorMessage("Failed to end call.");
@@ -450,17 +854,31 @@ export const useVideoCall = () => {
     } finally {
       // Check if review already exists before showing modal
       if (appointmentDetails?.veterinarian && appointmentDetails?.petParent) {
-        const hasReview = await checkExistingReview(
-          appointmentDetails.veterinarian.toString(),
-          appointmentDetails.petParent.toString()
-        );
-        
-        if (hasReview) {
-          toast.info("You have already reviewed this veterinarian. Redirecting to home...");
-          setTimeout(() => {
-            router.push("/");
-          }, 2000);
+        const vet_id = extractId(appointmentDetails.veterinarian);
+        const parent_id = extractId(appointmentDetails.petParent);
+
+        if (vet_id && parent_id) {
+          console.log("Checking review in endCall:", { vet_id, parent_id });
+          const hasReview = await checkExistingReview(vet_id, parent_id);
+
+          if (hasReview) {
+            toast.info(
+              "You have already reviewed this veterinarian. Redirecting to home..."
+            );
+            setTimeout(() => {
+              router.push("/");
+            }, 2000);
+          } else {
+            setIsOpen(true);
+          }
         } else {
+          console.warn(
+            "Could not extract valid IDs for review check in endCall:",
+            {
+              veterinarian: appointmentDetails.veterinarian,
+              petParent: appointmentDetails.petParent,
+            }
+          );
           setIsOpen(true);
         }
       } else {
@@ -474,7 +892,9 @@ export const useVideoCall = () => {
     (async () => {
       try {
         if (typeof window === "undefined") return;
-        const { default: VirtualBackgroundExtension } = await import("agora-extension-virtual-background");
+        const { default: VirtualBackgroundExtension } = await import(
+          "agora-extension-virtual-background"
+        );
         const ext = new VirtualBackgroundExtension();
         const supported = ext.checkCompatibility();
         setIsVirtualBackgroundSupported(!!supported);
@@ -518,29 +938,60 @@ export const useVideoCall = () => {
     if (clientInitialized) joinCall();
   }, [clientInitialized, joinCall]);
 
+  // Timer effect
   useEffect(() => {
-    if (user) {
+    let interval: NodeJS.Timeout;
+
+    if (isTimerRunning) {
+      interval = setInterval(() => {
+        setCallDuration((prev) => prev + 1);
+      }, 1000);
+    }
+
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
+  }, [isTimerRunning]);
+
+  // Stop timer when call ends or fails
+  useEffect(() => {
+    if (callState === "ended" || callState === "failed") {
+      setIsTimerRunning(false);
+    }
+  }, [callState]);
+
+  // Reset timer when starting a new call
+  useEffect(() => {
+    if (callState === "connecting") {
+      setCallDuration(0);
+      setIsTimerRunning(false);
+    }
+  }, [callState]);
+
+  useEffect(() => {
+    if (user && !isInitializedRef.current) {
       getPetParentDetails();
     }
-    if (appointmentId) {
-      getAppointmentDetails();
+    if (user?.id && !isInitializedRef.current) {
+      fetchMyProfile();
     }
-  }, [appointmentId, user]);
+
+    if (vetId && !isInitializedRef.current) {
+      fetchVetInfo();
+    }
+    if (appointmentId && !isInitializedRef.current) {
+      getAppointmentDetails();
+      isInitializedRef.current = true;
+    }
+  }, [appointmentId, user, vetId, isInitializedRef]);
 
   useEffect(() => {
     return () => {
       const cleanupAgora = async () => {
         try {
-          if (virtualBackgroundProcessor.current && localVideoTrack.current) {
-            try {
-              await virtualBackgroundProcessor.current.disable();
-            } catch {}
-            try {
-              (localVideoTrack.current as any).unpipe();
-              virtualBackgroundProcessor.current.unpipe();
-            } catch {}
-          }
-          virtualBackgroundProcessor.current = null;
+          await cleanupVirtualBackgroundProcessor();
           if (localVideoTrack.current) {
             localVideoTrack.current.stop();
             localVideoTrack.current.close();
@@ -557,6 +1008,7 @@ export const useVideoCall = () => {
             client.current = null;
           }
           isJoinedRef.current = false;
+          isInitializedRef.current = false;
           remoteUsers.current = {};
           setRemoteUsersState({});
         } catch (error) {
@@ -569,6 +1021,7 @@ export const useVideoCall = () => {
 
   return {
     // State
+    hasError,
     petParent,
     appointmentDetails,
     isLoading,
@@ -582,12 +1035,16 @@ export const useVideoCall = () => {
     isVirtualBackgroundSupported,
     selectedBackground,
     isProcessingVirtualBg,
-    
+    veterinarian,
+    hasExistingReview,
+    profileInfo,
+    callDuration,
+    isTimerRunning,
     // Refs
     localVideoRef,
     remoteVideoRef,
     localVideoTrack,
-    
+
     // Functions
     toggleAudio,
     toggleVideo,

@@ -29,6 +29,7 @@ import Image from "next/image";
 import Link from "next/link";
 import React, { useRef, useState } from "react";
 import TalkToVetButton from "../TalkToVet";
+import { ScrollArea } from "../ui/scroll-area";
 import IconWrapper from "./IconWrapper";
 
 const menuItems = {
@@ -95,7 +96,9 @@ const Header: React.FC = () => {
         background:
           "linear-gradient(135deg, #0f0c29 0%, #24243e 25%, #302b63 50%, #0f3460 75%, #002366 100%)",
       }}
-      className=" relative py-3 h-auto md:py-1   w-full  backdrop-blur-sm px-3  border-b border-slate-800/50 z-[9998]"
+      className={` relative py-3 h-auto md:py-${
+        session?.user && session.user.role !== "veterinarian" ? "1" : "3"
+      }   w-full  backdrop-blur-sm px-7  border-b border-slate-800/50 z-[9998]`}
     >
       <nav className="flex items-center justify-between  mx-auto">
         {/* Logo */}
@@ -270,86 +273,90 @@ const Header: React.FC = () => {
                 <DialogTitle>Main Menu</DialogTitle>
               </VisuallyHidden>
 
-              <div className="bg-[#27305A] p-6 pt-11 h-screen overflow-y-auto">
-                <div className="flex items-center">
-                  <Image
-                    src="/images/Logo.svg"
-                    alt="Logo RexVet"
-                    width={200}
-                    height={200}
-                    quality={100}
-                  />
+              <div className="bg-[#27305A] h-screen flex flex-col">
+                <div className="p-6 pt-11 flex-shrink-0">
+                  <div className="flex items-center">
+                    <Image
+                      src="/images/Logo.svg"
+                      alt="Logo RexVet"
+                      width={200}
+                      height={200}
+                      quality={100}
+                    />
+                  </div>
                 </div>
-                <div className="flex flex-col gap-4">
-                  <div className="mt-16">
-                    {/* User Profile Section for Mobile */}
-                    {session ? (
-                      <div className="pb-4 border-b border-[#3D456B] mb-4">
-                        <div className="flex items-center space-x-3">
-                          <Avatar className="w-10 h-10">
-                            <AvatarImage
-                              src={(session?.user as any)?.image || ""}
-                            />
-                            <AvatarFallback className="bg-emerald-500 text-white">
-                              {(session?.user as any)?.name
-                                ? getUserInitials((session?.user as any).name)
-                                : "U"}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div className="flex-1">
-                            <p className="text-white font-semibold text-sm">
-                              {(session?.user as any)?.name || "User"}
-                            </p>
-                            <p className="text-white/70 text-xs">
-                              {(session?.user as any)?.role
-                                ? getRoleDisplayName(
-                                    (session?.user as any)?.role
-                                  )
-                                : "User"}
-                            </p>
+
+                <ScrollArea className="flex-1 px-6">
+                  <div className="flex flex-col gap-4 pb-24">
+                    <div className="mt-8">
+                      {/* User Profile Section for Mobile */}
+                      {session ? (
+                        <div className="pb-4 border-b border-[#3D456B] mb-4">
+                          <div className="flex items-center space-x-3">
+                            <Avatar className="w-10 h-10">
+                              <AvatarImage
+                                src={(session?.user as any)?.image || ""}
+                              />
+                              <AvatarFallback className="bg-emerald-500 text-white">
+                                {(session?.user as any)?.name
+                                  ? getUserInitials((session?.user as any).name)
+                                  : "U"}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1">
+                              <p className="text-white font-semibold text-sm">
+                                {(session?.user as any)?.name || "User"}
+                              </p>
+                              <p className="text-white/70 text-xs">
+                                {(session?.user as any)?.role
+                                  ? getRoleDisplayName(
+                                      (session?.user as any)?.role
+                                    )
+                                  : "User"}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="mt-3 space-y-2">
+                            <Link
+                              href="/dashboard"
+                              className="block text-white/80 hover:text-emerald-400 text-sm transition-colors"
+                              onClick={() => setMobileMenuOpen(false)}
+                            >
+                              Dashboard
+                            </Link>
+                            <button
+                              onClick={() => {
+                                handleSignOut();
+                                setMobileMenuOpen(false);
+                              }}
+                              className="block text-white/80 hover:text-red-400 text-sm transition-colors w-full text-left"
+                            >
+                              Sign Out
+                            </button>
                           </div>
                         </div>
-                        <div className="mt-3 space-y-2">
+                      ) : (
+                        <div className="pb-4 border-b border-[#3D456B] mb-4">
                           <Link
-                            href="/dashboard"
-                            className="block text-white/80 hover:text-emerald-400 text-sm transition-colors"
+                            href="/auth/signin"
+                            className="text-white hover:text-emerald-400 font-semibold text-lg"
                             onClick={() => setMobileMenuOpen(false)}
                           >
-                            Dashboard
+                            Sign In
                           </Link>
-                          <button
-                            onClick={() => {
-                              handleSignOut();
-                              setMobileMenuOpen(false);
-                            }}
-                            className="block text-white/80 hover:text-red-400 text-sm transition-colors w-full text-left"
-                          >
-                            Sign Out
-                          </button>
                         </div>
-                      </div>
-                    ) : (
-                      <div className="pb-4 border-b border-[#3D456B] mb-4">
+                      )}
+
+                      <div className="pb-3 border-b border-[#3D456B] text-start">
                         <Link
-                          href="/auth/signin"
-                          className="text-white hover:text-emerald-400 font-semibold text-lg"
+                          href="/"
+                          className="text-white hover:text-emerald-400 font-semibold text-lg block"
                           onClick={() => setMobileMenuOpen(false)}
                         >
-                          Sign In
+                          Home
                         </Link>
                       </div>
-                    )}
-
-                    <div className="pb-3 border-b border-[#3D456B] text-center">
-                      <Link
-                        href="/"
-                        className="text-white hover:text-emerald-400 font-semibold text-lg block"
-                        onClick={() => setMobileMenuOpen(false)}
-                      >
-                        Home
-                      </Link>
-                    </div>
-                    <div className="pb-3 border-b border-[#3D456B] text-center">
+                      {/* <div className="pb-3 border-b border-[#3D456B] text-center">
                       <Link
                         href={"/video-call?isPublisher=false"}
                         className="text-white hover:text-emerald-400 font-semibold text-lg block"
@@ -357,53 +364,17 @@ const Header: React.FC = () => {
                       >
                         Join Video Call
                       </Link>
-                    </div>
-                    {Object.entries(menuItems).map(([label, items]) => {
-                      // Render "For pet parents" and "For Vet & techs" collapsible menus
-                      if (
-                        label === "For pet parents" ||
-                        label === "For Vet & techs"
-                      ) {
-                        return (
-                          <Collapsible key={label}>
-                            <div className="py-4 border-b border-[#3D456B]">
-                              <CollapsibleTrigger className="flex items-center text-white hover:text-emerald-400 font-semibold text-lg w-full">
-                                {label}
-                                <ChevronDown className="w-4 h-4 ml-1" />
-                              </CollapsibleTrigger>
-                            </div>
-                            <CollapsibleContent className="pl-4">
-                              {items.map((item) => (
-                                <a
-                                  key={item}
-                                  href="#"
-                                  className="block px-4 py-4 border-b border-[#3D456B] text-white hover:text-emerald-400 hover:bg-[#002a66] text-sm transition-all duration-200"
-                                  onClick={() => setMobileMenuOpen(false)}
-                                >
-                                  {item}
-                                </a>
-                              ))}
-                            </CollapsibleContent>
-                          </Collapsible>
-                        );
-                      }
-
-                      // Render "Get a prescription" as standalone link before About
-                      if (label === "About") {
-                        return (
-                          <React.Fragment key="get-prescription-and-about">
-                            <div className="py-4 border-b border-[#3D456B] text-center">
-                              <Link
-                                href="/get-a-prescription"
-                                className="text-white hover:text-emerald-400 font-semibold text-lg block"
-                                onClick={() => setMobileMenuOpen(false)}
-                              >
-                                Get a prescription
-                              </Link>
-                            </div>
+                    </div> */}
+                      {Object.entries(menuItems).map(([label, items]) => {
+                        // Render "For pet parents" and "For Vet & techs" collapsible menus
+                        if (
+                          label === "For pet parents" ||
+                          label === "For Vet & techs"
+                        ) {
+                          return (
                             <Collapsible key={label}>
                               <div className="py-4 border-b border-[#3D456B]">
-                                <CollapsibleTrigger className="flex items-center text-white hover:text-emerald-400 font-semibold text-lg w-full">
+                                <CollapsibleTrigger className="flex justify-between items-start text-white hover:text-emerald-400 font-semibold text-lg w-full">
                                   {label}
                                   <ChevronDown className="w-4 h-4 ml-1" />
                                 </CollapsibleTrigger>
@@ -421,34 +392,74 @@ const Header: React.FC = () => {
                                 ))}
                               </CollapsibleContent>
                             </Collapsible>
-                          </React.Fragment>
-                        );
-                      }
+                          );
+                        }
 
-                      return null;
-                    })}
-                    <div className="pb-3 border-b border-[#3D456B] text-center">
-                      <Link
-                        href="/support"
-                        className="text-white hover:text-emerald-400 font-semibold text-lg block"
-                        onClick={() => setMobileMenuOpen(false)}
-                      >
-                        Support
-                      </Link>
-                    </div>
-                    <div className="pb-3 border-b border-[#3D456B] text-center">
-                      <Link
-                        href="/donate"
-                        className="text-white hover:text-emerald-400 font-semibold text-lg block"
-                        onClick={() => setMobileMenuOpen(false)}
-                      >
-                        Donate
-                      </Link>
+                        // Render "Get a prescription" as standalone link before About
+                        if (label === "About") {
+                          return (
+                            <React.Fragment key="get-prescription-and-about">
+                              <div className="py-4 border-b border-[#3D456B] text-center">
+                                <Link
+                                  href="/get-a-prescription"
+                                  className="text-white text-start hover:text-emerald-400 font-semibold text-lg block"
+                                  onClick={() => setMobileMenuOpen(false)}
+                                >
+                                  Get a prescription
+                                </Link>
+                              </div>
+                              <Collapsible key={label}>
+                                <div className="py-4 border-b border-[#3D456B]">
+                                  <CollapsibleTrigger className="flex items-start justify-between text-white hover:text-emerald-400 font-semibold text-lg w-full">
+                                    {label}
+                                    <ChevronDown className="w-4 h-4 ml-1" />
+                                  </CollapsibleTrigger>
+                                </div>
+                                <CollapsibleContent className="pl-4">
+                                  {items.map((item) => (
+                                    <a
+                                      key={item}
+                                      href="#"
+                                      className="block px-4 py-4 border-b text-start border-[#3D456B] text-white hover:text-emerald-400 hover:bg-[#002a66] text-sm transition-all duration-200"
+                                      onClick={() => setMobileMenuOpen(false)}
+                                    >
+                                      {item}
+                                    </a>
+                                  ))}
+                                </CollapsibleContent>
+                              </Collapsible>
+                            </React.Fragment>
+                          );
+                        }
+
+                        return null;
+                      })}
+                      <div className="pb-3 border-b border-[#3D456B] text-start">
+                        <Link
+                          href="/support"
+                          className="text-white hover:text-emerald-400 font-semibold text-lg block"
+                          onClick={() => setMobileMenuOpen(false)}
+                        >
+                          Support
+                        </Link>
+                      </div>
+                      <div className="pb-3 border-b border-[#3D456B] text-start">
+                        <Link
+                          href="/donate"
+                          className="text-white hover:text-emerald-400 font-semibold text-lg block"
+                          onClick={() => setMobileMenuOpen(false)}
+                        >
+                          Donate
+                        </Link>
+                      </div>
                     </div>
                   </div>
+                </ScrollArea>
+
+                {/* Footer - Fixed at bottom */}
+                <div className="flex-shrink-0">
+                  <HeaderSmallDeviceFooter />
                 </div>
-                {/* ================Footer================= */}
-                <HeaderSmallDeviceFooter />
               </div>
             </SheetContent>
           </Sheet>
@@ -556,10 +567,11 @@ const Header: React.FC = () => {
                 </Button>
               </Link>
             )}
-
-            <div className="hidden 2xl:block">
-              <TalkToVetButton />
-            </div>
+            {session?.user.role !== "veterinarian" && (
+              <div className="hidden 2xl:block">
+                <TalkToVetButton />
+              </div>
+            )}
           </div>
         </div>
       </nav>
@@ -570,29 +582,24 @@ const Header: React.FC = () => {
 export default React.memo(Header);
 const HeaderSmallDeviceFooter = () => {
   return (
-    <div className=" flex-col items-center justify-center">
-      <div className="absolute bottom-24 w-full flex flex-col items-center">
-        {/* Divider */}
-        <div className="w-[200px] h-px bg-white/20 mb-6" />
+    <div className="p-6 flex flex-col items-center justify-center">
+      {/* Divider */}
+      <div className="w-[200px] h-px bg-white/20 mb-6" />
 
-        {/* Social Icons */}
-        <div className="flex gap-6">
-          <IconWrapper>
-            <FaFacebookF className="text-white text-lg" />
-          </IconWrapper>
-          <IconWrapper>
-            <FaTiktok className="text-white text-lg" />
-          </IconWrapper>
-          <IconWrapper>
-            <FaInstagram className="text-white text-lg" />
-          </IconWrapper>
-        </div>
-
-        {/* Floating Chat Icon */}
-        <div className="absolute right-11 -bottom-8 bg-[#041E89] p-3 rounded-full shadow-lg cursor-pointer">
-          <BsChatLeftTextFill className="text-white text-xl" />
-        </div>
+      {/* Social Icons */}
+      <div className="flex gap-6">
+        <IconWrapper>
+          <FaFacebookF className="text-white text-lg" />
+        </IconWrapper>
+        <IconWrapper>
+          <FaTiktok className="text-white text-lg" />
+        </IconWrapper>
+        <IconWrapper>
+          <FaInstagram className="text-white text-lg" />
+        </IconWrapper>
       </div>
+
+      {/* Floating Chat Icon */}
     </div>
   );
 };

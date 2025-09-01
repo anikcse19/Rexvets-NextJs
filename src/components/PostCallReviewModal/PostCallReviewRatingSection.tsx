@@ -37,9 +37,9 @@ const PostCallReviewRatingSection: React.FC<IProps> = ({
   const handleStarLeave = () => setHoveredRating(0);
 
   return (
-    <div className="bg-[#120F2C] rounded-xl p-5 border border-[#002366]">
+    <div className=" rounded-xl p-5 border border-gray-300">
       <div className="flex items-center mb-4">
-        <div className="w-9 h-9 bg-[#002366] rounded-full flex items-center justify-center mr-2.5 text-white text-base">
+        <div className="w-9 h-9  rounded-full flex items-center justify-center mr-2.5 text-white text-base">
           ⭐
         </div>
         <h3 className="text-lg font-semibold text-white m-0">
@@ -70,11 +70,7 @@ const PostCallReviewRatingSection: React.FC<IProps> = ({
         onChange={(e) => setReviewText(e.target.value)}
         placeholder="Share your experience with the doctor (optional)..."
         disabled={reviewSubmitted}
-        className={`w-full min-h-[80px] p-3 border-2 border-[#002366] rounded-lg text-sm font-inter resize-y mb-3 outline-none transition-all ${
-          reviewSubmitted
-            ? "bg-[#002366] text-white"
-            : "bg-[#002366] text-white"
-        } focus:border-[#002366] focus:shadow-[0_0_0_2px_rgba(0,35,102,0.1)] box-border leading-tight`}
+        className={`w-full min-h-[80px] text-white p-3 border-2 border-gray-300 rounded-lg text-sm font-inter resize-y mb-3 outline-none transition-all  focus:border-green-400 focus:shadow-[0_0_0_2px_rgba(0,35,102,0.1)] box-border leading-tight`}
         maxLength={500}
       />
       <div className="flex justify-between items-center mb-4">
