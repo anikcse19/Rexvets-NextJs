@@ -32,6 +32,7 @@ const petSchema = new Schema<IPet & Document>({
   weightUnit: { type: String, enum: ["kg", "lbs"], required: true },
   dateOfBirth: { type: String, required: true },
   parentId: { type: Schema.Types.ObjectId, ref: "PetParent", required: true },
+  seenBy: [{ type: Schema.Types.ObjectId, ref: "PetParent" }],
   allergies: [{ type: String }],
   medicalConditions: [{ type: String }],
   currentMedications: [{ type: String }],
@@ -42,6 +43,7 @@ const petSchema = new Schema<IPet & Document>({
   },
   emergencyContact: { type: String },
   veterinarianNotes: { type: String },
+
   lastVisit: { type: String },
   nextVaccination: { type: String },
   isDeleted: { type: Boolean, default: false },
