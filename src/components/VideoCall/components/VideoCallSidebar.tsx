@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { IPet } from "@/lib";
+import { IAppointment } from "@/models";
 import Image from "next/image";
 import {
   FaBuilding,
@@ -24,7 +25,7 @@ interface VideoCallSidebarProps {
   onApplyVirtualBackground: (backgroundType: string | null) => void;
   petParent: any;
   reasonForAppointment?: string[];
-  petInfo?: IPet;
+  appointmentDetails?: IAppointment;
   isProcessingVirtualBg?: boolean;
 }
 interface VirtualBackground {
@@ -109,9 +110,11 @@ const VideoCallSidebar: React.FC<VideoCallSidebarProps> = ({
   petParent,
   reasonForAppointment,
   isProcessingVirtualBg = false,
-  petInfo,
+  appointmentDetails,
 }) => {
-  console.log("PET INFO", petInfo);
+  const petInfo: any = appointmentDetails?.pet;
+  const parent: any = appointmentDetails?.petParent;
+  console.log("parent INFO", parent);
   return (
     <ScrollArea className="md:w-[30%] hidden md:block   h-full">
       <div className=" w-full  bg-[#4346a0]/20 backdrop-blur-sm p-3 relative rounded-2xl">
@@ -136,11 +139,11 @@ const VideoCallSidebar: React.FC<VideoCallSidebarProps> = ({
                       {petInfo?.name?.charAt(0) || "P"}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="absolute -bottom-1 -right-1">
+                  {/* <div className="absolute -bottom-1 -right-1">
                     <div className="w-6 h-6 bg-green-400 rounded-full flex items-center justify-center shadow-lg border-2 border-white">
                       <div className="w-2 h-2 bg-white rounded-full"></div>
                     </div>
-                  </div>
+                  </div> */}
                 </div>
               </div>
 
@@ -254,18 +257,23 @@ const VideoCallSidebar: React.FC<VideoCallSidebarProps> = ({
         {/* Veterinarian Details */}
         <div className="mb-4">
           <h4 className="text-white font-semibold mb-2 text-sm">
-            Veterinarian Details
+            Parent Details
           </h4>
           <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-2">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-xs">MM</span>
+                <span className="text-white font-bold text-xs">
+                  {(parent?.name as string)[0]?.toLowerCase() +
+                    (parent?.name as string)[1]?.toLowerCase()}
+                </span>
               </div>
               <div className="flex-1">
                 <h5 className="text-white font-semibold text-base">
-                  {petParent?.name || "Veterinarian Name"}
+                  {parent?.name || "Veterinarian Name"}
                 </h5>
-                <p className="text-gray-200 text-xs">America/New_York</p>
+                {parent?.state && (
+                  <p className="text-gray-200 text-xs">{parent?.state}</p>
+                )}
               </div>
             </div>
           </div>

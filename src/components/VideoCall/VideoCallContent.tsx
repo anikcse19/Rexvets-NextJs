@@ -130,7 +130,7 @@ const VideoCallContent: React.FC<VideoCallContentProps> = ({ onEndCall }) => {
             petParent={petParent}
             reasonForAppointment={appointmentDetails?.concerns}
             isProcessingVirtualBg={isProcessingVirtualBg}
-            petInfo={appointmentDetails?.pet as any}
+            appointmentDetails={appointmentDetails as any}
           />
         )}
       </div>

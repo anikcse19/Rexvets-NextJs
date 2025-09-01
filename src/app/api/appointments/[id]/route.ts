@@ -54,8 +54,11 @@ export async function GET(
       //   { petParent: new Types.ObjectId(String(userIdToMatch)) },
       // ],
     })
-      .populate("veterinarian", "name email profileImage specialization")
-      .populate("petParent", "name email profileImage phone profileImage")
+      .populate("veterinarian", "name email profileImage specialization ")
+      .populate(
+        "petParent",
+        "name email profileImage phone profileImage  state  city"
+      )
       .populate(
         "pet",
         "name species breed age weight gender color image spayedNeutered"
