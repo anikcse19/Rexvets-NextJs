@@ -56,6 +56,7 @@ export default function ChatBox({
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showFileUpload, setShowFileUpload] = useState(false);
@@ -73,7 +74,7 @@ export default function ChatBox({
   // Fetch messages on component mount and when appointmentId changes
   useEffect(() => {
     if (appointmentId) {
-      fetchMessages();
+      fetchMessages(true); // Initial fetch
     }
   }, [appointmentId]);
 
@@ -122,11 +123,15 @@ export default function ChatBox({
     }
   }, []);
 
-  const fetchMessages = async () => {
+  const fetchMessages = async (isInitial = false) => {
     if (!appointmentId) return;
     
     try {
-      setIsLoading(true);
+      if (isInitial) {
+        setIsInitialLoading(true);
+      } else {
+        setIsLoading(true);
+      }
       setError(null);
       
       const response = await fetch(`/api/appointment-chat/messages?appointmentId=${appointmentId}`);
@@ -141,7 +146,11 @@ export default function ChatBox({
       console.error('Error fetching messages:', err);
       setError('Failed to load messages');
     } finally {
-      setIsLoading(false);
+      if (isInitial) {
+        setIsInitialLoading(false);
+      } else {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -264,7 +273,7 @@ export default function ChatBox({
           <div className="flex items-center gap-2">
             <Avatar className="w-8 h-8 border-2 border-white/30">
               <AvatarImage src={doctorImage} alt={doctorName || "Doctor"} />
-              <AvatarFallback className="text-xs">
+              <AvatarFallback className="text-xs bg-transparent">
                 {doctorName
                   ? doctorName
                       .split(" ")
@@ -281,10 +290,16 @@ export default function ChatBox({
       {/* Messages Area */}
       <CardContent className="flex-1 p-0 overflow-hidden">
         <div ref={messagesContainerRef} className="h-full overflow-y-auto p-4 pb-8 space-y-4">
-          {isLoading && messages.length === 0 && (
+          {isInitialLoading && messages.length === 0 && (
             <div className="flex items-center justify-center h-32">
               <Loader2 className="w-6 h-6 animate-spin text-teal-600" />
               <span className="ml-2 text-gray-600">Loading messages...</span>
+            </div>
+          )}
+          
+          {!isInitialLoading && messages.length === 0 && (
+            <div className="flex items-center justify-center h-32">
+              <span className="text-gray-500">No messages</span>
             </div>
           )}
 
@@ -492,23 +507,14 @@ export default function ChatBox({
         )}
 
         <div className="flex items-center gap-2">
-          <div className="flex gap-1">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowFileUpload(!showFileUpload)}
-              className="border-gray-300 hover:bg-gray-100"
-            >
-              <Paperclip className="w-4 h-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="border-gray-300 hover:bg-gray-100"
-            >
-              <Smile className="w-4 h-4" />
-            </Button>
-          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowFileUpload(!showFileUpload)}
+            className="border-gray-300 hover:bg-gray-100"
+          >
+            <Paperclip className="w-4 h-4" />
+          </Button>
 
           <div className="flex-1 relative">
             <Input
