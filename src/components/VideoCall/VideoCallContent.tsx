@@ -46,14 +46,9 @@ const VideoCallContent: React.FC<VideoCallContentProps> = ({ onEndCall }) => {
   } = useVideoCall();
   const { data: session } = useSession();
   const userRole = session?.user?.role;
-
+  console.log("remoteUsersState", remoteUsersState);
   // Log when component mounts (only once)
   useEffect(() => {
-    console.log("VideoCallContent - Component mounted with initial state:", {
-      isVideoEnabled,
-      isAudioEnabled,
-    });
-
     // Force a re-render of the video after a short delay to ensure it's displayed
     const timer = setTimeout(() => {
       if (localVideoTrack.current && localVideoRef.current) {
@@ -76,7 +71,8 @@ const VideoCallContent: React.FC<VideoCallContentProps> = ({ onEndCall }) => {
   if (!appointmentDetails && !isLoading) {
     return <ErrorScreen />;
   }
-  console.log("profileInfo", profileInfo);
+  // console.log("profileInfo", profileInfo);
+  console.log("appoitnment", appointmentDetails);
   return (
     <div
       style={{
@@ -89,13 +85,20 @@ const VideoCallContent: React.FC<VideoCallContentProps> = ({ onEndCall }) => {
         {/* Left Main Section */}
         <div className="flex-1 bg-black/20 backdrop-blur-sm rounded-2xl flex flex-col relative">
           <VideoCallLogo />
-          <VideoCallHeader profile={profileInfo} />
+          <VideoCallHeader
+            profile={profileInfo}
+            appointment={appointmentDetails}
+            userRole={userRole}
+            remoteUsersState={remoteUsersState}
+          />
           <VideoCallMainArea
             callState={callState}
             errorMessage={errorMessage}
             remoteUsersState={remoteUsersState}
             remoteVideoRef={remoteVideoRef as React.RefObject<HTMLDivElement>}
             petParent={petParent}
+            userRole={userRole}
+            appointment={appointmentDetails}
           />
           <LocalVideoPreview
             localVideoRef={localVideoRef as React.RefObject<HTMLDivElement>}
@@ -127,6 +130,7 @@ const VideoCallContent: React.FC<VideoCallContentProps> = ({ onEndCall }) => {
             petParent={petParent}
             reasonForAppointment={appointmentDetails?.concerns}
             isProcessingVirtualBg={isProcessingVirtualBg}
+            petInfo={appointmentDetails?.pet as any}
           />
         )}
       </div>

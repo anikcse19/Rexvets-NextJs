@@ -1,7 +1,10 @@
 "use client";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { IPet } from "@/lib";
+import Image from "next/image";
 import {
   FaBuilding,
   FaCity,
@@ -21,6 +24,7 @@ interface VideoCallSidebarProps {
   onApplyVirtualBackground: (backgroundType: string | null) => void;
   petParent: any;
   reasonForAppointment?: string[];
+  petInfo?: IPet;
   isProcessingVirtualBg?: boolean;
 }
 interface VirtualBackground {
@@ -65,36 +69,38 @@ const VIRTUAL_BACKGROUNDS = [
   { id: 6, name: "None", url: "none", image: "/images/Logo.svg" },
 ];
 // Convert VIRTUAL_BACKGROUNDS to VirtualBackground format
-const virtualBackgrounds: VirtualBackground[] = VIRTUAL_BACKGROUNDS.map((bg) => {
-  if (bg.url === "blur") {
-    return {
-      id: bg.id.toString(),
-      name: bg.name,
-      type: "blur" as const,
-      value: "blur",
-      icon: <FaPalette className="w-5 h-5" />,
-      preview: bg.image,
-    };
-  } else if (bg.url === "none") {
-    return {
-      id: bg.id.toString(),
-      name: bg.name,
-      type: "image" as const,
-      value: "none",
-      icon: <FaImage className="w-5 h-5" />,
-      preview: bg.image,
-    };
-  } else {
-    return {
-      id: bg.id.toString(),
-      name: bg.name,
-      type: "image" as const,
-      value: bg.url,
-      icon: <FaImage className="w-5 h-5" />,
-      preview: bg.image,
-    };
+const virtualBackgrounds: VirtualBackground[] = VIRTUAL_BACKGROUNDS.map(
+  (bg) => {
+    if (bg.url === "blur") {
+      return {
+        id: bg.id.toString(),
+        name: bg.name,
+        type: "blur" as const,
+        value: "blur",
+        icon: <FaPalette className="w-5 h-5" />,
+        preview: bg.image,
+      };
+    } else if (bg.url === "none") {
+      return {
+        id: bg.id.toString(),
+        name: bg.name,
+        type: "image" as const,
+        value: "none",
+        icon: <FaImage className="w-5 h-5" />,
+        preview: bg.image,
+      };
+    } else {
+      return {
+        id: bg.id.toString(),
+        name: bg.name,
+        type: "image" as const,
+        value: bg.url,
+        icon: <FaImage className="w-5 h-5" />,
+        preview: bg.image,
+      };
+    }
   }
-});
+);
 const VideoCallSidebar: React.FC<VideoCallSidebarProps> = ({
   onEndCall,
   isVirtualBackgroundSupported,
@@ -103,7 +109,9 @@ const VideoCallSidebar: React.FC<VideoCallSidebarProps> = ({
   petParent,
   reasonForAppointment,
   isProcessingVirtualBg = false,
+  petInfo,
 }) => {
+  console.log("PET INFO", petInfo);
   return (
     <ScrollArea className="md:w-[30%] hidden md:block   h-full">
       <div className=" w-full  bg-[#4346a0]/20 backdrop-blur-sm p-3 relative rounded-2xl">
@@ -116,29 +124,90 @@ const VideoCallSidebar: React.FC<VideoCallSidebarProps> = ({
           <FaTimes className="w-3 h-3" />
         </Button>
 
-        {/* Patient Avatar and Info */}
-        <div className="text-center mb-4 pt-4">
-          <div className="relative inline-block mb-2">
-            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center shadow-lg">
-              <div className="text-white text-sm">🐾</div>
-            </div>
-            <div className="absolute -top-1 -right-1">
-              <div className="w-5 h-5 bg-white rounded-full flex items-center justify-center shadow-lg">
-                <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+        {petInfo && typeof petInfo === "object" ? (
+          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 mb-6 border border-white/20">
+            <div className="text-center">
+              {/* Pet Avatar Section */}
+              <div className="relative inline-block mb-4">
+                <div className="relative">
+                  <Avatar className="h-20 w-20 ring-4 ring-white/30 shadow-lg">
+                    <AvatarImage src={petInfo?.image} alt={petInfo?.name} />
+                    <AvatarFallback className="bg-gradient-to-br from-blue-400 to-purple-500 text-white text-lg font-bold">
+                      {petInfo?.name?.charAt(0) || 'P'}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="absolute -bottom-1 -right-1">
+                    <div className="w-6 h-6 bg-green-400 rounded-full flex items-center justify-center shadow-lg border-2 border-white">
+                      <div className="w-2 h-2 bg-white rounded-full"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Pet Name */}
+              <h3 className="text-white text-lg font-bold mb-4 tracking-wide">
+                {petInfo?.name}
+              </h3>
+
+              {/* Pet Details Grid */}
+              <div className="grid grid-cols-2 gap-3 text-left">
+                <div className="bg-white/10 rounded-lg p-3 backdrop-blur-sm">
+                  <p className="text-gray-300 text-xs font-medium uppercase tracking-wider mb-1">
+                    Species
+                  </p>
+                  <p className="text-white text-sm font-semibold">
+                    {petInfo?.species}
+                  </p>
+                </div>
+                
+                <div className="bg-white/10 rounded-lg p-3 backdrop-blur-sm">
+                  <p className="text-gray-300 text-xs font-medium uppercase tracking-wider mb-1">
+                    Gender
+                  </p>
+                  <p className="text-white text-sm font-semibold">
+                    {petInfo?.gender}
+                  </p>
+                </div>
+                
+                <div className="bg-white/10 rounded-lg p-3 backdrop-blur-sm">
+                  <p className="text-gray-300 text-xs font-medium uppercase tracking-wider mb-1">
+                    Breed
+                  </p>
+                  <p className="text-white text-sm font-semibold">
+                    {petInfo?.breed}
+                  </p>
+                </div>
+                
+                <div className="bg-white/10 rounded-lg p-3 backdrop-blur-sm">
+                  <p className="text-gray-300 text-xs font-medium uppercase tracking-wider mb-1">
+                    Weight
+                  </p>
+                  <p className="text-white text-sm font-semibold">
+                    {petInfo?.weight}
+                  </p>
+                </div>
+              </div>
+
+              {/* Status Badge */}
+              <div className="mt-4">
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-500/20 text-green-300 border border-green-400/30">
+                  <div className="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></div>
+                  Active Session
+                </span>
               </div>
             </div>
           </div>
-
-          <h3 className="text-white text-sm font-semibold mb-1">new image 2</h3>
-          <p className="text-gray-200 text-xs mb-1">
-            Amphibian • Male Neutered • fsdaf
-          </p>
-          <p className="text-gray-200 text-xs mb-1">Weight: 20</p>
-
-          {/* <Badge className="bg-green-500 text-white px-2 py-0.5 rounded-full text-xs font-medium">
-          Active
-        </Badge> */}
-        </div>
+        ) : (
+          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 mb-6 border border-white/20 text-center">
+            <div className="text-gray-300 mb-2">
+              <svg className="w-12 h-12 mx-auto mb-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+              </svg>
+            </div>
+            <p className="text-white/70 text-sm font-medium">Pet information not available</p>
+            <p className="text-gray-400 text-xs mt-1">Please check your appointment details</p>
+          </div>
+        )}
 
         {/* Reason for appointment */}
         <div className="mb-4">
@@ -209,7 +278,6 @@ const VideoCallSidebar: React.FC<VideoCallSidebarProps> = ({
             </div>
           )}
 
-
           <div className="grid grid-cols-2 gap-4">
             {virtualBackgrounds.map((background) => (
               <div
@@ -226,7 +294,7 @@ const VideoCallSidebar: React.FC<VideoCallSidebarProps> = ({
                   isProcessingVirtualBg ? "opacity-50 cursor-not-allowed" : ""
                 }`}
                 style={{
-                  pointerEvents: isProcessingVirtualBg ? "none" : "auto"
+                  pointerEvents: isProcessingVirtualBg ? "none" : "auto",
                 }}
               >
                 {/* Background Preview */}

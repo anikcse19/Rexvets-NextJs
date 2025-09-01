@@ -22,6 +22,18 @@ interface PostCallModalProps {
   docType?: string;
   appointmentDetails: IAppointment | null;
 }
+const extractId = (idData: any): string | null => {
+  if (!idData) return null;
+
+  if (typeof idData === "object" && idData?._id) {
+    return idData._id.toString();
+  } else if (typeof idData === "string") {
+    return idData;
+  }
+
+  console.warn("Invalid ID format:", idData);
+  return null;
+};
 
 // FooterSection Component
 const FooterSection: React.FC = () => (
@@ -67,16 +79,19 @@ const PostCallModal: React.FC<PostCallModalProps> = ({
       if (!reviewText.trim()) {
         throw new Error("Please add a comment before submitting");
       }
-      const vetId =
-        typeof appointmentDetails?.veterinarian === "string"
-          ? appointmentDetails?.veterinarian
-          : appointmentDetails?.veterinarian?._id;
-      const parentId =
-        typeof appointmentDetails?.petParent === "string"
-          ? appointmentDetails?.petParent
-          : appointmentDetails?.petParent?._id;
-      console.log("vetId:", vetId);
-      console.log("parentId:", parentId);
+      const vetId = extractId(appointmentDetails?.veterinarian);
+      const parentId = extractId(appointmentDetails?.petParent);
+
+      // const vetId =
+      //   typeof appointmentDetails?.veterinarian === "string"
+      //     ? appointmentDetails?.veterinarian
+      //     : appointmentDetails?.veterinarian?._id;
+      // const parentId =
+      //   typeof appointmentDetails?.petParent === "string"
+      //     ? appointmentDetails?.petParent
+      //     : appointmentDetails?.petParent?._id;
+      // console.log("vetId:", vetId);
+      // console.log("parentId:", parentId);
       const reviewData: ICreateReview = {
         rating,
         comment: reviewText.trim(),

@@ -121,7 +121,7 @@ const VideoCallControls: React.FC<VideoCallControlsProps> = ({
   userRole,
 }) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-
+  console.log("userRole", userRole);
   return (
     <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2">
       <div className="flex items-center gap-4 bg-black/30 backdrop-blur-md rounded-full px-6 py-3 border border-white/10 shadow-2xl">

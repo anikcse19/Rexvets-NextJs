@@ -55,8 +55,11 @@ export async function GET(
       // ],
     })
       .populate("veterinarian", "name email profileImage specialization")
-      .populate("petParent", "name email profileImage phone")
-      .populate("pet", "name species breed age weight gender color image")
+      .populate("petParent", "name email profileImage phone profileImage")
+      .populate(
+        "pet",
+        "name species breed age weight gender color image spayedNeutered"
+      )
       .lean();
 
     if (!appointment) {

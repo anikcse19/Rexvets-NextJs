@@ -111,7 +111,7 @@ const VideoCallPreview: React.FC = () => {
   const [isVideoEnabled, setIsVideoEnabled] = useState(false);
   const [isAudioEnabled, setIsAudioEnabled] = useState(true);
   const [hasInitializedCamera, setHasInitializedCamera] = useState(false);
-  const [appointmentDetails, setAppointmentDetails] = useState<any>(null);
+  const [appointmentDetails, setAppointmentDetails] = useState<any>(undefined);
   const [showEarlyAccessModal, setShowEarlyAccessModal] = useState(false);
   const [veterinarianInfo, setVeterinarianInfo] = useState<any>(null);
   const [petParentInfo, setPetParentInfo] = useState<any>(null);
@@ -158,6 +158,7 @@ const VideoCallPreview: React.FC = () => {
       //   ]);
       // }
     } catch (error: any) {
+      setAppointmentDetails(null);
       toast.error(error.message || "Failed to fetch appointment details");
     } finally {
       setIsLoading(false);
@@ -437,12 +438,12 @@ const VideoCallPreview: React.FC = () => {
                     )}
                   </h1>
 
-                  {userRole === "veterinarian" &&
+                  {/* {userRole === "pet_parent" &&
                     veterinarianInfo?.specialization && (
                       <p className="text-xl text-white/80 font-medium">
                         {veterinarianInfo.specialization}
                       </p>
-                    )}
+                    )} */}
                 </div>
 
                 {/* Appointment Info Cards */}
@@ -493,7 +494,7 @@ const VideoCallPreview: React.FC = () => {
                   ) : (
                     <div className="text-center">
                       <h3 className="text-lg font-semibold text-white/90 mb-6">
-                        Time until your appointment
+                        Your appointment will start
                       </h3>
                       <div className="grid grid-cols-4 gap-4">
                         {timeLeft.days > 0 && (
