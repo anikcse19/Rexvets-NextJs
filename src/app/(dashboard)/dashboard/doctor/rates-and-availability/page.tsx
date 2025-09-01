@@ -3,7 +3,7 @@ import { authOptions } from "@/lib/auth";
 import type { Session } from "next-auth";
 import { getServerSession } from "next-auth/next";
 
-import { getVetByIdDashboard } from "@/components/Dashboard/Doctor/Service/get-vet-by-id";
+
 import { checkVeterinarianStatus } from "@/lib/auth-helpers";
 import React from "react";
 
@@ -20,5 +20,6 @@ const page = async () => {
     </div>
   );
 };
+
 
 export default page;
