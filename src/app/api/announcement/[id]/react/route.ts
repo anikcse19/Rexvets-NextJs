@@ -1,4 +1,3 @@
-// app/api/announcements/[id]/react/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/mongoose";
 import { AnnouncementModel } from "@/models/Announcement";
@@ -8,7 +7,7 @@ import { authOptions } from "@/lib/auth";
 
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } } // <- inline typing fixes the type error
 ) {
   await connectToDatabase();
   try {
@@ -16,13 +15,18 @@ export async function PUT(
     const role = session?.user?.role;
     const userId = session?.user?.refId;
 
-    console.log("role, user", role, userId);
-    if (!Types.ObjectId.isValid(params.id)) throw new Error("Invalid id");
+    if (!Types.ObjectId.isValid(params.id))
+      return NextResponse.json(
+        { success: false, message: "Invalid id" },
+        { status: 400 }
+      );
 
     const { value } = await req.json();
-    if (!["positive", "negative", "neutral"].includes(value)) {
-      throw new Error("Invalid reaction value");
-    }
+    if (!["positive", "negative", "neutral"].includes(value))
+      return NextResponse.json(
+        { success: false, message: "Invalid reaction value" },
+        { status: 400 }
+      );
 
     const now = new Date();
     const base = await AnnouncementModel.findOne({
