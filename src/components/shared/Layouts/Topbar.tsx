@@ -68,8 +68,8 @@ TopbarProps) {
 
           <Avatar className="w-8 h-8 lg:w-10 lg:h-10">
             <AvatarImage
-              src={session?.user?.image!}
-              alt={session?.user?.name!}
+              src={session?.user?.image ?? ""}
+              alt={session?.user?.name ?? ""}
             />
             <AvatarFallback className="text-black font-medium">
               {session?.user?.name?.charAt(0)}

@@ -318,7 +318,9 @@ export default function AppointmentDetailsPage() {
         {/* Left Column - Pet & Parent Info */}
         <div className="xl:col-span-1 space-y-6">
           {/* <PetInfoCard pet={appointment?.pet} /> */}
-          <ParentInfoCard parent={appointment?.petParent!} />
+          {appointment?.petParent && (
+            <ParentInfoCard parent={appointment.petParent} />
+          )}
         </div>
 
         {/* Middle Column - Data Assessment & Prescription */}
@@ -364,7 +366,7 @@ export default function AppointmentDetailsPage() {
         assessment={currentAssessment}
       />
 
-      {appointment && (
+      {appointment && appointment?.petParent && (
         <PrescriptionModal
           isOpen={isPrescriptionModalOpen}
           onClose={() => {
@@ -373,7 +375,7 @@ export default function AppointmentDetailsPage() {
           appointmentId={appointment._id}
           appointment={appointment}
           pet={appointment?.pet}
-          petParent={appointment?.petParent!}
+          petParent={appointment?.petParent}
           veterinarian={appointment?.veterinarian}
         />
       )}

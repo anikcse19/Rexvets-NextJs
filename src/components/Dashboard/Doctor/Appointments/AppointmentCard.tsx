@@ -42,7 +42,7 @@ export default function AppointmentCard({ appointment }: AppointmentCardProps) {
   }
 
   const isSeenBefore = appointment?.pet?.seenBy?.includes(
-    session?.user?.refId!
+    session?.user?.refId ?? ""
   );
 
   function getAppointmentStatus() {
