@@ -49,10 +49,12 @@ TopbarProps) {
           </Badge>
         </Button>
 
-        <AnnouncementsDrawer
-          userId={(session?.user as any)?.refId}
-          role={(session?.user as any)?.role}
-        />
+        {session?.user?.refId && session?.user?.role && (
+          <AnnouncementsDrawer
+            userId={session.user.refId}
+            role={session.user.role}
+          />
+        )}
 
         {/* User profile */}
         <div className="flex items-center gap-2 lg:gap-3">
@@ -62,7 +64,7 @@ TopbarProps) {
               {session?.user?.name}
             </p>
             <p className="text-xs text-muted-foreground capitalize">
-              {session?.user?.role.replace("_", " ")}
+              {session?.user?.role?.replace("_", " ") ?? "user"}
             </p>
           </div>
 
@@ -72,7 +74,7 @@ TopbarProps) {
               alt={session?.user?.name ?? ""}
             />
             <AvatarFallback className="text-black font-medium">
-              {session?.user?.name?.charAt(0)}
+              {session?.user?.name?.charAt(0) ?? "U"}
             </AvatarFallback>
           </Avatar>
         </div>
