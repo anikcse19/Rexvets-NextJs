@@ -43,6 +43,9 @@ const VideoCallContent: React.FC<VideoCallContentProps> = ({ onEndCall }) => {
     applyVirtualBackground,
     veterinarian,
     profileInfo,
+    callDuration,
+    isTimerRunning,
+    hasError,
   } = useVideoCall();
   const { data: session } = useSession();
   const userRole = session?.user?.role;
@@ -68,12 +71,11 @@ const VideoCallContent: React.FC<VideoCallContentProps> = ({ onEndCall }) => {
     return <LoadingScreen />;
   }
 
-  if (!appointmentDetails && !isLoading) {
+  if (hasError && !isLoading) {
     return <ErrorScreen />;
   }
   // console.log("profileInfo", profileInfo);
-  console.log("appoitnment", appointmentDetails);
-  return (
+  return appointmentDetails ? (
     <div
       style={{
         background:
@@ -90,6 +92,8 @@ const VideoCallContent: React.FC<VideoCallContentProps> = ({ onEndCall }) => {
             appointment={appointmentDetails}
             userRole={userRole}
             remoteUsersState={remoteUsersState}
+            callDuration={callDuration}
+            isTimerRunning={isTimerRunning}
           />
           <VideoCallMainArea
             callState={callState}
@@ -143,6 +147,8 @@ const VideoCallContent: React.FC<VideoCallContentProps> = ({ onEndCall }) => {
         appointmentDetails={appointmentDetails}
       />
     </div>
+  ) : (
+    <LoadingScreen />
   );
 };
 

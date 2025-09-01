@@ -81,8 +81,18 @@ export interface IVeterinarian extends Document {
     web?: string;
     mobile?: string;
   };
+  averageRating?: number;
+  ratingCount?: number;
+  reviewCount?: number;
   createdAt: Date;
   updatedAt: Date;
+
+  // Methods
+  recalculateReviewStats(): Promise<{
+    reviewCount: number;
+    ratingCount: number;
+    averageRating: number;
+  }>;
 
   // Authentication methods removed - now handled by User model
   // comparePassword(candidatePassword: string): Promise<boolean>;
@@ -422,7 +432,23 @@ const veterinarianSchema = new Schema<IVeterinarian>(
         ref: "Review",
       },
     ],
+    reviewCount:{
+      type: Number,
+      default: 0,
+      min: [0, "Review count cannot be negative"],
+    },
+    averageRating:{
+      type: Number,
+      default: 0,
+      min: [0, "Average rating cannot be negative"],
+      max: [5, "Average rating cannot exceed 5"],
+    },
 
+    ratingCount:{
+      type: Number,
+      default: 0,
+      min: [0, "Rating count cannot be negative"],
+    },
     fcmTokens: {
       web: String,
       mobile: String,
@@ -447,6 +473,48 @@ veterinarianSchema.index(
   { "licenses.licenseNumber": 1 },
   { unique: true, sparse: true }
 );
+
+// Virtual for calculated average rating
+veterinarianSchema.virtual('calculatedAverageRating').get(function() {
+  return this.averageRating || 0;
+});
+
+// Method to recalculate review statistics
+veterinarianSchema.methods.recalculateReviewStats = async function() {
+  try {
+    const ReviewModel = mongoose.model('Review');
+    const stats = await ReviewModel.aggregate([
+      { $match: { vetId: this._id, visible: true, isDeleted: { $ne: true } } },
+      {
+        $group: {
+          _id: null,
+          totalReviews: { $sum: 1 },
+          averageRating: { $avg: "$rating" },
+        },
+      },
+    ]);
+
+    if (stats.length > 0) {
+      this.reviewCount = stats[0].totalReviews;
+      this.ratingCount = stats[0].totalReviews;
+      this.averageRating = Math.round(stats[0].averageRating * 10) / 10;
+    } else {
+      this.reviewCount = 0;
+      this.ratingCount = 0;
+      this.averageRating = 0;
+    }
+
+    await this.save();
+    return {
+      reviewCount: this.reviewCount,
+      ratingCount: this.ratingCount,
+      averageRating: this.averageRating,
+    };
+  } catch (error) {
+    console.error('Error recalculating review stats:', error);
+    throw error;
+  }
+};
 
 export default mongoose.models.Veterinarian ||
   mongoose.model<IVeterinarian, IVeterinarianModel>(

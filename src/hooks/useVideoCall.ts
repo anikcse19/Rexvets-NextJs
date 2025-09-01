@@ -24,6 +24,7 @@ export const useVideoCall = () => {
   const searchParams = useSearchParams();
 
   // State
+  const [hasError, setHasError] = useState(false);
   const [petParent, setPetParent] = useState<IUser | null>(null);
   const [veterinarian, setVeterinarian] = useState<IVeterinarian | null>(null);
   const [profileInfo, setProfileInfo] = useState<IUser | null>(null);
@@ -50,6 +51,8 @@ export const useVideoCall = () => {
     null
   );
   const [isProcessingVirtualBg, setIsProcessingVirtualBg] = useState(false);
+  const [callDuration, setCallDuration] = useState(0);
+  const [isTimerRunning, setIsTimerRunning] = useState(false);
 
   // Helper function to clean up virtual background processor
   const cleanupVirtualBackgroundProcessor = useCallback(async () => {
@@ -103,13 +106,13 @@ export const useVideoCall = () => {
   // Helper function to extract ID from appointment data
   const extractId = (idData: any): string | null => {
     if (!idData) return null;
-    
+
     if (typeof idData === "object" && idData?._id) {
       return idData._id.toString();
     } else if (typeof idData === "string") {
       return idData;
     }
-    
+
     console.warn("Invalid ID format:", idData);
     return null;
   };
@@ -128,25 +131,38 @@ export const useVideoCall = () => {
       try {
         // Validate inputs
         if (!vetId || !parentId) {
-          console.warn("Missing vetId or parentId for review check:", { vetId, parentId });
+          console.warn("Missing vetId or parentId for review check:", {
+            vetId,
+            parentId,
+          });
           return false;
         }
 
         console.log("Checking existing review for:", { vetId, parentId });
-        
+
         const res = await fetch(
-          `/api/reviews/check-existing?vetId=${encodeURIComponent(vetId)}&parentId=${encodeURIComponent(parentId)}`
+          `/api/reviews/check-existing?vetId=${encodeURIComponent(
+            vetId
+          )}&parentId=${encodeURIComponent(parentId)}`
         );
-        
+
         if (!res.ok) {
-          const errorData = await res.json().catch(() => ({ message: "Unknown error" }));
-          console.error("Review check API error:", { status: res.status, error: errorData });
-          throw new Error(errorData.message || `Failed to check existing review (${res.status})`);
+          const errorData = await res
+            .json()
+            .catch(() => ({ message: "Unknown error" }));
+          console.error("Review check API error:", {
+            status: res.status,
+            error: errorData,
+          });
+          throw new Error(
+            errorData.message ||
+              `Failed to check existing review (${res.status})`
+          );
         }
-        
+
         const data = await res.json();
         console.log("Review check response:", data);
-        
+
         if (data.success && data.data) {
           setHasExistingReview(data.data.hasReview);
           return data.data.hasReview;
@@ -182,6 +198,7 @@ export const useVideoCall = () => {
   // Fetch appointment details
   const getAppointmentDetails = async () => {
     setIsLoading(true);
+    setHasError(false);
     try {
       const res = await fetch(`/api/appointments/${appointmentId}`);
       if (!res.ok) {
@@ -195,18 +212,22 @@ export const useVideoCall = () => {
       if (data?.data?.veterinarian && data?.data?.petParent) {
         const vet_id = extractId(data.data.veterinarian);
         const parent_id = extractId(data.data.petParent);
-        
+
         if (vet_id && parent_id) {
-          console.log("Checking review for appointment:", { vet_id, parent_id });
+          console.log("Checking review for appointment:", {
+            vet_id,
+            parent_id,
+          });
           await checkExistingReview(vet_id, parent_id);
         } else {
           console.warn("Could not extract valid IDs for review check:", {
             veterinarian: data.data.veterinarian,
-            petParent: data.data.petParent
+            petParent: data.data.petParent,
           });
         }
       }
     } catch (error: any) {
+      setHasError(true);
       toast.error(error.message || "Failed to fetch appointment details");
     } finally {
       setIsLoading(false);
@@ -610,6 +631,11 @@ export const useVideoCall = () => {
         remoteUsers.current[user.uid] = user;
         setRemoteUsersState((prev) => ({ ...prev, [user.uid]: user }));
         setCallState("active");
+        // Start timer when both users are in the call
+        if (Object.keys(remoteUsers.current).length >= 1) {
+          setIsTimerRunning(true);
+          setCallDuration(0);
+        }
       });
 
       client.current.on(
@@ -640,8 +666,11 @@ export const useVideoCall = () => {
             [user.uid]: { ...prev[user.uid], videoTrack: null },
           }));
         }
-        if (Object.keys(remoteUsers.current).length <= 1)
+        if (Object.keys(remoteUsers.current).length <= 1) {
           setCallState("waiting");
+          // Stop timer when users leave
+          setIsTimerRunning(false);
+        }
       });
 
       client.current.on("user-left", (user: any) => {
@@ -651,8 +680,11 @@ export const useVideoCall = () => {
           delete next[user.uid];
           return next;
         });
-        if (Object.keys(remoteUsers.current).length === 0)
+        if (Object.keys(remoteUsers.current).length === 0) {
           setCallState("waiting");
+          // Stop timer when all users leave
+          setIsTimerRunning(false);
+        }
       });
 
       // Ensure local tracks are initialized
@@ -813,6 +845,8 @@ export const useVideoCall = () => {
       setRemoteUsersState({});
       setCallState("ended");
       setErrorMessage(null);
+      // Stop timer when call ends
+      setIsTimerRunning(false);
     } catch (error) {
       console.error("Error ending call:", error);
       setErrorMessage("Failed to end call.");
@@ -822,7 +856,7 @@ export const useVideoCall = () => {
       if (appointmentDetails?.veterinarian && appointmentDetails?.petParent) {
         const vet_id = extractId(appointmentDetails.veterinarian);
         const parent_id = extractId(appointmentDetails.petParent);
-        
+
         if (vet_id && parent_id) {
           console.log("Checking review in endCall:", { vet_id, parent_id });
           const hasReview = await checkExistingReview(vet_id, parent_id);
@@ -838,10 +872,13 @@ export const useVideoCall = () => {
             setIsOpen(true);
           }
         } else {
-          console.warn("Could not extract valid IDs for review check in endCall:", {
-            veterinarian: appointmentDetails.veterinarian,
-            petParent: appointmentDetails.petParent
-          });
+          console.warn(
+            "Could not extract valid IDs for review check in endCall:",
+            {
+              veterinarian: appointmentDetails.veterinarian,
+              petParent: appointmentDetails.petParent,
+            }
+          );
           setIsOpen(true);
         }
       } else {
@@ -901,6 +938,38 @@ export const useVideoCall = () => {
     if (clientInitialized) joinCall();
   }, [clientInitialized, joinCall]);
 
+  // Timer effect
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+
+    if (isTimerRunning) {
+      interval = setInterval(() => {
+        setCallDuration((prev) => prev + 1);
+      }, 1000);
+    }
+
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
+  }, [isTimerRunning]);
+
+  // Stop timer when call ends or fails
+  useEffect(() => {
+    if (callState === "ended" || callState === "failed") {
+      setIsTimerRunning(false);
+    }
+  }, [callState]);
+
+  // Reset timer when starting a new call
+  useEffect(() => {
+    if (callState === "connecting") {
+      setCallDuration(0);
+      setIsTimerRunning(false);
+    }
+  }, [callState]);
+
   useEffect(() => {
     if (user && !isInitializedRef.current) {
       getPetParentDetails();
@@ -952,6 +1021,7 @@ export const useVideoCall = () => {
 
   return {
     // State
+    hasError,
     petParent,
     appointmentDetails,
     isLoading,
@@ -968,6 +1038,8 @@ export const useVideoCall = () => {
     veterinarian,
     hasExistingReview,
     profileInfo,
+    callDuration,
+    isTimerRunning,
     // Refs
     localVideoRef,
     remoteVideoRef,

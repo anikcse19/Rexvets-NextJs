@@ -4,9 +4,9 @@ import React from "react";
 
 const PostCallModalReviewGoogleReviewSection = () => {
   return (
-    <div className="bg-[#120F2C] rounded-xl p-5 border border-[#002366]">
+    <div className=" rounded-xl p-5 ">
       <div className="flex items-center mb-4">
-        <div className="w-9 h-9 bg-[#002366] rounded-full flex items-center justify-center mr-2.5 text-white text-base">
+        <div className="w-9 h-9 bg-white rounded-full flex items-center justify-center mr-2.5 text-black text-base">
           G
         </div>
         <h3 className="text-lg font-semibold text-white m-0">
@@ -22,7 +22,7 @@ const PostCallModalReviewGoogleReviewSection = () => {
         onClick={() =>
           window.open("https://g.page/r/CV9taOtlIUL5EBM/review", "_blank")
         }
-        className="bg-[#002366] text-white border-none rounded-lg py-3 px-6 text-sm font-semibold cursor-pointer transition-all flex items-center justify-center gap-2 w-full"
+        className=" border border-gray-300 text-white rounded-lg py-3 px-6 text-sm font-semibold cursor-pointer transition-all flex items-center justify-center gap-2 w-full"
       >
         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
           <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
