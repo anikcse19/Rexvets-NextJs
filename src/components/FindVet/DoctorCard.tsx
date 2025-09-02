@@ -15,6 +15,7 @@ import {
   Users,
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Veterinarian } from "./type";
 
 interface DoctorCardProps {
@@ -36,6 +37,8 @@ interface DoctorCardProps {
 }
 
 export default function DoctorCard({ doctor, viewMode }: DoctorCardProps) {
+  const router = useRouter();
+
   const formatDate = (dateString: string, timezone?: string) => {
     if (timezone) {
       // Convert the date to user's timezone
@@ -79,149 +82,24 @@ export default function DoctorCard({ doctor, viewMode }: DoctorCardProps) {
     return stars;
   };
 
-  if (viewMode === "list") {
-    return (
-      <article
-        itemScope
-        itemType="https://schema.org/Veterinary"
-        className="group"
-      >
-        <Link href={`/find-a-vet/${doctor.id || doctor._id}`}>
-          <Card className="group cursor-pointer shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-0">
-            <CardContent className="p-6">
-              <div className="flex items-start gap-6">
-                {/* Avatar */}
-                <div className="flex-shrink-0">
-                  <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center overflow-hidden">
-                    {doctor.profileImage ? (
-                      <img
-                        src={doctor.profileImage}
-                        alt={doctor.name}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <span className="text-2xl font-bold text-gray-700">
-                        {doctor.name
-                          .split(" ")
-                          .map((n) => n.charAt(0))
-                          .join("")}
-                      </span>
-                    )}
-                  </div>
-                </div>
+  const handleSlotClick = (slot: any, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
 
-                {/* Content */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between mb-3">
-                    <div>
-                      <h3 className="text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
-                        {doctor.name}
-                      </h3>
-                      <p className="text-gray-600">{doctor.specialization}</p>
-                    </div>
-                    <div className="text-right">
-                      <div className="flex items-center gap-1 mb-1">
-                        {renderStars(doctor.averageRating || 0)}
-                      </div>
-                      <p className="text-sm text-gray-500">
-                        {doctor.averageRating?.toFixed(1) || "0"} (
-                        {doctor.reviewCount || 0} reviews)
-                      </p>
-                    </div>
-                  </div>
+    // Navigate to booking page with slot details
+    const queryParams = new URLSearchParams({
+      slotId: slot._id,
+      slotDate: slot.date,
+      slotStartTime: slot.startTime,
+      slotEndTime: slot.endTime,
+      slotTimezone: slot.timezone,
+    });
 
-                  <div className="flex items-center gap-4 mb-4 text-sm text-gray-600">
-                    <div className="flex items-center gap-1">
-                      <MapPin className="w-4 h-4" />
-                      <span>{doctor.state || "Location not specified"}</span>
-                    </div>
-                    {doctor.yearsOfExperience && (
-                      <div className="flex items-center gap-1">
-                        <Award className="w-4 h-4" />
-                        <span>{doctor.yearsOfExperience} years</span>
-                      </div>
-                    )}
-                    <div className="flex items-center gap-1">
-                      <Users className="w-4 h-4" />
-                      <span>${doctor.consultationFee}/consultation</span>
-                    </div>
-                  </div>
-
-                  {/* Next Available Slots */}
-                  {doctor.nextAvailableSlots &&
-                    doctor.nextAvailableSlots.length > 0 && (
-                      <div className="mb-4">
-                        <h4 className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                          <Clock className="w-4 h-4 text-green-600" />
-                          Next Available Slots
-                        </h4>
-                        <div className="flex flex-wrap gap-2">
-                          {doctor.nextAvailableSlots
-                            .slice(0, 3)
-                            .map((slot, index) => (
-                              <Badge
-                                key={slot._id}
-                                variant="secondary"
-                                className="gap-1"
-                              >
-                                <Calendar className="w-3 h-3" />
-                                {formatDate(slot.date)} at{" "}
-                                {formatTime(slot.startTime)}
-                              </Badge>
-                            ))}
-                        </div>
-                      </div>
-                    )}
-
-                  {/* Actions */}
-                  <div className="flex items-center gap-3">
-                    <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
-                      <MessageCircle className="w-4 h-4 mr-2" />
-                      Book Appointment
-                    </Button>
-                    <Button size="sm" variant="outline">
-                      <Phone className="w-4 h-4 mr-2" />
-                      Call Now
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </Link>
-
-        {/* Hidden structured data for SEO */}
-        <div style={{ display: "none" }}>
-          <meta itemProp="name" content={doctor.name} />
-          <meta
-            itemProp="description"
-            content={`Veterinarian ${doctor.name} specializing in ${
-              doctor.specialization || "pet care"
-            }`}
-          />
-          <meta
-            itemProp="url"
-            content={`https://www.rexvet.org/find-a-vet/${
-              doctor.id || doctor._id
-            }`}
-          />
-          {doctor.phoneNumber && (
-            <meta itemProp="telephone" content={doctor.phoneNumber} />
-          )}
-          {doctor.state && (
-            <meta itemProp="addressRegion" content={doctor.state} />
-          )}
-          {doctor.specialization && (
-            <meta itemProp="specialty" content={doctor.specialization} />
-          )}
-          {doctor.profileImage && (
-            <meta itemProp="image" content={doctor.profileImage} />
-          )}
-          {doctor.bio && <meta itemProp="description" content={doctor.bio} />}
-        </div>
-      </article>
+    router.push(
+      `/find-a-vet/${doctor.id || doctor._id}?${queryParams.toString()}`
     );
-  }
+  };
+
   const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
   // Grid View (default)
@@ -232,7 +110,7 @@ export default function DoctorCard({ doctor, viewMode }: DoctorCardProps) {
       className="group"
     >
       <Link href={`/find-a-vet/${doctor.id || doctor._id}`}>
-        <Card className="group cursor-pointer shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border-0 overflow-hidden">
+        <Card className="group cursor-pointer p-0  min-h-[510px] shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border-0 overflow-hidden">
           {/* Header with gradient background */}
           <div className="relative h-48 bg-gradient-to-br from-blue-100 to-purple-100 overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
@@ -277,18 +155,25 @@ export default function DoctorCard({ doctor, viewMode }: DoctorCardProps) {
 
             {/* Available Now Badge */}
             {doctor.nextAvailableSlots &&
-              doctor.nextAvailableSlots.length > 0 && (
-                <div className="absolute bottom-4 right-4">
-                  <Badge className="bg-green-500 text-white border-0 gap-1">
-                    <Clock className="w-3 h-3" />
-                    Available
-                  </Badge>
-                </div>
-              )}
+            doctor.nextAvailableSlots.length > 0 ? (
+              <div className="absolute bottom-4 right-4">
+                <Badge className="bg-green-500 text-white border-0 gap-1">
+                  <Clock className="w-3 h-3" />
+                  Available
+                </Badge>
+              </div>
+            ) : (
+              <div className="absolute bottom-4 right-4">
+                <Badge className="bg-gray-500 text-white border-0 gap-1">
+                  <Clock className="w-3 h-3" />
+                  Check Schedule
+                </Badge>
+              </div>
+            )}
           </div>
 
           {/* Content */}
-          <CardContent className="p-6 space-y-4">
+          <CardContent className="px-6 space-y-4">
             {/* Name and Specialization */}
             <div>
               <h3 className="text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors mb-1">
@@ -325,43 +210,73 @@ export default function DoctorCard({ doctor, viewMode }: DoctorCardProps) {
 
             {/* Next Available Slots */}
             {doctor.nextAvailableSlots &&
-              doctor.nextAvailableSlots.length > 0 && (
-                <div className="bg-green-50 rounded-lg p-3 border border-green-200">
-                  <h4 className="text-sm font-semibold text-green-800 mb-2 flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-green-600" />
-                    Next Available
-                  </h4>
-                  <div className="space-y-2">
-                    {doctor.nextAvailableSlots
-                      .slice(0, 2)
-                      .map((slot, index) => {
-                        const { formattedStartTime, formattedEndTime } =
-                          convertTimesToUserTimezone(
-                            slot.startTime,
-                            slot.endTime,
-                            slot.date,
-                            slot.timezone || "UTC"
-                          );
-                        return (
-                          <div
-                            key={slot._id}
-                            className="flex items-center justify-between text-sm"
-                          >
-                            <div className="flex items-center gap-2">
-                              <Calendar className="w-4 h-4 text-green-600" />
-                              <span className="text-green-700 font-medium">
-                                {formatDate(slot.date, slot.timezone)}
-                              </span>
-                            </div>
-                            <span className="text-green-600 font-semibold">
-                              {formattedStartTime} - {formattedEndTime}
+            doctor.nextAvailableSlots.length > 0 ? (
+              <div className="bg-green-50 rounded-lg p-3 border border-green-200">
+                <h4 className="text-sm font-semibold text-green-800 mb-3 flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-green-600" />
+                  Next Available
+                </h4>
+                <div className="space-y-2">
+                  {doctor.nextAvailableSlots.slice(0, 2).map((slot, index) => {
+                    const { formattedStartTime, formattedEndTime } =
+                      convertTimesToUserTimezone(
+                        slot.startTime,
+                        slot.endTime,
+                        slot.date,
+                        slot.timezone || "UTC"
+                      );
+                    return (
+                      <button
+                        key={slot._id}
+                        onClick={(e) => handleSlotClick(slot, e)}
+                        className="w-full text-left p-2 bg-white hover:bg-green-100 rounded-md border border-green-200 transition-all duration-200 hover:scale-[1.02] hover:shadow-sm cursor-pointer group/slot"
+                      >
+                        <div className="flex items-center justify-between text-sm">
+                          <div className="flex items-center gap-2">
+                            <Calendar className="w-4 h-4 text-green-600 group-hover/slot:text-green-700" />
+                            <span className="text-green-700 font-medium group-hover/slot:text-green-800">
+                              {formatDate(slot.date, slot.timezone)}
                             </span>
                           </div>
-                        );
-                      })}
-                  </div>
+                          <span className="text-green-600 font-semibold group-hover/slot:text-green-700">
+                            {formattedStartTime} - {formattedEndTime}
+                          </span>
+                        </div>
+                        {slot.notes && (
+                          <p className="text-xs text-green-600 mt-1 italic">
+                            {slot.notes}
+                          </p>
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
-              )}
+              </div>
+            ) : (
+              <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                <h4 className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-gray-500" />
+                  Availability
+                </h4>
+                <div className="text-center py-2">
+                  <p className="text-sm text-gray-600 mb-2">
+                    No immediate slots available
+                  </p>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="text-xs px-3 py-1 border-gray-300 text-gray-600 hover:bg-gray-100"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      router.push(`/find-a-vet/${doctor.id || doctor._id}`);
+                    }}
+                  >
+                    View Full Schedule
+                  </Button>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       </Link>
