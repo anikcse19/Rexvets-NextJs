@@ -144,6 +144,7 @@ export interface Doctor {
   consultationFee: number;
   available: boolean;
   signature: string;
+  signatureImage: string;
   profileImage: string;
   dob?: string;
   address: string;
@@ -158,7 +159,8 @@ export interface Doctor {
   };
   licenses: License[];
   bio: string;
-  specialties: string[];
+  degree: string;
+  specialities: string[];
   interests: string[];
   researchAreas: string[];
   education: any[]; // if you know structure, replace `any[]` with proper type

@@ -281,7 +281,9 @@ export default function DoctorCard({ doctor, viewMode }: DoctorCardProps) {
         </Card>
       </Link>
 
+
       {/* Hidden structured data for SEO */}
+      <div style={{ display: "none" }}>
       <div style={{ display: "none" }}>
         <meta itemProp="name" content={doctor.name} />
         <meta

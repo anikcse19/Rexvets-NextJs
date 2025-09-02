@@ -1,9 +1,10 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Doctor } from "@/lib/types";
 import { Award, Heart } from "lucide-react";
 import React from "react";
 
-const SpecialitiesAndSpecies = () => {
+const SpecialitiesAndSpecies = ({ vet }: { vet: Doctor }) => {
   return (
     <div className="space-y-8">
       <Card className="shadow-lg border-0 bg-white">
@@ -15,58 +16,15 @@ const SpecialitiesAndSpecies = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            {[
-              {
-                name: "Small Animal Surgery",
-                level: "Expert",
-                color: "bg-blue-100 text-blue-700",
-              },
-              {
-                name: "Emergency Medicine",
-                level: "Advanced",
-                color: "bg-red-100 text-red-700",
-              },
-              {
-                name: "Cardiology",
-                level: "Expert",
-                color: "bg-purple-100 text-purple-700",
-              },
-              {
-                name: "Dermatology",
-                level: "Advanced",
-                color: "bg-green-100 text-green-700",
-              },
-              {
-                name: "Orthopedics",
-                level: "Intermediate",
-                color: "bg-orange-100 text-orange-700",
-              },
-              {
-                name: "Oncology",
-                level: "Advanced",
-                color: "bg-pink-100 text-pink-700",
-              },
-              {
-                name: "Dental Care",
-                level: "Expert",
-                color: "bg-teal-100 text-teal-700",
-              },
-              {
-                name: "Nutrition",
-                level: "Advanced",
-                color: "bg-yellow-100 text-yellow-700",
-              },
-            ].map((specialty, index) => (
+            {vet?.specialities.map((specialty, index) => (
               <div
                 key={index}
                 className="flex items-center justify-between p-3 rounded-lg bg-gray-50"
               >
-                <span className="font-medium text-gray-900">
-                  {specialty.name}
-                </span>
-                <Badge className={`text-xs ${specialty.color}`}>
+                <span className="font-medium text-gray-900">{specialty}</span>
+                {/* <Badge className={`text-xs ${specialty.color}`}>
                   {specialty.level}
-                </Badge>
+                </Badge> */}
               </div>
             ))}
           </div>
