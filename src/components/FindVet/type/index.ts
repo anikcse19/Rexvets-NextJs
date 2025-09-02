@@ -23,6 +23,16 @@ export interface License {
   id: string;
 }
 
+export interface NextAvailableSlot {
+  _id: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  timezone: string;
+  status: string;
+  notes?: string;
+}
+
 export interface Veterinarian {
   schedule: Schedule;
   loginAttempts?: number;
@@ -61,6 +71,25 @@ export interface Veterinarian {
   isLocked?: boolean;
   noticePeriod?: number;
   id: string;
+  
+  // New fields for enhanced functionality
+  nextAvailableSlots?: NextAvailableSlot[];
+  averageRating?: number;
+  reviewCount?: number;
+  ratingCount?: number;
+  yearsOfExperience?: string;
+  city?: string;
+  country?: string;
+  gender?: "male" | "female";
+  specialities?: string[];
+  interests?: string[];
+  researchAreas?: string[];
+  monthlyGoal?: number;
+  experienceYears?: string;
+  clinic?: {
+    name: string;
+    address: string;
+  };
 }
 
 export interface Pagination {
