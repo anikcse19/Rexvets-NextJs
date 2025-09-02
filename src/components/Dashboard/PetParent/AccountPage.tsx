@@ -3,9 +3,13 @@
 import React from "react";
 import PersonalInfoSection from "./Account/PersonalInfoSection";
 
-import { Doctor } from "@/lib/types";
+import { Doctor, PetParent } from "@/lib/types";
 
-export default function AccountPage({ doctorData }: { doctorData: Doctor }) {
+export default function AccountPage({
+  petParentData,
+}: {
+  petParentData: PetParent;
+}) {
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -21,7 +25,7 @@ export default function AccountPage({ doctorData }: { doctorData: Doctor }) {
 
       {/* Account Sections */}
       <div className="space-y-8">
-        <PersonalInfoSection />
+        <PersonalInfoSection petParentData={petParentData} />
       </div>
     </div>
   );

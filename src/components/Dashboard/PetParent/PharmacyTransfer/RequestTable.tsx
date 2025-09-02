@@ -51,25 +51,43 @@ const statusConfig = {
     label: "Failed",
     className: "bg-red-100 text-red-800 border-red-200",
   },
-};
+  approved: {
+    icon: CheckCircle2,
+    label: "Approved",
+    className: "bg-green-100 text-green-800 border-green-200",
+  },
+  rejected: {
+    icon: XCircle,
+    label: "Rejected",
+    className: "bg-red-100 text-red-800 border-red-200",
+  },
+} as const;
 
 const paymentStatusConfig = {
-  unpaid: {
-    label: "Unpaid",
-    className: "bg-red-100 text-red-800",
+  pending: {
+    icon: Clock,
+    label: "Pending",
+    className: "bg-yellow-100 text-yellow-800 border-yellow-200",
   },
   paid: {
+    icon: CheckCircle2,
     label: "Paid",
-    className: "bg-green-100 text-green-800",
+    className: "bg-green-100 text-green-800 border-green-200",
   },
-  failed: {
-    label: "Failed",
-    className: "bg-red-100 text-red-800",
+  unpaid: {
+    icon: XCircle,
+    label: "Unpaid",
+    className: "bg-red-100 text-red-800 border-red-200",
   },
-};
+  refunded: {
+    icon: AlertCircle,
+    label: "Refunded",
+    className: "bg-blue-100 text-blue-800 border-blue-200",
+  },
+} as const;
 
 export function RequestsTable({ requests }: RequestsTableProps) {
-  if (requests.length === 0) {
+  if (requests?.length === 0) {
     return (
       <Card className="w-full">
         <CardContent className="flex flex-col items-center justify-center py-12 text-center">
@@ -136,67 +154,69 @@ export function RequestsTable({ requests }: RequestsTableProps) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {requests.map((request) => {
-                const StatusIcon = statusConfig[request.status].icon;
-                return (
-                  <TableRow
-                    key={request.id}
-                    className="hover:bg-gray-50 transition-colors"
-                  >
-                    <TableCell>
-                      <div className="font-medium text-gray-900">
-                        {request.pharmacyName}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm text-gray-600">
-                        {request.phoneNumber}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm text-gray-600">
-                        {request.street}
-                        <br />
-                        {request.city}, {request.state}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm text-gray-900">
-                        {formatDate(request.appointmentDate)}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="font-medium text-gray-900">
-                        {formatCurrency(request.amount)}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        className={
-                          paymentStatusConfig[request.paymentStatus].className
-                        }
-                      >
-                        {paymentStatusConfig[request.paymentStatus].label}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        className={`${
-                          statusConfig[request.status].className
-                        } flex items-center gap-1 w-fit`}
-                      >
-                        <StatusIcon className="h-3 w-3" />
-                        {statusConfig[request.status].label}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm text-gray-600">
-                        {formatDate(request.createdAt)}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
+              {requests &&
+                requests?.map((request) => {
+                  const StatusIcon = statusConfig[request?.status].icon;
+                  return (
+                    <TableRow
+                      key={request?._id}
+                      className="hover:bg-gray-50 transition-colors"
+                    >
+                      <TableCell>
+                        <div className="font-medium text-gray-900">
+                          {request?.pharmacyName}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm text-gray-600">
+                          {request?.phoneNumber}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm text-gray-600">
+                          {request?.street}
+                          <br />
+                          {request?.city}, {request?.state}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm text-gray-900">
+                          {formatDate(request?.appointment?.appointmentDate)}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="font-medium text-gray-900">
+                          {formatCurrency(request?.amount)}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          className={
+                            paymentStatusConfig[request?.paymentStatus]
+                              .className
+                          }
+                        >
+                          {paymentStatusConfig[request?.paymentStatus].label}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          className={`${
+                            statusConfig[request?.status].className
+                          } flex items-center gap-1 w-fit`}
+                        >
+                          <StatusIcon className="h-3 w-3" />
+                          {statusConfig[request?.status].label}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm text-gray-600">
+                          {formatDate(request?.createdAt)}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
             </TableBody>
           </Table>
         </div>

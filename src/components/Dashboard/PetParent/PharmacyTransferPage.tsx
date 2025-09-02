@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Heart, FileText, History } from "lucide-react";
@@ -15,42 +15,34 @@ import {
 import { toast } from "sonner";
 import { PharmacyForm } from "./PharmacyTransfer/PharmcayForm";
 import { RequestsTable } from "./PharmacyTransfer/RequestTable";
+import { useSession } from "next-auth/react";
 
 export default function PharmacyTransferPage() {
-  const [requests, setRequests] =
-    useState<PharmacyRequest[]>(mockPharmacyRequests);
+  const { data: session } = useSession();
+  const [requests, setRequests] = useState<PharmacyRequest[]>();
+  const [changesData, setChangesData] = useState(false);
 
-  const handleFormSubmit = (data: PharmacyFormData) => {
-    const selectedAppointment = mockAppointments.find(
-      (apt) => apt.id === data.appointmentId
-    );
+  const fetchPharmacyTransferRequest = async () => {
+    try {
+      const res = await fetch(
+        `/api/pharmacy-transfer/pet-parent/${session?.user?.refId}`
+      );
+      if (!res?.ok) {
+        throw new Error();
+      }
 
-    if (!selectedAppointment) {
-      toast("Selected appointment not found");
-      return;
+      const data = await res.json();
+      setRequests(data?.data);
+    } catch (error: any) {
+      toast.error(error?.message);
     }
-
-    const newRequest: PharmacyRequest = {
-      id: `req-${Date.now()}`,
-      pharmacyName: data.pharmacyName,
-      phoneNumber: data.phoneNumber,
-      street: data.street,
-      city: data.city,
-      state: data.state,
-      appointmentId: data.appointmentId,
-      appointmentDate: selectedAppointment.date,
-      status: "pending",
-      createdAt: new Date().toISOString(),
-      paymentStatus: "paid",
-      amount: 19.99,
-    };
-
-    setRequests((prev) => [newRequest, ...prev]);
-
-    toast(
-      `Your prescription transfer request has been sent to ${data.pharmacyName}. You will receive updates on the status.`
-    );
   };
+
+  useEffect(() => {
+    if (session) {
+      fetchPharmacyTransferRequest();
+    }
+  }, [session, changesData]);
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -76,11 +68,11 @@ export default function PharmacyTransferPage() {
 
         {/* Tab Content */}
         <TabsContent value="history" className="animate-slide-up">
-          <RequestsTable requests={requests} />
+          <RequestsTable requests={requests!} />
         </TabsContent>
 
         <TabsContent value="request" className="animate-slide-up">
-          <PharmacyForm onSubmit={handleFormSubmit} />
+          <PharmacyForm setChangesData={setChangesData} />
         </TabsContent>
       </Tabs>
 

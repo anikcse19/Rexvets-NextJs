@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
@@ -33,14 +33,23 @@ import { PharmacyFormData } from "@/lib/types/pharmacy-transfer";
 import { pharmacyFormSchema } from "@/lib/validation/pharmacy-transfer";
 import { mockAppointments } from "@/lib/data/pharmacy-request";
 import { PaymentModal } from "./PaymentModal";
+import StripeContext from "@/hooks/StripeContext";
+import { useSession } from "next-auth/react";
+import { getParentAppointments } from "../Service/get-all-appointments";
+import { Appointment } from "@/lib/types";
+import { toast } from "sonner";
 
 interface PharmacyFormProps {
-  onSubmit: (data: PharmacyFormData) => void;
+  setChangesData: React.Dispatch<React.SetStateAction<boolean>>;
 }
-
-export function PharmacyForm({ onSubmit }: PharmacyFormProps) {
+export function PharmacyForm({ setChangesData }: PharmacyFormProps) {
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [formData, setFormData] = useState<PharmacyFormData | null>(null);
+  const [appointmentsData, setAppointmentsData] = useState<Appointment[]>();
+
+  const { data: session } = useSession();
+
+  const parentId = session?.user?.refId as string;
 
   const form = useForm<PharmacyFormData>({
     resolver: zodResolver(pharmacyFormSchema),
@@ -61,10 +70,43 @@ export function PharmacyForm({ onSubmit }: PharmacyFormProps) {
 
   const handlePaymentSuccess = () => {
     if (formData) {
-      onSubmit(formData);
       form.reset();
     }
     setIsPaymentModalOpen(false);
+  };
+
+  const fetchAppointments = async () => {
+    if (!parentId) return;
+    try {
+      const data = await getParentAppointments(parentId);
+
+      console.log("Fetched appointments:", data);
+
+      setAppointmentsData(data?.data);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "An error occurred");
+      console.error("Error fetching appointments:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchAppointments();
+  }, [session]);
+
+  const formatDate = (dateStr: string) => {
+    return new Date(dateStr).toLocaleDateString("en-US", {
+      month: "short",
+      day: "2-digit",
+      year: "numeric",
+    });
+  };
+
+  const formatTime = (dateStr: string) => {
+    return new Date(dateStr).toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    });
   };
 
   return (
@@ -231,7 +273,7 @@ export function PharmacyForm({ onSubmit }: PharmacyFormProps) {
                   control={form.control}
                   name="appointmentId"
                   render={({ field }) => (
-                    <FormItem>
+                    <FormItem className="py-2">
                       <FormLabel className="text-gray-700 font-medium">
                         Appointment
                       </FormLabel>
@@ -240,26 +282,32 @@ export function PharmacyForm({ onSubmit }: PharmacyFormProps) {
                         defaultValue={field.value}
                       >
                         <FormControl>
-                          <SelectTrigger className="border-gray-300 focus:border-blue-500 focus:ring-blue-500">
-                            <SelectValue placeholder="Select an appointment" />
+                          <SelectTrigger className="border-gray-300 focus:border-blue-500 focus:ring-blue-500 py-2">
+                            <SelectValue
+                              className="py-2"
+                              placeholder="Select an appointment"
+                            />
                           </SelectTrigger>
                         </FormControl>
-                        <SelectContent>
-                          {mockAppointments.map((appointment) => (
+                        <SelectContent className="py-2">
+                          {appointmentsData?.map((appointment) => (
                             <SelectItem
-                              key={appointment.id}
-                              value={appointment.id}
+                              key={appointment._id}
+                              value={appointment._id}
+                              className="py-2"
                             >
-                              <div className="flex flex-col py-1">
-                                <span className="font-medium">
-                                  {appointment.petName} - {appointment.service}
+                              <div className="flex flex-col py-2">
+                                <span className="font-medium capitalize">
+                                  {appointment?.pet?.name} -{" "}
+                                  {appointment?.appointmentType?.replace(
+                                    "_",
+                                    " "
+                                  )}
                                 </span>
                                 <span className="text-sm text-gray-500">
-                                  {new Date(
-                                    appointment.date
-                                  ).toLocaleDateString()}{" "}
-                                  at {appointment.time} with{" "}
-                                  {appointment.veterinarian}
+                                  {formatDate(appointment?.appointmentDate)} at{" "}
+                                  {formatTime(appointment?.appointmentDate)}{" "}
+                                  with {appointment?.veterinarian?.name}
                                 </span>
                               </div>
                             </SelectItem>
@@ -297,13 +345,17 @@ export function PharmacyForm({ onSubmit }: PharmacyFormProps) {
         </CardContent>
       </Card>
 
-      <PaymentModal
-        isOpen={isPaymentModalOpen}
-        onClose={() => setIsPaymentModalOpen(false)}
-        onSuccess={handlePaymentSuccess}
-        amount={19.99}
-        pharmacyName={formData?.pharmacyName || ""}
-      />
+      <StripeContext>
+        <PaymentModal
+          formData={formData}
+          isOpen={isPaymentModalOpen}
+          onClose={() => setIsPaymentModalOpen(false)}
+          onSuccess={handlePaymentSuccess}
+          amount={19.99}
+          pharmacyName={formData?.pharmacyName || ""}
+          setChangesData={setChangesData}
+        />
+      </StripeContext>
     </>
   );
 }

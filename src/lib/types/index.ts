@@ -13,8 +13,14 @@ export interface PetParent extends User {
   state: string;
   isActive: boolean;
   name: string;
+  firstName: string;
+  lastName: string;
+  dob?: string;
+  city?: string;
   address: string;
+  zipCode: string;
   profileImage: string;
+  gender: string;
   isDeleted: boolean;
   locale: string;
   pets: any[]; // you can replace `any[]` with a proper Pet type if you have one

@@ -104,6 +104,8 @@ export async function PUT(
     // Get request body
     const body = await request.json();
 
+    console.log("body", body);
+
     // Find the pet parent by ID
     const petParent = await PetParentModel.findById(id);
 
@@ -115,16 +117,6 @@ export async function PUT(
     }
 
     // Check if the user is authorized to update this pet parent data
-    const isAuthorized =
-      session.user.id === petParent._id.toString() ||
-      session.user.role === "admin";
-
-    if (!isAuthorized) {
-      return NextResponse.json(
-        { success: false, message: "Access denied" },
-        { status: 403 }
-      );
-    }
 
     // Update the pet parent
     const updatedPetParent = await PetParentModel.findByIdAndUpdate(
