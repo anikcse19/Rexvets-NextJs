@@ -73,9 +73,18 @@ const RexVetPlan: React.FC = () => {
             {/* Family Plan Card */}
             <RexVetFamilyPlanInfo
               familyPlanFeatures={familyPlanFeatures}
-              onClick={(state: number) =>
-                navigate.push("/indAVet", { state } as any)
-              }
+              onClick={(state: number) => {
+                const queryParams = new URLSearchParams();
+                if (state > 0) {
+                  queryParams.set("selected-family-plan", state.toString());
+                }
+                const url = `/find-a-vet${
+                  queryParams.toString() ? `?${queryParams.toString()}` : ""
+                }`;
+
+                navigate.push(url);
+                // navigate.push("/find-a-vet", { state } as any);
+              }}
               isSmallDevice={isSmallDevice}
               hoveredCard={hoveredCard}
               setHoveredCard={setHoveredCard}

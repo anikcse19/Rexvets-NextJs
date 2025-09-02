@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { convertTimesToUserTimezone } from "@/lib/timezone/index";
+import { format, parseISO } from "date-fns";
 import {
   Calendar as CalendarIcon,
   CheckCircle,
@@ -38,12 +39,16 @@ interface BookingSystemProps {
   doctorName: string;
   doctorData: Doctor;
   onConfirm: (date: string, time: string, slot: string) => void;
+  selectedSlotDate: string | null;
+  selectedSlotId: string | null;
 }
 
 export default function BookingSystem({
   doctorName,
   doctorData,
   onConfirm,
+  selectedSlotDate,
+  selectedSlotId,
 }: BookingSystemProps) {
   const [selectedDate, setSelectedDate] = useState<string>(
     () => new Date().toLocaleDateString("en-CA") // today initially
@@ -52,6 +57,7 @@ export default function BookingSystem({
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [showCalendar, setShowCalendar] = useState(false);
   const [slots, setSlots] = useState<Slot[]>([]);
+
   const [veterinarianTimezone, setVeterinarianTimezone] = useState("");
   const toLocalDateString = (date: Date) => date.toLocaleDateString("en-CA"); // YYYY-MM-DD
   const currentTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -101,10 +107,13 @@ export default function BookingSystem({
   console.log("selectedDate", selectedDate, selectedSlot);
 
   const fetchVetSlots = async () => {
+    const date = parseISO(selectedSlotDate ?? selectedDate);
+
+    const formatted = format(date, "yyyy-MM-dd");
     const data = await getVetSlots({
       id: doctorData?._id,
-      startDate: selectedDate,
-      endDate: selectedDate,
+      startDate: formatted,
+      endDate: formatted,
     });
     // Sort by startTime (assumes format 'HH:mm')
     const sorted = (data || []).slice().sort((a: any, b: any) => {
@@ -124,8 +133,22 @@ export default function BookingSystem({
 
   useEffect(() => {
     fetchVetSlots();
-  }, [selectedDate]);
+  }, [selectedDate, selectedSlotDate, selectedSlotId]);
+  useEffect(() => {
+    if (selectedSlotDate && selectedSlotId) {
+      const date = parseISO(selectedSlotDate);
 
+      const formatted = format(date, "yyyy-MM-dd");
+      setSelectedDate(formatted);
+      if (slots.length > 0) {
+        const findSlot = slots.find((slot) => slot._id === selectedSlotId);
+        if (findSlot) {
+          setSelectedTime(findSlot?.formattedStartTime);
+          setSelectedSlot(findSlot?._id);
+        }
+      }
+    }
+  }, [selectedSlotDate, selectedSlotId, slots]);
   return (
     <Card className="shadow-xl border-0 bg-white sticky top-6">
       <div className="bg-gradient-to-r from-green-600 to-emerald-600 p-6 text-white">
@@ -215,7 +238,7 @@ export default function BookingSystem({
               <Label className="text-sm font-medium text-gray-700 mb-3 block">
                 Available Times
               </Label>
-              <div className="text-right">
+              {/* <div className="text-right">
                 <Label className="text-sm font-medium text-gray-700 mb-1 block">
                   Your Timezone:{" "}
                   <span className="text-blue-600 font-semibold">
@@ -227,7 +250,7 @@ export default function BookingSystem({
                     Vet Timezone: {veterinarianTimezone}
                   </Label>
                 )}
-              </div>
+              </div> */}
             </div>
             {slots.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -243,7 +266,8 @@ export default function BookingSystem({
                     slot.timezone || "UTC"
                   );
 
-                  const isSelected = selectedSlot === slot._id;
+                  const isSelected =
+                    (selectedSlot || selectedSlotId) === slot._id;
 
                   return (
                     <button
