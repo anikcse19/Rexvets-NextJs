@@ -107,7 +107,7 @@ export default function PrescriptionModal({
         />
       ).toBlob();
 
-      // console.log("pdfblob", pdfBlob);
+      console.log("pdfblob", pdfBlob);
 
       const formData = new FormData();
 

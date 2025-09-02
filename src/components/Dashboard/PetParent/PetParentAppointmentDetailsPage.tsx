@@ -19,7 +19,6 @@ import PrescriptionSection from "./Appointments/PetParentPrescriptionSection";
 import ChatBox from "./Appointments/PetParentChatbox";
 import { Appointment } from "@/lib/types";
 
-
 export default function PetParentAppointmentDetailsPage({
   id,
 }: {
@@ -28,8 +27,6 @@ export default function PetParentAppointmentDetailsPage({
   const [appointmentDetails, setAppointmentDetails] = useState<Appointment>(
     {} as Appointment
   );
-
-
 
   useEffect(() => {
     const fetchAppointmentDetails = async () => {
@@ -59,6 +56,16 @@ export default function PetParentAppointmentDetailsPage({
       year: "numeric",
       month: "long",
       day: "numeric",
+    });
+  };
+
+  const formatTime = (dateString: string): string => {
+    const date = new Date(dateString);
+
+    return date.toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true, // ensures 12-hour format
     });
   };
 
@@ -95,7 +102,10 @@ export default function PetParentAppointmentDetailsPage({
                 Appointment Details
               </h1>
               <p className="text-gray-600 mt-1">
-                {appointmentDetails?.appointmentDate && formatDate(appointmentDetails.appointmentDate)}
+                {appointmentDetails?.appointmentDate &&
+                  formatDate(appointmentDetails.appointmentDate)}{" "}
+                at
+                {formatTime(appointmentDetails.appointmentDate)}
               </p>
             </div>
           </div>
@@ -108,13 +118,15 @@ export default function PetParentAppointmentDetailsPage({
             >
               {appointmentDetails?.status}
             </Badge>
-            <Button
-              onClick={handleJoinMeeting}
-              className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
-            >
-              <Video className="w-4 h-4 mr-2" />
-              Join Meeting
-            </Button>
+            {appointmentDetails?.status === "upcoming" && (
+              <Button
+                onClick={handleJoinMeeting}
+                className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
+              >
+                <Video className="w-4 h-4 mr-2" />
+                Join Meeting
+              </Button>
+            )}
           </div>
         </div>
 
@@ -143,7 +155,8 @@ export default function PetParentAppointmentDetailsPage({
                 <div>
                   <p className="font-semibold text-gray-900">Date</p>
                   <p className="text-gray-600">
-                    {appointmentDetails?.appointmentDate && formatDate(appointmentDetails.appointmentDate)}
+                    {appointmentDetails?.appointmentDate &&
+                      formatDate(appointmentDetails.appointmentDate)}
                   </p>
                 </div>
               </div>
@@ -155,7 +168,7 @@ export default function PetParentAppointmentDetailsPage({
                 <div>
                   <p className="font-semibold text-gray-900">Time</p>
                   <p className="text-gray-600">
-                    Appointment Time
+                    {formatTime(appointmentDetails.appointmentDate)}
                   </p>
                 </div>
               </div>

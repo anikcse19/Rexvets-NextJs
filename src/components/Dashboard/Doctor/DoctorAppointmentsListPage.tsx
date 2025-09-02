@@ -85,8 +85,6 @@ export default function AppointmentsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [veterinarian?.refId]);
 
-  console.log("appointments", appointments);
-
   // Function to filter appointments based on search and date
   const filterAppointments = (appointmentList: Appointment[]) => {
     return appointmentList.filter((appointment) => {
@@ -98,9 +96,9 @@ export default function AppointmentsPage() {
           ?.toLowerCase()
           .includes(searchTerm.toLowerCase());
 
-      const matchesDate = filterDate
-        ? appointment?.appointmentDate === filterDate
-        : true;
+      const customDate = appointment.appointmentDate.split("T")[0];
+
+      const matchesDate = filterDate ? customDate === filterDate : true;
 
       return matchesSearch && matchesDate;
     });

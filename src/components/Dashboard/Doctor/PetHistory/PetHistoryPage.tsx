@@ -349,7 +349,7 @@ export default function PetHistoryPage({ id }: { id: string }) {
               Pet Medical History
             </h1>
             <p className="text-gray-600 mt-1">
-              Complete medical records for {mockPet.name}
+              Complete medical records for {petHistory[0]?.pet?.name}
             </p>
           </div>
         </div>
@@ -452,7 +452,7 @@ export default function PetHistoryPage({ id }: { id: string }) {
             </div>
             <div>
               <CardTitle className="text-xl font-bold text-white">
-                Pet Owner Information
+                Pet Parent Information
               </CardTitle>
               <p className="text-teal-100">
                 Contact details and relationship info
@@ -507,7 +507,7 @@ export default function PetHistoryPage({ id }: { id: string }) {
       </Card>
 
       {/* Search and Filter */}
-      <div className="flex flex-col lg:flex-row gap-4">
+      {/* <div className="flex flex-col lg:flex-row gap-4">
         <div className="flex-1 relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
           <Input
@@ -532,7 +532,7 @@ export default function PetHistoryPage({ id }: { id: string }) {
             <option value="medications">With Medications</option>
           </select>
         </div>
-      </div>
+      </div> */}
 
       {/* Results Count */}
       <div className="flex items-center justify-between">
@@ -541,11 +541,8 @@ export default function PetHistoryPage({ id }: { id: string }) {
           <span className="font-semibold text-gray-900">
             {petHistory.length}
           </span>{" "}
-          medical records
+          medical history
         </p>
-        <Badge className="bg-blue-100 text-blue-700 border-blue-300">
-          {getHealthTrend() === "stable" ? "Health Stable" : "Needs Attention"}
-        </Badge>
       </div>
 
       <PetHistoryTimeline history={petHistory} />
