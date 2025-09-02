@@ -1,4 +1,18 @@
 import nodemailer from 'nodemailer';
+import { commonStyles } from './emailStyles';
+import {
+  bookingConfirmationDoctorTemplate,
+  bookingConfirmationParentTemplate,
+  rescheduleConfirmationDoctorTemplate,
+  rescheduleConfirmationParentTemplate,
+  reminderParentTemplate,
+  reminderDoctorTemplate,
+  donationThankYouTemplate as donationThankYouTemplateShared,
+  welcomeEmailTemplate,
+  helpRequestEmailTemplate,
+  pharmacyRequestPaymentTemplate,
+  pharmacyRequestAcceptedTemplate,
+} from './emailTemplates';
 
 // Email configuration
 const emailConfig = {
@@ -328,284 +342,9 @@ export async function testEmailConfiguration(): Promise<boolean> {
 }
 
 // Appointment confirmation email templates
-const createAppointmentConfirmationDoctorTemplate = (
-  doctorName: string,
-  parentName: string,
-  appointmentDateTime: string,
-  petName: string,
-  meetingLink: string
-) => {
-  return `
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Appointment Confirmation - RexVet</title>
-        <style>
-            body {
-                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                line-height: 1.6;
-                color: #333;
-                max-width: 600px;
-                margin: 0 auto;
-                padding: 20px;
-                background-color: #f4f4f4;
-            }
-            .container {
-                background-color: #ffffff;
-                border-radius: 10px;
-                padding: 30px;
-                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            }
-            .header {
-                background-color: #c5f1fc;
-                padding: 20px;
-                text-align: center;
-                border-radius: 10px 10px 0 0;
-                margin: -30px -30px 30px -30px;
-            }
-            .logo {
-                font-size: 28px;
-                font-weight: bold;
-                color: #002366;
-                margin-bottom: 10px;
-            }
-            .title {
-                color: #2c3e50;
-                font-size: 24px;
-                margin-bottom: 20px;
-            }
-            .content {
-                margin-bottom: 30px;
-            }
-            .appointment-details {
-                background-color: #f8f9fa;
-                border-left: 4px solid #002366;
-                padding: 20px;
-                margin: 20px 0;
-                border-radius: 0 5px 5px 0;
-            }
-            .button {
-                display: inline-block;
-                background: linear-gradient(135deg, #002366, #1e40af);
-                color: white;
-                padding: 15px 30px;
-                text-decoration: none;
-                border-radius: 25px;
-                font-weight: bold;
-                text-align: center;
-                margin: 20px 0;
-                transition: transform 0.3s ease;
-            }
-            .button:hover {
-                transform: translateY(-2px);
-            }
-            .footer {
-                text-align: center;
-                margin-top: 30px;
-                padding-top: 20px;
-                border-top: 1px solid #eee;
-                color: #666;
-                font-size: 14px;
-            }
-            .highlight {
-                color: #002366;
-                font-weight: bold;
-            }
-            .meeting-link {
-                word-break: break-all;
-                color: #666;
-                font-size: 14px;
-                background-color: #f8f9fa;
-                padding: 10px;
-                border-radius: 5px;
-                margin: 10px 0;
-            }
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <div class="header">
-                <div class="logo">🐾 RexVet</div>
-                <h1 class="title">Appointment Confirmation</h1>
-            </div>
-            
-            <div class="content">
-                <p>Dear <span class="highlight">${doctorName}</span>,</p>
-                
-                <p>We're excited to confirm your upcoming video call appointment with <span class="highlight">${parentName}</span> at RexVet. Here are the details for your appointment:</p>
-                
-                <div class="appointment-details">
-                    <p><strong>Start Time:</strong> ${appointmentDateTime}</p>
-                    <p><strong>Veterinarian:</strong> ${doctorName}</p>
-                    <p><strong>Parent:</strong> ${parentName}</p>
-                    <p><strong>Pet Name:</strong> ${petName}</p>
-                </div>
-                
-                <div style="text-align: center;">
-                    <a href="${meetingLink}" class="button">Join Appointment</a>
-                </div>
-                
-                <p class="meeting-link">
-                    Or copy and paste this link in your browser:<br/> ${meetingLink}
-                </p>
+// Deprecated inline templates replaced by shared templates in emailTemplates.ts
 
-                <p>Please make sure you're ready for the call at least a few minutes before the scheduled time.</p>
-
-                <p>If you need to reschedule or have any other questions, please feel free to reply to this email or contact our support team at <a href="mailto:support@rexvets.org">support@rexvets.org</a>.</p>
-
-                <p>We thank you for your dedication to pet care.</p>
-            </div>
-            
-            <div class="footer">
-                <p>Warm regards,<br>The Team at RexVet</p>
-                <p>© 2024 RexVet. All rights reserved.</p>
-            </div>
-        </div>
-    </body>
-    </html>
-  `;
-};
-
-const createAppointmentConfirmationParentTemplate = (
-  parentName: string,
-  doctorName: string,
-  appointmentDateTime: string,
-  petName: string,
-  meetingLink: string
-) => {
-  return `
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Your Appointment Confirmation - RexVet</title>
-        <style>
-            body {
-                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                line-height: 1.6;
-                color: #333;
-                max-width: 600px;
-                margin: 0 auto;
-                padding: 20px;
-                background-color: #f4f4f4;
-            }
-            .container {
-                background-color: #ffffff;
-                border-radius: 10px;
-                padding: 30px;
-                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            }
-            .header {
-                background-color: #c5f1fc;
-                padding: 20px;
-                text-align: center;
-                border-radius: 10px 10px 0 0;
-                margin: -30px -30px 30px -30px;
-            }
-            .logo {
-                font-size: 28px;
-                font-weight: bold;
-                color: #002366;
-                margin-bottom: 10px;
-            }
-            .title {
-                color: #2c3e50;
-                font-size: 24px;
-                margin-bottom: 20px;
-            }
-            .content {
-                margin-bottom: 30px;
-            }
-            .appointment-details {
-                background-color: #f8f9fa;
-                border-left: 4px solid #002366;
-                padding: 20px;
-                margin: 20px 0;
-                border-radius: 0 5px 5px 0;
-            }
-            .button {
-                display: inline-block;
-                background: linear-gradient(135deg, #002366, #1e40af);
-                color: white;
-                padding: 15px 30px;
-                text-decoration: none;
-                border-radius: 25px;
-                font-weight: bold;
-                text-align: center;
-                margin: 20px 0;
-                transition: transform 0.3s ease;
-            }
-            .button:hover {
-                transform: translateY(-2px);
-            }
-            .footer {
-                text-align: center;
-                margin-top: 30px;
-                padding-top: 20px;
-                border-top: 1px solid #eee;
-                color: #666;
-                font-size: 14px;
-            }
-            .highlight {
-                color: #002366;
-                font-weight: bold;
-            }
-            .meeting-link {
-                word-break: break-all;
-                color: #666;
-                font-size: 14px;
-                background-color: #f8f9fa;
-                padding: 10px;
-                border-radius: 5px;
-                margin: 10px 0;
-            }
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <div class="header">
-                <div class="logo">🐾 RexVet</div>
-                <h1 class="title">Your Appointment Confirmation</h1>
-            </div>
-            
-            <div class="content">
-                <p>Dear <span class="highlight">${parentName}</span>,</p>
-                
-                <p>We're excited to confirm your upcoming video call appointment with <span class="highlight">${doctorName}</span> at RexVet. Here are the details for your appointment:</p>
-                
-                <div class="appointment-details">
-                    <p><strong>Start Time:</strong> ${appointmentDateTime}</p>
-                    <p><strong>Veterinarian:</strong> ${doctorName}</p>
-                    <p><strong>Pet Name:</strong> ${petName}</p>
-                </div>
-                
-                <div style="text-align: center;">
-                    <a href="${meetingLink}" class="button">Join Appointment</a>
-                </div>
-                
-                <p class="meeting-link">
-                    Or copy and paste this link in your browser:<br/> ${meetingLink}
-                </p>
-
-                <p>Please make sure you're ready for the call at least a few minutes before the scheduled time. ${doctorName} is here to address any questions or concerns you have about your pet's health.</p>
-
-                <p>If you need to reschedule or have any other questions, please feel free to reply to this email or contact our support team at <a href="mailto:support@rexvets.org">support@rexvets.org</a>.</p>
-
-                <p>We look forward to assisting you with your pet's care.</p>
-            </div>
-            
-            <div class="footer">
-                <p>Warm regards,<br>The Team at RexVet</p>
-                <p>© 2024 RexVet. All rights reserved.</p>
-            </div>
-        </div>
-    </body>
-    </html>
-  `;
-};
+// Deprecated inline templates replaced by shared templates in emailTemplates.ts
 
 // Appointment confirmation email function
 export async function sendAppointmentConfirmationEmails({
@@ -617,6 +356,7 @@ export async function sendAppointmentConfirmationEmails({
   appointmentDate,
   appointmentTime,
   meetingLink,
+  donationPdfBuffer,
 }: {
   doctorEmail: string;
   doctorName: string;
@@ -626,6 +366,7 @@ export async function sendAppointmentConfirmationEmails({
   appointmentDate: string;
   appointmentTime: string;
   meetingLink: string;
+  donationPdfBuffer?: Buffer;
 }): Promise<void> {
   try {
     console.log('sendAppointmentConfirmationEmails called with:', {
@@ -637,6 +378,7 @@ export async function sendAppointmentConfirmationEmails({
       appointmentDate,
       appointmentTime,
       meetingLink,
+      hasPdfAttachment: !!donationPdfBuffer,
     });
 
     // Check if email service is configured
@@ -654,7 +396,7 @@ export async function sendAppointmentConfirmationEmails({
     const appointmentDateTime = `${appointmentDate} at ${appointmentTime}`;
 
     // Send email to doctor
-    const doctorHtmlContent = createAppointmentConfirmationDoctorTemplate(
+    const doctorHtmlContent = bookingConfirmationDoctorTemplate(
       doctorName,
       parentName,
       appointmentDateTime,
@@ -670,7 +412,7 @@ export async function sendAppointmentConfirmationEmails({
     };
 
     // Send email to parent
-    const parentHtmlContent = createAppointmentConfirmationParentTemplate(
+    const parentHtmlContent = bookingConfirmationParentTemplate(
       parentName,
       doctorName,
       appointmentDateTime,
@@ -678,12 +420,27 @@ export async function sendAppointmentConfirmationEmails({
       meetingLink
     );
 
-    const parentMailOptions = {
-      from: `"RexVet" <${process.env.EMAIL_USER}>`,
+    // Build parent mail options with PDF attachment if available
+    const parentMailOptions: any = {
+      from: `"Rex Vet" <${process.env.EMAIL_USER}>`,
       to: parentEmail,
-      subject: 'Your Appointment Confirmation - RexVet',
+      subject: 'Your Appointment Confirmation - Rex Vet',
       html: parentHtmlContent,
     };
+    
+    // Add PDF attachment if available
+    if (donationPdfBuffer) {
+      console.log("Adding PDF attachment to email");
+      parentMailOptions.attachments = [
+        {
+          filename: 'Donation_Receipt.pdf',
+          content: donationPdfBuffer,
+          contentType: 'application/pdf',
+        },
+      ];
+    } else {
+      console.log("No PDF attachment available");
+    }
 
     console.log('Attempting to send emails...');
     
@@ -703,77 +460,7 @@ export async function sendAppointmentConfirmationEmails({
 }
 
 // Appointment reminder email templates
-const createAppointmentReminderDoctorTemplate = (
-  doctorName: string,
-  parentName: string,
-  appointmentDateTime: string,
-  meetingLink: string
-) => {
-  return `
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Appointment Reminder - RexVet</title>
-      <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f4f4f4; }
-        .container { background-color: #ffffff; border-radius: 10px; padding: 30px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
-        .header { background-color: #c5f1fc; padding: 16px; text-align: center; border-radius: 10px 10px 0 0; margin: -30px -30px 20px -30px; }
-        .title { color: #2c3e50; font-size: 22px; margin: 0; }
-        .button { display: inline-block; background: linear-gradient(135deg, #002366, #1e40af); color: white; padding: 12px 22px; text-decoration: none; border-radius: 24px; font-weight: bold; text-align: center; margin: 16px 0; }
-        .meeting-link { word-break: break-all; color: #666; font-size: 14px; background-color: #f8f9fa; padding: 10px; border-radius: 5px; margin: 10px 0; }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <div class="header"><h2 class="title">Appointment starts in 10 minutes</h2></div>
-        <p>Dear <strong>${doctorName}</strong>,</p>
-        <p>Your video call appointment with <strong>${parentName}</strong> starts at <strong>${appointmentDateTime}</strong>.</p>
-        <div style="text-align:center"><a href="${meetingLink}" class="button">Join Appointment</a></div>
-        <p class="meeting-link">Or open this link: ${meetingLink}</p>
-        <p>Thank you for caring for our pet community.</p>
-      </div>
-    </body>
-    </html>
-  `;
-};
-
-const createAppointmentReminderParentTemplate = (
-  parentName: string,
-  doctorName: string,
-  appointmentDateTime: string,
-  meetingLink: string
-) => {
-  return `
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Appointment Reminder - RexVet</title>
-      <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f4f4f4; }
-        .container { background-color: #ffffff; border-radius: 10px; padding: 30px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
-        .header { background-color: #c5f1fc; padding: 16px; text-align: center; border-radius: 10px 10px 0 0; margin: -30px -30px 20px -30px; }
-        .title { color: #2c3e50; font-size: 22px; margin: 0; }
-        .button { display: inline-block; background: linear-gradient(135deg, #002366, #1e40af); color: white; padding: 12px 22px; text-decoration: none; border-radius: 24px; font-weight: bold; text-align: center; margin: 16px 0; }
-        .meeting-link { word-break: break-all; color: #666; font-size: 14px; background-color: #f8f9fa; padding: 10px; border-radius: 5px; margin: 10px 0; }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <div class="header"><h2 class="title">Your appointment starts in 10 minutes</h2></div>
-        <p>Dear <strong>${parentName}</strong>,</p>
-        <p>This is a friendly reminder for your video call with <strong>${doctorName}</strong> at <strong>${appointmentDateTime}</strong>.</p>
-        <div style="text-align:center"><a href="${meetingLink}" class="button">Join Appointment</a></div>
-        <p class="meeting-link">Or open this link: ${meetingLink}</p>
-        <p>See you soon!</p>
-      </div>
-    </body>
-    </html>
-  `;
-};
+// Deprecated inline reminder templates; use shared reminders from emailTemplates.ts
 
 export async function sendAppointmentReminderEmails({
   doctorEmail,
@@ -799,10 +486,10 @@ export async function sendAppointmentReminderEmails({
     const transporter = createTransporter();
 
     const doctorMail = {
-      from: `"RexVet" <${process.env.EMAIL_USER}>`,
+      from: `"Rex Vet" <${process.env.EMAIL_USER}>`,
       to: doctorEmail,
       subject: "Appointment Reminder - Starts in 10 minutes",
-      html: createAppointmentReminderDoctorTemplate(
+      html: reminderDoctorTemplate(
         doctorName,
         parentName,
         appointmentDateTime,
@@ -811,10 +498,10 @@ export async function sendAppointmentReminderEmails({
     } as any;
 
     const parentMail = {
-      from: `"RexVet" <${process.env.EMAIL_USER}>`,
+      from: `"Rex Vet" <${process.env.EMAIL_USER}>`,
       to: parentEmail,
       subject: "Reminder: Your Appointment Starts in 10 Minutes",
-      html: createAppointmentReminderParentTemplate(
+      html: reminderParentTemplate(
         parentName,
         doctorName,
         appointmentDateTime,
@@ -825,6 +512,264 @@ export async function sendAppointmentReminderEmails({
     await Promise.all([transporter.sendMail(doctorMail), transporter.sendMail(parentMail)]);
   } catch (err) {
     console.error("Failed to send reminder emails:", err);
+    throw err;
+  }
+}
+
+// Donation thank you email template
+const createDonationThankYouTemplate = (
+  donorName: string,
+  amount: number,
+  receiptNumber: string,
+  isRecurring: boolean,
+  badgeName: string,
+  date: string,
+  paymentMethod: string
+) => {
+  const recurringText = isRecurring
+    ? "Your recurring monthly donation will help us provide continuous care to pets in need."
+    : "Your one-time donation makes an immediate impact on the lives of pets and their families.";
+
+  // Replicate email server styles (commonStyles + donation-specific styles)
+  const sharedStyles: string = commonStyles;
+
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Thank You for Your Donation</title>
+  ${sharedStyles}
+  <style>
+    .receipt-section { margin: 30px 0; border: 1px solid #d1d5db; border-radius: 8px; padding: 20px; background-color: #f9fafb; }
+    .receipt-title { margin-top: 0; color: #2563eb; font-size: 20px; margin-bottom: 15px; }
+    .amount { color: #16a34a; font-weight: bold; font-size: 18px; }
+    .impact-list { padding-left: 20px; color: #374151; margin: 15px 0; }
+    .impact-list li { margin-bottom: 10px; line-height: 1.5; }
+  </style>
+</head>
+<body>
+  <div class="email-container">
+    <div class="body">
+      <h2 class="title">Thank You for Your Generous Donation!</h2>
+      <p>Dear <strong>${donorName}</strong>,</p>
+      <p>We sincerely appreciate your contribution to Rex Vet. ${recurringText}</p>
+
+      <div class="receipt-section">
+        <h3 class="receipt-title">🧾 Donation Receipt</h3>
+        <p><strong>Receipt No:</strong> ${receiptNumber}</p>
+        <p><strong>Date:</strong> ${date}</p>
+        <p><strong>Donation Amount:</strong> <span class="amount">$${amount}</span></p>
+        <p><strong>Badge:</strong> <span style="font-weight: bold;">${badgeName}</span></p>
+        <p><strong>Payment Method:</strong> ${paymentMethod}</p>
+        <h4>Tax Statement:</h4>
+        <p style="margin:0">Rex Vets Inc is a 501(c)(3) non-profit organization. No goods or services were received in exchange for this gift. It may be considered tax-deductible to the full extent of the law. Please retain this receipt for your records.</p>
+      </div>
+
+      <h4 style="color: #1e3a8a; margin-top: 20px;">A Note of Thanks:</h4>
+      <ul class="impact-list">
+        <li>Your donation directly supports animals in need by helping us provide free and low-cost virtual veterinary care to pets in underserved communities.</li>
+        <li>Every dollar helps us reach more families and save more lives — from emergency consultations to routine care.</li>
+        <li>With your support, we're one step closer to making quality vet care accessible for every pet, regardless of circumstance.</li>
+      </ul>
+
+      <p>If you have any questions, feel free to reach out to us at <a href="mailto:support@rexvet.org" style="color: #2563eb;">support@rexvet.org</a>.</p>
+      
+      <p style="margin-top: 20px;">With heartfelt thanks,</p>
+      <p><em>– The RexVet Team</em></p>
+    </div>
+    
+   <div style="background: rgb(200, 206, 219); padding: 15px; font-size: 14px; color: rgb(38, 79, 160); text-align: center; margin-top: 20px;">
+      <p style="margin: 5px 0;">Rex Vet Inc</p>
+      <p style="margin: 5px 0;">📍 123 Animal Care Drive, Miami, FL 33101</p>
+      <p style="margin: 5px 0;">EIN: (123) 456-7690 | ✉️ support@rexvet.org</p>
+      <p style="margin: 5px 0;">🌐 www.rexvet.org</p>
+    </div>
+  </div>
+</body>
+</html>`;
+};
+
+// Send donation thank you email with PDF receipt
+export async function sendDonationThankYouEmail({
+  email,
+  name,
+  donationAmount,
+  isRecurring,
+  badgeName,
+  donationDate,
+  paymentMethod,
+  transactionID,
+  pdfBuffer,
+}: {
+  email: string;
+  name: string;
+  donationAmount: number;
+  isRecurring: boolean;
+  badgeName: string;
+  donationDate: string;
+  paymentMethod: string;
+  transactionID: string;
+  pdfBuffer?: Buffer;
+}): Promise<void> {
+  try {
+    console.log('Sending donation thank you email to:', email);
+
+    // Check if email service is configured
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+      console.log('Email service not configured. Using development mode.');
+      console.log(`Donation thank you email would be sent to: ${email}`);
+      console.log(`Donation details: $${donationAmount} (${isRecurring ? 'recurring' : 'one-time'})`);
+      return;
+    }
+
+    // Send email directly via nodemailer (optional pdfBuffer can be attached)
+    const attachmentBuffer: Buffer | null = pdfBuffer || null;
+    const transporter = createTransporter();
+    const htmlContent = donationThankYouTemplateShared(
+      name,
+      donationAmount,
+      transactionID,
+      isRecurring,
+      badgeName,
+      donationDate,
+      paymentMethod
+    );
+
+    const mailOptions = {
+      from: `"RexVet" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: 'Thank You for Your Generous Donation - RexVet',
+      html: htmlContent,
+    } as any;
+
+    // If we have a PDF buffer, attach it to the email
+    if (attachmentBuffer) {
+      mailOptions.attachments = [
+        {
+          filename: 'Donation_Receipt.pdf',
+          content: attachmentBuffer,
+          contentType: 'application/pdf',
+        },
+      ];
+    }
+
+    const info = await transporter.sendMail(mailOptions);
+    console.log('Donation thank you email sent successfully:', info.messageId);
+  } catch (error) {
+    console.error('Failed to send donation thank you email:', error);
+    throw new Error('Failed to send donation thank you email');
+  }
+}
+
+// New: Send welcome email using shared template
+export async function sendWelcomeEmail(email: string, name: string): Promise<void> {
+  try {
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+      console.log('[WELCOME] Dev mode. Would send to:', email);
+      return;
+    }
+    const transporter = createTransporter();
+    const html = welcomeEmailTemplate(name);
+    await transporter.sendMail({
+      from: `"RexVet" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: 'Welcome to Rex Vets',
+      html,
+    } as any);
+  } catch (err) {
+    console.error('Failed to send welcome email:', err);
+    throw err;
+  }
+}
+
+// New: Help/Support request email using shared template
+export async function sendHelpRequestEmail(params: {
+  to: string;
+  fullName: string;
+  emailAddress: string;
+  phoneNo: string;
+  state: string;
+  subject: string;
+  message: string;
+  image?: string;
+  userType: string;
+  userID: string;
+}): Promise<void> {
+  try {
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+      console.log('[HELP] Dev mode. Would send to:', params.to);
+      return;
+    }
+    const transporter = createTransporter();
+    const html = helpRequestEmailTemplate(params);
+    await transporter.sendMail({
+      from: `"RexVet" <${process.env.EMAIL_USER}>`,
+      to: params.to,
+      subject: `Support Request: ${params.subject || 'New Request'}`,
+      html,
+    } as any);
+  } catch (err) {
+    console.error('Failed to send help request email:', err);
+    throw err;
+  }
+}
+
+// New: Pharmacy payment receipt email
+export async function sendPharmacyPaymentEmail(params: {
+  to: string;
+  name: string;
+  transactionId: string;
+  amount: number;
+  pharmacyName: string;
+  date: string | number | Date;
+}): Promise<void> {
+  try {
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+      console.log('[PHARMACY PAYMENT] Dev mode. Would send to:', params.to);
+      return;
+    }
+    const transporter = createTransporter();
+    const html = pharmacyRequestPaymentTemplate(params);
+    await transporter.sendMail({
+      from: `"RexVet" <${process.env.EMAIL_USER}>`,
+      to: params.to,
+      subject: 'Pharmacy Transfer Payment Receipt',
+      html,
+    } as any);
+  } catch (err) {
+    console.error('Failed to send pharmacy payment email:', err);
+    throw err;
+  }
+}
+
+// New: Pharmacy request accepted email
+export async function sendPharmacyAcceptedEmail(params: {
+  to: string;
+  name: string;
+  transactionId: string;
+  amount: string | number;
+  pharmacyName: string;
+  pharmacyAddress: string;
+  pharmacyCity: string;
+  pharmacyState: string;
+  date: string;
+}): Promise<void> {
+  try {
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+      console.log('[PHARMACY ACCEPTED] Dev mode. Would send to:', params.to);
+      return;
+    }
+    const transporter = createTransporter();
+    const html = pharmacyRequestAcceptedTemplate(params);
+    await transporter.sendMail({
+      from: `"RexVet" <${process.env.EMAIL_USER}>`,
+      to: params.to,
+      subject: 'Pharmacy Transfer Accepted',
+      html,
+    } as any);
+  } catch (err) {
+    console.error('Failed to send pharmacy accepted email:', err);
     throw err;
   }
 }
