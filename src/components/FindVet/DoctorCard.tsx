@@ -1,31 +1,11 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { convertTimesToUserTimezone } from "@/lib/timezone/index";
 import moment from "moment";
 import React, { useState } from "react";
 
-import {
-  Award,
-  Calendar,
-  ChevronRight,
-  Clock,
-  Heart,
-  MapPin,
-  MessageCircle,
-  Phone,
-  Shield,
-  Star,
-  Users,
-} from "lucide-react";
+import { ChevronRight, Heart, Shield, Star } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import FamilyPlanModal from "./FamilyPlanModal";
