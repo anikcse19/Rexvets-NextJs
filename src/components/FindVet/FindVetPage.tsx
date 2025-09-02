@@ -1,15 +1,30 @@
 "use client";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Filter, MapPin, Search, Stethoscope } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  Award,
+  Calendar,
+  Clock,
+  Filter,
+  MapPin,
+  Search,
+  Star,
+  Stethoscope,
+  Users,
+} from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import DoctorCard from "./DoctorCard";
 import { GetAllVetsResponse } from "./type";
 
 export default function FindVetPage({ doctors }: { doctors: any }) {
   const [userLocation, setUserLocation] = useState<string>("");
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
+  const [sortBy, setSortBy] = useState<string>("rating");
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+
   console.log("Doctors", doctors);
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -31,6 +46,14 @@ export default function FindVetPage({ doctors }: { doctors: any }) {
     "Sylhet",
   ];
 
+  const sortOptions = [
+    { value: "rating", label: "Highest Rated", icon: Star },
+    { value: "experience", label: "Most Experienced", icon: Award },
+    { value: "availability", label: "Most Available", icon: Clock },
+    { value: "reviews", label: "Most Reviews", icon: Users },
+    { value: "name", label: "Name A-Z", icon: Stethoscope },
+  ];
+
   const handleSetLocation = () => {
     setUserLocation("Dhaka, Bangladesh");
     setIsLocationModalOpen(false);
@@ -43,21 +66,67 @@ export default function FindVetPage({ doctors }: { doctors: any }) {
 
   const handleStateChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const value = e.target.value;
-    router.replace(`/find-vet?search=${searchQuery}&state=${value}`);
+    router.replace(`/find-vet?search=${value}&state=${selectedState}`);
   };
 
-  const filteredDoctors = (doctors || []).filter((doctor: any) => {
-    const matchesSearch = doctor.name
-      .toLowerCase()
-      .includes(searchQuery.toLowerCase());
-    // doctor.specialties.some((s) =>
-    //   s.toLowerCase().includes(searchQuery.toLowerCase())
-    // );
+  const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSortBy(e.target.value);
+  };
 
-    const matchesState = selectedState === "" || doctor.state === selectedState;
+  const filteredAndSortedDoctors = useMemo(() => {
+    let filtered = (doctors || []).filter((doctor: any) => {
+      const matchesSearch =
+        doctor.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (doctor.specialization &&
+          doctor.specialization
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase()));
 
-    return matchesSearch && matchesState;
-  });
+      const matchesState =
+        selectedState === "" || doctor.state === selectedState;
+
+      return matchesSearch && matchesState;
+    });
+
+    // Sort the filtered results
+    filtered.sort((a: any, b: any) => {
+      switch (sortBy) {
+        case "rating":
+          return (b.averageRating || 0) - (a.averageRating || 0);
+        case "experience":
+          return (
+            (parseInt(b.yearsOfExperience) || 0) -
+            (parseInt(a.yearsOfExperience) || 0)
+          );
+        case "availability":
+          const aSlots = a.nextAvailableSlots?.length || 0;
+          const bSlots = b.nextAvailableSlots?.length || 0;
+          return bSlots - aSlots;
+        case "reviews":
+          return (b.reviewCount || 0) - (a.reviewCount || 0);
+        case "name":
+          return a.name.localeCompare(b.name);
+        default:
+          return 0;
+      }
+    });
+
+    return filtered;
+  }, [doctors, searchQuery, selectedState, sortBy]);
+
+  const stats = useMemo(() => {
+    const total = filteredAndSortedDoctors.length;
+    const withSlots = filteredAndSortedDoctors.filter(
+      (d: any) => d.nextAvailableSlots && d.nextAvailableSlots.length > 0
+    ).length;
+    const avgRating =
+      filteredAndSortedDoctors.reduce(
+        (sum: number, d: any) => sum + (d.averageRating || 0),
+        0
+      ) / total || 0;
+
+    return { total, withSlots, avgRating: avgRating.toFixed(1) };
+  }, [filteredAndSortedDoctors]);
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 p-4 lg:p-6">
@@ -97,64 +166,142 @@ export default function FindVetPage({ doctors }: { doctors: any }) {
           </div>
         </header>
 
+        {/* Stats Cards */}
+
         {/* Search & Filter */}
         <section
           aria-label="Search and filter veterinarians"
-          className="flex flex-col lg:flex-row gap-4"
+          className="bg-white rounded-2xl shadow-lg p-6 border-0"
         >
-          <div className="flex-1 relative">
-            <Search
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5"
-              aria-hidden="true"
-            />
-            <input
-              type="text"
-              placeholder="Search by doctor name or specialty..."
-              value={searchQuery}
-              onChange={handleSearchChange}
-              className="w-full pl-10 pr-4 py-3 border rounded-xl bg-white shadow-sm"
-              aria-label="Search veterinarians by name or specialty"
-            />
+          <div className="flex flex-col lg:flex-row gap-4 mb-6">
+            <div className="flex-1 relative">
+              <Search
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5"
+                aria-hidden="true"
+              />
+              <input
+                type="text"
+                placeholder="Search by doctor name or specialty..."
+                value={searchQuery}
+                onChange={handleSearchChange}
+                className="w-full pl-10 pr-4 py-3 border rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 transition-all"
+                aria-label="Search veterinarians by name or specialty"
+              />
+            </div>
+
+            {/* <div className="relative">
+              <Filter
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5"
+                aria-hidden="true"
+              />
+              <select
+                value={selectedState}
+                onChange={handleStateChange}
+                className="pl-10 pr-8 py-3 border rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 transition-all appearance-none min-w-[180px]"
+                aria-label="Filter veterinarians by state"
+              >
+                {bangladeshStates.map((state) => (
+                  <option
+                    key={state}
+                    value={state === "All States" ? "" : state}
+                  >
+                    {state}
+                  </option>
+                ))}
+              </select>
+            </div> */}
+
+            {/* <div className="relative">
+              <select
+                value={sortBy}
+                onChange={handleSortChange}
+                className="pl-4 pr-8 py-3 border rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 transition-all appearance-none min-w-[200px]"
+                aria-label="Sort veterinarians"
+              >
+                {sortOptions.map((option) => {
+                  const Icon = option.icon;
+                  return (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  );
+                })}
+              </select>
+            </div> */}
+
+            {/* <div className="flex gap-2">
+              <Button
+                variant={viewMode === "grid" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setViewMode("grid")}
+                className="px-4"
+              >
+                Grid
+              </Button>
+              <Button
+                variant={viewMode === "list" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setViewMode("list")}
+                className="px-4"
+              >
+                List
+              </Button>
+            </div> */}
           </div>
 
-          <div className="relative">
-            <Filter
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5"
-              aria-hidden="true"
-            />
-            <select
-              value={selectedState}
-              onChange={handleStateChange}
-              className="pl-10 pr-8 py-3 border rounded-xl bg-white shadow-sm appearance-none"
-              aria-label="Filter veterinarians by state"
-            >
-              {bangladeshStates.map((state) => (
-                <option key={state} value={state === "All States" ? "" : state}>
-                  {state}
-                </option>
-              ))}
-            </select>
-          </div>
+          {/* Active Filters Display */}
+          {(searchQuery || selectedState) && (
+            <div className="flex flex-wrap gap-2">
+              {searchQuery && (
+                <Badge variant="secondary" className="gap-2">
+                  Search: "{searchQuery}"
+                  <button
+                    onClick={() =>
+                      router.replace(`/find-vet?state=${selectedState}`)
+                    }
+                    className="ml-1 hover:text-red-500"
+                  >
+                    ×
+                  </button>
+                </Badge>
+              )}
+              {selectedState && (
+                <Badge variant="secondary" className="gap-2">
+                  State: {selectedState}
+                  <button
+                    onClick={() =>
+                      router.replace(`/find-vet?search=${searchQuery}`)
+                    }
+                    className="ml-1 hover:text-red-500"
+                  >
+                    ×
+                  </button>
+                </Badge>
+              )}
+            </div>
+          )}
         </section>
 
-        {/* Count */}
-        <p className="text-gray-600" role="status" aria-live="polite">
-          Found <span className="font-semibold">{filteredDoctors.length}</span>{" "}
-          veterinarians
-        </p>
-
-        {/* Grid */}
+        {/* Grid/List View */}
         <section
           aria-label="Veterinarian listings"
-          className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8"
+          className={
+            viewMode === "grid"
+              ? "grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8"
+              : "space-y-6"
+          }
         >
-          {filteredDoctors.map((doc: any) => (
-            <DoctorCard key={doc.id} doctor={doc} />
+          {filteredAndSortedDoctors.map((doc: any) => (
+            <DoctorCard
+              key={doc.id || doc._id}
+              doctor={doc}
+              viewMode={viewMode}
+            />
           ))}
         </section>
 
         {/* Empty */}
-        {filteredDoctors.length === 0 && (
+        {filteredAndSortedDoctors.length === 0 && (
           <section className="text-center py-16" aria-label="No results found">
             <Stethoscope
               className="w-12 h-12 text-gray-400 mx-auto mb-6"
@@ -163,7 +310,15 @@ export default function FindVetPage({ doctors }: { doctors: any }) {
             <h2 className="text-xl font-semibold mb-2">
               No veterinarians found
             </h2>
-            <p className="text-gray-600">Try adjusting your search criteria</p>
+            <p className="text-gray-600 mb-4">
+              Try adjusting your search criteria
+            </p>
+            <Button
+              onClick={() => router.replace("/find-vet")}
+              variant="outline"
+            >
+              Clear Filters
+            </Button>
           </section>
         )}
 
