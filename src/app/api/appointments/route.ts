@@ -44,7 +44,7 @@ const appointmentSchema = z.object({
   }),
   concerns: z.array(z.string()).min(1, "At least one concern is required"),
 });
-
+// This is the appointment creation route
 export async function POST(req: NextRequest) {
   try {
     await connectToDatabase();
@@ -61,7 +61,9 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
+    console.log("Body:---------------------------****", body);
     const parsed = appointmentSchema.safeParse(body);
+    console.log("Parsed:---------------------------*****", parsed);
     if (!parsed.success) {
       const errors: Record<string, string> = {};
       parsed.error.issues.forEach((e) => {
@@ -267,12 +269,34 @@ export async function POST(req: NextRequest) {
               const paymentMethod = donation.paymentMethodLast4 ? 
                 `Card ending in ${donation.paymentMethodLast4}` : 
                 "Credit Card";
+              
+              // Log full donation object to debug
+              console.log("Full donation object:", JSON.stringify(donation, null, 2));
+              
+              // Log donation details to verify isRecurring flag
+              console.log("Donation details for PDF:", {
+                donorName: donation.donorName,
+                amount: donation.donationAmount,
+                isRecurring: donation.isRecurring,
+                isRecurringType: typeof donation.isRecurring,
+                isRecurringStringified: String(donation.isRecurring),
+              });
+              
+              // Force isRecurring to be explicitly false unless it's explicitly true
+              // This is a temporary fix for existing donations that might have incorrect isRecurring values
+              const hasSubscriptionId = !!donation.subscriptionId;
+              const isRecurringDonation = hasSubscriptionId;
+              
+              console.log("Subscription ID:", donation.subscriptionId);
+              console.log("Has subscription:", hasSubscriptionId);
+              console.log("Original isRecurring value:", donation.isRecurring);
+              console.log("Final isRecurring value being used:", isRecurringDonation);
                 
               donationPdfBuffer = await generateDonationReceiptPdf({
                 donorName: donation.donorName,
                 amount: donation.donationAmount,
                 receiptNumber: donation.transactionID || donation._id.toString(),
-                isRecurring: donation.isRecurring,
+                isRecurring: isRecurringDonation,
                 badgeName: "Supporter",
                 date: moment(donation.timestamp).format("YYYY-MM-DD"),
                 paymentMethod,
