@@ -110,6 +110,8 @@ export async function GET(req: NextRequest) {
     }
 
     // Build aggregation pipeline to include next two available slots
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
     const pipeline: any[] = [
       { $match: filter },
       {
@@ -121,7 +123,7 @@ export async function GET(req: NextRequest) {
               $match: {
                 $expr: { $eq: ["$vetId", "$$vetId"] },
                 status: "available",
-                date: { $gte: new Date() } // Only future dates
+                date: { $gte: todayStart } // Today (inclusive) and future dates
               }
             },
             {

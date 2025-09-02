@@ -57,6 +57,7 @@ export default function BookingSystem({
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [showCalendar, setShowCalendar] = useState(false);
   const [slots, setSlots] = useState<Slot[]>([]);
+
   const [veterinarianTimezone, setVeterinarianTimezone] = useState("");
   const toLocalDateString = (date: Date) => date.toLocaleDateString("en-CA"); // YYYY-MM-DD
   const currentTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -106,9 +107,8 @@ export default function BookingSystem({
   console.log("selectedDate", selectedDate, selectedSlot);
 
   const fetchVetSlots = async () => {
-    const date = parseISO(selectedSlotDate || selectedDate);
+    const date = parseISO(selectedSlotDate ?? selectedDate);
 
-    // Format to YYYY-MM-DD (local time)
     const formatted = format(date, "yyyy-MM-dd");
     const data = await getVetSlots({
       id: doctorData?._id,
@@ -134,7 +134,21 @@ export default function BookingSystem({
   useEffect(() => {
     fetchVetSlots();
   }, [selectedDate, selectedSlotDate, selectedSlotId]);
+  useEffect(() => {
+    if (selectedSlotDate && selectedSlotId) {
+      const date = parseISO(selectedSlotDate);
 
+      const formatted = format(date, "yyyy-MM-dd");
+      setSelectedDate(formatted);
+      if (slots.length > 0) {
+        const findSlot = slots.find((slot) => slot._id === selectedSlotId);
+        if (findSlot) {
+          setSelectedTime(findSlot?.formattedStartTime);
+          setSelectedSlot(findSlot?._id);
+        }
+      }
+    }
+  }, [selectedSlotDate, selectedSlotId, slots]);
   return (
     <Card className="shadow-xl border-0 bg-white sticky top-6">
       <div className="bg-gradient-to-r from-green-600 to-emerald-600 p-6 text-white">

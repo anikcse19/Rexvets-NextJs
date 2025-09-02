@@ -5,7 +5,7 @@ import { Dialog, DialogClose, DialogContent, DialogTitle } from "../ui/dialog";
 interface IProps {
   isPlanOpen: boolean;
   setIsPlanOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  onSelectPlan?: (plan?: any) => void;
+  onSelectPlan?: (plan: any) => void;
 }
 const FamilyPlanModal: React.FC<IProps> = ({
   setIsPlanOpen,
@@ -100,7 +100,10 @@ const FamilyPlanModal: React.FC<IProps> = ({
 
           {/* Select Plan */}
           <div className="mt-6">
-            <Button className="w-full cursor-pointer bg-[#1D4ED8] hover:bg-[#1E40AF] text-white py-6 rounded-xl text-sm font-semibold">
+            <Button
+              onClick={() => onSelectPlan && onSelectPlan(140)}
+              className="w-full cursor-pointer bg-[#1D4ED8] hover:bg-[#1E40AF] text-white py-6 rounded-xl text-sm font-semibold"
+            >
               SELECT PLAN
             </Button>
             <div className="text-center text-xs text-gray-500 mt-3">

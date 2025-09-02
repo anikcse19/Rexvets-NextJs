@@ -1,15 +1,16 @@
 "use client";
 
-import React, { useState } from "react";
-import { CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
-import { Heart, Shield } from "lucide-react";
-import { DonationAmount } from "@/lib/types";
 import { donationAmounts } from "@/lib";
-import { useRouter } from "next/navigation";
+import { DonationAmount } from "@/lib/types";
+import { CardElement, useElements, useStripe } from "@stripe/react-stripe-js";
+import { Heart, Shield } from "lucide-react";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import React, { useState } from "react";
 
 interface DonationFormProps {
   onDonationComplete: (amount: number) => void;
+  selectedFamilyPlan?: string;
 }
 
 /**
@@ -28,7 +29,10 @@ interface DonationFormProps {
  * - confirmCardPayment: Confirms payment with payment method
  * - Subscriptions: For recurring payments with dynamic pricing
  */
-const DonationForm: React.FC<DonationFormProps> = ({ onDonationComplete }) => {
+const DonationForm: React.FC<DonationFormProps> = ({
+  onDonationComplete,
+  selectedFamilyPlan,
+}) => {
   const stripe = useStripe();
   const elements = useElements();
   const { data: session } = useSession();
@@ -61,7 +65,9 @@ const DonationForm: React.FC<DonationFormProps> = ({ onDonationComplete }) => {
   };
 
   const getCurrentAmount = (): number => {
-    return selectedAmount
+    return selectedFamilyPlan
+      ? parseFloat(selectedFamilyPlan)
+      : selectedAmount
       ? selectedAmount.value
       : parseFloat(customAmount) || 0;
   };
@@ -162,16 +168,19 @@ const DonationForm: React.FC<DonationFormProps> = ({ onDonationComplete }) => {
       // Mark donation as paid in PetParent record
       if (session?.user?.refId) {
         try {
-          const updateResponse = await fetch("/api/pet-parent/update-donation-status", {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              petParentId: session.user.refId,
-              donationPaid: true,
-              lastDonationAmount: amount,
-              lastDonationDate: new Date().toISOString(),
-            }),
-          });
+          const updateResponse = await fetch(
+            "/api/pet-parent/update-donation-status",
+            {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                petParentId: session.user.refId,
+                donationPaid: true,
+                lastDonationAmount: amount,
+                lastDonationDate: new Date().toISOString(),
+              }),
+            }
+          );
 
           if (!updateResponse.ok) {
             console.error("Failed to update donation status");
@@ -203,63 +212,67 @@ const DonationForm: React.FC<DonationFormProps> = ({ onDonationComplete }) => {
           Your donation goes directly to helping pets in need.
         </p>
       </div>
-
+      <h1>Family plan{selectedFamilyPlan}</h1>
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Amount Selection */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-3">
-            Choose Donation Amount
-          </label>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-3">
-            {donationAmounts.map((amount) => (
-              <button
-                key={amount.value}
-                type="button"
-                onClick={() => handleAmountSelect(amount)}
-                className={`p-3 rounded-lg border-2 transition-all duration-200 text-sm font-medium ${
-                  selectedAmount?.value === amount.value
-                    ? "border-blue-500 bg-blue-50 text-blue-700"
-                    : "border-gray-200 hover:border-gray-300 text-gray-700"
-                }`}
-              >
-                <div className="font-bold">${amount.value}</div>
-                <div className="text-xs text-gray-500 mt-1">
-                  {amount.description}
-                </div>
-              </button>
-            ))}
-          </div>
+        {!selectedFamilyPlan ? (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-3">
+              Choose Donation Amount
+            </label>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-3">
+              {donationAmounts.map((amount) => (
+                <button
+                  key={amount.value}
+                  type="button"
+                  onClick={() => handleAmountSelect(amount)}
+                  className={`p-3 rounded-lg border-2 transition-all duration-200 text-sm font-medium ${
+                    selectedAmount?.value === amount.value
+                      ? "border-blue-500 bg-blue-50 text-blue-700"
+                      : "border-gray-200 hover:border-gray-300 text-gray-700"
+                  }`}
+                >
+                  <div className="font-bold">${amount.value}</div>
+                  <div className="text-xs text-gray-500 mt-1">
+                    {amount.description}
+                  </div>
+                </button>
+              ))}
+            </div>
 
-          {/* Custom Amount Input */}
-          <div className="relative">
-            <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
-              $
-            </span>
-            <input
-              type="number"
-              placeholder="Enter custom amount"
-              value={customAmount}
-              onChange={(e) => handleCustomAmountChange(e.target.value)}
-              className="w-full pl-8 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              min="5"
-              step="0.01"
-            />
+            {/* Custom Amount Input */}
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+                $
+              </span>
+              <input
+                type="number"
+                placeholder="Enter custom amount"
+                value={customAmount}
+                onChange={(e) => handleCustomAmountChange(e.target.value)}
+                className="w-full pl-8 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                min="5"
+                step="0.01"
+              />
+            </div>
           </div>
-        </div>
+        ) : null}
 
         {/* Recurring Donation Option */}
-        <div className="flex items-center space-x-3">
-          <input
-            type="checkbox"
-            id="recurring"
-            checked={isRecurring}
-            onChange={(e) => setIsRecurring(e.target.checked)}
-            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-          />
-          <label htmlFor="recurring" className="text-sm text-gray-700">
-            Make this a monthly recurring donation
-          </label>
-        </div>
+        {!selectedFamilyPlan && (
+          <div className="flex items-center space-x-3">
+            <input
+              type="checkbox"
+              id="recurring"
+              checked={isRecurring}
+              onChange={(e) => setIsRecurring(e.target.checked)}
+              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+            />
+            <label htmlFor="recurring" className="text-sm text-gray-700">
+              Make this a monthly recurring donation
+            </label>
+          </div>
+        )}
 
         {/* Donor Information - Only show for anonymous users */}
         {!session && (
@@ -285,7 +298,9 @@ const DonationForm: React.FC<DonationFormProps> = ({ onDonationComplete }) => {
               <input
                 type="email"
                 value={donorData.email}
-                onChange={(e) => handleDonorInputChange("email", e.target.value)}
+                onChange={(e) =>
+                  handleDonorInputChange("email", e.target.value)
+                }
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="Enter your email address"
                 required
@@ -320,7 +335,20 @@ const DonationForm: React.FC<DonationFormProps> = ({ onDonationComplete }) => {
             </div>
           </div>
         </div>
-
+        {selectedFamilyPlan && selectedFamilyPlan.length > 0 && (
+          <div className="flex items-center space-x-3">
+            <input
+              type="checkbox"
+              id="recurring"
+              checked={isRecurring}
+              onChange={(e) => setIsRecurring(e.target.checked)}
+              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+            />
+            <label htmlFor="recurring" className="text-sm text-gray-700">
+              Make this a monthly recurring donation
+            </label>
+          </div>
+        )}
         {/* Security Notice */}
         <div className="flex items-start space-x-3 p-4 bg-blue-50 rounded-lg">
           <Shield className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />

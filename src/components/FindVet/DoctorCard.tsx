@@ -52,6 +52,7 @@ interface DoctorCardProps {
 export default function DoctorCard({ doctor, viewMode }: DoctorCardProps) {
   const router = useRouter();
   const [isPlanOpen, setIsPlanOpen] = useState(false);
+  const [selectedFamilyPlanAmount, setSelectedFamilyPlanAmount] = useState(0);
 
   const formatDate = (dateString: string, timezone?: string) => {
     if (timezone) {
@@ -69,7 +70,19 @@ export default function DoctorCard({ doctor, viewMode }: DoctorCardProps) {
   const formatTime = (timeString: string) => {
     return timeString;
   };
+  const onSelectFamilyPlan = (plan: number) => {
+    const queryParams = new URLSearchParams();
 
+    if (plan > 0) {
+      queryParams.set("selected-family-plan", plan.toString());
+    }
+
+    const url = `/find-a-vet/${doctor.id || doctor._id}${
+      queryParams.toString() ? `?${queryParams.toString()}` : ""
+    }`;
+
+    router.push(url);
+  };
   const renderStars = (rating: number) => {
     const stars = [];
     const fullStars = Math.floor(rating);
@@ -289,7 +302,11 @@ export default function DoctorCard({ doctor, viewMode }: DoctorCardProps) {
       </Link>
 
       {/* Family Plan Modal */}
-      <FamilyPlanModal isPlanOpen={isPlanOpen} setIsPlanOpen={setIsPlanOpen} />
+      <FamilyPlanModal
+        onSelectPlan={onSelectFamilyPlan}
+        isPlanOpen={isPlanOpen}
+        setIsPlanOpen={setIsPlanOpen}
+      />
     </article>
   );
 }

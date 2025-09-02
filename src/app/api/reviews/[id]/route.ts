@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/mongoose";
 import ReviewModel, { IReviewModel } from "@/models/Review";
-import { z } from "zod";
 import mongoose from "mongoose";
+import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 
 // Validation schema for updating a review
 const updateReviewSchema = z.object({
@@ -17,7 +17,7 @@ export async function GET(
 ) {
   try {
     await connectToDatabase();
-    
+
     const { id } = await params;
 
     // Validate ObjectId format
@@ -27,18 +27,18 @@ export async function GET(
           success: false,
           message: "Invalid review ID format",
           errorCode: "INVALID_ID",
-          errors: null
+          errors: null,
         },
         { status: 400 }
       );
     }
 
-    const review = await ReviewModel.findOne({ 
-      _id: id, 
-      isDeleted: { $ne: true } 
+    const review = await ReviewModel.findOne({
+      _id: id,
+      isDeleted: { $ne: true },
     })
-    .populate('doctorId', 'name specialization profileImage')
-    .populate('parentId', 'name profileImage');
+      .populate("doctorId", "name specialization profileImage")
+      .populate("parentId", "name profileImage");
 
     if (!review) {
       return NextResponse.json(
@@ -46,7 +46,7 @@ export async function GET(
           success: false,
           message: "Review not found",
           errorCode: "REVIEW_NOT_FOUND",
-          errors: null
+          errors: null,
         },
         { status: 404 }
       );
@@ -72,9 +72,9 @@ export async function PUT(
 ) {
   try {
     await connectToDatabase();
-    
+
     const { id } = await params;
-    
+
     // Validate ObjectId format
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return NextResponse.json(
@@ -82,12 +82,12 @@ export async function PUT(
           success: false,
           message: "Invalid review ID format",
           errorCode: "INVALID_ID",
-          errors: null
+          errors: null,
         },
         { status: 400 }
       );
     }
-    
+
     const body = await request.json();
     const validatedFields = updateReviewSchema.safeParse(body);
 
@@ -96,28 +96,25 @@ export async function PUT(
       validatedFields.error.issues.forEach((issue: any) => {
         errors[issue.path[0]] = issue.message;
       });
-      
+
       return NextResponse.json(
         {
           success: false,
           message: "Validation failed",
           errorCode: "VALIDATION_ERROR",
-          errors
+          errors,
         },
         { status: 400 }
       );
     }
 
-    const review = await ReviewModel.findOne({ 
-      _id: id, 
-      isDeleted: { $ne: true } 
+    const review = await ReviewModel.findOne({
+      _id: id,
+      isDeleted: { $ne: true },
     });
 
     if (!review) {
-      return NextResponse.json(
-        { error: "Review not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Review not found" }, { status: 404 });
     }
 
     // Update review fields
@@ -126,8 +123,8 @@ export async function PUT(
 
     // Populate the updated review
     const updatedReview = await ReviewModel.findById(id)
-      .populate('doctorId', 'name specialization profileImage')
-      .populate('parentId', 'name profileImage');
+      .populate("doctorId", "name specialization profileImage")
+      .populate("parentId", "name profileImage");
 
     return NextResponse.json({
       success: true,
@@ -136,19 +133,19 @@ export async function PUT(
     });
   } catch (error: any) {
     console.error("Error updating review:", error);
-    
-    if (error.name === 'ValidationError') {
+
+    if (error.name === "ValidationError") {
       const errors: any = {};
       Object.values(error.errors).forEach((err: any) => {
         errors[err.path] = err.message;
       });
-      
+
       return NextResponse.json(
         {
           success: false,
           message: "Validation failed",
           errorCode: "VALIDATION_ERROR",
-          errors
+          errors,
         },
         { status: 400 }
       );
@@ -159,7 +156,7 @@ export async function PUT(
         success: false,
         message: "Failed to update review",
         errorCode: "UPDATE_ERROR",
-        errors: null
+        errors: null,
       },
       { status: 500 }
     );
@@ -172,7 +169,7 @@ export async function DELETE(
 ) {
   try {
     await connectToDatabase();
-    
+
     const { id } = await params;
 
     // Validate ObjectId format
@@ -182,15 +179,15 @@ export async function DELETE(
           success: false,
           message: "Invalid review ID format",
           errorCode: "INVALID_ID",
-          errors: null
+          errors: null,
         },
         { status: 400 }
       );
     }
 
-    const review = await ReviewModel.findOne({ 
-      _id: id, 
-      isDeleted: { $ne: true } 
+    const review = await ReviewModel.findOne({
+      _id: id,
+      isDeleted: { $ne: true },
     });
 
     if (!review) {
@@ -199,14 +196,16 @@ export async function DELETE(
           success: false,
           message: "Review not found",
           errorCode: "REVIEW_NOT_FOUND",
-          errors: null
+          errors: null,
         },
         { status: 404 }
       );
     }
 
     // Soft delete the review
-    await (ReviewModel as IReviewModel).softDelete(new mongoose.Types.ObjectId(id));
+    await (ReviewModel as IReviewModel).softDelete(
+      new mongoose.Types.ObjectId(id)
+    );
 
     return NextResponse.json({
       success: true,
@@ -220,7 +219,7 @@ export async function DELETE(
         success: false,
         message: "Failed to delete review",
         errorCode: "DELETE_ERROR",
-        errors: null
+        errors: null,
       },
       { status: 500 }
     );

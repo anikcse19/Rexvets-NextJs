@@ -3,8 +3,9 @@
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
+import { IReview } from "@/models";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import DonationFormWrapper from "../Donation/DonationFormWrapper";
@@ -26,7 +27,8 @@ export default function DoctorProfilePage({
   const searchParams = useSearchParams();
   const slotDate = searchParams.get("slotDate");
   const slotId = searchParams.get("slotId");
-  console.log("slotDate", slotDate);
+  const selectedFamilyPlan = searchParams.get("selected-family-plan");
+  const [familyPlan, setFamilyPlan] = useState(selectedFamilyPlan);
   const [showAllReviews, setShowAllReviews] = useState(false);
   const [selectedDate, setSelectedDate] = useState("2025-01-16");
   const [selectedSlot, setSelectedSlot] = useState("");
@@ -37,6 +39,10 @@ export default function DoctorProfilePage({
   const handleDonationComplete = (amount: number) => {
     localStorage.setItem("doctorData", JSON.stringify(doctorData));
     console.log("Donation completed:", amount);
+    alert(`family plan${familyPlan}`);
+    setFamilyPlan("");
+    alert(`family plan${familyPlan}`);
+
     router.push(
       "/appointment-confirmation?date=" +
         selectedDate +
@@ -48,12 +54,16 @@ export default function DoctorProfilePage({
     toast.success("Donation successful! Thank you for your support.");
   };
 
+  // console.log("REVIEWS:", reviews);
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 p-4 lg:p-6">
       {/* Donation Modal */}
       {showForm ? (
         <div className="max-w-2xl mx-auto">
-          <DonationFormWrapper onDonationComplete={handleDonationComplete} />
+          <DonationFormWrapper
+            selectedFamilyPlan={familyPlan?.toString()}
+            onDonationComplete={handleDonationComplete}
+          />
         </div>
       ) : (
         <div className="max-w-[1366px] mx-auto space-y-8">
@@ -78,11 +88,7 @@ export default function DoctorProfilePage({
               <ClinicAddress doctor={doctorData} />
               <Specialties doctor={doctorData} />
               <SpeciesTreated doctor={doctorData} />
-              <ReviewsSection
-                doctor={mockDoctor}
-                showAll={showAllReviews}
-                setShowAll={setShowAllReviews}
-              />
+              <ReviewsSection doctorId={doctorData._id} />
             </div>
 
             {/* Booking */}
@@ -94,7 +100,9 @@ export default function DoctorProfilePage({
                 doctorData={doctorData}
                 onConfirm={(date: string, time: string, slot: string) => {
                   console.log(`Booking appointment for ${date} at ${time}`);
+                  alert(`Booking appointment for ${familyPlan} `);
                   setShowForm(true);
+
                   setSelectedDate(date);
                   setSelectedSlot(slot);
                   setSelectedTime(time);
