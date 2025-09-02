@@ -421,7 +421,7 @@ export default function FindVetPage({
                   >
                     Timezone
                   </label>
-                  <select
+                  {/* <select
                     id="timezone-select"
                     value={userTimezone}
                     onChange={(e) => setUserTimezone(e.target.value)}
@@ -441,7 +441,7 @@ export default function FindVetPage({
                     <option value="Asia/Kolkata">Kolkata (IST)</option>
                     <option value="Asia/Dhaka">Dhaka (BST)</option>
                     <option value="Australia/Sydney">Sydney (AEST)</option>
-                  </select>
+                  </select> */}
                 </div>
                 <Button
                   onClick={() => {
