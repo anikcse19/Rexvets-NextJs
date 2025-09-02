@@ -27,7 +27,7 @@ import {
   Users,
 } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import FamilyPlanModal from "./FamilyPlanModal";
 import { Veterinarian } from "./type";
 
@@ -53,6 +53,9 @@ export default function DoctorCard({ doctor, viewMode }: DoctorCardProps) {
   const router = useRouter();
   const [isPlanOpen, setIsPlanOpen] = useState(false);
   const [selectedFamilyPlanAmount, setSelectedFamilyPlanAmount] = useState(0);
+  const searchParams = useSearchParams();
+
+  const selectedFamilyPlan = searchParams.get("selected-family-plan");
 
   const formatDate = (dateString: string, timezone?: string) => {
     if (timezone) {
@@ -121,6 +124,9 @@ export default function DoctorCard({ doctor, viewMode }: DoctorCardProps) {
       vetId: doctor.id || doctor._id,
       vetName: doctor.name,
     });
+    if (selectedFamilyPlan) {
+      queryParams.set("selected-family-plan", selectedFamilyPlan);
+    }
 
     router.push(
       `/find-a-vet/${doctor.id || doctor._id}?${queryParams.toString()}`
@@ -135,7 +141,11 @@ export default function DoctorCard({ doctor, viewMode }: DoctorCardProps) {
       itemType="https://schema.org/Veterinary"
       className="group"
     >
-      <Link href={`/find-a-vet/${doctor.id || doctor._id}`}>
+      <Link
+        href={`/find-a-vet/${doctor.id || doctor._id}?${
+          selectedFamilyPlan ? "selected-family-plan=" + selectedFamilyPlan : ""
+        }`}
+      >
         <Card className="group cursor-pointer p-0  shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border-0 overflow-hidden bg-white">
           {/* Content */}
           <CardContent className="p-6 space-y-6">

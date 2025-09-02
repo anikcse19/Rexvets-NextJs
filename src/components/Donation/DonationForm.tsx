@@ -212,7 +212,6 @@ const DonationForm: React.FC<DonationFormProps> = ({
           Your donation goes directly to helping pets in need.
         </p>
       </div>
-      <h1>Family plan{selectedFamilyPlan}</h1>
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Amount Selection */}
         {!selectedFamilyPlan ? (

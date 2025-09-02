@@ -39,9 +39,7 @@ export default function DoctorProfilePage({
   const handleDonationComplete = (amount: number) => {
     localStorage.setItem("doctorData", JSON.stringify(doctorData));
     console.log("Donation completed:", amount);
-    alert(`family plan${familyPlan}`);
     setFamilyPlan("");
-    alert(`family plan${familyPlan}`);
 
     router.push(
       "/appointment-confirmation?date=" +

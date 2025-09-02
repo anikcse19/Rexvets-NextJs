@@ -101,7 +101,7 @@ const FamilyPlanModal: React.FC<IProps> = ({
           {/* Select Plan */}
           <div className="mt-6">
             <Button
-              onClick={() => onSelectPlan && onSelectPlan(140)}
+              onClick={() => onSelectPlan && onSelectPlan(120)}
               className="w-full cursor-pointer bg-[#1D4ED8] hover:bg-[#1E40AF] text-white py-6 rounded-xl text-sm font-semibold"
             >
               SELECT PLAN
