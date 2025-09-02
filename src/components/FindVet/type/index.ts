@@ -82,7 +82,6 @@ export interface Veterinarian {
   country?: string;
   gender?: "male" | "female";
   specialities?: string[];
-  treatedSpecies?: string[];
   interests?: string[];
   researchAreas?: string[];
   monthlyGoal?: number;
