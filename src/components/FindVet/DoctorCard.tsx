@@ -166,7 +166,7 @@ export default function DoctorCard({ doctor, viewMode }: DoctorCardProps) {
               <div className="flex-1 min-w-0">
                 <div className="flex items-start justify-between mb-2">
                   <div>
-                    <h3 className="text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors mb-1">
+                    <h3 className="text-base font-bold text-gray-900 group-hover:text-blue-600 transition-colors mb-1">
                       {doctor.name}
                     </h3>
                     <p className="text-gray-600 text-sm font-medium">

@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { convertTimesToUserTimezone } from "@/lib/timezone/index";
+import { format, parseISO } from "date-fns";
 import {
   Calendar as CalendarIcon,
   CheckCircle,
@@ -38,12 +39,16 @@ interface BookingSystemProps {
   doctorName: string;
   doctorData: Doctor;
   onConfirm: (date: string, time: string, slot: string) => void;
+  selectedSlotDate: string | null;
+  selectedSlotId: string | null;
 }
 
 export default function BookingSystem({
   doctorName,
   doctorData,
   onConfirm,
+  selectedSlotDate,
+  selectedSlotId,
 }: BookingSystemProps) {
   const [selectedDate, setSelectedDate] = useState<string>(
     () => new Date().toLocaleDateString("en-CA") // today initially
@@ -101,10 +106,14 @@ export default function BookingSystem({
   console.log("selectedDate", selectedDate, selectedSlot);
 
   const fetchVetSlots = async () => {
+    const date = parseISO(selectedSlotDate || selectedDate);
+
+    // Format to YYYY-MM-DD (local time)
+    const formatted = format(date, "yyyy-MM-dd");
     const data = await getVetSlots({
       id: doctorData?._id,
-      startDate: selectedDate,
-      endDate: selectedDate,
+      startDate: formatted,
+      endDate: formatted,
     });
     // Sort by startTime (assumes format 'HH:mm')
     const sorted = (data || []).slice().sort((a: any, b: any) => {
@@ -124,7 +133,7 @@ export default function BookingSystem({
 
   useEffect(() => {
     fetchVetSlots();
-  }, [selectedDate]);
+  }, [selectedDate, selectedSlotDate, selectedSlotId]);
 
   return (
     <Card className="shadow-xl border-0 bg-white sticky top-6">
@@ -243,7 +252,8 @@ export default function BookingSystem({
                     slot.timezone || "UTC"
                   );
 
-                  const isSelected = selectedSlot === slot._id;
+                  const isSelected =
+                    (selectedSlot || selectedSlotId) === slot._id;
 
                   return (
                     <button

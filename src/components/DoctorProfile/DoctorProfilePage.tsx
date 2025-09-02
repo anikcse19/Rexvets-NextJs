@@ -5,7 +5,7 @@ import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import React, { useState } from "react";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import DonationFormWrapper from "../Donation/DonationFormWrapper";
 import AboutDoctor from "./AboutDoctor";
@@ -23,11 +23,14 @@ export default function DoctorProfilePage({
 }: {
   doctorData: Doctor;
 }) {
+  const searchParams = useSearchParams();
+  const slotDate = searchParams.get("slotDate");
+  const slotId = searchParams.get("slotId");
+  console.log("slotDate", slotDate);
   const [showAllReviews, setShowAllReviews] = useState(false);
   const [selectedDate, setSelectedDate] = useState("2025-01-16");
   const [selectedSlot, setSelectedSlot] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
-  console.log("doctorData", doctorData.name);
   const [showForm, setShowForm] = useState(false);
   const router = useRouter();
 
@@ -85,6 +88,8 @@ export default function DoctorProfilePage({
             {/* Booking */}
             <div className="xl:col-span-1">
               <BookingCard
+                selectedSlotDate={slotDate}
+                selectedSlotId={slotId}
                 doctorName={doctorData?.name}
                 doctorData={doctorData}
                 onConfirm={(date: string, time: string, slot: string) => {
