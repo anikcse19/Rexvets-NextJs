@@ -224,7 +224,7 @@ export default function BookingSystem({
               <Label className="text-sm font-medium text-gray-700 mb-3 block">
                 Available Times
               </Label>
-              <div className="text-right">
+              {/* <div className="text-right">
                 <Label className="text-sm font-medium text-gray-700 mb-1 block">
                   Your Timezone:{" "}
                   <span className="text-blue-600 font-semibold">
@@ -236,7 +236,7 @@ export default function BookingSystem({
                     Vet Timezone: {veterinarianTimezone}
                   </Label>
                 )}
-              </div>
+              </div> */}
             </div>
             {slots.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
