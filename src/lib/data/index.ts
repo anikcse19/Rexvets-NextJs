@@ -1,7 +1,9 @@
 import {
   Calendar,
+  CalendarDays,
   Cat,
   FileCheck2,
+  HandHeart,
   HelpCircle,
   LayoutDashboard,
   LogOut,
@@ -675,6 +677,25 @@ export const menuItemsPetParent: MenuItems[] = [
     label: "Appointments",
     icon: FileCheck2,
     href: "/dashboard/pet-parent/appointments",
+  },
+  {
+    id: "donate-now",
+    label: "Donate Now",
+    icon: HandHeart,
+    href: "/donate",
+  },
+  {
+    id: "book-appointment",
+    label: "Book a Appointment",
+    icon: CalendarDays,
+    href: "/find-a-vet",
+  },
+  {
+    id: "prescription",
+    label: "Prescription",
+    icon: FaPrescription,
+    href: "",
+    external_href: "https://rexvets.securevetsource.com/index.pml",
   },
   {
     id: "pharmacy-transfer",

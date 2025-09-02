@@ -16,64 +16,104 @@ import { Separator } from "@/components/ui/separator";
 import { formatCurrency } from "@/lib/utils";
 import { CreditCard, Lock, Shield } from "lucide-react";
 import { toast } from "sonner";
+import { CardElement, useElements, useStripe } from "@stripe/react-stripe-js";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 interface PaymentModalProps {
+  formData: any;
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
   amount: number;
   pharmacyName: string;
+  setChangesData: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export function PaymentModal({
+  formData,
   isOpen,
   onClose,
   onSuccess,
   amount,
   pharmacyName,
+  setChangesData,
 }: PaymentModalProps) {
   const [isProcessing, setIsProcessing] = useState(false);
-  const [cardNumber, setCardNumber] = useState("");
-  const [expiry, setExpiry] = useState("");
-  const [cvc, setCvc] = useState("");
-  const [name, setName] = useState("");
+  console.log("formData from modal", formData);
 
-  const formatCardNumber = (value: string) => {
-    const cleaned = value.replace(/\D/g, "");
-    const formatted = cleaned.replace(/(\d{4})(?=\d)/g, "$1 ");
-    return formatted.slice(0, 19);
-  };
-
-  const formatExpiry = (value: string) => {
-    const cleaned = value.replace(/\D/g, "");
-    if (cleaned.length >= 2) {
-      return cleaned.slice(0, 2) + "/" + cleaned.slice(2, 4);
-    }
-    return cleaned;
-  };
+  const router = useRouter();
+  const stripe = useStripe();
+  const elements = useElements();
 
   const handlePayment = async () => {
-    if (!cardNumber || !expiry || !cvc || !name) {
-      toast("Please fill in all payment details");
+    if (!stripe || !elements) {
+      toast.error("Stripe has not loaded yet. Please try again.");
       return;
     }
 
     setIsProcessing(true);
 
-    // Simulate payment processing
-    setTimeout(() => {
-      toast(
-        `Your prescription transfer request has been submitted to ${pharmacyName}`
-      );
-      setIsProcessing(false);
-      onSuccess();
+    try {
+      const cardElement = elements.getElement(CardElement);
+      if (!cardElement) {
+        throw new Error("Card element not found");
+      }
+      const { error: paymentMethodError, paymentMethod } =
+        await stripe.createPaymentMethod({
+          type: "card",
+          card: cardElement,
+        });
 
-      // Reset form
-      setCardNumber("");
-      setExpiry("");
-      setCvc("");
-      setName("");
-    }, 2000);
+      if (paymentMethodError) {
+        throw new Error(
+          paymentMethodError.message || "Payment method creation failed"
+        );
+      }
+      const res = await fetch("/api/pharmacy-transfer/create-payment-intent", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          pharmacyName: formData.pharmacyName, // Convert to cents
+          phoneNumber: formData.phoneNumber,
+          street: formData.street,
+          city: formData.city,
+          state: formData?.state,
+          appointment: formData.appointmentId,
+          status: "pending",
+          amount: 19.99,
+          paymentStatus: "paid",
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to create payment");
+      }
+
+      console.log("[DEBUG] API Response:", data);
+
+      if (!data.clientSecret) {
+        throw new Error("No client secret received from server");
+      }
+
+      const confirmResult = await stripe.confirmCardPayment(data.clientSecret, {
+        payment_method: paymentMethod.id,
+      });
+
+      if (confirmResult.error) {
+        throw new Error(confirmResult.error.message || "Payment failed");
+      }
+      toast.success(
+        `Your prescription transfer request has been submitted to ${formData?.pharmacyName}`
+      );
+      onSuccess();
+      setChangesData(true);
+    } catch (error: any) {
+      toast.error(error?.message);
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   return (
@@ -116,7 +156,7 @@ export function PaymentModal({
           </Card>
 
           {/* Payment Form */}
-          <div className="space-y-4">
+          {/* <div className="space-y-4">
             <div>
               <Label htmlFor="name" className="text-sm font-medium">
                 Cardholder Name
@@ -178,7 +218,9 @@ export function PaymentModal({
                 />
               </div>
             </div>
-          </div>
+          </div> */}
+
+          <CardElement />
 
           {/* Security Notice */}
           <div className="flex items-center gap-2 p-3 bg-green-50 rounded-lg">

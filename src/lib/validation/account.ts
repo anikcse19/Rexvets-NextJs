@@ -10,7 +10,7 @@ export const personalInfoSchema = z.object({
     .min(10, "Phone number must be at least 10 digits")
     .optional(),
   dob: z.string().min(1, "Date of birth is required").optional(),
-  gender: z.enum(["male", "female", "other"], {
+  gender: z.string({
     message: "Please select a gender",
   }),
   address: z

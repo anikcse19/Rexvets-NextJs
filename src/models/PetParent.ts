@@ -8,7 +8,9 @@ export interface IPetParent extends Document {
   city?: string;
   address?: string;
   zipCode?: string;
+  dob?: Date;
   profileImage?: string;
+  gender?: string;
   isActive: boolean;
   // Soft delete flag
   isDeleted?: boolean;
@@ -100,6 +102,10 @@ const petParentSchema = new Schema<IPetParent>(
       },
       trim: true,
     },
+    gender: {
+      type: String,
+      trim: true,
+    },
     city: {
       type: String,
       trim: true,
@@ -115,6 +121,9 @@ const petParentSchema = new Schema<IPetParent>(
     profileImage: {
       type: String,
       trim: true,
+    },
+    dob: {
+      type: Date,
     },
     // isEmailVerified removed - now handled by User model
     // Authentication fields removed - now handled by User model
