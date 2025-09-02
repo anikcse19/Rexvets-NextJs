@@ -5,7 +5,7 @@ import { NextRequest, NextResponse } from "next/server";
 /**
  * GET /api/veterinarian
  *
- * Returns a paginated list of veterinarians.
+ * Returns a paginated list of veterinarians with their next two available appointment slots.
  * Query params:
  * - page: number (default 1)
  * - limit: number (default 20)
@@ -109,16 +109,59 @@ export async function GET(req: NextRequest) {
       filter.noticePeriod = parseInt(noticePeriod);
     }
 
-    const query = VeterinarianModel.find(filter)
-      .select(
-        "-password -emailVerificationToken -passwordResetToken -googleAccessToken -googleRefreshToken"
-      )
-      .sort({ createdAt: -1 })
-      .skip((page - 1) * limit)
-      .limit(limit);
+    // Build aggregation pipeline to include next two available slots
+    const pipeline: any[] = [
+      { $match: filter },
+      {
+        $lookup: {
+          from: "appointmentslots",
+          let: { vetId: "$_id" },
+          pipeline: [
+            {
+              $match: {
+                $expr: { $eq: ["$vetId", "$$vetId"] },
+                status: "available",
+                date: { $gte: new Date() } // Only future dates
+              }
+            },
+            {
+              $sort: {
+                date: 1,
+                startTime: 1
+              }
+            },
+            {
+              $limit: 2 // Get only next 2 available slots
+            },
+            {
+              $project: {
+                _id: 1,
+                date: 1,
+                startTime: 1,
+                endTime: 1,
+                timezone: 1,
+                status: 1,
+                notes: 1
+              }
+            }
+          ],
+          as: "nextAvailableSlots"
+        }
+      },
+      {
+        $addFields: {
+          // Ensure all fields are included except sensitive ones
+          nextAvailableSlots: "$nextAvailableSlots"
+        }
+      },
+      { $sort: { createdAt: -1 } },
+      { $skip: (page - 1) * limit },
+      { $limit: limit }
+    ];
 
+    // Execute aggregation pipeline
     const [items, total] = await Promise.all([
-      query,
+      VeterinarianModel.aggregate(pipeline),
       VeterinarianModel.countDocuments(filter),
     ]);
 
@@ -134,6 +177,9 @@ export async function GET(req: NextRequest) {
       totalWithoutFilters
     );
 
+    // Return veterinarians with their next two available appointment slots
+    // Each veterinarian object now includes a 'nextAvailableSlots' array
+    // containing up to 2 available slots with date, startTime, endTime, timezone, status, and notes
     return NextResponse.json({
       success: true,
       message: "Veterinarians retrieved successfully",

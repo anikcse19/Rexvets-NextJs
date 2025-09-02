@@ -10,7 +10,7 @@ import { GetAllVetsResponse } from "./type";
 export default function FindVetPage({ doctors }: { doctors: any }) {
   const [userLocation, setUserLocation] = useState<string>("");
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
-
+  console.log("Doctors", doctors);
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -70,11 +70,16 @@ export default function FindVetPage({ doctors }: { doctors: any }) {
                 Find Your Perfect Veterinarian
               </h1>
               <p className="text-blue-100 text-lg mb-6">
-                Connect with experienced veterinarians in your area for expert pet care services
+                Connect with experienced veterinarians in your area for expert
+                pet care services
               </p>
 
               {userLocation && (
-                <div className="flex items-center gap-2 bg-white/20 rounded-full px-4 py-2 w-fit" role="status" aria-label="Current location">
+                <div
+                  className="flex items-center gap-2 bg-white/20 rounded-full px-4 py-2 w-fit"
+                  role="status"
+                  aria-label="Current location"
+                >
                   <MapPin className="w-4 h-4" aria-hidden="true" />
                   <span className="text-sm font-medium">{userLocation}</span>
                 </div>
@@ -93,9 +98,15 @@ export default function FindVetPage({ doctors }: { doctors: any }) {
         </header>
 
         {/* Search & Filter */}
-        <section aria-label="Search and filter veterinarians" className="flex flex-col lg:flex-row gap-4">
+        <section
+          aria-label="Search and filter veterinarians"
+          className="flex flex-col lg:flex-row gap-4"
+        >
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" aria-hidden="true" />
+            <Search
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5"
+              aria-hidden="true"
+            />
             <input
               type="text"
               placeholder="Search by doctor name or specialty..."
@@ -107,7 +118,10 @@ export default function FindVetPage({ doctors }: { doctors: any }) {
           </div>
 
           <div className="relative">
-            <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" aria-hidden="true" />
+            <Filter
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5"
+              aria-hidden="true"
+            />
             <select
               value={selectedState}
               onChange={handleStateChange}
@@ -130,7 +144,10 @@ export default function FindVetPage({ doctors }: { doctors: any }) {
         </p>
 
         {/* Grid */}
-        <section aria-label="Veterinarian listings" className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
+        <section
+          aria-label="Veterinarian listings"
+          className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8"
+        >
           {filteredDoctors.map((doc: any) => (
             <DoctorCard key={doc.id} doctor={doc} />
           ))}
@@ -139,7 +156,10 @@ export default function FindVetPage({ doctors }: { doctors: any }) {
         {/* Empty */}
         {filteredDoctors.length === 0 && (
           <section className="text-center py-16" aria-label="No results found">
-            <Stethoscope className="w-12 h-12 text-gray-400 mx-auto mb-6" aria-hidden="true" />
+            <Stethoscope
+              className="w-12 h-12 text-gray-400 mx-auto mb-6"
+              aria-hidden="true"
+            />
             <h2 className="text-xl font-semibold mb-2">
               No veterinarians found
             </h2>
@@ -149,7 +169,7 @@ export default function FindVetPage({ doctors }: { doctors: any }) {
 
         {/* Modal */}
         {isLocationModalOpen && (
-          <div 
+          <div
             className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
             role="dialog"
             aria-modal="true"
@@ -157,7 +177,9 @@ export default function FindVetPage({ doctors }: { doctors: any }) {
             aria-describedby="location-modal-description"
           >
             <div className="bg-white rounded-2xl p-8 max-w-md w-full">
-              <h3 id="location-modal-title" className="text-xl font-bold mb-4">Set Your Location</h3>
+              <h3 id="location-modal-title" className="text-xl font-bold mb-4">
+                Set Your Location
+              </h3>
               <p id="location-modal-description" className="text-gray-600 mb-6">
                 Help us find veterinarians near you
               </p>

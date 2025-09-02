@@ -9,7 +9,8 @@ export const dynamic = "force-dynamic";
 // SEO Metadata
 export const metadata: Metadata = {
   title: "Find Veterinarians Near You | RexVet - Connect with Expert Pet Care",
-  description: "Find qualified veterinarians in your area. Browse profiles, read reviews, and book appointments with experienced pet care professionals. Get expert veterinary care for your pets.",
+  description:
+    "Find qualified veterinarians in your area. Browse profiles, read reviews, and book appointments with experienced pet care professionals. Get expert veterinary care for your pets.",
   keywords: [
     "find veterinarian",
     "veterinarian near me",
@@ -25,11 +26,12 @@ export const metadata: Metadata = {
     "veterinary clinic",
     "pet healthcare",
     "veterinarian search",
-    "pet medical professional"
+    "pet medical professional",
   ],
   openGraph: {
     title: "Find Veterinarians Near You | RexVet",
-    description: "Connect with experienced veterinarians in your area. Browse profiles, read reviews, and book appointments with expert pet care professionals.",
+    description:
+      "Connect with experienced veterinarians in your area. Browse profiles, read reviews, and book appointments with expert pet care professionals.",
     type: "website",
     url: "https://www.rexvet.org/find-a-vet",
     siteName: "RexVet",
@@ -46,7 +48,8 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Find Veterinarians Near You | RexVet",
-    description: "Connect with experienced veterinarians in your area. Browse profiles, read reviews, and book appointments.",
+    description:
+      "Connect with experienced veterinarians in your area. Browse profiles, read reviews, and book appointments.",
     images: ["/images/Homepage/vet-consultation.webp"],
   },
   robots: {
@@ -71,49 +74,55 @@ const generateStructuredData = (veterinarians: any[]) => {
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "ItemList",
-    "name": "Veterinarians Near You",
-    "description": "List of qualified veterinarians available for pet care services",
-    "url": "https://www.rexvet.org/find-a-vet",
-    "numberOfItems": veterinarians?.length || 0,
-    "itemListElement": veterinarians?.map((vet: any, index: number) => ({
-      "@type": "ListItem",
-      "position": index + 1,
-      "item": {
-        "@type": "Veterinary",
-        "@id": `https://www.rexvet.org/find-a-vet/${vet._id}`,
-        "name": vet.name,
-        "description": `Veterinarian ${vet.name} specializing in ${vet.specialization || 'pet care'}`,
-        "url": `https://www.rexvet.org/find-a-vet/${vet._id}`,
-        "telephone": vet.phone,
-        "address": {
-          "@type": "PostalAddress",
-          "streetAddress": vet.address || "",
-          "addressLocality": vet.city || "",
-          "addressRegion": vet.state || "",
-          "addressCountry": vet.country || "Bangladesh",
+    name: "Veterinarians Near You",
+    description:
+      "List of qualified veterinarians available for pet care services",
+    url: "https://www.rexvet.org/find-a-vet",
+    numberOfItems: veterinarians?.length || 0,
+    itemListElement:
+      veterinarians?.map((vet: any, index: number) => ({
+        "@type": "ListItem",
+        position: index + 1,
+        item: {
+          "@type": "Veterinary",
+          "@id": `https://www.rexvet.org/find-a-vet/${vet._id}`,
+          name: vet.name,
+          description: `Veterinarian ${vet.name} specializing in ${
+            vet.specialization || "pet care"
+          }`,
+          url: `https://www.rexvet.org/find-a-vet/${vet._id}`,
+          telephone: vet.phone,
+          address: {
+            "@type": "PostalAddress",
+            streetAddress: vet.address || "",
+            addressLocality: vet.city || "",
+            addressRegion: vet.state || "",
+            addressCountry: vet.country || "Bangladesh",
+          },
+          geo: {
+            "@type": "GeoCoordinates",
+            latitude: vet.latitude || "",
+            longitude: vet.longitude || "",
+          },
+          areaServed: {
+            "@type": "City",
+            name: vet.city || "Bangladesh",
+          },
+          availableService: {
+            "@type": "MedicalService",
+            name: "Veterinary Care",
+            description: "Comprehensive pet care and veterinary services",
+          },
+          image: vet.profileImage || "/images/Homepage/vet-consultation.webp",
+          aggregateRating: vet.rating
+            ? {
+                "@type": "AggregateRating",
+                ratingValue: vet.rating,
+                reviewCount: vet.reviewCount || 0,
+              }
+            : undefined,
         },
-        "geo": {
-          "@type": "GeoCoordinates",
-          "latitude": vet.latitude || "",
-          "longitude": vet.longitude || "",
-        },
-        "areaServed": {
-          "@type": "City",
-          "name": vet.city || "Bangladesh",
-        },
-        "availableService": {
-          "@type": "MedicalService",
-          "name": "Veterinary Care",
-          "description": "Comprehensive pet care and veterinary services",
-        },
-        "image": vet.profileImage || "/images/Homepage/vet-consultation.webp",
-        "aggregateRating": vet.rating ? {
-          "@type": "AggregateRating",
-          "ratingValue": vet.rating,
-          "reviewCount": vet.reviewCount || 0,
-        } : undefined,
-      },
-    })) || [],
+      })) || [],
   };
 
   return structuredData;
@@ -122,11 +131,10 @@ const generateStructuredData = (veterinarians: any[]) => {
 const page = async () => {
   try {
     const result = await getAllVets();
-    console.log("result vet", result);
-    
+
     const veterinarians = result?.data || [];
     const structuredData = generateStructuredData(veterinarians);
-    
+
     return (
       <>
         {/* Structured Data */}
@@ -136,7 +144,7 @@ const page = async () => {
             __html: JSON.stringify(structuredData),
           }}
         />
-        
+
         {/* Breadcrumb Structured Data */}
         <script
           type="application/ld+json"
@@ -144,24 +152,24 @@ const page = async () => {
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "BreadcrumbList",
-              "itemListElement": [
+              itemListElement: [
                 {
                   "@type": "ListItem",
-                  "position": 1,
-                  "name": "Home",
-                  "item": "https://www.rexvet.org",
+                  position: 1,
+                  name: "Home",
+                  item: "https://www.rexvet.org",
                 },
                 {
                   "@type": "ListItem",
-                  "position": 2,
-                  "name": "Find Veterinarians",
-                  "item": "https://www.rexvet.org/find-a-vet",
+                  position: 2,
+                  name: "Find Veterinarians",
+                  item: "https://www.rexvet.org/find-a-vet",
                 },
               ],
             }),
           }}
         />
-        
+
         {/* Local Business Structured Data */}
         <script
           type="application/ld+json"
@@ -169,29 +177,30 @@ const page = async () => {
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "Veterinary",
-              "name": "RexVet",
-              "description": "Connect with qualified veterinarians for expert pet care services",
-              "url": "https://www.rexvet.org",
-              "telephone": "+880-XXX-XXX-XXXX",
-              "address": {
+              name: "RexVet",
+              description:
+                "Connect with qualified veterinarians for expert pet care services",
+              url: "https://www.rexvet.org",
+              telephone: "+880-XXX-XXX-XXXX",
+              address: {
                 "@type": "PostalAddress",
-                "addressCountry": "Bangladesh",
+                addressCountry: "Bangladesh",
               },
-              "geo": {
+              geo: {
                 "@type": "GeoCoordinates",
-                "latitude": "23.8103",
-                "longitude": "90.4125",
+                latitude: "23.8103",
+                longitude: "90.4125",
               },
-              "areaServed": {
+              areaServed: {
                 "@type": "Country",
-                "name": "Bangladesh",
+                name: "Bangladesh",
               },
-              "availableService": {
+              availableService: {
                 "@type": "MedicalService",
-                "name": "Veterinary Care",
-                "description": "Comprehensive pet care and veterinary services",
+                name: "Veterinary Care",
+                description: "Comprehensive pet care and veterinary services",
               },
-              "sameAs": [
+              sameAs: [
                 "https://www.facebook.com/rexvet",
                 "https://www.instagram.com/rexvet",
                 "https://www.linkedin.com/company/rexvet",
@@ -199,7 +208,7 @@ const page = async () => {
             }),
           }}
         />
-        
+
         <div>
           <Suspense fallback={<div>Loading...</div>}>
             <FindVetPage doctors={result?.data} />
@@ -219,7 +228,7 @@ const page = async () => {
             __html: JSON.stringify(generateStructuredData([])),
           }}
         />
-        
+
         <div>
           <Suspense fallback={<div>Loading...</div>}>
             <FindVetPage
