@@ -15,15 +15,22 @@ import {
   Users,
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import DoctorCard from "./DoctorCard";
 import { GetAllVetsResponse } from "./type";
 
-export default function FindVetPage({ doctors }: { doctors: any }) {
+export default function FindVetPage({
+  doctors: initialDoctors,
+}: {
+  doctors: any;
+}) {
   const [userLocation, setUserLocation] = useState<string>("");
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
   const [sortBy, setSortBy] = useState<string>("rating");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [userTimezone, setUserTimezone] = useState<string>("UTC");
+  const [doctors, setDoctors] = useState<any>(initialDoctors || []);
+  const [isLoading, setIsLoading] = useState(false);
 
   console.log("Doctors", doctors);
   const searchParams = useSearchParams();
@@ -31,6 +38,48 @@ export default function FindVetPage({ doctors }: { doctors: any }) {
 
   const searchQuery = searchParams.get("search") || "";
   const selectedState = searchParams.get("state") || "";
+
+  // Function to fetch doctors with timezone
+  const fetchDoctorsWithTimezone = async (timezone: string) => {
+    try {
+      setIsLoading(true);
+      const response = await fetch(
+        `/api/veterinarian?timezone=${encodeURIComponent(timezone)}`
+      );
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.data) {
+          setDoctors(data.data);
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching doctors with timezone:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Detect user's timezone on component mount and fetch doctors
+  useEffect(() => {
+    try {
+      // Try to get timezone from Intl API
+      const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      if (timezone) {
+        setUserTimezone(timezone);
+        console.log("Detected user timezone:", timezone);
+        // Fetch doctors with the detected timezone
+        fetchDoctorsWithTimezone(timezone);
+      } else {
+        // Fallback to UTC
+        setUserTimezone("UTC");
+        fetchDoctorsWithTimezone("UTC");
+      }
+    } catch (error) {
+      console.warn("Could not detect timezone, using UTC:", error);
+      setUserTimezone("UTC");
+      fetchDoctorsWithTimezone("UTC");
+    }
+  }, []);
 
   console.log("doctors in find a vet page component", doctors);
 
@@ -155,18 +204,27 @@ export default function FindVetPage({ doctors }: { doctors: any }) {
               )}
             </div>
 
-            <Button
-              onClick={() => setIsLocationModalOpen(true)}
-              className="bg-white/20 hover:bg-white/30 text-white"
-              aria-label="Set your location to find nearby veterinarians"
-            >
-              <MapPin className="w-4 h-4 mr-2" aria-hidden="true" />
-              Set Location
-            </Button>
+            <div className="flex gap-3">
+              <Button
+                onClick={() => fetchDoctorsWithTimezone(userTimezone)}
+                disabled={isLoading}
+                className="bg-white/20 hover:bg-white/30 text-white"
+                aria-label="Refresh veterinarian data with current timezone"
+              >
+                <Clock className="w-4 h-4 mr-2" aria-hidden="true" />
+                {isLoading ? "Refreshing..." : "Refresh"}
+              </Button>
+              <Button
+                onClick={() => setIsLocationModalOpen(true)}
+                className="bg-white/20 hover:bg-white/30 text-white"
+                aria-label="Set your location to find nearby veterinarians"
+              >
+                <MapPin className="w-4 h-4 mr-2" aria-hidden="true" />
+                Set Location
+              </Button>
+            </div>
           </div>
         </header>
-
-        {/* Stats Cards */}
 
         {/* Search & Filter */}
         <section
@@ -283,22 +341,37 @@ export default function FindVetPage({ doctors }: { doctors: any }) {
         </section>
 
         {/* Grid/List View */}
-        <section
-          aria-label="Veterinarian listings"
-          className={
-            viewMode === "grid"
-              ? "grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8"
-              : "space-y-6"
-          }
-        >
-          {filteredAndSortedDoctors.map((doc: any) => (
-            <DoctorCard
-              key={doc.id || doc._id}
-              doctor={doc}
-              viewMode={viewMode}
-            />
-          ))}
-        </section>
+        {isLoading ? (
+          <section
+            className="text-center py-16"
+            aria-label="Loading veterinarians"
+          >
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-6"></div>
+            <h2 className="text-xl font-semibold mb-2">
+              Loading veterinarians...
+            </h2>
+            <p className="text-gray-600">
+              Fetching data for timezone: {userTimezone}
+            </p>
+          </section>
+        ) : (
+          <section
+            aria-label="Veterinarian listings"
+            className={
+              viewMode === "grid"
+                ? "grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8"
+                : "space-y-6"
+            }
+          >
+            {filteredAndSortedDoctors.map((doc: any) => (
+              <DoctorCard
+                key={doc.id || doc._id}
+                doctor={doc}
+                viewMode={viewMode}
+              />
+            ))}
+          </section>
+        )}
 
         {/* Empty */}
         {filteredAndSortedDoctors.length === 0 && (
@@ -333,16 +406,56 @@ export default function FindVetPage({ doctors }: { doctors: any }) {
           >
             <div className="bg-white rounded-2xl p-8 max-w-md w-full">
               <h3 id="location-modal-title" className="text-xl font-bold mb-4">
-                Set Your Location
+                Set Location & Timezone
               </h3>
               <p id="location-modal-description" className="text-gray-600 mb-6">
-                Help us find veterinarians near you
+                Set your timezone to see accurate appointment availability and
+                help us find veterinarians near you
               </p>
 
               <div className="space-y-4">
+                <div>
+                  <label
+                    htmlFor="timezone-select"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
+                    Timezone
+                  </label>
+                  <select
+                    id="timezone-select"
+                    value={userTimezone}
+                    onChange={(e) => setUserTimezone(e.target.value)}
+                    className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="UTC">UTC</option>
+                    <option value="America/New_York">Eastern Time (ET)</option>
+                    <option value="America/Chicago">Central Time (CT)</option>
+                    <option value="America/Denver">Mountain Time (MT)</option>
+                    <option value="America/Los_Angeles">
+                      Pacific Time (PT)
+                    </option>
+                    <option value="Europe/London">London (GMT)</option>
+                    <option value="Europe/Paris">Paris (CET)</option>
+                    <option value="Asia/Tokyo">Tokyo (JST)</option>
+                    <option value="Asia/Shanghai">Shanghai (CST)</option>
+                    <option value="Asia/Kolkata">Kolkata (IST)</option>
+                    <option value="Asia/Dhaka">Dhaka (BST)</option>
+                    <option value="Australia/Sydney">Sydney (AEST)</option>
+                  </select>
+                </div>
+                <Button
+                  onClick={() => {
+                    fetchDoctorsWithTimezone(userTimezone);
+                    setIsLocationModalOpen(false);
+                  }}
+                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white"
+                >
+                  <Clock className="w-4 h-4 mr-2" aria-hidden="true" />
+                  Update Timezone & Refresh
+                </Button>
                 <Button
                   onClick={handleSetLocation}
-                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white"
+                  className="w-full bg-gradient-to-r from-green-600 to-blue-600 text-white"
                 >
                   <MapPin className="w-4 h-4 mr-2" aria-hidden="true" />
                   Use Current Location
