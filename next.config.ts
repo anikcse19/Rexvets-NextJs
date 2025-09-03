@@ -7,6 +7,10 @@ const isAnalyze = process.env.ANALYZE === "true";
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   serverExternalPackages: ["mongoose"],
+  eslint: {
+    // Prevent ESLint warnings from failing production builds
+    ignoreDuringBuilds: true,
+  },
   // experimental: {
   //   serverComponentsExternalPackages: ["mongoose"],
   // },

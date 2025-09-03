@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/mongoose";
 import UserModel, { IUserModel } from "@/models/User";
+import { sendWelcomeEmail } from "@/lib/email";
 
 export async function GET(request: NextRequest) {
   try {
@@ -49,6 +50,17 @@ export async function GET(request: NextRequest) {
 
     await user.save();
     console.log('Email verified successfully for:', user.email);
+
+    // Send welcome email (non-blocking for user experience)
+    try {
+      if (user.email && user.name) {
+        await sendWelcomeEmail(user.email, user.name);
+        console.log('Welcome email dispatched to:', user.email);
+      }
+    } catch (welcomeErr) {
+      console.error('Failed to send welcome email after verification:', welcomeErr);
+      // Do not fail the verification flow if email sending fails
+    }
 
     // Return success response
     return NextResponse.json({
