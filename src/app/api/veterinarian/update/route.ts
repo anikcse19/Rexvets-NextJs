@@ -15,7 +15,7 @@ const basicInfoSchema = z.object({
   city: z.string().min(2).max(100).optional(),
   state: z.string().min(2).max(100).optional(),
   countryCode: z.string().min(2).max(3).optional(),
-  phone: z.string().regex(/^[\+]?[1-9][\d]{0,15}$/).optional(),
+  phone: z.string(),
   bio: z.string().max(1000).optional(),
   specialization: z.string().min(2).optional(),
   consultationFee: z.number().min(0).optional(),
@@ -32,14 +32,16 @@ const basicInfoSchema = z.object({
   // Additional new fields
   dob: z.coerce.date().optional(),
   address: z.string().min(1).max(200).optional(),
-  zipCode: z.number().min(0).optional(),
+  zipCode: z.string().optional(),
   country: z.string().min(2).max(100).optional(),
-  yearsOfExperience: z.string().optional(),
+  yearsOfExperience: z.number().optional(),
   noticePeriod: z.number().min(0).optional(),
-  clinic: z.object({
-    name: z.string().min(1).max(100),
-    address: z.string().min(1).max(200),
-  }).optional(),
+  clinic: z
+    .object({
+      name: z.string().min(1).max(100),
+      address: z.string().min(1).max(200),
+    })
+    .optional(),
 });
 
 const educationSchema = z.object({
@@ -63,7 +65,7 @@ const licenseSchema = z.object({
   licenseNumber: z.string().min(1),
   deaNumber: z.string().optional(),
   state: z.string().min(1),
-  licenseFile: z.string().url().optional(),
+  licenseFile: z.string().optional(),
 });
 
 const workingHoursSchema = z.object({
@@ -80,52 +82,62 @@ const fcmTokensSchema = z.object({
 // Main update schema
 const updateVeterinarianSchema = z.object({
   ...basicInfoSchema.shape,
-  
+
   // Array operations
   education: z.array(educationSchema).optional(),
   addEducation: educationSchema.optional(),
-  updateEducation: z.object({
-    index: z.number().min(0),
-    education: educationSchema,
-  }).optional(),
+  updateEducation: z
+    .object({
+      index: z.number().min(0),
+      education: educationSchema,
+    })
+    .optional(),
   removeEducation: z.number().min(0).optional(),
-  
+
   experience: z.array(experienceSchema).optional(),
   addExperience: experienceSchema.optional(),
-  updateExperience: z.object({
-    index: z.number().min(0),
-    experience: experienceSchema,
-  }).optional(),
+  updateExperience: z
+    .object({
+      index: z.number().min(0),
+      experience: experienceSchema,
+    })
+    .optional(),
   removeExperience: z.number().min(0).optional(),
-  
+
   certifications: z.array(certificationSchema).optional(),
   addCertification: certificationSchema.optional(),
-  updateCertification: z.object({
-    index: z.number().min(0),
-    certification: certificationSchema,
-  }).optional(),
+  updateCertification: z
+    .object({
+      index: z.number().min(0),
+      certification: certificationSchema,
+    })
+    .optional(),
   removeCertification: z.number().min(0).optional(),
-  
+
   licenses: z.array(licenseSchema).optional(),
   addLicense: licenseSchema.optional(),
-  updateLicense: z.object({
-    index: z.number().min(0),
-    license: licenseSchema,
-  }).optional(),
+  updateLicense: z
+    .object({
+      index: z.number().min(0),
+      license: licenseSchema,
+    })
+    .optional(),
   removeLicense: z.number().min(0).optional(),
-  
-  schedule: z.object({
-    monday: workingHoursSchema.optional(),
-    tuesday: workingHoursSchema.optional(),
-    wednesday: workingHoursSchema.optional(),
-    thursday: workingHoursSchema.optional(),
-    friday: workingHoursSchema.optional(),
-    saturday: workingHoursSchema.optional(),
-    sunday: workingHoursSchema.optional(),
-  }).optional(),
-  
+
+  schedule: z
+    .object({
+      monday: workingHoursSchema.optional(),
+      tuesday: workingHoursSchema.optional(),
+      wednesday: workingHoursSchema.optional(),
+      thursday: workingHoursSchema.optional(),
+      friday: workingHoursSchema.optional(),
+      saturday: workingHoursSchema.optional(),
+      sunday: workingHoursSchema.optional(),
+    })
+    .optional(),
+
   fcmTokens: fcmTokensSchema.optional(),
-  
+
   profileImage: z.string().url().optional(),
   cv: z.string().url().optional(),
   signatureImage: z.string().url().optional(),
@@ -155,9 +167,9 @@ export async function PUT(request: NextRequest) {
     const updateData = validatedFields.data;
     await connectToDatabase();
 
-    const veterinarian = await VeterinarianModel.findOne({ 
-      email: (session as any).user.email.toLowerCase(), 
-      isActive: true 
+    const veterinarian = await VeterinarianModel.findOne({
+      email: (session as any).user.email.toLowerCase(),
+      isActive: true,
     });
 
     if (!veterinarian) {
@@ -174,21 +186,36 @@ export async function PUT(request: NextRequest) {
     const licensesArray = [...(veterinarian.licenses || [])];
 
     // Handle basic info updates
-    Object.keys(updateData).forEach(key => {
-      if (key !== 'education' && key !== 'addEducation' && key !== 'updateEducation' && key !== 'removeEducation' &&
-          key !== 'experience' && key !== 'addExperience' && key !== 'updateExperience' && key !== 'removeExperience' &&
-          key !== 'certifications' && key !== 'addCertification' && key !== 'updateCertification' && key !== 'removeCertification' &&
-          key !== 'licenses' && key !== 'addLicense' && key !== 'updateLicense' && key !== 'removeLicense' &&
-          key !== 'schedule' && key !== 'fcmTokens' &&
-          updateData[key as keyof typeof updateData] !== undefined) {
+    Object.keys(updateData).forEach((key) => {
+      if (
+        key !== "education" &&
+        key !== "addEducation" &&
+        key !== "updateEducation" &&
+        key !== "removeEducation" &&
+        key !== "experience" &&
+        key !== "addExperience" &&
+        key !== "updateExperience" &&
+        key !== "removeExperience" &&
+        key !== "certifications" &&
+        key !== "addCertification" &&
+        key !== "updateCertification" &&
+        key !== "removeCertification" &&
+        key !== "licenses" &&
+        key !== "addLicense" &&
+        key !== "updateLicense" &&
+        key !== "removeLicense" &&
+        key !== "schedule" &&
+        key !== "fcmTokens" &&
+        updateData[key as keyof typeof updateData] !== undefined
+      ) {
         updateObject[key] = updateData[key as keyof typeof updateData];
       }
     });
 
     // Handle name update
     if (updateData.firstName || updateData.lastName) {
-      const firstName = updateData.firstName || veterinarian.firstName || '';
-      const lastName = updateData.lastName || veterinarian.lastName || '';
+      const firstName = updateData.firstName || veterinarian.firstName || "";
+      const lastName = updateData.lastName || veterinarian.lastName || "";
       updateObject.name = `${firstName} ${lastName}`.trim();
     }
 
@@ -307,11 +334,11 @@ export async function PUT(request: NextRequest) {
     // Handle schedule updates
     if (updateData.schedule) {
       const currentSchedule = { ...(veterinarian as any).schedule };
-      Object.keys(updateData.schedule).forEach(day => {
+      Object.keys(updateData.schedule).forEach((day) => {
         if (updateData.schedule![day as keyof typeof updateData.schedule]) {
           currentSchedule[day as keyof typeof currentSchedule] = {
             ...currentSchedule[day as keyof typeof currentSchedule],
-            ...updateData.schedule![day as keyof typeof updateData.schedule]
+            ...updateData.schedule![day as keyof typeof updateData.schedule],
           };
         }
       });
@@ -323,7 +350,7 @@ export async function PUT(request: NextRequest) {
       const currentFcmTokens = { ...veterinarian.fcmTokens };
       updateObject.fcmTokens = {
         ...currentFcmTokens,
-        ...updateData.fcmTokens
+        ...updateData.fcmTokens,
       };
     }
 
@@ -332,10 +359,11 @@ export async function PUT(request: NextRequest) {
     const updatedVeterinarian = await VeterinarianModel.findByIdAndUpdate(
       veterinarian._id,
       { $set: updateObject },
-      { 
-        new: true, 
+      {
+        new: true,
         runValidators: true,
-        select: '-password -emailVerificationToken -emailVerificationExpires -passwordResetToken -passwordResetExpires -googleAccessToken -googleRefreshToken'
+        select:
+          "-password -emailVerificationToken -emailVerificationExpires -passwordResetToken -passwordResetExpires -googleAccessToken -googleRefreshToken",
       }
     );
 
@@ -346,17 +374,19 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    return NextResponse.json({
-      success: true,
-      message: "Veterinarian profile updated successfully",
-      data: {
-        veterinarian: updatedVeterinarian
-      }
-    }, { status: 200 });
-
+    return NextResponse.json(
+      {
+        success: true,
+        message: "Veterinarian profile updated successfully",
+        data: {
+          veterinarian: updatedVeterinarian,
+        },
+      },
+      { status: 200 }
+    );
   } catch (error: any) {
     console.error("Error updating veterinarian:", error);
-    
+
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: "Validation failed", details: error.issues },
@@ -367,21 +397,21 @@ export async function PUT(request: NextRequest) {
     if (error.code === 11000) {
       const field = Object.keys(error.keyPattern)[0];
       let errorMessage = "A record with this information already exists.";
-      
-      if (field === 'licenseNumber') {
-        errorMessage = "A veterinarian with this license number already exists.";
-      } else if (field === 'phoneNumber') {
+
+      if (field === "licenseNumber") {
+        errorMessage =
+          "A veterinarian with this license number already exists.";
+      } else if (field === "phoneNumber") {
         errorMessage = "A veterinarian with this phone number already exists.";
       }
-      
-      return NextResponse.json(
-        { error: errorMessage, field },
-        { status: 409 }
-      );
+
+      return NextResponse.json({ error: errorMessage, field }, { status: 409 });
     }
 
-    if (error.name === 'ValidationError') {
-      const validationErrors = Object.values(error.errors).map((err: any) => err.message);
+    if (error.name === "ValidationError") {
+      const validationErrors = Object.values(error.errors).map(
+        (err: any) => err.message
+      );
       return NextResponse.json(
         { error: "Validation failed", details: validationErrors },
         { status: 400 }
@@ -407,10 +437,12 @@ export async function GET() {
 
     await connectToDatabase();
 
-    const veterinarian = await VeterinarianModel.findOne({ 
-      email: (session as any).user.email.toLowerCase(), 
-      isActive: true 
-    }).select('-password -emailVerificationToken -emailVerificationExpires -passwordResetToken -passwordResetExpires -googleAccessToken -googleRefreshToken');
+    const veterinarian = await VeterinarianModel.findOne({
+      email: (session as any).user.email.toLowerCase(),
+      isActive: true,
+    }).select(
+      "-password -emailVerificationToken -emailVerificationExpires -passwordResetToken -passwordResetExpires -googleAccessToken -googleRefreshToken"
+    );
 
     if (!veterinarian) {
       return NextResponse.json(
@@ -423,10 +455,9 @@ export async function GET() {
       success: true,
       message: "Veterinarian profile retrieved successfully",
       data: {
-        veterinarian
-      }
+        veterinarian,
+      },
     });
-
   } catch (error: any) {
     console.error("Error fetching veterinarian:", error);
     return NextResponse.json(

@@ -12,17 +12,18 @@ export interface IVeterinarian extends Document {
   signatureImage?: string;
   signature?: string;
   licenses?: Array<{
-    licenseNumber: string;
+    licenseNumber?: string;
     deaNumber?: string;
-    state: string;
+    state?: string;
     licenseFile?: string;
   }>;
   bio?: string;
-  education: Array<{
-    degree: string;
-    institution: string;
-    year: number;
-  }>;
+  // education: Array<{
+  //   degree: string;
+  //   institution: string;
+  //   year: number;
+  // }>;
+  education: string;
   experience: Array<{
     position: string;
     institution: string;
@@ -64,7 +65,7 @@ export interface IVeterinarian extends Document {
   address?: string;
   city?: string;
   state?: string;
-  zipCode?: number;
+  zipCode?: string;
   country?: string;
   yearsOfExperience?: string;
   clinic?: {
@@ -186,10 +187,7 @@ const veterinarianSchema = new Schema<IVeterinarian>(
           required: true,
           trim: true,
         },
-        licenseFile: {
-          type: String,
-          trim: true,
-        },
+        licenseFile: { type: mongoose.Schema.Types.Mixed, default: null },
       },
     ],
     bio: {
@@ -197,26 +195,29 @@ const veterinarianSchema = new Schema<IVeterinarian>(
       trim: true,
       maxlength: [1000, "Bio cannot exceed 1000 characters"],
     },
-    education: [
-      {
-        degree: {
-          type: String,
-          required: true,
-          trim: true,
-        },
-        institution: {
-          type: String,
-          required: true,
-          trim: true,
-        },
-        year: {
-          type: Number,
-          required: true,
-          min: 1900,
-          max: new Date().getFullYear(),
-        },
-      },
-    ],
+    // education: [
+    //   {
+    //     degree: {
+    //       type: String,
+    //       required: true,
+    //       trim: true,
+    //     },
+    //     institution: {
+    //       type: String,
+    //       required: true,
+    //       trim: true,
+    //     },
+    //     year: {
+    //       type: Number,
+    //       required: true,
+    //       min: 1900,
+    //       max: new Date().getFullYear(),
+    //     },
+    //   },
+    // ],
+    education: {
+      type: String,
+    },
     experience: [
       {
         position: {
@@ -394,8 +395,7 @@ const veterinarianSchema = new Schema<IVeterinarian>(
       trim: true,
     },
     zipCode: {
-      type: Number,
-      min: [0, "Zip code cannot be negative"],
+      type: String,
     },
     country: {
       type: String,
@@ -419,6 +419,7 @@ const veterinarianSchema = new Schema<IVeterinarian>(
       type: String,
       enum: ["male", "female"],
       lowercase: true,
+      required: false,
     },
     noticePeriod: {
       type: Number,
@@ -432,19 +433,19 @@ const veterinarianSchema = new Schema<IVeterinarian>(
         ref: "Review",
       },
     ],
-    reviewCount:{
+    reviewCount: {
       type: Number,
       default: 0,
       min: [0, "Review count cannot be negative"],
     },
-    averageRating:{
+    averageRating: {
       type: Number,
       default: 0,
       min: [0, "Average rating cannot be negative"],
       max: [5, "Average rating cannot exceed 5"],
     },
 
-    ratingCount:{
+    ratingCount: {
       type: Number,
       default: 0,
       min: [0, "Rating count cannot be negative"],
@@ -475,14 +476,14 @@ veterinarianSchema.index(
 );
 
 // Virtual for calculated average rating
-veterinarianSchema.virtual('calculatedAverageRating').get(function() {
+veterinarianSchema.virtual("calculatedAverageRating").get(function () {
   return this.averageRating || 0;
 });
 
 // Method to recalculate review statistics
-veterinarianSchema.methods.recalculateReviewStats = async function() {
+veterinarianSchema.methods.recalculateReviewStats = async function () {
   try {
-    const ReviewModel = mongoose.model('Review');
+    const ReviewModel = mongoose.model("Review");
     const stats = await ReviewModel.aggregate([
       { $match: { vetId: this._id, visible: true, isDeleted: { $ne: true } } },
       {
@@ -511,7 +512,7 @@ veterinarianSchema.methods.recalculateReviewStats = async function() {
       averageRating: this.averageRating,
     };
   } catch (error) {
-    console.error('Error recalculating review stats:', error);
+    console.error("Error recalculating review stats:", error);
     throw error;
   }
 };
