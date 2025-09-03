@@ -52,3 +52,7 @@ export { MessageModel } from "./Message";
 
 export { AppointmentChatModel, AppointmentMessageModel } from "./AppointmentChat";
 export type { IAppointmentChat, IAppointmentMessage } from "./AppointmentChat";
+
+// Notifications
+export { default as NotificationModel, NotificationType } from "./Notification";
+export type { INotification, INotificationModel } from "./Notification";
