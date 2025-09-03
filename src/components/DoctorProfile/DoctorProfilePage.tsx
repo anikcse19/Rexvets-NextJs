@@ -83,8 +83,12 @@ export default function DoctorProfilePage({
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
             <div className="xl:col-span-2 space-y-8">
               <AboutDoctor doctor={doctorData} />
-              <ClinicAddress doctor={doctorData} />
-              <Specialties doctor={doctorData} />
+              {(doctorData as any)?.clinicName && (
+                <ClinicAddress doctor={doctorData} />
+              )}
+              {doctorData?.specialization?.length > 0 && (
+                <Specialties doctor={doctorData} />
+              )}
               <SpeciesTreated doctor={doctorData} />
               <ReviewsSection doctorId={doctorData._id} />
             </div>

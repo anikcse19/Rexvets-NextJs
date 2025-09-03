@@ -3,7 +3,6 @@
 import { doubledBrands, features, whyChooseFeaturesData } from "@/lib";
 import dynamic from "next/dynamic";
 import React from "react";
-import ChatIcon from "./ChatIcon";
 
 const loadingPlaceholder = () => <p>Loading...</p>;
 
@@ -72,7 +71,6 @@ const Home = () => {
       <TestimonialsSection />
 
       {/* Chat Icon */}
-      <ChatIcon />
     </div>
   );
 };
