@@ -365,7 +365,7 @@ export async function POST(req: NextRequest) {
     })();
     // Find the veterinarian's user to target notification correctly
     const vetUser = (await UserModel.findOne({
-      _id: session?.user?.id,
+      veterinarianRef: new Types.ObjectId(veterinarian),
       isActive: true,
       isDeleted: false,
     })
