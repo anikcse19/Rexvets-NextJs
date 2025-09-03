@@ -1,31 +1,11 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { convertTimesToUserTimezone } from "@/lib/timezone/index";
 import moment from "moment";
 import React, { useState } from "react";
 
-import {
-  Award,
-  Calendar,
-  ChevronRight,
-  Clock,
-  Heart,
-  MapPin,
-  MessageCircle,
-  Phone,
-  Shield,
-  Star,
-  Users,
-} from "lucide-react";
+import { ChevronRight, Heart, Shield, Star } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import FamilyPlanModal from "./FamilyPlanModal";
@@ -189,11 +169,12 @@ export default function DoctorCard({ doctor, viewMode }: DoctorCardProps) {
               <div className="flex-1 min-w-0">
                 <div className="flex items-start justify-between mb-2">
                   <div>
-                    <h3 className="text-base font-bold text-gray-900 group-hover:text-blue-600 transition-colors mb-1">
+                    <h3 className=" w-[180px]  truncate text-base font-bold text-gray-900 group-hover:text-blue-600 transition-colors mb-1">
                       {doctor.name}
                     </h3>
-                    <p className="text-gray-600 text-sm font-medium">
-                      Veterinarian, DVM
+                    <p className="text-gray-600 w-[210] truncate  text-sm font-medium">
+                      {/* Veterinarian, DVM */}
+                      {doctor?.specialities?.join(", ") || "Veterinarian"}
                     </p>
                   </div>
                   {/* Navigation Arrow */}
@@ -271,13 +252,14 @@ export default function DoctorCard({ doctor, viewMode }: DoctorCardProps) {
                         onClick={(e) => handleSlotClick(slot, e)}
                         className="w-full text-left p-3 bg-white hover:bg-gray-50 rounded-lg border border-gray-200 transition-all duration-200 hover:border-gray-300 cursor-pointer group/slot"
                       >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
+                        <div className="w-full flex items-center">
+                          <span className="w-[60%] truncate">
                             {formatDate(slot.date, slot.timezone)}
-                            <span className="text-sm font-medium text-gray-800 group-hover/slot:text-gray-900">
-                              {formattedStartTime} - {formattedEndTime}
-                            </span>
-                          </div>
+                          </span>
+
+                          <span className="w-[40%] truncate text-right  text-sm font-medium text-gray-800 group-hover/slot:text-gray-900">
+                            {formattedStartTime} - {formattedEndTime}
+                          </span>
                         </div>
                       </button>
                     );
