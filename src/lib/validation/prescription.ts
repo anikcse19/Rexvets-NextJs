@@ -27,4 +27,4 @@ export const prescriptionSchema = z.object({
   pharmacy: pharmacySchema,
 });
 
-export type PrescriptionFormData = z.infer<typeof prescriptionSchema>;
+export type PrescriptionFormData = z.input<typeof prescriptionSchema>;
