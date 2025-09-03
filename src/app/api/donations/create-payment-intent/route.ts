@@ -37,6 +37,16 @@ export async function POST(request: NextRequest) {
       metadata 
     } = body || {};
 
+    // Add debugging for isRecurring
+    console.log("[DEBUG] Received isRecurring from frontend:", isRecurring);
+    console.log("[DEBUG] Type of isRecurring:", typeof isRecurring);
+    console.log("[DEBUG] isRecurring === true:", isRecurring === true);
+    console.log("[DEBUG] isRecurring === false:", isRecurring === false);
+    console.log("[DEBUG] Boolean(isRecurring):", Boolean(isRecurring));
+    
+    // Ensure isRecurring is a proper boolean
+    const isRecurringBoolean = isRecurring === true;
+
     // Validate Stripe configuration
     if (!config.STRIPE_SECRET_KEY) {
       return NextResponse.json({ error: 'Stripe not configured' }, { status: 500 });
@@ -73,8 +83,9 @@ export async function POST(request: NextRequest) {
       console.log("[DEBUG] Created new customer:", customerId);
     }
 
-    if (isRecurring) {
+    if (isRecurringBoolean) {
       // Handle recurring donation with subscription
+      console.log("[DEBUG] FLOW: Going to RECURRING donation flow");
       console.log("[DEBUG] Creating recurring subscription for donation amount:", donationAmount);
 
       // Create a price for the recurring donation amount
@@ -127,7 +138,7 @@ export async function POST(request: NextRequest) {
         donationType,
         donorEmail,
         donorName,
-        isRecurring: true,
+        isRecurring: isRecurringBoolean,
         status: 'pending',
         transactionID: paymentIntent.id, // Use payment intent ID for first payment
         subscriptionId: subscription.id,
@@ -140,12 +151,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         subscriptionId: subscription.id,
         clientSecret: paymentIntent.client_secret,
-        isRecurring: true,
+        isRecurring: isRecurringBoolean,
         donationId: donation._id,
         paymentIntentId: paymentIntent.id,
       });
     } else {
       // Handle one-time donation
+      console.log("[DEBUG] FLOW: Going to ONE-TIME donation flow");
       const paymentIntent = await stripe.paymentIntents.create({
         amount: Math.round(Number(donationAmount)), // Donation amount is already in cents from frontend
         currency,
@@ -167,7 +179,7 @@ export async function POST(request: NextRequest) {
         donationType,
         donorEmail,
         donorName,
-        isRecurring: false,
+        isRecurring: false, // Explicitly false for one-time donations
         status: 'pending',
         transactionID: paymentIntent.id,
         paymentIntentId: paymentIntent.id,
@@ -178,7 +190,7 @@ export async function POST(request: NextRequest) {
 
       return NextResponse.json({
         clientSecret: paymentIntent.client_secret,
-        isRecurring: false,
+        isRecurring: false, // Explicitly false for one-time donations
         donationId: donation._id,
         paymentIntentId: paymentIntent.id,
       });

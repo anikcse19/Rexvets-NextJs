@@ -1,25 +1,25 @@
+import { Appointment, PetParent } from ".";
+
 export interface PharmacyRequest {
-  id: string;
+  _id: string;
   pharmacyName: string;
   phoneNumber: string;
   street: string;
   city: string;
   state: string;
-  appointmentId: string;
-  appointmentDate: string;
-  status: "pending" | "processing" | "completed" | "failed";
-  createdAt: string;
-  paymentStatus: "unpaid" | "paid" | "failed";
+  appointment: Appointment;
+  petParentId: PetParent;
+  status: "pending" | "approved" | "rejected" | "completed";
+  paymentStatus: "unpaid" | "paid" | "refunded";
   amount: number;
-}
-
-export interface Appointment {
-  id: string;
-  date: string;
-  time: string;
-  petName: string;
-  veterinarian: string;
-  service: string;
+  isDeleted: boolean;
+  transactionID: string;
+  paymentIntentId: string;
+  stripeCustomerId: string;
+  timestamp: string;
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
 }
 
 export interface PharmacyFormData {

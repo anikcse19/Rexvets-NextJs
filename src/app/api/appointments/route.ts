@@ -7,9 +7,13 @@ import {
   throwAppError,
 } from "@/lib/utils/send.response";
 import { VeterinarianModel } from "@/models";
+import PetParent from "@/models/PetParent";
+import { PetModel } from "@/models/Pet";
+import { sendAppointmentConfirmationEmails } from "@/lib/email";
+import { generateDonationReceiptPdf } from "@/lib/pdf/generatePdf";
+import DonationModel from "@/models/Donation";
 import { AppointmentModel } from "@/models/Appointment";
 import { AppointmentSlot, SlotStatus } from "@/models/AppointmentSlot";
-import PetParent from "@/models/PetParent";
 import moment from "moment-timezone";
 import { Types } from "mongoose";
 import { getServerSession } from "next-auth/next";
@@ -40,7 +44,7 @@ const appointmentSchema = z.object({
   }),
   concerns: z.array(z.string()).min(1, "At least one concern is required"),
 });
-
+// This is the appointment creation route
 export async function POST(req: NextRequest) {
   try {
     await connectToDatabase();
@@ -57,7 +61,9 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
+    console.log("Body:---------------------------****", body);
     const parsed = appointmentSchema.safeParse(body);
+    console.log("Parsed:---------------------------*****", parsed);
     if (!parsed.success) {
       const errors: Record<string, string> = {};
       parsed.error.issues.forEach((e) => {
@@ -207,6 +213,118 @@ export async function POST(req: NextRequest) {
     await newAppointment.save({ validateBeforeSave: true });
     existingSlot.status = SlotStatus.BOOKED;
     await existingSlot.save({ validateBeforeSave: false });
+
+    // Fire-and-forget confirmation emails with donation receipt PDF (do not block response)
+    ;(async () => {
+      try {
+        const [vetDoc, parentDoc, petDoc] = await Promise.all([
+          VeterinarianModel.findById(veterinarian).lean(),
+          PetParent.findById(petParent).lean(),
+          PetModel.findById(pet).lean(),
+        ]);
+
+        const vetEmail = (vetDoc as any)?.email;
+        const parentEmail = (parentDoc as any)?.email;
+        if (vetEmail && parentEmail) {
+          const apptDate = moment(appointmentDateTime).format("YYYY-MM-DD");
+          const apptTime = moment(appointmentDateTime).format("HH:mm");
+          
+          // Find the latest donation for this pet parent to generate receipt
+          let donationPdfBuffer: Buffer | undefined = undefined;
+          try {
+            console.log("Looking for donation with parentId:", petParent);
+            
+            // Try to find by parentId first
+            let latestDonation = await DonationModel.findOne(
+              { parentId: petParent, status: "succeeded" },
+              {},
+              { sort: { timestamp: -1 } }
+            ).lean();
+            
+            // If not found, try to find by email
+            if (!latestDonation && parentEmail) {
+              console.log("No donation found by parentId, trying email:", parentEmail);
+              latestDonation = await DonationModel.findOne(
+                { donorEmail: parentEmail, status: "succeeded" },
+                {},
+                { sort: { timestamp: -1 } }
+              ).lean();
+            }
+            
+            // If still not found, try any recent successful donation
+            if (!latestDonation) {
+              console.log("No donation found by parentId or email, trying any recent donation");
+              latestDonation = await DonationModel.findOne(
+                { status: "succeeded" },
+                {},
+                { sort: { timestamp: -1 } }
+              ).lean();
+            }
+            
+            console.log("Found donation:", latestDonation ? "Yes" : "No");
+            
+            if (latestDonation) {
+              // Generate donation receipt PDF
+              const donation = latestDonation as any;
+              const paymentMethod = donation.paymentMethodLast4 ? 
+                `Card ending in ${donation.paymentMethodLast4}` : 
+                "Credit Card";
+              
+              // Log full donation object to debug
+              console.log("Full donation object:", JSON.stringify(donation, null, 2));
+              
+              // Log donation details to verify isRecurring flag
+              console.log("Donation details for PDF:", {
+                donorName: donation.donorName,
+                amount: donation.donationAmount,
+                isRecurring: donation.isRecurring,
+                isRecurringType: typeof donation.isRecurring,
+                isRecurringStringified: String(donation.isRecurring),
+              });
+              
+              // Force isRecurring to be explicitly false unless it's explicitly true
+              // This is a temporary fix for existing donations that might have incorrect isRecurring values
+              const hasSubscriptionId = !!donation.subscriptionId;
+              const isRecurringDonation = hasSubscriptionId;
+              
+              console.log("Subscription ID:", donation.subscriptionId);
+              console.log("Has subscription:", hasSubscriptionId);
+              console.log("Original isRecurring value:", donation.isRecurring);
+              console.log("Final isRecurring value being used:", isRecurringDonation);
+                
+              donationPdfBuffer = await generateDonationReceiptPdf({
+                donorName: donation.donorName,
+                amount: donation.donationAmount,
+                receiptNumber: donation.transactionID || donation._id.toString(),
+                isRecurring: isRecurringDonation,
+                badgeName: "Supporter",
+                date: moment(donation.timestamp).format("YYYY-MM-DD"),
+                paymentMethod,
+              });
+            }
+          } catch (pdfError) {
+            console.error("Failed to generate donation receipt PDF:", pdfError);
+            // Continue without PDF if generation fails
+          }
+
+          console.log("Donation PDF buffer:", donationPdfBuffer ? "Generated successfully" : "Not available");
+          
+          await sendAppointmentConfirmationEmails({
+            doctorEmail: vetEmail,
+            doctorName: (vetDoc as any).name || "Doctor",
+            parentEmail: parentEmail,
+            parentName: (parentDoc as any).name || "Pet Parent",
+            petName: (petDoc as any)?.name || "Pet",
+            appointmentDate: apptDate,
+            appointmentTime: apptTime,
+            meetingLink,
+            donationPdfBuffer // Add PDF attachment if available
+          });
+        }
+      } catch (e) {
+        console.error("Failed to send appointment confirmation emails:", e);
+      }
+    })();
     const response: ISendResponse<any> = {
       success: true,
       data: newAppointment,

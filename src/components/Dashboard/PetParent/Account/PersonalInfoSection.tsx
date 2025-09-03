@@ -17,36 +17,93 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Edit3, Save, X, Camera } from "lucide-react";
+import {
+  Edit3,
+  Save,
+  X,
+  Camera,
+  User,
+  Mail,
+  Calendar,
+  MapPin,
+} from "lucide-react";
 import {
   PersonalInfoFormData,
   personalInfoSchema,
 } from "@/lib/validation/account";
 import { mockDoctorData } from "@/lib";
+import { PetParent } from "@/lib/types";
+import { Badge } from "@/components/ui/badge";
+import { useRouter } from "next/navigation";
 
-export default function PersonalInfoSection() {
+export default function PersonalInfoSection({
+  petParentData,
+}: {
+  petParentData: PetParent;
+}) {
   const [isLoading, setIsLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
 
-  // console.log(doctorData, "doctor in professional component");
+  const router = useRouter();
+  console.log(petParentData, "pet parent in professional component");
 
   const {
     register,
     handleSubmit,
     formState: { errors },
+    watch,
     reset,
     setValue,
   } = useForm<PersonalInfoFormData>({
     resolver: zodResolver(personalInfoSchema),
-    defaultValues: mockDoctorData.personalInfo,
+    defaultValues: {
+      firstName: petParentData?.firstName || "",
+      lastName: petParentData?.lastName || "",
+      email: petParentData?.email || "",
+      phone: petParentData?.phoneNumber || "",
+      dob: petParentData?.dob || "",
+      gender: petParentData?.gender || "",
+      address: petParentData?.address || "",
+      city: petParentData?.city || "",
+      state: petParentData?.state || "",
+      zipCode: petParentData?.zipCode || "",
+    },
   });
+
+  // inside your component
+  React.useEffect(() => {
+    if (petParentData) {
+      reset({
+        firstName: petParentData.firstName || "",
+        lastName: petParentData.lastName || "",
+        email: petParentData.email || "",
+        phone: petParentData.phoneNumber || "",
+        dob: petParentData.dob
+          ? new Date(petParentData.dob).toISOString().split("T")[0]
+          : "",
+        gender: petParentData.gender || "",
+        address: petParentData.address || "",
+        city: petParentData.city || "",
+        state: petParentData.state || "",
+        zipCode: petParentData.zipCode || "",
+      });
+    }
+  }, [petParentData, reset, isEditing]);
 
   const onSubmit = async (data: PersonalInfoFormData) => {
     setIsLoading(true);
     try {
       // API call would go here
       console.log("Updating personal info:", data);
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate API call
+      const res = await fetch(`/api/pet-parent/${petParentData?._id}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+      });
+
+      if (!res.ok) {
+        throw new Error();
+      }
+      router.refresh();
       setIsEditing(false);
     } catch (error) {
       console.error("Error updating personal info:", error);
@@ -56,106 +113,106 @@ export default function PersonalInfoSection() {
   };
 
   const handleCancel = () => {
-    reset(mockDoctorData.personalInfo);
+    // reset(mockDoctorData.personalInfo);
     setIsEditing(false);
   };
 
-  // if (!isEditing) {
-  //   return (
-  //     <Card className="shadow-lg border-0 bg-white overflow-hidden">
-  //       <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6 text-white">
-  //         <div className="flex items-center justify-between">
-  //           <div className="flex items-center gap-4">
-  //             <div className="bg-white/20 p-3 rounded-xl">
-  //               <User className="w-6 h-6" />
-  //             </div>
-  //             <div>
-  //               <CardTitle className="text-xl font-bold text-white">
-  //                 Personal Information
-  //               </CardTitle>
-  //               <p className="text-blue-100 mt-1">
-  //                 Your basic personal details and contact information
-  //               </p>
-  //             </div>
-  //           </div>
-  //           <Button
-  //             onClick={() => setIsEditing(true)}
-  //             variant="secondary"
-  //             className="bg-white/20 hover:bg-white/30 text-white border-white/30"
-  //           >
-  //             <Edit3 className="w-4 h-4 mr-2" />
-  //             Edit
-  //           </Button>
-  //         </div>
-  //       </div>
+  if (!isEditing) {
+    return (
+      <Card className="shadow-lg border-0 bg-white overflow-hidden">
+        <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6 text-white">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="bg-white/20 p-3 rounded-xl">
+                <User className="w-6 h-6" />
+              </div>
+              <div>
+                <CardTitle className="text-xl font-bold text-white">
+                  Personal Information
+                </CardTitle>
+                <p className="text-blue-100 mt-1">
+                  Your basic personal details and contact information
+                </p>
+              </div>
+            </div>
+            <Button
+              onClick={() => setIsEditing(true)}
+              variant="secondary"
+              className="bg-white/20 hover:bg-white/30 text-white border-white/30"
+            >
+              <Edit3 className="w-4 h-4 mr-2" />
+              Edit
+            </Button>
+          </div>
+        </div>
 
-  //       <CardContent className="p-8">
-  //         <div className="flex flex-col lg:flex-row gap-8">
-  //           {/* Profile Image Section */}
-  //           <div className="flex-shrink-0">
-  //             <div className="text-center">
-  //               <Avatar className="w-32 h-32 mx-auto mb-4 border-4 border-blue-100 shadow-lg">
-  //                 <AvatarImage
-  //                   src={doctorData?.profileImage}
-  //                   alt={`${doctorData?.name}`}
-  //                 />
-  //                 <AvatarFallback className="text-2xl font-bold text-gray-800 bg-gradient-to-br from-blue-100 to-purple-100">
-  //                   {doctorData?.name?.charAt(0)}
-  //                 </AvatarFallback>
-  //               </Avatar>
-  //               <h3 className="text-xl font-bold text-gray-900 mb-1">
-  //                 Dr. {doctorData?.name}
-  //               </h3>
-  //               <Badge className="bg-blue-100 text-blue-700 border-blue-300">
-  //                 Verified Profile
-  //               </Badge>
-  //             </div>
-  //           </div>
+        <CardContent className="p-8">
+          <div className="flex flex-col lg:flex-row gap-8">
+            {/* Profile Image Section */}
+            <div className="flex-shrink-0">
+              <div className="text-center">
+                <Avatar className="w-32 h-32 mx-auto mb-4 border-4 border-blue-100 shadow-lg">
+                  <AvatarImage
+                    src={petParentData?.profileImage}
+                    alt={`${petParentData?.name}`}
+                  />
+                  <AvatarFallback className="text-2xl font-bold text-gray-800 bg-gradient-to-br from-blue-100 to-purple-100">
+                    {petParentData?.name?.charAt(0)}
+                  </AvatarFallback>
+                </Avatar>
+                <h3 className="text-xl font-bold text-gray-900 mb-1">
+                  Dr. {petParentData?.name}
+                </h3>
+                <Badge className="bg-blue-100 text-blue-700 border-blue-300">
+                  Verified Profile
+                </Badge>
+              </div>
+            </div>
 
-  //           {/* Information Grid */}
-  //           <div className="flex-1">
-  //             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-  //               <InfoItem
-  //                 icon={<Mail className="w-5 h-5 text-blue-600" />}
-  //                 label="Email Address"
-  //                 value={doctorData?.email}
-  //               />
-  //               <InfoItem
-  //                 icon={<Calendar className="w-5 h-5 text-purple-600" />}
-  //                 label="Date of Birth"
-  //                 value={new Date(doctorData?.dob || "").toLocaleDateString(
-  //                   "en-US",
-  //                   {
-  //                     year: "numeric",
-  //                     month: "long",
-  //                     day: "numeric",
-  //                   }
-  //                 )}
-  //               />
-  //               <InfoItem
-  //                 icon={<User className="w-5 h-5 text-pink-600" />}
-  //                 label="Gender"
-  //                 value={
-  //                   mockDoctorData.personalInfo.gender.charAt(0).toUpperCase() +
-  //                   mockDoctorData.personalInfo.gender.slice(1)
-  //                 }
-  //               />
-  //             </div>
+            {/* Information Grid */}
+            <div className="flex-1">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <InfoItem
+                  icon={<Mail className="w-5 h-5 text-blue-600" />}
+                  label="Email Address"
+                  value={petParentData?.email}
+                />
+                <InfoItem
+                  icon={<Calendar className="w-5 h-5 text-purple-600" />}
+                  label="Date of Birth"
+                  value={new Date(petParentData?.dob || "").toLocaleDateString(
+                    "en-US",
+                    {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    }
+                  )}
+                />
+                <InfoItem
+                  icon={<User className="w-5 h-5 text-pink-600" />}
+                  label="Gender"
+                  value={
+                    petParentData?.gender?.charAt(0)?.toUpperCase() +
+                    petParentData?.gender?.slice(1)
+                  }
+                />
+              </div>
 
-  //             <div className="mt-6">
-  //               <InfoItem
-  //                 icon={<MapPin className="w-5 h-5 text-red-600" />}
-  //                 label="Address"
-  //                 value={`${doctorData?.address}, ${doctorData?.city}, ${doctorData?.state} ${doctorData?.zipCode}, ${doctorData?.country}`}
-  //                 fullWidth
-  //               />
-  //             </div>
-  //           </div>
-  //         </div>
-  //       </CardContent>
-  //     </Card>
-  //   );
-  // }
+              <div className="mt-6">
+                <InfoItem
+                  icon={<MapPin className="w-5 h-5 text-red-600" />}
+                  label="Address"
+                  value={`${petParentData?.address}, ${petParentData?.state} `}
+                  fullWidth
+                />
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="shadow-lg border-0 bg-white overflow-hidden">
@@ -200,13 +257,9 @@ export default function PersonalInfoSection() {
           {/* Profile Image Section */}
           <div className="flex flex-col items-center gap-4">
             <Avatar className="w-32 h-32 border-4 border-emerald-100 shadow-lg">
-              <AvatarImage
-                src={mockDoctorData.personalInfo.profileImage}
-                alt="Profile"
-              />
+              <AvatarImage src={petParentData?.profileImage} alt="Profile" />
               <AvatarFallback className="text-2xl font-bold text-gray-800 bg-gradient-to-br from-emerald-100 to-teal-100">
-                {mockDoctorData.personalInfo.firstName.charAt(0)}
-                {mockDoctorData.personalInfo.lastName.charAt(0)}
+                {petParentData?.name?.charAt(1)}
               </AvatarFallback>
             </Avatar>
             <Button
@@ -234,7 +287,6 @@ export default function PersonalInfoSection() {
                 </p>
               )}
             </div>
-
             <div className="space-y-2">
               <Label htmlFor="lastName">Last Name</Label>
               <Input
@@ -290,6 +342,7 @@ export default function PersonalInfoSection() {
             <div className="space-y-2">
               <Label htmlFor="gender">Gender</Label>
               <Select
+                value={watch("gender")}
                 onValueChange={(value) =>
                   setValue("gender", value as "male" | "female" | "other")
                 }
@@ -303,6 +356,7 @@ export default function PersonalInfoSection() {
                   <SelectItem value="other">Other</SelectItem>
                 </SelectContent>
               </Select>
+
               {errors.gender && (
                 <p className="text-sm text-red-600">{errors.gender.message}</p>
               )}
@@ -366,24 +420,31 @@ export default function PersonalInfoSection() {
                   </p>
                 )}
               </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="country">Country</Label>
-                <Input
-                  id="country"
-                  {...register("country")}
-                  className="border-gray-300 focus:border-emerald-500 focus:ring-emerald-500"
-                />
-                {errors.country && (
-                  <p className="text-sm text-red-600">
-                    {errors.country.message}
-                  </p>
-                )}
-              </div>
             </div>
           </div>
         </form>
       </CardContent>
     </Card>
+  );
+}
+
+interface InfoItemProps {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  fullWidth?: boolean;
+}
+
+function InfoItem({ icon, label, value, fullWidth = false }: InfoItemProps) {
+  return (
+    <div className={`${fullWidth ? "col-span-full" : ""}`}>
+      <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl border border-gray-200 hover:border-gray-300 transition-colors">
+        <div className="flex-shrink-0 mt-0.5">{icon}</div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium text-gray-600 mb-1">{label}</p>
+          <p className="text-gray-900 font-semibold break-words">{value}</p>
+        </div>
+      </div>
+    </div>
   );
 }
