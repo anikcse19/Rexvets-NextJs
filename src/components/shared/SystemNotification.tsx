@@ -1,24 +1,10 @@
 import { formatRelativeTime } from "@/lib/utils";
-import { format, formatDistanceToNow, isToday, isYesterday } from "date-fns";
-import {
-  Calendar,
-  Clock,
-  FileText,
-  Gift,
-  Heart,
-  MessageCircle,
-  RefreshCw,
-  Stethoscope,
-  Trash2,
-  User,
-} from "lucide-react";
+import { RefreshCw, Trash2 } from "lucide-react";
 import React from "react";
 import {
   FaCalendarCheck,
   FaComment,
-  FaDonate,
   FaPrescriptionBottle,
-  FaTimes,
 } from "react-icons/fa";
 
 export enum NotificationType {
