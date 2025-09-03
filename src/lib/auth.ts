@@ -179,6 +179,7 @@ export const authOptions = {
           image: token.image,
           refId: token.refId,
           timezone: token.timezone,
+          categoryBadge: token.categoryBadge,
         });
       }
 

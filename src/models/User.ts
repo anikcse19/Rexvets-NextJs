@@ -37,6 +37,8 @@ export interface IUser extends Document {
   // Common fields for session
   name?: string;
   profileImage?: string;
+  // Recognition / donor badge (copied from PetParent)
+  categoryBadge?: "Friend of Rex Vet" | "Community Champion" | "Pet Care Hero";
   fcmTokens: {
     web?: string;
     mobile?: string;
@@ -184,6 +186,12 @@ const userSchema = new Schema<IUser>(
       type: String,
       trim: true,
     },
+
+    // Donor / recognition badge (copied from PetParent for easy session access)
+    categoryBadge: {
+      type: String,
+      enum: ["Friend of Rex Vet", "Community Champion", "Pet Care Hero"],
+    },
   },
   {
     timestamps: true,
@@ -200,6 +208,8 @@ userSchema.index({ isActive: 1 });
 userSchema.index({ isDeleted: 1 });
 userSchema.index({ emailVerificationToken: 1 });
 userSchema.index({ passwordResetToken: 1 });
+// Index for faster lookup by badge if needed for leaderboard etc.
+userSchema.index({ categoryBadge: 1 });
 
 // Virtual for checking if account is locked
 userSchema.virtual("isLocked").get(function () {
