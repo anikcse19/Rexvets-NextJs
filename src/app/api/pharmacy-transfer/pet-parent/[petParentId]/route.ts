@@ -3,14 +3,18 @@ import { connectToDatabase } from "@/lib/mongoose";
 import { PharmacyTransferRequestModel } from "@/models/PharmacyTransferRequest";
 import "@/models/Appointment";
 
+interface Params {
+  petParentId: string;
+}
+
 export async function GET(
   req: NextRequest,
-  { params }: { params: { petParentId: string } }
+  { params }: { params: Promise<{ petParentId: string }> }
 ) {
   await connectToDatabase();
 
   try {
-    const { petParentId } = params;
+    const { petParentId } = await params;
 
     if (!petParentId) {
       return NextResponse.json(
@@ -19,14 +23,13 @@ export async function GET(
       );
     }
 
-    // 🔹 Directly query with petParentId
     const requests = await PharmacyTransferRequestModel.find({ petParentId })
       .populate([
         {
           path: "appointment",
           populate: [{ path: "veterinarian", model: "Veterinarian" }],
         },
-        { path: "petParentId", model: "PetParent" }, // optional if you want parent details
+        { path: "petParentId", model: "PetParent" },
       ])
       .sort({ createdAt: -1 });
 
