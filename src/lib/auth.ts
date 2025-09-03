@@ -35,6 +35,7 @@ export const authOptions = {
           id: profile.sub,
           name: profile.name,
           email: profile.email,
+          categoryBadge: profile.categoryBadge,
           image: profile.picture,
           role: "pet_parent", // Default role for Google OAuth users
         };
@@ -124,6 +125,7 @@ export const authOptions = {
             image: fullUserData?.profileImage || (user as any).profileImage,
             role: (user as any).role,
             timezone: (user as any)?.timezone,
+            categoryBadge: (user as any)?.categoryBadge,
             refId:
               (user as any).role === "pet_parent"
                 ? (user as any).petParentRef?.toString()
@@ -167,6 +169,7 @@ export const authOptions = {
         token.image = user.image;
         token.refId = user.refId;
         token.timezone = user.timezone;
+        token.categoryBadge = user.categoryBadge;
 
         // Console log the JWT token data on initial sign in
         console.log("🔑 JWT Token Data (Initial Sign In):", {
@@ -192,6 +195,7 @@ export const authOptions = {
           image: token.image as string,
           refId: token.refId as string,
           timezone: token.timezone as string,
+          categoryBadge: token.categoryBadge as string,
         };
       }
 
@@ -264,6 +268,7 @@ export const authOptions = {
             user.name = existingUser.name;
             user.image = existingUser.profileImage;
             user.timezone = existingUser?.timezone;
+            user.categoryBadge = existingUser?.categoryBadge;
 
             // Add reference to veterinarian profile if user is a veterinarian
             if (
@@ -294,6 +299,7 @@ export const authOptions = {
             user.name = newUser.name;
             user.timezone = newUser?.timezone;
             user.image = newUser.profileImage;
+            user.categoryBadge = newUser.categoryBadge;
             user.refId =
               newUser.role === "pet_parent"
                 ? newUser.petParentRef?.toString()

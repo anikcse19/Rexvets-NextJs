@@ -1,3 +1,4 @@
+import { Appointment, Pet } from "@/lib/types";
 import mongoose, { Document, Model, Schema } from "mongoose";
 
 export interface IPetParent extends Document {
@@ -24,15 +25,9 @@ export interface IPetParent extends Document {
   donationPaid: boolean;
   lastDonationDate?: Date;
   lastDonationAmount?: number;
-
-  pets: Array<{
-    name: string;
-    type: "dog" | "cat" | "bird" | "fish" | "reptile" | "other";
-    breed?: string;
-    age?: number;
-    weight?: number;
-    medicalHistory?: string[];
-  }>;
+  categoryBadge?: "Friend of Rex Vet" | "Community Champion" | "Pet Care Hero";
+  pets: string[];
+  appointments: string[];
   emergencyContact?: {
     name: string;
     phone: string;
@@ -125,6 +120,9 @@ const petParentSchema = new Schema<IPetParent>(
     dob: {
       type: Date,
     },
+
+    categoryBadge: { type: String },
+
     // isEmailVerified removed - now handled by User model
     // Authentication fields removed - now handled by User model
     // emailVerificationToken: { ... },
@@ -182,32 +180,14 @@ const petParentSchema = new Schema<IPetParent>(
 
     pets: [
       {
-        name: {
-          type: String,
-          trim: true,
-        },
-        type: {
-          type: String,
-          enum: ["dog", "cat", "bird", "fish", "reptile", "other"],
-        },
-        breed: {
-          type: String,
-          trim: true,
-        },
-        age: {
-          type: Number,
-          min: 0,
-        },
-        weight: {
-          type: Number,
-          min: 0,
-        },
-        medicalHistory: [
-          {
-            type: String,
-            trim: true,
-          },
-        ],
+        type: Schema.Types.ObjectId,
+        ref: "Pet",
+      },
+    ],
+    appointments: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Appointment",
       },
     ],
     emergencyContact: {

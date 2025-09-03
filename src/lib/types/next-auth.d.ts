@@ -20,6 +20,7 @@ declare module "next-auth" {
     specialization?: string;
     licenseNumber?: string;
     consultationFee?: number;
+    categoryBadge: string;
     available?: boolean;
     pets?: any[];
     emergencyContact?: {
@@ -51,6 +52,7 @@ declare module "next-auth/jwt" {
     locale?: string;
     isApproved?: boolean;
     specialization?: string;
+    categoryBadge: string;
     licenseNumber?: string;
     consultationFee?: number;
     available?: boolean;
