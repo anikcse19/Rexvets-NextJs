@@ -121,6 +121,9 @@ export default function DonationComponent({
       }
 
       // Create payment intent via API
+      console.log("Submitting donation with isRecurring:", isRecurring);
+      console.log("Type of isRecurring:", typeof isRecurring);
+      
       const res = await fetch("/api/donations/create-payment-intent", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -174,6 +177,22 @@ export default function DonationComponent({
       }
 
       toast.success("Thank you for your donation!");
+      
+      // Reset form after successful donation
+      setCustomAmount("");
+      setSelectedAmount(35);
+      setShowCustomInput(false);
+      setDonorName("");
+      setDonorEmail("");
+      setIsRecurring(false);
+      
+      // Clear card element
+      if (elements) {
+        const cardElement = elements.getElement(CardElement);
+        if (cardElement) {
+          cardElement.clear();
+        }
+      }
       
       // Call the onDonate callback if provided
       onDonate?.({
