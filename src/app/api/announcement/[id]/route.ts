@@ -8,7 +8,7 @@ import { authOptions } from "@/lib/auth";
 
 export async function GET(
   _req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: any
 ) {
   await connectToDatabase();
   try {
@@ -43,7 +43,7 @@ export async function GET(
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: any
 ) {
   await connectToDatabase();
   try {
@@ -70,7 +70,7 @@ export async function PATCH(
 
 export async function DELETE(
   _req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: any
 ) {
   await connectToDatabase();
   try {

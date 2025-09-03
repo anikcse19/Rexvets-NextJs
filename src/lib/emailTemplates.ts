@@ -20,10 +20,10 @@ export const bookingConfirmationDoctorTemplate = (
   meetingLink: string
 ) => `
     <div style="background-color: #c5f1fc; padding: 0; text-align: center; width: 100%;"></div>
-    <p>Dear ${doctorName},</p>
+    <p>Dear Dr. ${doctorName},</p>
     <p>We're excited to confirm your upcoming video call appointment with ${parentName} at Rex Vets. Here are the details for your appointment:</p>
     <p><strong>Start Time:</strong> ${appointmentDateTime}</p>
-    <p><strong>Veterinarian:</strong> ${doctorName}</p>
+    <p><strong>Veterinarian:</strong> Dr. ${doctorName}</p>
     <p><strong>Parent:</strong> ${parentName}</p>
     <p><strong>Pet Name:</strong> ${petName}</p>
     <div style="text-align: center; margin: 20px 0;">

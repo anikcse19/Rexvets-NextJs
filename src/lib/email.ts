@@ -324,22 +324,7 @@ export async function sendPasswordReset(email: string, token: string, name: stri
 }
 
 // Test email configuration
-export async function testEmailConfiguration(): Promise<boolean> {
-  try {
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-      console.log('Email configuration not found. Please set EMAIL_USER and EMAIL_PASS environment variables.');
-      return false;
-    }
 
-    const transporter = createTransporter();
-    await transporter.verify();
-    console.log('Email configuration is valid!');
-    return true;
-  } catch (error) {
-    console.error('Email configuration test failed:', error);
-    return false;
-  }
-}
 
 // Appointment confirmation email templates
 // Deprecated inline templates replaced by shared templates in emailTemplates.ts
@@ -434,7 +419,8 @@ export async function sendAppointmentConfirmationEmails({
       parentMailOptions.attachments = [
         {
           filename: 'Donation_Receipt.pdf',
-          content: donationPdfBuffer,
+          content: donationPdfBuffer.toString('base64'),
+          encoding: 'base64',
           contentType: 'application/pdf',
         },
       ];

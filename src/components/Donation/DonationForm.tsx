@@ -150,12 +150,10 @@ const DonationForm: React.FC<DonationFormProps> = ({
       // Confirm the payment
       let confirmResult;
       if (isRecurring && data.subscriptionId) {
-        // Handle subscription confirmation
         confirmResult = await stripe.confirmCardPayment(data.clientSecret, {
           payment_method: paymentMethod.id,
         });
       } else {
-        // Handle one-time payment confirmation
         confirmResult = await stripe.confirmCardPayment(data.clientSecret, {
           payment_method: paymentMethod.id,
         });
@@ -163,6 +161,20 @@ const DonationForm: React.FC<DonationFormProps> = ({
 
       if (confirmResult.error) {
         throw new Error(confirmResult.error.message || "Payment failed");
+      }
+
+      // NEW: confirm payment and update donation record & send thank you email
+      try {
+        await fetch("/api/donations/confirm-payment", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            paymentIntentId: data.paymentIntentId,
+            donationId: data.donationId,
+          }),
+        });
+      } catch (emailError) {
+        console.error("Error confirming payment and sending thank you email:", emailError);
       }
 
       // Mark donation as paid in PetParent record
