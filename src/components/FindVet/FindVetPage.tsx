@@ -3,6 +3,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import useFCM from "@/hooks/useFCM";
 import {
   Award,
   Calendar,
@@ -14,8 +15,10 @@ import {
   Stethoscope,
   Users,
 } from "lucide-react";
+import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { toast } from "sonner";
 import DoctorCard from "./DoctorCard";
 import { GetAllVetsResponse } from "./type";
 
@@ -32,6 +35,48 @@ export default function FindVetPage({
   const [doctors, setDoctors] = useState<any>(initialDoctors || []);
   const [isLoading, setIsLoading] = useState(false);
 
+  //PUSH NOTIFICATION TESTING_______________
+  const { data: session } = useSession();
+  const user = session?.user;
+  console.log("USER", user);
+  const { requestPermission, getFcmToken, saveToken, token, error: fcmError, loading: fcmLoading, isSupported } = useFCM();
+  const tokenSavedRef = useRef(false);
+
+  useEffect(() => {
+    if (isSupported) {
+      requestPermission();
+      getFcmToken();
+    } else {
+      console.log("Push notifications not supported in this browser");
+    }
+  }, [isSupported, requestPermission, getFcmToken]);
+
+  useEffect(() => {
+    const saveTokenToDatabase = async () => {
+      if (user?.id && token && !tokenSavedRef.current) {
+        console.log("Attempting to save token to database...");
+        tokenSavedRef.current = true;
+        const success = await saveToken(user.id);
+        if (success) {
+          console.log("Token saved successfully to database");
+        } else {
+          console.error("Failed to save token to database");
+        }
+      }
+    };
+    saveTokenToDatabase();
+  }, [token, user, saveToken]);
+
+  // Debug logging
+  useEffect(() => {
+    console.log("FCM Hook State:", {
+      token: token ? "present" : "missing",
+      error: fcmError,
+      loading: fcmLoading,
+      isSupported,
+      permission: typeof window !== "undefined" ? Notification.permission : "unknown"
+    });
+  }, [token, fcmError, fcmLoading, isSupported]);
   console.log("Doctors", doctors);
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -123,7 +168,7 @@ export default function FindVetPage({
   };
 
   const filteredAndSortedDoctors = useMemo(() => {
-    let filtered = (doctors || []).filter((doctor: any) => {
+    const filtered = (doctors || []).filter((doctor: any) => {
       const matchesSearch =
         doctor.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (doctor.specialization &&
@@ -176,7 +221,53 @@ export default function FindVetPage({
 
     return { total, withSlots, avgRating: avgRating.toFixed(1) };
   }, [filteredAndSortedDoctors]);
+  const sendPushNotification = async () => {
+    try {
+      if (!user?.id) {
+        toast.error("User ID not found");
+        return;
+      }
 
+      if (!token) {
+        toast.error("No push subscription available. Please wait for subscription to be created.");
+        return;
+      }
+
+      console.log("Sending test notification with:", {
+        userId: user.id,
+        token: token ? "present" : "missing",
+        title: "Test Notification",
+        body: "This is a test notification",
+        page: "find-vet",
+      });
+
+      const response = await fetch("/api/notifications/test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: user.id,
+          token: token,
+          title: "Test Notification",
+          body: "This is a test notification",
+          page: "find-vet",
+        }),
+      });
+
+      const result = await response.json();
+      
+      if (response.ok) {
+        console.log("Push notification sent successfully:", result);
+        toast.success("Test notification sent successfully!");
+      } else {
+        console.error("Failed to send push notification:", result);
+        toast.error(result.message || "Failed to send push notification");
+      }
+    } catch (error: any) {
+      const errorMsg = error?.message || "Error sending push notification";
+      toast.error(errorMsg);
+      console.error("Error sending push notification:", error);
+    }
+  };
   return (
     <main className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 p-4 lg:p-6">
       <div className="max-w-7xl mx-auto space-y-8">
@@ -206,6 +297,31 @@ export default function FindVetPage({
 
             <div className="flex gap-3">
               <Button
+                onClick={() => sendPushNotification()}
+                disabled={!token || fcmLoading}
+                className="bg-white/20 hover:bg-white/30 text-white disabled:opacity-50"
+                aria-label="Send test push notification"
+              >
+                <Clock className="w-4 h-4 mr-2" aria-hidden="true" />
+                {fcmLoading ? "Setting up..." : token ? "Send Notification" : "Setup Required"}
+              </Button>
+              
+              {/* Push Notification Status */}
+              <div className="bg-white/20 rounded-lg px-4 py-2 text-sm">
+                <div className="flex items-center gap-2 mb-1">
+                  <div className={`w-2 h-2 rounded-full ${token ? 'bg-green-400' : 'bg-yellow-400'}`}></div>
+                  <span className="font-medium">
+                    {token ? 'Push Ready' : 'Setting up...'}
+                  </span>
+                </div>
+                {fcmError && (
+                  <div className="text-red-200 text-xs">{fcmError}</div>
+                )}
+                {fcmLoading && (
+                  <div className="text-blue-200 text-xs">Loading...</div>
+                )}
+              </div>
+              <Button
                 onClick={() => fetchDoctorsWithTimezone(userTimezone)}
                 disabled={isLoading}
                 className="bg-white/20 hover:bg-white/30 text-white"
@@ -225,6 +341,59 @@ export default function FindVetPage({
             </div>
           </div>
         </header>
+
+        {/* Push Notification Debug Section */}
+        {user && (
+          <section className="bg-white rounded-2xl shadow-lg p-6 border-0">
+            <h2 className="text-xl font-semibold mb-4">Push Notification Status</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="font-medium">Status:</span>
+                  <div className={`w-3 h-3 rounded-full ${token ? 'bg-green-500' : 'bg-yellow-500'}`}></div>
+                  <span>{token ? 'Ready' : 'Setting up...'}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="font-medium">Permission:</span>
+                  <span className={`px-2 py-1 rounded text-xs ${
+                    typeof window !== "undefined" && Notification.permission === 'granted' 
+                      ? 'bg-green-100 text-green-800' 
+                      : typeof window !== "undefined" && Notification.permission === 'denied'
+                      ? 'bg-red-100 text-red-800'
+                      : 'bg-yellow-100 text-yellow-800'
+                  }`}>
+                    {typeof window !== "undefined" ? Notification.permission : 'unknown'}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="font-medium">Loading:</span>
+                  <span className={fcmLoading ? 'text-blue-600' : 'text-gray-600'}>
+                    {fcmLoading ? 'Yes' : 'No'}
+                  </span>
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                {fcmError && (
+                  <div className="text-red-600 text-sm">
+                    <span className="font-medium">Error:</span> {fcmError}
+                  </div>
+                )}
+                <div className="text-sm text-gray-600">
+                  <span className="font-medium">Token:</span> {token ? 'Present' : 'Missing'}
+                </div>
+                <Button
+                  onClick={() => getFcmToken()}
+                  disabled={fcmLoading}
+                  size="sm"
+                  variant="outline"
+                >
+                  {fcmLoading ? 'Setting up...' : 'Refresh Subscription'}
+                </Button>
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* Search & Filter */}
         <section

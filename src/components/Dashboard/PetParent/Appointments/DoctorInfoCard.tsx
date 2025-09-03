@@ -132,7 +132,7 @@ export default function DoctorInfoCard({ doctor }: DoctorInfoCardProps) {
               Specialties
             </h4>
             <div className="flex flex-wrap gap-2">
-              {doctor?.specialties?.map((specialty, index) => (
+              {doctor?.specialities?.map((specialty, index) => (
                 <Badge
                   key={index}
                   className="bg-yellow-100 text-yellow-700 border-yellow-300 text-xs"

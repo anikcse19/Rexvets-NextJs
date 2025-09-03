@@ -32,7 +32,9 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
-
+firebase-admin.json
+firebase.json
+firebase.js
 # vercel
 .vercel
 
