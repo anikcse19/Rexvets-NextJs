@@ -1,14 +1,22 @@
 import config from "@/config/env.config";
 
 export const getAllVets = async (
-  queryParams?: Record<string, string | number>
+  queryParams?: Record<string, string | number>,
+  timezone?: string
 ) => {
-  const query = queryParams
-    ? "?" +
-      new URLSearchParams(queryParams as Record<string, string>).toString()
+  // Add timezone to query params if provided
+  const params = { ...queryParams };
+  if (timezone) {
+    params.timezone = timezone;
+  }
+
+  const query = Object.keys(params).length > 0
+    ? "?" + new URLSearchParams(params as Record<string, string>).toString()
     : "";
 
   console.log("config.BASE_URL", config.BASE_URL);
+  console.log("Fetching vets with timezone:", timezone);
+  
   const res = await fetch(`${config.BASE_URL}/api/veterinarian${query}`, {
     method: "GET",
     headers: { "Content-Type": "application/json" },

@@ -11,6 +11,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useDashboardContext } from "@/hooks/DashboardContext";
+import useFCM from "@/hooks/useFCM";
 import {
   getTimezoneOffset,
   getTodayUTC,
@@ -51,6 +52,11 @@ const AvailabilityManager: React.FC = () => {
 
   const { data: session } = useSession();
   const user = session?.user as SessionUserWithRefId | undefined;
+  // const { requestPermission, getFcmToken } = useFCM();
+  // useEffect(() => {
+  //   getFcmToken();
+  //   requestPermission();
+  // }, []);
 
   // const [userTimezone, setUserTimezone] = useState<string>("");
   const userTimezone = user?.timezone || "";

@@ -98,7 +98,6 @@ export default function DoctorProfilePage({
                 doctorData={doctorData}
                 onConfirm={(date: string, time: string, slot: string) => {
                   console.log(`Booking appointment for ${date} at ${time}`);
-                  alert(`Booking appointment for ${familyPlan} `);
                   setShowForm(true);
 
                   setSelectedDate(date);

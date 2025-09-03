@@ -1,5 +1,6 @@
 import { connectToDatabase } from "@/lib/mongoose";
 import { VeterinarianModel } from "@/models";
+import moment from "moment-timezone";
 import { NextRequest, NextResponse } from "next/server";
 
 /**
@@ -12,6 +13,7 @@ import { NextRequest, NextResponse } from "next/server";
  * - q: text search on name (optional)
  * - specialization: exact match (optional)
  * - available: 'true' | 'false' (optional)
+ * - timezone: string (optional, e.g., 'America/New_York', 'Europe/London', 'Asia/Tokyo') - defaults to UTC
  */
 export async function GET(req: NextRequest) {
   try {
@@ -110,8 +112,14 @@ export async function GET(req: NextRequest) {
     }
 
     // Build aggregation pipeline to include next two available slots
-    const todayStart = new Date();
-    todayStart.setHours(0, 0, 0, 0);
+    // Get user's timezone from query params or default to UTC
+    const userTimezone = searchParams.get("timezone") || "UTC";
+    
+    // Get current time in user's timezone
+    const now = moment().tz(userTimezone);
+    const todayStart = now.clone().startOf('day');
+    const currentTime = now.format('HH:mm');
+    
     const pipeline: any[] = [
       { $match: filter },
       {
@@ -123,7 +131,17 @@ export async function GET(req: NextRequest) {
               $match: {
                 $expr: { $eq: ["$vetId", "$$vetId"] },
                 status: "available",
-                date: { $gte: todayStart } // Today (inclusive) and future dates
+                $or: [
+                  // Future dates
+                  { date: { $gt: todayStart.toDate() } },
+                  // Today but future time slots
+                  {
+                    $and: [
+                      { date: { $eq: todayStart.toDate() } },
+                      { startTime: { $gt: currentTime } }
+                    ]
+                  }
+                ]
               }
             },
             {
@@ -156,6 +174,12 @@ export async function GET(req: NextRequest) {
           nextAvailableSlots: "$nextAvailableSlots"
         }
       },
+      // Filter out veterinarians who have no available slots
+      {
+        $match: {
+          "nextAvailableSlots.0": { $exists: true }
+        }
+      },
       { $sort: { createdAt: -1 } },
       { $skip: (page - 1) * limit },
       { $limit: limit }
@@ -168,6 +192,9 @@ export async function GET(req: NextRequest) {
     ]);
 
     // Debug logging
+    console.log("User timezone:", userTimezone);
+    console.log("Current time in user timezone:", currentTime);
+    console.log("Today start in user timezone:", todayStart.format());
     console.log("Filter applied:", JSON.stringify(filter, null, 2));
     console.log("Total veterinarians found:", total);
     console.log("Items returned:", items.length);
