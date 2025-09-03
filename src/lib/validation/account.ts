@@ -5,22 +5,14 @@ export const personalInfoSchema = z.object({
   firstName: z.string().min(2, "First name must be at least 2 characters"),
   lastName: z.string().min(2, "Last name must be at least 2 characters"),
   email: z.string().email("Please enter a valid email address"),
-  phone: z
-    .string()
-    .min(10, "Phone number must be at least 10 digits")
-    .optional(),
-  dob: z.string().min(1, "Date of birth is required").optional(),
-  gender: z.string({
-    message: "Please select a gender",
-  }),
-  address: z
-    .string()
-    .min(10, "Address must be at least 10 characters")
-    .optional(),
-  city: z.string().min(2, "City is required").optional(),
-  state: z.string().min(2, "State is required").optional(),
-  zipCode: z.string().min(4, "ZIP code is required").optional(),
-  country: z.string().min(2, "Country is required").optional(),
+  phone: z.string().optional(),
+  dob: z.string().optional(),
+  gender: z.string(),
+  address: z.string().optional(),
+  city: z.string().optional(),
+  state: z.string().optional(),
+  zipCode: z.string().optional(),
+  country: z.string().optional(),
   bio: z.string().min(150, "Bio must be at most 1000 characters").optional(),
   profileImage: z.string().url("Please provide a valid URL").optional(),
 });
@@ -38,7 +30,6 @@ export const professionalInfoSchema = z.object({
   certifications: z.array(z.string()).optional(),
   clinicName: z.string().min(2, "Clinic name is required"),
   clinicAddress: z.string().min(10, "Clinic address is required"),
-  emergencyContact: z.string().min(10, "Emergency contact is required"),
   licenses: z
     .array(
       z.object({
@@ -58,19 +49,9 @@ export const areasOfInterestSchema = z.object({
     .min(1, "Please select at least one specialty"),
   interests: z.array(z.string()).optional(),
   researchAreas: z.array(z.string()).optional(),
-});
-
-// Species Treated Schema
-export const speciesTreatedSchema = z.object({
-  species: z
-    .array(
-      z.object({
-        name: z.string(),
-        experience: z.enum(["beginner", "intermediate", "advanced", "expert"]),
-        yearsOfExperience: z.number().min(0),
-      })
-    )
-    .min(1, "Please add at least one species"),
+  speciesTreated: z
+    .array(z.string())
+    .min(1, "Please select at least one species"),
 });
 
 // Security Settings Schema
@@ -92,5 +73,4 @@ export const securitySettingsSchema = z
 export type PersonalInfoFormData = z.infer<typeof personalInfoSchema>;
 export type ProfessionalInfoFormData = z.infer<typeof professionalInfoSchema>;
 export type AreasOfInterestFormData = z.infer<typeof areasOfInterestSchema>;
-export type SpeciesTreatedFormData = z.infer<typeof speciesTreatedSchema>;
 export type SecuritySettingsFormData = z.infer<typeof securitySettingsSchema>;

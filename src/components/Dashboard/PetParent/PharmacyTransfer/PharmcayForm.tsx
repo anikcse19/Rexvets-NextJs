@@ -31,7 +31,6 @@ import {
 import { Stethoscope, MapPin, Phone, Building2 } from "lucide-react";
 import { PharmacyFormData } from "@/lib/types/pharmacy-transfer";
 import { pharmacyFormSchema } from "@/lib/validation/pharmacy-transfer";
-import { mockAppointments } from "@/lib/data/pharmacy-request";
 import { PaymentModal } from "./PaymentModal";
 import StripeContext from "@/hooks/StripeContext";
 import { useSession } from "next-auth/react";

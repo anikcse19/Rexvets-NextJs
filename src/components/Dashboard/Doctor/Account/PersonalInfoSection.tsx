@@ -52,7 +52,9 @@ export default function PersonalInfoSection({
       lastName: doctorData?.lastName || "",
       email: doctorData?.email || "",
       phone: doctorData?.phoneNumber || "",
-      dob: doctorData?.dob || doctorData.dob || "",
+      dob: doctorData.dob
+        ? new Date(doctorData.dob).toISOString().split("T")[0]
+        : "",
       gender: doctorData?.gender || "",
       address: doctorData?.address || "",
       city: doctorData?.city || "",
@@ -61,6 +63,7 @@ export default function PersonalInfoSection({
       country: doctorData?.country || "",
       profileImage: doctorData?.profileImage || "",
       name: doctorData?.name || "",
+      bio: doctorData?.bio,
     };
   }
 
@@ -80,6 +83,8 @@ export default function PersonalInfoSection({
 
   const bioValue = watch("bio") || "";
   const bioCharCount = bioValue.length;
+
+  console.log(errors);
 
   const onSubmit = async (data: PersonalInfoFormData) => {
     setIsLoading(true);
@@ -338,6 +343,7 @@ export default function PersonalInfoSection({
             <div className="space-y-2">
               <Label htmlFor="gender">Gender</Label>
               <Select
+                value={watch("gender")}
                 onValueChange={(value) =>
                   setValue("gender", value as "male" | "female" | "other")
                 }
@@ -405,6 +411,7 @@ export default function PersonalInfoSection({
                 <Label htmlFor="zipCode">ZIP/Postal Code</Label>
                 <Input
                   id="zipCode"
+                  type="number"
                   {...register("zipCode")}
                   className="border-gray-300 focus:border-emerald-500 focus:ring-emerald-500"
                 />
@@ -438,7 +445,7 @@ export default function PersonalInfoSection({
             </h3>
             <div className="space-y-2">
               <Label htmlFor="bio">Bio</Label>
-              <Label htmlFor="bio">Bio</Label>
+
               <Textarea
                 id="bio"
                 {...register("bio")}

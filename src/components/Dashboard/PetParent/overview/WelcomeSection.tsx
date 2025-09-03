@@ -37,8 +37,7 @@ const WelcomeSection = ({ petParentData }: { petParentData: PetParent }) => {
               Welcome back, {petParentData?.name}!
             </h1>
             <p className="text-blue-100 text-lg">
-              Caring for your beloved pets since{" "}
-              {new Date(petParentData?.createdAt).getFullYear()}
+              Caring for your beloved pets.
             </p>
           </div>
 
