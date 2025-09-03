@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { connectToDatabase } from "@/lib/mongoose";
 import { DonationModel, PetParentModel } from "@/models";
+import UserModel from "@/models/User";
 import config from "@/config/env.config";
 import { sendDonationThankYouEmail } from "@/lib/email";
 import { generateDonationReceiptPdf } from "@/lib/pdf/generatePdf";
@@ -104,12 +105,19 @@ export async function POST(request: NextRequest) {
     // Determine badge name based on donation amount
     const badgeName = getBadgeNameFromAmount(donation.donationAmount);
 
-    console.log("badgeName", badgeName, session?.user?.refId);
+    console.log("badgeName", badgeName, session?.user?.id);
 
-    if (session?.user?.refId) {
-      await PetParentModel.findByIdAndUpdate(session?.user?.refId, {
+    // // Persist badge on both PetParent (legacy) and User documents
+    // if (session?.user?.refId) {
+    //   await PetParentModel.findByIdAndUpdate(session.user.refId, {
+    //     categoryBadge: badgeName,
+    //   }).catch(() => null);
+    // }
+
+    if (session?.user?.id) {
+      await UserModel.findByIdAndUpdate(session.user.id, {
         categoryBadge: badgeName,
-      });
+      }).catch(() => null);
     }
 
     // Format donation date

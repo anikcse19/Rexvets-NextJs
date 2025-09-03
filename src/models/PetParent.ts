@@ -25,7 +25,7 @@ export interface IPetParent extends Document {
   donationPaid: boolean;
   lastDonationDate?: Date;
   lastDonationAmount?: number;
-  categoryBadge?: "Friend of Rex Vet" | "Community Champion" | "Pet Care Hero";
+  // categoryBadge?: "Friend of Rex Vet" | "Community Champion" | "Pet Care Hero";
   pets: string[];
   appointments: string[];
   emergencyContact?: {
@@ -121,7 +121,7 @@ const petParentSchema = new Schema<IPetParent>(
       type: Date,
     },
 
-    categoryBadge: { type: String },
+    // categoryBadge: { type: String },
 
     // isEmailVerified removed - now handled by User model
     // Authentication fields removed - now handled by User model
