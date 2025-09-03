@@ -76,4 +76,3 @@ export async function markAllReadForRecipient(recipientId: string) {
 
 export { NotificationType };
 export type { INotification };
-
