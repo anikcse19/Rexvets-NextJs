@@ -1,25 +1,31 @@
 import { authOptions } from "@/lib/auth";
+import { sendAppointmentConfirmationEmails } from "@/lib/email";
 import { connectToDatabase } from "@/lib/mongoose";
+import { generateDonationReceiptPdf } from "@/lib/pdf/generatePdf";
 import {
   IErrorResponse,
   ISendResponse,
   sendResponse,
   throwAppError,
 } from "@/lib/utils/send.response";
-import { VeterinarianModel } from "@/models";
-import PetParent from "@/models/PetParent";
-import { PetModel } from "@/models/Pet";
-import { sendAppointmentConfirmationEmails } from "@/lib/email";
-import { generateDonationReceiptPdf } from "@/lib/pdf/generatePdf";
-import DonationModel from "@/models/Donation";
+import {
+  INotification,
+  NotificationModel,
+  NotificationType,
+  VeterinarianModel,
+} from "@/models";
 import { AppointmentModel } from "@/models/Appointment";
 import { AppointmentSlot, SlotStatus } from "@/models/AppointmentSlot";
+import DonationModel from "@/models/Donation";
+import { PetModel } from "@/models/Pet";
+import PetParent from "@/models/PetParent";
+import User from "@/models/User";
+import "@/models/Veterinarian";
 import moment from "moment-timezone";
 import { Types } from "mongoose";
 import { getServerSession } from "next-auth/next";
 import { NextRequest } from "next/server";
 import z from "zod";
-import "@/models/Veterinarian";
 
 const appointmentSchema = z.object({
   veterinarian: z.string().refine((val) => Types.ObjectId.isValid(val), {
@@ -59,7 +65,10 @@ export async function POST(req: NextRequest) {
       };
       return throwAppError(errResp, 401);
     }
-
+    const storedFcmTokens = await User.findOne({
+      _id: session.user._id,
+    }).select("fcmTokens");
+    const fcmWebToken = storedFcmTokens.fcmTokens?.web;
     const body = await req.json();
     console.log("Body:---------------------------****", body);
     const parsed = appointmentSchema.safeParse(body);
@@ -100,12 +109,16 @@ export async function POST(req: NextRequest) {
     });
 
     // If not found and user is a veterinarian, try to find by session user's refId
-    if (!existingVet && (session.user as any)?.refId && session.user.role === "veterinarian") {
+    if (
+      !existingVet &&
+      (session.user as any)?.refId &&
+      session.user.role === "veterinarian"
+    ) {
       existingVet = await VeterinarianModel.findOne({
         _id: (session.user as any).refId,
         isActive: true,
       });
-      
+
       if (existingVet) {
         // Update the body to use the correct Veterinarian ID
         body.veterinarian = (session.user as any).refId;
@@ -130,7 +143,7 @@ export async function POST(req: NextRequest) {
       existingPetOwner = await PetParent.findOne({
         _id: (session.user as any).refId,
       });
-      
+
       if (existingPetOwner) {
         // Update the body to use the correct PetParent ID
         body.petParent = (session.user as any).refId;
@@ -213,9 +226,8 @@ export async function POST(req: NextRequest) {
     await newAppointment.save({ validateBeforeSave: true });
     existingSlot.status = SlotStatus.BOOKED;
     await existingSlot.save({ validateBeforeSave: false });
-
     // Fire-and-forget confirmation emails with donation receipt PDF (do not block response)
-    ;(async () => {
+    (async () => {
       try {
         const [vetDoc, parentDoc, petDoc] = await Promise.all([
           VeterinarianModel.findById(veterinarian).lean(),
@@ -228,51 +240,59 @@ export async function POST(req: NextRequest) {
         if (vetEmail && parentEmail) {
           const apptDate = moment(appointmentDateTime).format("YYYY-MM-DD");
           const apptTime = moment(appointmentDateTime).format("HH:mm");
-          
+
           // Find the latest donation for this pet parent to generate receipt
           let donationPdfBuffer: Buffer | undefined = undefined;
           try {
             console.log("Looking for donation with parentId:", petParent);
-            
+
             // Try to find by parentId first
             let latestDonation = await DonationModel.findOne(
               { parentId: petParent, status: "succeeded" },
               {},
               { sort: { timestamp: -1 } }
             ).lean();
-            
+
             // If not found, try to find by email
             if (!latestDonation && parentEmail) {
-              console.log("No donation found by parentId, trying email:", parentEmail);
+              console.log(
+                "No donation found by parentId, trying email:",
+                parentEmail
+              );
               latestDonation = await DonationModel.findOne(
                 { donorEmail: parentEmail, status: "succeeded" },
                 {},
                 { sort: { timestamp: -1 } }
               ).lean();
             }
-            
+
             // If still not found, try any recent successful donation
             if (!latestDonation) {
-              console.log("No donation found by parentId or email, trying any recent donation");
+              console.log(
+                "No donation found by parentId or email, trying any recent donation"
+              );
               latestDonation = await DonationModel.findOne(
                 { status: "succeeded" },
                 {},
                 { sort: { timestamp: -1 } }
               ).lean();
             }
-            
+
             console.log("Found donation:", latestDonation ? "Yes" : "No");
-            
+
             if (latestDonation) {
               // Generate donation receipt PDF
               const donation = latestDonation as any;
-              const paymentMethod = donation.paymentMethodLast4 ? 
-                `Card ending in ${donation.paymentMethodLast4}` : 
-                "Credit Card";
-              
+              const paymentMethod = donation.paymentMethodLast4
+                ? `Card ending in ${donation.paymentMethodLast4}`
+                : "Credit Card";
+
               // Log full donation object to debug
-              console.log("Full donation object:", JSON.stringify(donation, null, 2));
-              
+              console.log(
+                "Full donation object:",
+                JSON.stringify(donation, null, 2)
+              );
+
               // Log donation details to verify isRecurring flag
               console.log("Donation details for PDF:", {
                 donorName: donation.donorName,
@@ -281,21 +301,25 @@ export async function POST(req: NextRequest) {
                 isRecurringType: typeof donation.isRecurring,
                 isRecurringStringified: String(donation.isRecurring),
               });
-              
+
               // Force isRecurring to be explicitly false unless it's explicitly true
               // This is a temporary fix for existing donations that might have incorrect isRecurring values
               const hasSubscriptionId = !!donation.subscriptionId;
               const isRecurringDonation = hasSubscriptionId;
-              
+
               console.log("Subscription ID:", donation.subscriptionId);
               console.log("Has subscription:", hasSubscriptionId);
               console.log("Original isRecurring value:", donation.isRecurring);
-              console.log("Final isRecurring value being used:", isRecurringDonation);
-                
+              console.log(
+                "Final isRecurring value being used:",
+                isRecurringDonation
+              );
+
               donationPdfBuffer = await generateDonationReceiptPdf({
                 donorName: donation.donorName,
                 amount: donation.donationAmount,
-                receiptNumber: donation.transactionID || donation._id.toString(),
+                receiptNumber:
+                  donation.transactionID || donation._id.toString(),
                 isRecurring: isRecurringDonation,
                 badgeName: "Supporter",
                 date: moment(donation.timestamp).format("YYYY-MM-DD"),
@@ -307,8 +331,11 @@ export async function POST(req: NextRequest) {
             // Continue without PDF if generation fails
           }
 
-          console.log("Donation PDF buffer:", donationPdfBuffer ? "Generated successfully" : "Not available");
-          
+          console.log(
+            "Donation PDF buffer:",
+            donationPdfBuffer ? "Generated successfully" : "Not available"
+          );
+
           await sendAppointmentConfirmationEmails({
             doctorEmail: vetEmail,
             doctorName: (vetDoc as any).name || "Doctor",
@@ -318,13 +345,24 @@ export async function POST(req: NextRequest) {
             appointmentDate: apptDate,
             appointmentTime: apptTime,
             meetingLink,
-            donationPdfBuffer // Add PDF attachment if available
+            donationPdfBuffer, // Add PDF attachment if available
           });
         }
       } catch (e) {
         console.error("Failed to send appointment confirmation emails:", e);
       }
     })();
+    const notificationPayload: INotification = {
+      type: NotificationType.NEW_APPOINTMENT,
+      title: "New Appointment",
+      body: `You have a new appointment with ${existingVet.name}`,
+      recipientId: new Types.ObjectId(veterinarian),
+      actorId: new Types.ObjectId(petParent),
+      data: {
+        appointmentId: newAppointment._id,
+      },
+    };
+    await NotificationModel.create(notificationPayload);
     const response: ISendResponse<any> = {
       success: true,
       data: newAppointment,
