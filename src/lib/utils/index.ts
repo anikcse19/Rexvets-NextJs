@@ -3,6 +3,7 @@ import {
   differenceInCalendarDays,
   endOfDay,
   format,
+  formatDistanceToNowStrict,
   startOfDay,
 } from "date-fns";
 import { twMerge } from "tailwind-merge";
@@ -122,4 +123,35 @@ export const getDaysBetween = (dateRange: {
   const totalDays = days === 0 ? 1 : days + 1;
 
   return totalDays === 1 ? "1 day" : `${totalDays} days`;
+};
+export const formatRelativeTime = (dateString: string): string => {
+  const date = new Date(dateString);
+  const result = formatDistanceToNowStrict(date, { addSuffix: false });
+
+  // Example outputs from formatDistanceToNowStrict:
+  // "1 minute", "2 hours", "3 days"
+  const [value, unit] = result.split(" ");
+
+  switch (unit) {
+    case "second":
+    case "seconds":
+      return `${value}s ago`;
+    case "minute":
+    case "minutes":
+      return `${value}m ago`;
+    case "hour":
+    case "hours":
+      return `${value}h ago`;
+    case "day":
+    case "days":
+      return `${value}d ago`;
+    case "month":
+    case "months":
+      return `${value}mo ago`;
+    case "year":
+    case "years":
+      return `${value}y ago`;
+    default:
+      return result + " ago";
+  }
 };

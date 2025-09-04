@@ -1,35 +1,35 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  User,
-  MapPin,
-  Clock,
-  Plus,
-  Heart,
-  Stethoscope,
-  Calendar,
-  PawPrint,
-  FileText,
-  CheckCircle,
-  Star,
-  Sparkles,
-  Shield,
-  Award,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
 import { Doctor } from "@/lib/types";
-import { useRouter, useSearchParams } from "next/navigation";
-import { getPetsByParent } from "../Dashboard/PetParent/Service/pet";
-import AddPetModal from "../Dashboard/PetParent/Pets/AddPetModal";
+import { cn } from "@/lib/utils";
+import {
+  Award,
+  Calendar,
+  CheckCircle,
+  Clock,
+  FileText,
+  Heart,
+  MapPin,
+  PawPrint,
+  Plus,
+  Shield,
+  Sparkles,
+  Star,
+  Stethoscope,
+  User,
+} from "lucide-react";
 import { useSession } from "next-auth/react";
+import { useRouter, useSearchParams } from "next/navigation";
+import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
+import AddPetModal from "../Dashboard/PetParent/Pets/AddPetModal";
+import { getPetsByParent } from "../Dashboard/PetParent/Service/pet";
+import DoctorDetails from "./DoctorDetails";
 import PetConcerns from "./PetConcerns";
 import PetSelection from "./PetSelection";
-import DoctorDetails from "./DoctorDetails";
 
 export default function AppointmentConfirmation() {
   const [selectedPet, setSelectedPet] = useState<string | null>(null);
@@ -64,16 +64,18 @@ export default function AppointmentConfirmation() {
     const checkAccess = async () => {
       if (session?.user?.refId) {
         try {
-          const response = await fetch('/api/appointment-confirmation/check-access');
+          const response = await fetch(
+            "/api/appointment-confirmation/check-access"
+          );
           const data = await response.json();
-          
+
           if (!response.ok) {
             // Access denied - redirect based on error
             toast.error(data.message);
             window.location.href = data.redirectTo || "/donate";
             return;
           }
-          
+
           // Access granted
           setDonationStatus(data.donationStatus);
         } catch (error) {
@@ -140,8 +142,13 @@ export default function AppointmentConfirmation() {
 
     try {
       // Generate meeting link
-      const roomId = `${session.user.refId?.slice(0, 4)}${veterinarian?._id?.slice(0, 4)}${Date.now().toString(36)}`;
-      const meetingLink = `https://rexvets-nextjs.vercel.app/video-call/?${encodeURIComponent(roomId)}`;
+      const roomId = `${session.user.refId?.slice(
+        0,
+        4
+      )}${veterinarian?._id?.slice(0, 4)}${Date.now().toString(36)}`;
+      const meetingLink = `https://rexvets-nextjs.vercel.app/video-call/?${encodeURIComponent(
+        roomId
+      )}`;
 
       const appointmentCreateData = {
         veterinarian: veterinarian?._id,
@@ -158,8 +165,6 @@ export default function AppointmentConfirmation() {
         meetingLink: meetingLink,
       };
 
-
-
       const res = await fetch("/api/appointments", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -172,7 +177,7 @@ export default function AppointmentConfirmation() {
       }
 
       const data = await res.json();
-      
+
       if (data.success) {
         // Mark donation as used
         try {
@@ -198,7 +203,11 @@ export default function AppointmentConfirmation() {
       }
     } catch (error) {
       console.error("Error creating appointment:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to create appointment. Please try again.");
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Failed to create appointment. Please try again."
+      );
     } finally {
       setIsProcessing(false);
     }
@@ -221,8 +230,10 @@ export default function AppointmentConfirmation() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <p className="text-red-600 mb-4">Please sign in to access this page.</p>
-          <Button onClick={() => window.location.href = "/auth/signin"}>
+          <p className="text-red-600 mb-4">
+            Please sign in to access this page.
+          </p>
+          <Button onClick={() => (window.location.href = "/auth/signin")}>
             Sign In
           </Button>
         </div>
@@ -307,22 +318,27 @@ export default function AppointmentConfirmation() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className={`w-4 h-4 rounded-full ${donationStatus?.donationPaid ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                  <div
+                    className={`w-4 h-4 rounded-full ${
+                      donationStatus?.donationPaid
+                        ? "bg-green-500"
+                        : "bg-red-500"
+                    }`}
+                  ></div>
                   <div>
                     <h3 className="font-semibold text-gray-800">
                       Donation Status
                     </h3>
                     <p className="text-sm text-gray-600">
-                      {donationStatus?.donationPaid 
+                      {donationStatus?.donationPaid
                         ? `Donation paid - You can book your appointment`
-                        : `No donation found - Please donate first to book an appointment`
-                      }
+                        : `No donation found - Please donate first to book an appointment`}
                     </p>
                   </div>
                 </div>
                 {!donationStatus?.donationPaid && (
                   <Button
-                    onClick={() => window.location.href = "/donate"}
+                    onClick={() => (window.location.href = "/donate")}
                     className="bg-red-600 hover:bg-red-700 text-white"
                   >
                     Donate Now

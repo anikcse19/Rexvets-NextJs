@@ -8,7 +8,10 @@ import {
   PharmacyFormData,
   PharmacyRequest,
 } from "@/lib/types/pharmacy-transfer";
-
+import {
+  mockAppointments,
+  mockPharmacyRequests,
+} from "@/lib/data/pharmacy-request";
 import { toast } from "sonner";
 import { PharmacyForm } from "./PharmacyTransfer/PharmcayForm";
 import { RequestsTable } from "./PharmacyTransfer/RequestTable";

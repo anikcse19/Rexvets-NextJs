@@ -605,15 +605,6 @@ const VideoCallPreview: React.FC = () => {
                   )}
 
                 {/* Join Button */}
-                <button
-                  onClick={handleJoinVideoCall}
-                  className="w-full bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 hover:from-purple-700 hover:via-pink-700 hover:to-blue-700 text-white font-bold py-6 px-8 rounded-2xl text-lg transition-all duration-300 transform hover:scale-105 shadow-2xl hover:shadow-purple-500/25"
-                >
-                  <div className="flex items-center justify-center space-x-3">
-                    <Video className="w-6 h-6" />
-                    <span>JOIN VIDEO CALL</span>
-                  </div>
-                </button>
 
                 {/* Info Text */}
                 <div className="flex items-center justify-center space-x-2 text-white/60 text-sm">
@@ -714,7 +705,15 @@ const VideoCallPreview: React.FC = () => {
                     </div>
                   )}
                 </div>
-
+                <button
+                  onClick={handleJoinVideoCall}
+                  className="w-full bg-transparent mt-1 border border-gray-300  text-white font-bold py-6 px-8 rounded-2xl text-lg transition-all duration-300 transform hover:scale-105 shadow-2xl hover:shadow-purple-500/25"
+                >
+                  <div className="flex items-center justify-center space-x-3">
+                    <Video className="w-6 h-6" />
+                    <span>JOIN VIDEO CALL</span>
+                  </div>
+                </button>
                 {/* Camera Tips */}
                 <div className="mt-6 bg-white/5 backdrop-blur-sm rounded-2xl p-4 border border-white/10">
                   <h4 className="text-white font-semibold mb-2 flex items-center space-x-2">

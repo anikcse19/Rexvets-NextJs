@@ -32,15 +32,15 @@ export default function RoleSelector({
       gradient: "from-blue-500 via-cyan-500 to-teal-500",
       stats: "2K+ Licensed Vets",
     },
-    // {
-    //   id: "technician",
-    //   title: "Veterinary Technician",
-    //   description:
-    //     "Support veterinary care with advanced tools and collaborative platform",
-    //   icon: UserCheck,
-    //   gradient: "from-green-500 via-emerald-500 to-teal-500",
-    //   stats: "5K+ Technicians",
-    // },
+    {
+      id: "technician",
+      title: "Veterinary Technician",
+      description:
+        "Support veterinary care with advanced tools and collaborative platform",
+      icon: UserCheck,
+      gradient: "from-green-500 via-emerald-500 to-teal-500",
+      stats: "5K+ Technicians",
+    },
   ];
 
   return (
@@ -63,7 +63,7 @@ export default function RoleSelector({
         </motion.p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-6 md:grid-cols-3">
         {roles.map((role, index) => {
           const Icon = role.icon;
           const isSelected = selectedRole === role.id;
