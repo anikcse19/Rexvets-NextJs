@@ -2,7 +2,8 @@
 import { CardElement, useElements, useStripe } from "@stripe/react-stripe-js";
 import Image from "next/image";
 import { useSession } from "next-auth/react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 
 interface DonationData {
@@ -21,6 +22,8 @@ interface DonationComponentProps {
 export default function DonationComponent({
   onDonate,
 }: DonationComponentProps = {}) {
+  const searchParams = useSearchParams();
+  const amountParam = Number(searchParams.get("amount"));
   const stripe = useStripe();
   const elements = useElements();
   const { data: session } = useSession();
@@ -34,6 +37,23 @@ export default function DonationComponent({
   const [cvc, setCvc] = useState("");
   const [isRecurring, setIsRecurring] = useState(false);
   const [showCustomInput, setShowCustomInput] = useState(false);
+
+  // Initialize amount from query param
+  useEffect(() => {
+    if (!isNaN(amountParam) && amountParam > 0) {
+      if (donationOptions.some((opt) => opt.amount === amountParam)) {
+        setSelectedAmount(amountParam);
+        setCustomAmount("");
+        setShowCustomInput(false);
+      } else {
+        setSelectedAmount(0);
+        setCustomAmount(amountParam.toString());
+        setShowCustomInput(true);
+      }
+    }
+    // We only want to run once on mount when param present
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [amountParam]);
   const [donorName, setDonorName] = useState("");
   const [donorEmail, setDonorEmail] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
