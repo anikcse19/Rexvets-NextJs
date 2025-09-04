@@ -167,7 +167,6 @@ export interface Doctor {
   bio: string;
   degree: string;
   specialities: string[];
-  treatedSpecies: string[];
   interests: string[];
   researchAreas: string[];
   education: any[]; // if you know structure, replace `any[]` with proper type

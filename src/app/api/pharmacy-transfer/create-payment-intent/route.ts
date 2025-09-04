@@ -1,11 +1,19 @@
+import config from "@/config/env.config";
+import { authOptions } from "@/lib/auth";
+import { connectToDatabase } from "@/lib/mongoose";
+import {
+  AppointmentModel,
+  DonationModel,
+  INotification,
+  NotificationModel,
+  NotificationType,
+} from "@/models";
+import { PharmacyTransferRequestModel } from "@/models/PharmacyTransferRequest";
+import User from "@/models/User";
+import mongoose from "mongoose";
+import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
-import { connectToDatabase } from "@/lib/mongoose";
-import { DonationModel } from "@/models";
-import config from "@/config/env.config";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
-import { PharmacyTransferRequestModel } from "@/models/PharmacyTransferRequest";
 
 // Initialize Stripe with secret key for server-side operations
 const stripe = new Stripe((config.STRIPE_SECRET_KEY as string) || "", {
@@ -29,6 +37,15 @@ const stripe = new Stripe((config.STRIPE_SECRET_KEY as string) || "", {
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
+    
+    // Validate session
+    if (!session?.user?.email || !session?.user?.name || !session?.user?.refId || !session?.user?.id) {
+      return NextResponse.json(
+        { error: "User session is invalid or missing required information" },
+        { status: 401 }
+      );
+    }
+    
     const body = await request.json();
     // Extract donation details from request body
     const {
@@ -47,6 +64,14 @@ export async function POST(request: NextRequest) {
 
     console.log(body, "body");
 
+    // Validate required body parameters
+    if (!appointment) {
+      return NextResponse.json(
+        { error: "Appointment ID is required" },
+        { status: 400 }
+      );
+    }
+
     // Validate Stripe configuration
     if (!config.STRIPE_SECRET_KEY) {
       return NextResponse.json(
@@ -64,74 +89,136 @@ export async function POST(request: NextRequest) {
     }
 
     await connectToDatabase();
-
-    // 1. Find or create the customer
-    let customerId;
-    const customers = await stripe.customers.list({
-      email: session.user.email,
-      limit: 1,
-    });
-
-    if (customers.data.length > 0) {
-      customerId = customers.data[0].id;
-      console.log("[DEBUG] Found existing customer:", customerId);
-    } else {
-      const customer = await stripe.customers.create({
+    
+    // Start MongoDB session for transaction
+    const dbSession = await mongoose.startSession();
+    
+    try {
+      await dbSession.startTransaction();
+      
+      // 1. Find or create the customer
+      let customerId;
+      const customers = await stripe.customers.list({
         email: session.user.email,
-        name: session.user.name,
+        limit: 1,
       });
-      customerId = customer.id;
-      console.log("[DEBUG] Created new customer:", customerId);
-    }
 
-    // Handle one-time donation
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(Number(amount) * 100), // Donation amount is already in cents from frontend
-      currency,
-      customer: customerId,
-      receipt_email: session.user.email,
-      automatic_payment_methods: { enabled: true },
-      metadata: {
-        donorName: session.user.name,
-        donationType: "one-time",
-        ...(metadata || {}),
-      },
-    });
+      if (customers.data.length > 0) {
+        customerId = customers.data[0].id;
+        console.log("[DEBUG] Found existing customer:", customerId);
+      } else {
+        const customer = await stripe.customers.create({
+          email: session.user.email,
+          name: session.user.name,
+        });
+        customerId = customer.id;
+        console.log("[DEBUG] Created new customer:", customerId);
+      }
+      
+      const existingAppointment = await AppointmentModel.findById(
+        appointment
+      ).select("veterinarian pet").session(dbSession);
 
-    console.log("[DEBUG] Created paymentIntent:", paymentIntent.id);
+      // Validate that the appointment exists and has required fields
+      if (!existingAppointment) {
+        await dbSession.abortTransaction();
+        return NextResponse.json(
+          { error: "Appointment not found" },
+          { status: 404 }
+        );
+      }
 
-    console.log(session?.user?.refId);
+      if (!existingAppointment.veterinarian || !existingAppointment.pet) {
+        await dbSession.abortTransaction();
+        return NextResponse.json(
+          { error: "Appointment is missing required veterinarian or pet information" },
+          { status: 400 }
+        );
+      }
 
-    // Store one-time donation record
-    const donation = await PharmacyTransferRequestModel.create({
-      amount: Number(amount), // Convert cents back to dollars for storage
-      pharmacyName,
-      phoneNumber,
-      street,
-      city,
-      state,
-      appointment,
-      petParentId: session?.user?.refId,
-      status,
-      paymentStatus,
-      transactionID: paymentIntent.id,
-      paymentIntentId: paymentIntent.id,
-      stripeCustomerId: customerId,
-      timestamp: new Date(),
-      metadata,
-    });
+      // Handle one-time donation
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: Math.round(Number(amount) * 100), // Donation amount is already in cents from frontend
+        currency,
+        customer: customerId,
+        receipt_email: session.user.email,
+        automatic_payment_methods: { enabled: true },
+        metadata: {
+          donorName: session.user.name,
+          donationType: "one-time",
+          ...(metadata || {}),
+        },
+      });
+      
+      const existingUser = await User.findOne({
+        veterinarianRef: existingAppointment.veterinarian,
+      }).session(dbSession);
+      
+      const notificationPayload: INotification = {
+        type: NotificationType.PRESCRIPTION_REQUEST,
+        body: `A prescription request has been made by ${session.user.name}`,
+        petParentId: session.user.refId,
+        vetId: existingAppointment.veterinarian,
+        petId: existingAppointment.pet,
+        appointmentId: appointment,
+        data: {
+          appointmentId: appointment,
+          petId: existingAppointment.pet,
+        },
+        title: "Prescription Request",
+        recipientId: existingUser?._id,
+        actorId: session.user.id,
+      };
+      console.log("[DEBUG] Created paymentIntent:", paymentIntent.id);
 
-    return NextResponse.json({
-      clientSecret: paymentIntent.client_secret,
-      isRecurring: false,
-      donationId: donation._id,
-      paymentIntentId: paymentIntent.id,
-    });
-  } catch (error: any) {
-    console.error("create-payment-intent error:", error);
-    return NextResponse.json(
-      { error: "Failed to create payment intent" },
-      { status: 500 }
-    );
-  }
-}
+      console.log(session.user.refId);
+
+      // Store one-time donation record
+      const donation = await PharmacyTransferRequestModel.create([{
+        amount: Number(amount), // Convert cents back to dollars for storage
+        pharmacyName,
+        phoneNumber,
+        street,
+        city,
+        state,
+        appointment,
+        petParentId: session.user.refId,
+        status,
+        paymentStatus,
+        transactionID: paymentIntent.id,
+        paymentIntentId: paymentIntent.id,
+        stripeCustomerId: customerId,
+        timestamp: new Date(),
+        metadata,
+      }], { session: dbSession });
+      
+      await NotificationModel.create([notificationPayload], { session: dbSession });
+      
+      // Commit the transaction
+      await dbSession.commitTransaction();
+      console.log("[DEBUG] Transaction committed successfully");
+      
+      return NextResponse.json({
+        clientSecret: paymentIntent.client_secret,
+        isRecurring: false,
+        donationId: donation[0]._id,
+        paymentIntentId: paymentIntent.id,
+      });
+      
+    } catch (error: any) {
+      // Rollback transaction on error
+      await dbSession.abortTransaction();
+      console.error("[DEBUG] Transaction rolled back due to error:", error);
+      throw error;
+    } finally {
+             // End the session
+       await dbSession.endSession();
+     }
+   } catch (error: any) {
+     console.error("create-payment-intent error:", error);
+     return NextResponse.json(
+       { error: "Failed to create payment intent" },
+       { status: 500 }
+     );
+   }
+ }

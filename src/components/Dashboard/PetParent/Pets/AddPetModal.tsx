@@ -318,7 +318,7 @@ export default function AddPetModal({
                     setValue("breed", ""); // Reset breed when species changes
                   }}
                 >
-                  <SelectTrigger className="border-gray-300 focus:border-pink-500 focus:ring-pink-500 w-full">
+                  <SelectTrigger className="border-gray-300 focus:border-pink-500 focus:ring-pink-500">
                     <SelectValue placeholder="Select species" />
                   </SelectTrigger>
                   <SelectContent>
@@ -347,7 +347,7 @@ export default function AddPetModal({
                   onValueChange={(value) => setValue("breed", value)}
                   disabled={!selectedSpecies}
                 >
-                  <SelectTrigger className="border-gray-300 focus:border-pink-500 focus:ring-pink-500 w-full">
+                  <SelectTrigger className="border-gray-300 focus:border-pink-500 focus:ring-pink-500">
                     <SelectValue placeholder="Select breed" />
                   </SelectTrigger>
                   <SelectContent>
@@ -373,7 +373,7 @@ export default function AddPetModal({
                     setValue("gender", value as "male" | "female")
                   }
                 >
-                  <SelectTrigger className="border-gray-300 focus:border-pink-500 focus:ring-pink-500 w-full">
+                  <SelectTrigger className="border-gray-300 focus:border-pink-500 focus:ring-pink-500">
                     <SelectValue placeholder="Select gender" />
                   </SelectTrigger>
                   <SelectContent>
@@ -399,7 +399,7 @@ export default function AddPetModal({
                 <Select
                   onValueChange={(value) => setValue("primaryColor", value)}
                 >
-                  <SelectTrigger className="border-gray-300 focus:border-pink-500 focus:ring-pink-500 w-full">
+                  <SelectTrigger className="border-gray-300 focus:border-pink-500 focus:ring-pink-500">
                     <SelectValue placeholder="Select primary color" />
                   </SelectTrigger>
                   <SelectContent>
@@ -424,7 +424,7 @@ export default function AddPetModal({
                     setValue("spayedNeutered", value as any)
                   }
                 >
-                  <SelectTrigger className="border-gray-300 focus:border-pink-500 focus:ring-pink-500 w-full">
+                  <SelectTrigger className="border-gray-300 focus:border-pink-500 focus:ring-pink-500">
                     <SelectValue placeholder="Select status" />
                   </SelectTrigger>
                   <SelectContent>
@@ -502,7 +502,6 @@ export default function AddPetModal({
                 <Input
                   id="dateOfBirth"
                   type="date"
-                  max={new Date().toISOString().split("T")[0]}
                   {...register("dateOfBirth")}
                   className="border-gray-300 focus:border-green-500 focus:ring-green-500"
                 />
@@ -546,7 +545,7 @@ export default function AddPetModal({
           </div>
 
           {/* Medical Information */}
-          <div className="space-y-6 hidden">
+          <div className="space-y-6">
             <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
               <Shield className="w-5 h-5 text-purple-600" />
               <h3 className="text-lg font-semibold text-gray-900">
@@ -636,7 +635,7 @@ export default function AddPetModal({
             </div>
 
             {/* Medical Conditions */}
-            <div className="space-y-4 ">
+            <div className="space-y-4">
               <Label className="flex items-center gap-2">
                 <Pill className="w-4 h-4 text-orange-600" />
                 Medical Conditions
@@ -680,7 +679,7 @@ export default function AddPetModal({
             </div>
 
             {/* Current Medications */}
-            <div className="space-y-4 hidden">
+            <div className="space-y-4">
               <Label className="flex items-center gap-2">
                 <Pill className="w-4 h-4 text-blue-600" />
                 Current Medications
@@ -725,7 +724,7 @@ export default function AddPetModal({
           </div>
 
           {/* Additional Information */}
-          <div className="space-y-6 hidden">
+          <div className="space-y-6">
             <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
               <Phone className="w-5 h-5 text-teal-600" />
               <h3 className="text-lg font-semibold text-gray-900">
@@ -779,12 +778,12 @@ export default function AddPetModal({
               {isSubmitting ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  Adding...
+                  Registering...
                 </>
               ) : (
                 <>
                   <Save className="w-4 h-4 mr-2" />
-                  {editingPet ? "Update Pet" : "Add Pet"}
+                  {editingPet ? "Update Pet" : "Register Pet"}
                 </>
               )}
             </Button>

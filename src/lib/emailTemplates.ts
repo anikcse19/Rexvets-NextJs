@@ -4,7 +4,7 @@ export const welcomeEmailTemplate = (name: string) => `
             <p>Dear ${name},</p>
             <p>Welcome to Rex Vets and thank you for choosing us for your pet's healthcare needs. We're thrilled to have you on board and look forward to helping you and your furry friend live happier, healthier lives.</p>
             <p>You're now part of a community of pet lovers who are committed to providing the best care for their pets. To schedule your first video call with one of our experienced veterinarians, simply visit the 'Home' tab in your account and click 'Book a video call', and you'll be on your way to a virtual appointment.</p>
-            <p>If you have any questions or need assistance at any point along the way, please don't hesitate to reach out to our dedicated support team at support@rexvet.org. We're here to make your experience with Rex Vets as seamless and enjoyable as possible.</p>
+            <p>If you have any questions or need assistance at any point along the way, please don't hesitate to reach out to our dedicated support team at support@rexvets.com. We're here to make your experience with Rex Vets as seamless and enjoyable as possible.</p>
             <p>Thank you once again for choosing Rex Vets. We can't wait to assist you in providing the best possible care for your pet.</p>
             <p>Warm regards,<br>The Team at Rex Vets</p>
             <div style="background-color: #002366; padding: 10px; text-align: center;">
@@ -31,7 +31,7 @@ export const bookingConfirmationDoctorTemplate = (
     </div>
     <p style="text-align: center; word-break: break-all; color: #666;">Or copy and paste this link in your browser:<br/> ${meetingLink}</p>
     <p>Please make sure you're ready for the call at least a few minutes before the scheduled time.</p>
-    <p>If you need to reschedule or have any other questions, please feel free to reply to this email or contact our support team at <a href="mailto:support@rexvet.org">support@rexvet.org</a>.</p>
+    <p>If you need to reschedule or have any other questions, please feel free to reply to this email or contact our support team at <a href="mailto:support@rexvets.com">support@rexvets.com</a>.</p>
     <p>We thank you for your dedication to pet's care.</p>
     <p>Warm regards,<br>The Team at Rex Vets</p>
     <div style="background-color: #002366; padding: 10px; text-align: center;">
@@ -57,7 +57,7 @@ export const bookingConfirmationParentTemplate = (
     </div>
     <p style="text-align: center; word-break: break-all; color: #666;">Or copy and paste this link in your browser:<br/> ${meetingLink}</p>
     <p>Please make sure you're ready for the call at least a few minutes before the scheduled time. ${doctorName} is here to address any questions or concerns you have about your pet's health.</p>
-    <p>If you need to reschedule or have any other questions, please feel free to reply to this email or contact our support team at <a href="mailto:support@rexvet.org">support@rexvet.org</a>.</p>
+    <p>If you need to reschedule or have any other questions, please feel free to reply to this email or contact our support team at <a href="mailto:support@rexvets.com">support@rexvets.com</a>.</p>
     <p>We look forward to assisting you with your pet's care.</p>
     <p>Warm regards,<br>The Team at Rex Vets</p>
     <div style="background-color: #002366; padding: 10px; text-align: center;">
@@ -111,7 +111,7 @@ export const rescheduleConfirmationParentTemplate = (
   <div style="text-align: center; margin: 20px 0;"><a href="${meetingLink}" style="background-color: #002366; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;">Join Your Appointment</a></div>
   <p style="text-align: center; word-break: break-all; color: #666;">Or copy and paste this link in your browser:<br/> ${meetingLink}</p>
   <p>Please make sure you're ready and in a quiet place a few minutes before your scheduled time.</p>
-  <p>If you need to change your appointment again or have any questions, reply to this email or contact our team at <a href="mailto:support@rexvet.org">support@rexvet.org</a>.</p>
+  <p>If you need to change your appointment again or have any questions, reply to this email or contact our team at <a href="mailto:support@rexvets.com">support@rexvets.com</a>.</p>
   <p>We look forward to helping ${petName} feel their best!</p>
   <p>Warm regards,<br>The Team at Rex Vets</p>
   <div style="background-color: #002366; padding: 10px; text-align: center;"><img src="https://res.cloudinary.com/di6zff0rd/image/upload/v1747926532/Logo_debjuj.png" alt="Rex Vets Logo" width="150" style="display: block; margin: 0 auto;" /></div>
@@ -123,40 +123,17 @@ export const reminderParentTemplate = (
   appointmentDateTime: string,
   meetingLink: string
 ) => `
-<div style="background-color: #c5f1fc; padding: 0; text-align: center; width: 100%;">
-        <img src="https://res.cloudinary.com/di6zff0rd/image/upload/v1748961858/emailtemp1_sv6jxx.jpg" alt="Top Banner" style="display: block; height: auto; border: 0; width: 100%;" />
-    </div>
-    <p>Dear ${parentName},</p>
-
-    <p>This is a friendly reminder that your video call appointment with <strong> ${doctorName}</strong> at Rex Vets is starting in just 10 minutes!</p>
-    
-    <p><strong>Appointment Details:</strong></p>
-    <p><strong>Date & Time:</strong> ${appointmentDateTime}</p>
-    <p><strong>Veterinarian:</strong> ${doctorName}</p>
-    
-    <div style="text-align: center; margin: 20px 0;">
-        <a href="${meetingLink}" style="background-color: #002366; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;">
-            Join Appoinment Now
-        </a>
-    </div>
-    <p style="text-align: center; word-break: break-all; color: #666;">
-        Or copy and paste this link in your browser:<br/> ${meetingLink}
-    </p>
-
-    <p>Please ensure you're ready for the call and have any questions or concerns about your pet prepared for the consultation. ${doctorName} is looking forward to helping you and your furry friend.</p>
-
-    <p>To join your appointment, simply click the meeting link above a few minutes before your scheduled time.</p>
-
-    <p>If you experience any technical difficulties or need to reschedule, please contact our support team immediately at <a href="mailto:support@rexvet.org">support@rexvet.org</a>.</p>
-
-    <p>Thank you for choosing Rex Vets for your pet's healthcare needs.</p>
-
-    <p>Warm regards,<br>The Team at Rex Vets</p>
-
-    <!-- Add logo here -->
-    <div style="background-color: #002366; padding: 10px; text-align: center;">
-        <img src="https://res.cloudinary.com/di6zff0rd/image/upload/v1747926532/Logo_debjuj.png" alt="Rex Vets Logo" width="150" style="display: block; margin: 0 auto;" />
-    </div>
+  <div style="background-color: #c5f1fc; padding: 0; text-align: center; width: 100%;">
+    <img src="https://res.cloudinary.com/di6zff0rd/image/upload/v1748961858/emailtemp1_sv6jxx.jpg" alt="Top Banner" style="display: block; height: auto; border: 0; width: 100%;" />
+  </div>
+  <p>Dear ${parentName},</p>
+  <p>This is a friendly reminder that your video call appointment with <strong> ${doctorName}</strong> at Rex Vets is starting in just 10 minutes!</p>
+  <p><strong>Date & Time:</strong> ${appointmentDateTime}</p>
+  <div style="text-align: center; margin: 20px 0;"><a href="${meetingLink}" style="background-color: #002366; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;">Join Appoinment Now</a></div>
+  <p style="text-align: center; word-break: break-all; color: #666;">Or copy and paste this link in your browser:<br/> ${meetingLink}</p>
+  <p>Thank you for choosing Rex Vets for your pet's healthcare needs.</p>
+  <p>Warm regards,<br>The Team at Rex Vets</p>
+  <div style="background-color: #002366; padding: 10px; text-align: center;"><img src="https://res.cloudinary.com/di6zff0rd/image/upload/v1747926532/Logo_debjuj.png" alt="Rex Vets Logo" width="150" style="display: block; margin: 0 auto;" /></div>
 `;
 
 export const reminderDoctorTemplate = (
@@ -166,39 +143,15 @@ export const reminderDoctorTemplate = (
   meetingLink: string
 ) => `
   <div style="background-color: #c5f1fc; padding: 0; text-align: center; width: 100%;">
-        <img src="https://res.cloudinary.com/di6zff0rd/image/upload/v1748961858/emailtemp1_sv6jxx.jpg" alt="Top Banner" style="display: block; height: auto; border: 0; width: 100%;" />
-    </div>
-    <p>Dear ${doctorName},</p>
-
-    <p>This is a reminder that your video call appointment with <strong>${parentName}</strong> is starting in 10 minutes.</p>
-    
-    <p><strong>Appointment Details:</strong></p>
-    <p><strong>Date & Time:</strong> ${appointmentDateTime}</p>
-    <p><strong>Client:</strong> ${parentName}</p>
-  
-    <div style="text-align: center; margin: 20px 0;">
-        <a href="${meetingLink}" style="background-color: #002366; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;">
-            Join Appoinment Now
-        </a>
-    </div>
-    <p style="text-align: center; word-break: break-all; color: #666;">
-        Or copy and paste this link in your browser:<br/> ${meetingLink}
-    </p>
-
-    <p>Please ensure you're prepared for the consultation and have your notes ready. ${parentName} is counting on your expertise to help with their pet's healthcare needs.</p>
-
-    <p>To join the appointment, click the meeting link above when you're ready.</p>
-
-    <p>If you encounter any technical issues or need assistance, please contact our support team at <a href="mailto:support@rexvet.org">support@rexvet.org</a>.</p>
-
-    <p>Thank you for your dedication to providing excellent veterinary care through Rex Vets.</p>
-
-    <p>Best regards,<br>The Rex Vets Team</p>
-
-    <!-- Add logo here -->
-    <div style="background-color: #002366; padding: 10px; text-align: center;">
-        <img src="https://res.cloudinary.com/di6zff0rd/image/upload/v1747926532/Logo_debjuj.png" alt="Rex Vets Logo" width="150" style="display: block; margin: 0 auto;" />
-    </div>
+    <img src="https://res.cloudinary.com/di6zff0rd/image/upload/v1748961858/emailtemp1_sv6jxx.jpg" alt="Top Banner" style="display: block; height: auto; border: 0; width: 100%;" />
+  </div>
+  <p>Dear ${doctorName},</p>
+  <p>This is a reminder that your video call appointment with <strong>${parentName}</strong> is starting in 10 minutes.</p>
+  <p><strong>Date & Time:</strong> ${appointmentDateTime}</p>
+  <div style="text-align: center; margin: 20px 0;"><a href="${meetingLink}" style="background-color: #002366; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;">Join Appoinment Now</a></div>
+  <p style="text-align: center; word-break: break-all; color: #666;">Or copy and paste this link in your browser:<br/> ${meetingLink}</p>
+  <p>Best regards,<br>The Rex Vets Team</p>
+  <div style="background-color: #002366; padding: 10px; text-align: center;"><img src="https://res.cloudinary.com/di6zff0rd/image/upload/v1747926532/Logo_debjuj.png" alt="Rex Vets Logo" width="150" style="display: block; margin: 0 auto;" /></div>
 `;
 
 export const donationThankYouTemplate = (
@@ -238,15 +191,15 @@ export const donationThankYouTemplate = (
       <li>Every dollar helps us reach more families and save more lives — from emergency consultations to routine care.</li>
       <li>With your support, we're one step closer to making quality vet care accessible for every pet, regardless of circumstance.</li>
     </ul>
-    <p>If you have any questions, feel free to reach out to us at <a href="mailto:support@rexvet.org" style="color: #2563eb;">support@rexvet.org</a>.</p>
+    <p>If you have any questions, feel free to reach out to us at <a href="mailto:support@rexvets.com" style="color: #2563eb;">support@rexvets.com</a>.</p>
     <p style="margin-top: 20px;">With heartfelt thanks,</p>
     <p><em>– The RexVets Team</em></p>
   </div>
   <div class="footer">
     <p>Rex Vets Inc</p>
     <p>📍 123 Animal Care Drive, Miami, FL 33101</p>
-    <p>EIN: (123) 456-7690 | ✉️ support@rexvet.org</p>
-    <p>🌐 www.rexvet.org</p>
+    <p>EIN: (123) 456-7690 | ✉️ support@rexvets.com</p>
+    <p>🌐 www.rexvets.com</p>
   </div>
 </div>`;
 };
@@ -284,7 +237,7 @@ export const pharmacyRequestPaymentTemplate = ({
         <p style="margin-top: 30px; font-size: 15px; color: #333;">Our team will begin processing your pharmacy transfer right away. The typical turnaround is 2–3 business days.</p>
         <p style="font-size: 15px; color: #333;">If you have any questions or need support, feel free to reply to this email.</p>
       </div>
-      <div style="background-color: #f0f0f0; text-align: center; padding: 20px; font-size: 13px; color: #777;">🐾 RexVets • 123 Pet Lane, Animal City, USA<br/><a href="mailto:support@rexvet.org" style="color: #002366;">support@rexvet.org</a></div>
+      <div style="background-color: #f0f0f0; text-align: center; padding: 20px; font-size: 13px; color: #777;">🐾 RexVets • 123 Pet Lane, Animal City, USA<br/><a href="mailto:support@rexvets.com" style="color: #002366;">support@rexvets.com</a></div>
     </div>
   </div>`;
 };

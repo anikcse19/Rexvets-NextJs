@@ -96,7 +96,7 @@ const Header: React.FC = () => {
         background:
           "linear-gradient(135deg, #0f0c29 0%, #24243e 25%, #302b63 50%, #0f3460 75%, #002366 100%)",
       }}
-      className={` relative py-3 h-auto md:py-${
+      className={` relative py-2 h-auto md:py-${
         session?.user && session.user.role !== "veterinarian" ? "1" : "3"
       }   w-full  backdrop-blur-sm px-7  border-b border-slate-800/50 z-[9998]`}
     >
@@ -115,7 +115,7 @@ const Header: React.FC = () => {
         </div>
 
         {/* Desktop_Navigation */}
-        <div className="hidden lg:flex items-center justify-center space-x-6 z-[9999]">
+        <div className="hidden lg:flex items-center justify-center space-x-10 z-[9999]">
           <Link
             aria-label="Homepage"
             className="text-white hover:opacity-60 hover:text-emerald-400 font-bold transition-colors duration-300 text-center"

@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Heart, Edit3, Save, X, Lightbulb, Search, Plus } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
-import { availableSpecialties, availableSpecies, mockDoctorData } from "@/lib";
+import { availableSpecialties, mockDoctorData } from "@/lib";
 import {
   AreasOfInterestFormData,
   areasOfInterestSchema,
@@ -19,12 +19,11 @@ import {
 import { updateVet } from "../Service/update-vet";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { Doctor } from "@/lib/types";
 
 export default function AreasOfInterestSection({
   doctorData,
 }: {
-  doctorData: Doctor;
+  doctorData: any;
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -37,10 +36,6 @@ export default function AreasOfInterestSection({
   const [researchAreas, setResearchAreas] = useState<string[]>(
     doctorData?.researchAreas || []
   );
-  const [selectedSpecies, setSelectedSpecies] = useState<string[]>(
-    doctorData?.treatedSpecies || []
-  );
-
   const [newInterest, setNewInterest] = useState("");
   const [newResearchArea, setNewResearchArea] = useState("");
 
@@ -56,7 +51,6 @@ export default function AreasOfInterestSection({
       specialties: doctorData?.specialities || [],
       interests: doctorData?.interests || [],
       researchAreas: doctorData?.researchAreas || [],
-      speciesTreated: doctorData?.treatedSpecies || [],
     },
   });
 
@@ -66,12 +60,6 @@ export default function AreasOfInterestSection({
     setValue("specialties", selectedSpecialties);
   }, [selectedSpecialties, setValue]);
 
-  useEffect(() => {
-    setValue("speciesTreated", selectedSpecies);
-  }, [selectedSpecies, setValue]);
-
-  console.log(errors);
-
   const onSubmit = async () => {
     setIsLoading(true);
     try {
@@ -79,19 +67,12 @@ export default function AreasOfInterestSection({
         specialities: selectedSpecialties,
         interests,
         researchAreas,
-        treatedSpecies: selectedSpecies,
       };
       console.log("Updating areas of interest:", data);
-      const res = await fetch(`/api/veterinarian/${doctorData?._id}`, {
-        method: "PUT",
-        body: JSON.stringify(data),
-      });
-
-      if (!res.ok) {
-        throw new Error();
-      }
-      router.refresh();
+      await updateVet(data);
       setIsEditing(false);
+      toast.success("Areas of interest updated successfully!");
+      router.refresh(); // Refresh the current route to fetch updated data
     } catch (error) {
       toast.error(
         "Error updating areas of interest: " +
@@ -118,14 +99,6 @@ export default function AreasOfInterestSection({
       prev.includes(specialty)
         ? prev.filter((s) => s !== specialty)
         : [...prev, specialty]
-    );
-  };
-
-  const toggleSpecies = (species: string) => {
-    setSelectedSpecies((prev) =>
-      prev.includes(species)
-        ? prev.filter((s) => s !== species)
-        : [...prev, species]
     );
   };
 
@@ -198,24 +171,6 @@ export default function AreasOfInterestSection({
                     className="bg-gradient-to-r from-pink-100 to-rose-100 text-pink-700 border-pink-300 justify-center py-2 px-4 text-sm font-medium"
                   >
                     {specialty}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-
-            {/* species treated */}
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <Heart className="w-5 h-5 text-pink-600" />
-                Species Treated
-              </h3>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                {doctorData?.treatedSpecies?.map((species: any, index: any) => (
-                  <Badge
-                    key={index}
-                    className="bg-gradient-to-r from-pink-100 to-rose-100 text-pink-700 border-pink-300 justify-center py-2 px-4 text-sm font-medium"
-                  >
-                    {species}
                   </Badge>
                 ))}
               </div>
@@ -349,43 +304,6 @@ export default function AreasOfInterestSection({
             {selectedSpecialties.length === 0 && (
               <p className="text-sm text-red-600">
                 Please select at least one specialty
-              </p>
-            )}
-          </div>
-
-          {/* Species Treated */}
-          <div className="space-y-4">
-            <Label className="text-lg font-semibold text-gray-900">
-              Species Treated
-            </Label>
-            <p className="text-sm text-gray-600">
-              Select the species you have experience treating (minimum 1
-              required)
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-              {availableSpecies.map((species) => (
-                <div
-                  key={species}
-                  className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:border-indigo-300 transition-colors"
-                >
-                  <Checkbox
-                    id={species}
-                    checked={selectedSpecies.includes(species)}
-                    onCheckedChange={() => toggleSpecies(species)}
-                    className="data-[state=checked]:bg-indigo-600 data-[state=checked]:border-indigo-600"
-                  />
-                  <Label
-                    htmlFor={species}
-                    className="text-sm font-medium text-gray-900 cursor-pointer"
-                  >
-                    {species}
-                  </Label>
-                </div>
-              ))}
-            </div>
-            {selectedSpecies.length === 0 && (
-              <p className="text-sm text-red-600">
-                Please select at least one species
               </p>
             )}
           </div>
