@@ -41,7 +41,7 @@ const BecomeRexVetBenefitsTableSection: React.FC<BenefitsTableSectionProps> = ({
     <section className="py-12 md:py-20 bg-gray-100">
       <div className="max-w-[1200px] mx-auto px-4">
         <h2 className="text-3xl md:text-4xl font-bold text-center bg-[#1871CD] bg-clip-text text-transparent mb-8">
-          Exclusive RexVets Benefits
+          Exclusive RexVet Benefits
         </h2>
         <Card className="bg-white/90 backdrop-blur-sm border-blue-100/20 rounded-3xl overflow-hidden p-0 m-0">
           <Table className="w-full">
@@ -51,7 +51,7 @@ const BecomeRexVetBenefitsTableSection: React.FC<BenefitsTableSectionProps> = ({
                   Feature
                 </TableHead>
                 <TableHead className="text-white font-semibold py-5 px-6 text-center">
-                  RexVets
+                  RexVet
                 </TableHead>
                 <TableHead className="text-white font-semibold py-5 px-6 text-center">
                   Other Services
@@ -64,7 +64,7 @@ const BecomeRexVetBenefitsTableSection: React.FC<BenefitsTableSectionProps> = ({
                   key={index}
                   variants={rowVariants}
                   initial="initial"
-                  whileHover="hover"
+                  // whileHover="hover"
                   animate={{
                     backgroundColor:
                       index % 2 === 0

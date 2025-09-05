@@ -1,11 +1,12 @@
 import PetParentOverviewPage from "@/components/Dashboard/PetParent/OverviewPage";
-import React from "react";
+import Loader from "@/components/shared/Loader";
+import React, { Suspense } from "react";
 
 const page = () => {
   return (
-    <div>
+    <Suspense fallback={<Loader size={60} />}>
       <PetParentOverviewPage />
-    </div>
+    </Suspense>
   );
 };
 

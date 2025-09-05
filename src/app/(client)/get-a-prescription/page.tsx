@@ -1,9 +1,10 @@
+import Loader from "@/components/shared/Loader";
 import { sameAs, siteName, siteUrl } from "@/lib";
 import dynamic from "next/dynamic";
 import Head from "next/head";
 import React from "react";
 
-const loader = () => <p>loading...........</p>;
+const loader = () => <Loader size={60} />;
 
 const GetAPrescription = dynamic(
   () =>

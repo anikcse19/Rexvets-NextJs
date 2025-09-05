@@ -11,7 +11,7 @@ const BecomeRexVetFinalCTASection = () => {
           Ready to Transform Your Practice?
         </h2>
         <p className="text-lg text-gray-600 max-w-md mx-auto mb-6">
-          Join thousands of veterinarians making a difference with Rex Vets.
+          Join thousands of veterinarians making a difference with Rex Vet.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Button

@@ -35,7 +35,7 @@ const HowItWorksReimagined = () => {
               </span>
             </h2>
             <p className="text-gray-600 mb-6 text-base md:text-lg mt-5">
-              Rex Vets brings veterinary care to your home—no more stressful car
+              Rex Vet brings veterinary care to your home—no more stressful car
               rides or clinic waiting rooms. We prioritize comfort, convenience,
               and compassion so your pet feels safe and supported every step of
               the way.

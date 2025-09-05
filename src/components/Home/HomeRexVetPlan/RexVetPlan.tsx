@@ -22,7 +22,7 @@ const perAppointmentFeatures = [
 ];
 
 const familyPlanFeatures = [
-  "4 virtual vet appointments ($140 value minimum)",
+  "4 virtual vet appointments ($289 value minimum)",
   "Unlimited messaging with professionals",
   "Exclusive discounts on medications",
   "Free shipping on all orders over $49",

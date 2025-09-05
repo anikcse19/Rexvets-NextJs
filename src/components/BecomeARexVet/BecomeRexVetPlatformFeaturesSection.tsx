@@ -37,7 +37,7 @@ const BecomeRexVetPlatformFeaturesSection: React.FC<
       title: "Secure Client Interaction",
       items: [
         {
-          title: "Video & Chat Built for Vets",
+          title: "Video & Chat Built for Vet",
           description:
             "Connect with clients securely using integrated tools designed specifically for veterinary care—no third-party apps or tech confusion.",
         },

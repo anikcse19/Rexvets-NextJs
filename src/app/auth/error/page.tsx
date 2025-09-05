@@ -7,6 +7,7 @@ import { ArrowLeft, AlertTriangle, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Suspense } from "react";
+import Loader from "@/components/shared/Loader";
 
 function AuthErrorContent() {
   const searchParams = useSearchParams();
@@ -17,7 +18,8 @@ function AuthErrorContent() {
       case "Configuration":
         return {
           title: "Server Configuration Error",
-          message: "There is a problem with the server configuration. Please contact support.",
+          message:
+            "There is a problem with the server configuration. Please contact support.",
           icon: Shield,
         };
       case "AccessDenied":
@@ -35,19 +37,22 @@ function AuthErrorContent() {
       case "AccountLocked":
         return {
           title: "Account Temporarily Locked",
-          message: "Your account has been locked due to too many failed login attempts. Please try again later.",
+          message:
+            "Your account has been locked due to too many failed login attempts. Please try again later.",
           icon: Shield,
         };
       case "AccountDeactivated":
         return {
           title: "Account Deactivated",
-          message: "Your account has been deactivated. Please contact support for assistance.",
+          message:
+            "Your account has been deactivated. Please contact support for assistance.",
           icon: AlertTriangle,
         };
       default:
         return {
           title: "Authentication Error",
-          message: "An unexpected error occurred during authentication. Please try again.",
+          message:
+            "An unexpected error occurred during authentication. Please try again.",
           icon: AlertTriangle,
         };
     }
@@ -204,17 +209,7 @@ function AuthErrorContent() {
 }
 
 function LoadingFallback() {
-  return (
-    <div
-      style={{
-        background:
-          "linear-gradient(135deg, #0f0c29 0%, #24243e 25%, #302b63 50%, #0f3460 75%, #002366 100%)",
-      }}
-      className="min-h-screen flex items-center justify-center"
-    >
-      <div className="text-white text-lg">Loading...</div>
-    </div>
-  );
+  return <Loader size={60} />;
 }
 
 export default function AuthErrorPage() {

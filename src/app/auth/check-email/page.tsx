@@ -3,7 +3,7 @@
 import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { ArrowLeft, Mail, CheckCircle } from "lucide-react";
+import { ArrowLeft, Mail, CheckCircle, Loader } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Suspense } from "react";
@@ -73,19 +73,20 @@ function CheckEmailContent() {
                       Registration Successful!
                     </span>
                   </div>
-                  
+
                   <p className="text-white/80 text-lg leading-relaxed mb-4">
                     We've sent a verification link to:
                   </p>
-                  
+
                   {email && (
                     <p className="text-white font-semibold text-lg mb-6 break-all">
                       {email}
                     </p>
                   )}
-                  
+
                   <p className="text-white/70 text-base leading-relaxed">
-                    Click the verification link in your email to activate your account and start using RexVet.
+                    Click the verification link in your email to activate your
+                    account and start using RexVet.
                   </p>
                 </div>
 
@@ -132,7 +133,9 @@ function CheckEmailContent() {
 
                 {/* Additional Info */}
                 <div className="mt-8 p-4 bg-white/5 rounded-lg border border-white/10">
-                  <h3 className="text-white/90 font-semibold mb-2">Didn't receive the email?</h3>
+                  <h3 className="text-white/90 font-semibold mb-2">
+                    Didn't receive the email?
+                  </h3>
                   <ul className="text-white/70 text-sm space-y-1">
                     <li>• Check your spam/junk folder</li>
                     <li>• Make sure the email address is correct</li>
@@ -189,11 +192,7 @@ function CheckEmailContent() {
 
 export default function CheckEmailPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-white">Loading...</div>
-      </div>
-    }>
+    <Suspense fallback={<Loader size={60} />}>
       <CheckEmailContent />
     </Suspense>
   );

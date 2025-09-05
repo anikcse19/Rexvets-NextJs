@@ -1,10 +1,12 @@
 "use client";
 import { motion } from "framer-motion";
 import dynamic from "next/dynamic";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import CEOSection from "../CEOSection";
 import styles from "./hero.section.module.css";
-const loadingPlaceholder = () => <p>Loading...</p>;
+import Loader from "../shared/Loader";
+import HeroVideo from "../VideoPlayer";
+const loadingPlaceholder = () => <Loader size={60} />;
 
 const FloatingElements = dynamic(() => import("../FloatingParticle"), {
   loading: loadingPlaceholder,
@@ -12,12 +14,13 @@ const FloatingElements = dynamic(() => import("../FloatingParticle"), {
 const HeroContent = dynamic(() => import("./HeroContent"), {
   loading: loadingPlaceholder,
 });
-const VideoPlayer = dynamic(() => import("../VideoPlayer"), {
-  loading: loadingPlaceholder,
-});
+// const VideoPlayer = dynamic(() => import("../VideoPlayer"), {
+//   loading: loadingPlaceholder,
+// });
 const videoSource =
   "https://res.cloudinary.com/di6zff0rd/video/upload/v1753102241/RexVetsWeb_tb3zcq.mp4";
 const HeroSection = () => {
+  const [shouldPauseVideo, setShouldPauseVideo] = useState(false);
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(false);
 
@@ -28,13 +31,64 @@ const HeroSection = () => {
     setMuted((prev) => !prev);
   }, []);
 
+  // Scroll detection for video pause
+  useEffect(() => {
+    let lastScrollY = 0;
+
+    const handleScroll = () => {
+      // Get scroll position from different possible sources
+      const windowScrollY =
+        window.scrollY ||
+        window.pageYOffset ||
+        document.documentElement.scrollTop;
+      const bodyScrollY = document.body.scrollTop || 0;
+      const mainContentEl = document.querySelector(".main-content");
+      const mainContentScrollY = mainContentEl ? mainContentEl.scrollTop : 0;
+
+      // Use the scroll value that's actually changing
+      let currentScrollY = windowScrollY;
+      if (mainContentScrollY > 0) {
+        currentScrollY = mainContentScrollY;
+      } else if (bodyScrollY > 0) {
+        currentScrollY = bodyScrollY;
+      }
+
+      // If scrolling in any direction, trigger video pause
+      if (Math.abs(currentScrollY - lastScrollY) > 10) {
+        setShouldPauseVideo(true);
+        setTimeout(() => setShouldPauseVideo(false), 100);
+      }
+
+      lastScrollY = currentScrollY;
+    };
+
+    // Add scroll listeners to multiple possible scroll containers
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    document.addEventListener("scroll", handleScroll, { passive: true });
+    document.body.addEventListener("scroll", handleScroll, { passive: true });
+
+    const mainContentEl = document.querySelector(".main-content");
+    if (mainContentEl) {
+      mainContentEl.addEventListener("scroll", handleScroll, { passive: true });
+    }
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      document.removeEventListener("scroll", handleScroll);
+      document.body.removeEventListener("scroll", handleScroll);
+      if (mainContentEl) {
+        mainContentEl.removeEventListener("scroll", handleScroll);
+      }
+    };
+  }, []);
+
   return (
     <div className={styles.hero_container}>
-      <div className="min-h-screen   mt-16">
+      <div className="min-h-screen mt-16">
         <FloatingElements />
         <main className="">
-          <div className="3xl:max-w-screen-3xl mx-auto">
-            <div className="flex flex-col lg:flex-row gap-12 items-center">
+          <div className="container mx-auto">
+            <div className="flex flex-col xl:flex-row gap-12  md:gap-6 items-center">
               <div className="w-full">
                 <HeroContent />
               </div>
@@ -49,13 +103,7 @@ const HeroSection = () => {
                     heading="Meet Our CEO"
                     name="Dr. Tiffany Delacruz, DVM"
                   />
-                  <VideoPlayer
-                    source={videoSource}
-                    playing={playing}
-                    muted={muted}
-                    handlePlayPause={handlePlayPause}
-                    handleMuteToggle={handleMuteToggle}
-                  />
+                  <HeroVideo shouldPause={shouldPauseVideo} />
                 </motion.div>
               </div>
             </div>

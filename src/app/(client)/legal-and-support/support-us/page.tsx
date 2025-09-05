@@ -39,7 +39,7 @@ const SupportUs = () => {
       icon: Handshake,
       title: "Partner with Us",
       description:
-        "Are you an organization or business committed to making a difference? Partner with Rex Vets to help us expand our telehealth reach.",
+        "Are you an organization or business committed to making a difference? Partner with Rex Vet to help us expand our telehealth reach.",
       buttonText: "Learn More",
       action: () => navigate.push("/Contact"),
       color: "bg-amber-500",
@@ -68,11 +68,11 @@ const SupportUs = () => {
           <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold text-white leading-tight drop-shadow-lg">
             Support{" "}
             <span className="bg-gradient-to-r from-amber-400 to-amber-600 bg-clip-text text-transparent drop-shadow-md">
-              Rex Vets
+              Rex Vet
             </span>
           </h1>
           <p className="mt-6 text-lg md:text-xl text-white/90 max-w-3xl mx-auto leading-relaxed drop-shadow">
-            As a non-profit organization, Rex Vets depends on the kindness and
+            As a non-profit organization, Rex Vet depends on the kindness and
             generosity of our community to expand our telehealth services. There
             are several ways you can support our mission.
           </p>
@@ -90,7 +90,7 @@ const SupportUs = () => {
           return (
             <div
               key={index}
-              className="bg-white/90 backdrop-blur-xl rounded-3xl border border-white/20 shadow-lg p-8 flex flex-col hover:scale-[1.02] hover:-translate-y-2 transition-all duration-300"
+              className="bg-white/90 backdrop-blur-xl rounded-3xl border border-white/20 shadow-lg p-8 flex flex-col justify-center items-center hover:scale-[1.02] hover:-translate-y-2 transition-all duration-300"
             >
               <div
                 className={`w-20 h-20 rounded-2xl flex items-center justify-center mb-6 shadow-lg ${option.color}`}
@@ -159,13 +159,13 @@ const SupportUs = () => {
           </p>
           <div className="flex flex-wrap gap-4 justify-center">
             <button
-              onClick={() => navigate.push("/DonatePage1")}
+              onClick={() => navigate.push("/donate-now")}
               className="py-4 px-8 rounded-full text-white font-semibold cursor-pointer flex items-center gap-2 bg-gradient-to-r from-blue-500 to-purple-600 shadow-lg hover:shadow-xl hover:-translate-y-1 transition"
             >
-              Donate Today <Heart size={20} />
+              Donate now <Heart size={20} />
             </button>
             <button
-              onClick={() => navigate.push("/Contact")}
+              onClick={() => navigate.push("/contact")}
               className="py-4 px-8 rounded-full cursor-pointer text-white font-semibold flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-emerald-700 shadow-lg hover:shadow-xl hover:-translate-y-1 transition"
             >
               Get Involved <Users size={20} />

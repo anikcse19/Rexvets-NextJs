@@ -70,7 +70,7 @@ const OurTeamAbout: React.FC = () => {
 
   const heroData: HeroData = {
     coverImage: "/images/our-team/AboutUsCover.webp",
-    chipLabel: "About Rex Vets",
+    chipLabel: "About Rex Vet",
     title1: "Bringing Joy to",
     title2: "Every Paw & Heart",
     subtitle:
@@ -86,7 +86,7 @@ const OurTeamAbout: React.FC = () => {
     title: "Building bonds that last a",
     titleHighlight: "lifetime,",
     subtitle1:
-      "At Rex Vets, our mission is to increase access to veterinary care for all pets regardless of their family's financial or geographic limitations. Too often, animals end up in shelters or suffer from preventable, late-stage medical conditions simply because timely care wasn't available.",
+      "At Rex Vet, our mission is to increase access to veterinary care for all pets regardless of their family's financial or geographic limitations. Too often, animals end up in shelters or suffer from preventable, late-stage medical conditions simply because timely care wasn't available.",
     subtitle2:
       "We believe that early and consistent veterinary care is not only essential for animal health but also critical to strengthening the human animal bond. By making care more accessible, we're improving the lives of pets—and the people who love them.",
     gradients,
@@ -102,7 +102,7 @@ const OurTeamAbout: React.FC = () => {
         name: "Tiffany Delacruz",
         title: "Chief Executive Officer",
         description:
-          "Tiffany Delacruz, the CEO of Rex Vets, is a licensed veterinarian with a profound dedication to preventive medicine, striving to enhance the well-being of pets. With extensive experience in veterinary practice, Tiffany possesses a comprehensive understanding of the concerns of pet owners and their beloved companions. Under her astute leadership, Rex Vets has emerged as a renowned entity in the veterinary realm.",
+          "Tiffany Delacruz, the CEO of Rex Vet, is a licensed veterinarian with a profound dedication to preventive medicine, striving to enhance the well-being of pets. With extensive experience in veterinary practice, Tiffany possesses a comprehensive understanding of the concerns of pet owners and their beloved companions. Under her astute leadership, Rex Vet has emerged as a renowned entity in the veterinary realm.",
         image: "/images/our-team/CEO.webp",
         icon: "School",
         gradient: gradients.accent,
@@ -111,7 +111,7 @@ const OurTeamAbout: React.FC = () => {
         name: "Johnny Dominguez",
         title: "Founder",
         description:
-          "Johnny Dominguez is the visionary founder behind Rex Vets. With a doctorate in computer science philosophy and a lifelong love for animals, Johnny set out to reimagine how pet families access care. Driven by a passion for innovation and compassion, he built Rex Vets to make veterinary support more accessible, especially for those who need it most.",
+          "Johnny Dominguez is the visionary founder behind Rex Vet. With a doctorate in computer science philosophy and a lifelong love for animals, Johnny set out to reimagine how pet families access care. Driven by a passion for innovation and compassion, he built Rex Vet to make veterinary support more accessible, especially for those who need it most.",
         image: "/images/our-team/Founder.webp",
         icon: "Psychology",
         gradient: gradients.secondary,

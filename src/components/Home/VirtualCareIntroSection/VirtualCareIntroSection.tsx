@@ -86,7 +86,7 @@ const VirtualCareIntroSection: React.FC = () => {
             >
               <Button
                 className="py-8 my-4  w-[180px] z-50 cursor-pointer rounded-2xl bg-gradient-to-br  from-[#00276A] to-[#003d8a] text-white text-lg font-semibold shadow-[0_8px_24px_rgba(0,39,106,0.3)]"
-                onClick={() => navigate.push("/findAVet")}
+                onClick={() => navigate.push("/find-a-vet")}
               >
                 Find a Vet
                 <IoArrowForward className="ml-2 text-xl" />

@@ -22,7 +22,7 @@ const PrivacyPolicy = () => {
         "Any time you access our website or mobile application, or log into your account, you authorize us to collect information in accordance with this policy. You are granting your consent to its use.",
         "We collect personal information, including your name, email address, IP address, password, and any other information you provide, when you visit and use the Services.",
         "We make every effort to safeguard this information and ensure that it is solely utilized to provide you with the Services.",
-        "We collaborate with third-party service providers, such as Square Payments and Facebook, to simplify the user experience of Rex Vets. By employing a third-party service through Rex Vets, you are also agreeing to the privacy policies of that service.",
+        "We collaborate with third-party service providers, such as Square Payments and Facebook, to simplify the user experience of Rex Vet. By employing a third-party service through Rex Vet, you are also agreeing to the privacy policies of that service.",
         "Cookies are identifiers that we may add to your computing device in order to recognize you when you access the Services. You are not obligated to accept any cookies; however, you may wish to do so in order to optimize your use of the Service.",
         "We refrain from selling, renting, or trading any information you provide us or disclosing it to any third parties, with the exception of the following: When legally required; or",
         "To ensure the safety of our users.",
@@ -36,7 +36,7 @@ const PrivacyPolicy = () => {
       color: "bg-emerald-500",
       textColor: "text-emerald-500",
       content: [
-        "Device, browser, and IP address information and server log information (date, time, and pages visited) may be collected anonymously from Services visitors. Our mobile device and internet connection data may include the device's unique device identifier (e.g., Android Advertising Identifier or Advertising Identifier for iOS), MAC address, IP address, operating system, web browser type, mobile network information, and telephone number. Rex Vets uses this data to understand visitors and improve your experience.",
+        "Device, browser, and IP address information and server log information (date, time, and pages visited) may be collected anonymously from Services visitors. Our mobile device and internet connection data may include the device's unique device identifier (e.g., Android Advertising Identifier or Advertising Identifier for iOS), MAC address, IP address, operating system, web browser type, mobile network information, and telephone number. Rex Vet uses this data to understand visitors and improve your experience.",
       ],
     },
     {
@@ -45,7 +45,7 @@ const PrivacyPolicy = () => {
       color: "bg-violet-500",
       textColor: "text-violet-500",
       content: [
-        "Device, browser, and IP address information and server log information (date, time, and pages visited) may be collected anonymously from Services visitors. Our mobile device and internet connection data may include the device's unique device identifier (e.g., Android Advertising Identifier or Advertising Identifier for iOS), MAC address, IP address, operating system, web browser type, mobile network information, and telephone number. Rex Vets uses this data to understand visitors and improve your experience.",
+        "Device, browser, and IP address information and server log information (date, time, and pages visited) may be collected anonymously from Services visitors. Our mobile device and internet connection data may include the device's unique device identifier (e.g., Android Advertising Identifier or Advertising Identifier for iOS), MAC address, IP address, operating system, web browser type, mobile network information, and telephone number. Rex Vet uses this data to understand visitors and improve your experience.",
       ],
     },
     {
@@ -54,7 +54,7 @@ const PrivacyPolicy = () => {
       color: "bg-amber-500",
       textColor: "text-amber-500",
       content: [
-        "We use third-party services to maintain Rex Vets. You authorize us to acquire your name, email address, and other information from these Third-Party Services if you authorize us to connect with them. The Terms of Service and Privacy Policies of these Third-Party Services govern your use. Only this Privacy Policy shall govern our use and disclosure of such information.",
+        "We use third-party services to maintain Rex Vet. You authorize us to acquire your name, email address, and other information from these Third-Party Services if you authorize us to connect with them. The Terms of Service and Privacy Policies of these Third-Party Services govern your use. Only this Privacy Policy shall govern our use and disclosure of such information.",
       ],
     },
     {
@@ -63,8 +63,8 @@ const PrivacyPolicy = () => {
       color: "bg-red-500",
       textColor: "text-red-500",
       content: [
-        "We may set and access cookies on your computer or mobile device when you use Rex Vets. User ID, user preferences, lists of pages visited, and Services actions are stored in 'cookies' on your computer. We also use cookies to track site traffic and improve the online experience. Some cookies may be active while you browse a website ('session cookies'). Some cookies remain on your computer after you stop your browser or turn it off ('persistent cookies'). We may use tracking cookies on other websites to offer relevant adverts.",
-        "You do not have to accept cookies, but if they are disabled, you may not be able to log in or use some Rex Vets features. You can accept all cookies, reject all cookies, or receive cookie notifications in your browser. See www.allaboutcookies.org to disable browser cookies or opt out of cookies.",
+        "We may set and access cookies on your computer or mobile device when you use Rex Vet. User ID, user preferences, lists of pages visited, and Services actions are stored in 'cookies' on your computer. We also use cookies to track site traffic and improve the online experience. Some cookies may be active while you browse a website ('session cookies'). Some cookies remain on your computer after you stop your browser or turn it off ('persistent cookies'). We may use tracking cookies on other websites to offer relevant adverts.",
+        "You do not have to accept cookies, but if they are disabled, you may not be able to log in or use some Rex Vet features. You can accept all cookies, reject all cookies, or receive cookie notifications in your browser. See www.allaboutcookies.org to disable browser cookies or opt out of cookies.",
         "On the Site, in emails, and on third-party platforms like Facebook, we may employ pixels. A pixel in marketing emails may tell us when you click a link. These tools run and optimize our Site and marketing emails.",
         "Third-party cookies are not covered by this privacy policy, and we have no control over their privacy practices or policies. Be aware that even after you leave our site, third-party cookies may still be tracking your online activity.",
       ],
@@ -84,9 +84,9 @@ const PrivacyPolicy = () => {
       color: "bg-purple-600",
       textColor: "text-purple-600",
       content: [
-        "Your personal information is mostly needed to create a Rex Vets user account and use the Services. Your personal information is also used:",
-        "Fulfill requests for information and respond to correspondence; - Manage and expand services, perform analysis, and support business growth for Rex Vets and other offerings.",
-        "Provide information about Rex Vets and our Services; - Contact you when necessary or requested; - Customize your Service experience; - Send marketing or promotional emails based on your preferences; or - Prevent, detect, and investigate security breaches and illegal activities.",
+        "Your personal information is mostly needed to create a Rex Vet user account and use the Services. Your personal information is also used:",
+        "Fulfill requests for information and respond to correspondence; - Manage and expand services, perform analysis, and support business growth for Rex Vet and other offerings.",
+        "Provide information about Rex Vet and our Services; - Contact you when necessary or requested; - Customize your Service experience; - Send marketing or promotional emails based on your preferences; or - Prevent, detect, and investigate security breaches and illegal activities.",
         "To perform statistical studies, we may anonymize and aggregate some of your personal information and show it publicly.",
       ],
     },
@@ -138,11 +138,11 @@ const PrivacyPolicy = () => {
               </div>
               <div className="flex-1">
                 <h2 className="text-2xl md:text-3xl font-bold text-slate-800 mb-3">
-                  Welcome to Rex Vets Privacy Policy
+                  Welcome to Rex Vet Privacy Policy
                 </h2>
                 <p className="text-slate-600 leading-relaxed">
-                  Welcome! Rex Vets ("we," "our," or "us") collects certain
-                  types of personal information when you use our website, online
+                  Welcome! Rex Vet ("we," "our," or "us") collects certain types
+                  of personal information when you use our website, online
                   services, and mobile app (together, the "Site" and the
                   "Services"). This privacy policy explains those types of
                   information. We care about your privacy, so we do everything
@@ -173,7 +173,7 @@ const PrivacyPolicy = () => {
                 </h2>
                 <p className="text-slate-600 leading-relaxed">
                   We collect, retain, and process a variety of information when
-                  you visit or use Rex Vets in order to verify your identity and
+                  you visit or use Rex Vet in order to verify your identity and
                   provide you with high-quality services.
                 </p>
               </div>
@@ -199,7 +199,7 @@ const PrivacyPolicy = () => {
                       {section.title}
                     </h2>
 
-                    {section.title === "For Pet Parents" && (
+                    {section.title === "Pet Parents" && (
                       <p
                         className={`italic p-3 mb-4 rounded-xl border ${section.textColor} ${section.textColor}/20 bg-opacity-5`}
                       >

@@ -1,15 +1,15 @@
 export const welcomeEmailTemplate = (name) => `
-            <h1>Welcome to Rex Vets!</h1>
+            <h1>Welcome to Rex Vet!</h1>
             <p>Dear ${name},</p>
-            <p>Welcome to Rex Vets and thank you for choosing us for your pet's healthcare needs. We're thrilled to have you on board and look forward to helping you and your furry friend live happier, healthier lives.</p>
+            <p>Welcome to Rex Vet and thank you for choosing us for your pet's healthcare needs. We're thrilled to have you on board and look forward to helping you and your furry friend live happier, healthier lives.</p>
             <p>You're now part of a community of pet lovers who are committed to providing the best care for their pets. To schedule your first video call with one of our experienced veterinarians, simply visit the 'Home' tab in your account and click 'Book a video call', and you'll be on your way to a virtual appointment.</p>
-            <p>If you have any questions or need assistance at any point along the way, please don't hesitate to reach out to our dedicated support team at support@rexvets.com. We're here to make your experience with Rex Vets as seamless and enjoyable as possible.</p>
-            <p>Thank you once again for choosing Rex Vets. We can't wait to assist you in providing the best possible care for your pet.</p>
-            <p>Warm regards,<br>The Team at Rex Vets</p>
+            <p>If you have any questions or need assistance at any point along the way, please don't hesitate to reach out to our dedicated support team at support@rexvet.org. We're here to make your experience with Rex Vet as seamless and enjoyable as possible.</p>
+            <p>Thank you once again for choosing Rex Vet. We can't wait to assist you in providing the best possible care for your pet.</p>
+            <p>Warm regards,<br>The Team at Rex Vet</p>
             
             <!-- Add logo here -->
             <div style="background-color: #002366; padding: 10px; text-align: center;">
-                <img src="https://res.cloudinary.com/di6zff0rd/image/upload/v1747926532/Logo_debjuj.png" alt="Rex Vets Logo" width="150" style="display: block; margin: 0 auto;" />
+                <img src="https://res.cloudinary.com/di6zff0rd/image/upload/v1747926532/Logo_debjuj.png" alt="Rex Vet Logo" width="150" style="display: block; margin: 0 auto;" />
             </div>
         `;
 // this
@@ -25,7 +25,7 @@ export const bookingConfirmationDoctorTemplate = (
     </div>
             <p>Dear ${doctorName},</p>
 
-            <p>We're excited to confirm your upcoming video call appointment with ${parentName} at Rex Vets. Here are the details for your appointment:</p>
+            <p>We're excited to confirm your upcoming video call appointment with ${parentName} at Rex Vet. Here are the details for your appointment:</p>
             <p><strong>Start Time:</strong> ${appointmentDateTime}</p>
             <p><strong>Veterinarian:</strong> ${doctorName}</p>
             <p><strong>Parent:</strong> ${parentName}</p>
@@ -42,15 +42,15 @@ export const bookingConfirmationDoctorTemplate = (
 
             <p>Please make sure you're ready for the call at least a few minutes before the scheduled time.</p>
 
-            <p>If you need to reschedule or have any other questions, please feel free to reply to this email or contact our support team at <a href="mailto:support@rexvets.com">support@rexvets.com</a>.</p>
+            <p>If you need to reschedule or have any other questions, please feel free to reply to this email or contact our support team at <a href="mailto:support@rexvet.org">support@rexvet.org</a>.</p>
 
             <p>We thank you for your dedication to pet's care.</p>
 
-            <p>Warm regards,<br>The Team at Rex Vets</p>
+            <p>Warm regards,<br>The Team at Rex Vet</p>
 
             <!-- Add logo here -->
             <div style="background-color: #002366; padding: 10px; text-align: center;">
-                <img src="https://res.cloudinary.com/di6zff0rd/image/upload/v1747926532/Logo_debjuj.png" alt="Rex Vets Logo" width="150" style="display: block; margin: 0 auto;" />
+                <img src="https://res.cloudinary.com/di6zff0rd/image/upload/v1747926532/Logo_debjuj.png" alt="Rex Vet Logo" width="150" style="display: block; margin: 0 auto;" />
             </div>
         `;
 
@@ -70,7 +70,7 @@ export const rescheduleConfirmationDoctorTemplate = (
         
           <p>Dear ${doctorName},</p>
         
-          <p>This is to notify you that your scheduled video call appointment with <strong>${parentName}</strong> at Rex Vets has been <strong>rescheduled</strong>. Please find the updated appointment details below:</p>
+          <p>This is to notify you that your scheduled video call appointment with <strong>${parentName}</strong> at Rex Vet has been <strong>rescheduled</strong>. Please find the updated appointment details below:</p>
         
           ${
             oldDate
@@ -97,10 +97,10 @@ export const rescheduleConfirmationDoctorTemplate = (
         
           <p>We thank you for your flexibility and continued support.</p>
         
-          <p>Warm regards,<br>The Team at Rex Vets</p>
+          <p>Warm regards,<br>The Team at Rex Vet</p>
         
           <div style="background-color: #002366; padding: 10px; text-align: center;">
-            <img src="https://res.cloudinary.com/di6zff0rd/image/upload/v1747926532/Logo_debjuj.png" alt="Rex Vets Logo" width="150" style="display: block; margin: 0 auto;" />
+            <img src="https://res.cloudinary.com/di6zff0rd/image/upload/v1747926532/Logo_debjuj.png" alt="Rex Vet Logo" width="150" style="display: block; margin: 0 auto;" />
           </div>
         `;
 
@@ -115,7 +115,7 @@ export const bookingConfirmationParentTemplate = (
     </div>
             <p>Dear ${parentName},</p>
 
-            <p>We're excited to confirm your upcoming video call appointment with <strong>${doctorName}</strong> at Rex Vets. Here are the details for your appointment:</p>
+            <p>We're excited to confirm your upcoming video call appointment with <strong>${doctorName}</strong> at Rex Vet. Here are the details for your appointment:</p>
             <p><strong>Start Time:</strong> ${appointmentDateTime}</p>
             <p><strong>Veterinarian:</strong> ${doctorName}</p>
             <p><strong>Pet Name:</strong> ${petName}</p>
@@ -130,15 +130,15 @@ export const bookingConfirmationParentTemplate = (
 
             <p>Please make sure you're ready for the call at least a few minutes before the scheduled time. ${doctorName} is here to address any questions or concerns you have about your pet's health.</p>
 
-            <p>If you need to reschedule or have any other questions, please feel free to reply to this email or contact our support team at <a href="mailto:support@rexvets.com">support@rexvets.com</a>.</p>
+            <p>If you need to reschedule or have any other questions, please feel free to reply to this email or contact our support team at <a href="mailto:support@rexvet.org">support@rexvet.org</a>.</p>
 
             <p>We look forward to assisting you with your pet's care.</p>
 
-            <p>Warm regards,<br>The Team at Rex Vets</p>
+            <p>Warm regards,<br>The Team at Rex Vet</p>
 
             <!-- Add logo here -->
             <div style="background-color: #002366; padding: 10px; text-align: center;">
-                <img src="https://res.cloudinary.com/di6zff0rd/image/upload/v1747926532/Logo_debjuj.png" alt="Rex Vets Logo" width="150" style="display: block; margin: 0 auto;" />
+                <img src="https://res.cloudinary.com/di6zff0rd/image/upload/v1747926532/Logo_debjuj.png" alt="Rex Vet Logo" width="150" style="display: block; margin: 0 auto;" />
             </div>
         `;
 
@@ -158,7 +158,7 @@ export const rescheduleConfirmationParentTemplate = (
         
           <p>Dear ${parentName},</p>
         
-          <p>Your video call appointment with <strong>Dr. ${doctorName}</strong> at Rex Vets for <strong>${petName}</strong> has been <strong>rescheduled</strong>.</p>
+          <p>Your video call appointment with <strong>Dr. ${doctorName}</strong> at Rex Vet for <strong>${petName}</strong> has been <strong>rescheduled</strong>.</p>
         
           ${
             oldDate
@@ -182,14 +182,14 @@ export const rescheduleConfirmationParentTemplate = (
         
           <p>Please make sure you're ready and in a quiet place a few minutes before your scheduled time.</p>
         
-          <p>If you need to change your appointment again or have any questions, reply to this email or contact our team at <a href="mailto:support@rexvets.com">support@rexvets.com</a>.</p>
+          <p>If you need to change your appointment again or have any questions, reply to this email or contact our team at <a href="mailto:support@rexvet.org">support@rexvet.org</a>.</p>
         
           <p>We look forward to helping ${petName} feel their best!</p>
         
-          <p>Warm regards,<br>The Team at Rex Vets</p>
+          <p>Warm regards,<br>The Team at Rex Vet</p>
         
           <div style="background-color: #002366; padding: 10px; text-align: center;">
-            <img src="https://res.cloudinary.com/di6zff0rd/image/upload/v1747926532/Logo_debjuj.png" alt="Rex Vets Logo" width="150" style="display: block; margin: 0 auto;" />
+            <img src="https://res.cloudinary.com/di6zff0rd/image/upload/v1747926532/Logo_debjuj.png" alt="Rex Vet Logo" width="150" style="display: block; margin: 0 auto;" />
           </div>
         `;
 
@@ -204,7 +204,7 @@ export const sendAppointmentReminderEmails = (
     </div>
     <p>Dear ${parentName},</p>
 
-    <p>This is a friendly reminder that your video call appointment with <strong> ${doctorName}</strong> at Rex Vets is starting in just 10 minutes!</p>
+    <p>This is a friendly reminder that your video call appointment with <strong> ${doctorName}</strong> at Rex Vet is starting in just 10 minutes!</p>
     
     <p><strong>Appointment Details:</strong></p>
     <p><strong>Date & Time:</strong> ${appointmentDateTime}</p>
@@ -223,15 +223,15 @@ export const sendAppointmentReminderEmails = (
 
     <p>To join your appointment, simply click the meeting link above a few minutes before your scheduled time.</p>
 
-    <p>If you experience any technical difficulties or need to reschedule, please contact our support team immediately at <a href="mailto:support@rexvets.com">support@rexvets.com</a>.</p>
+    <p>If you experience any technical difficulties or need to reschedule, please contact our support team immediately at <a href="mailto:support@rexvet.org">support@rexvet.org</a>.</p>
 
-    <p>Thank you for choosing Rex Vets for your pet's healthcare needs.</p>
+    <p>Thank you for choosing Rex Vet for your pet's healthcare needs.</p>
 
-    <p>Warm regards,<br>The Team at Rex Vets</p>
+    <p>Warm regards,<br>The Team at Rex Vet</p>
 
     <!-- Add logo here -->
     <div style="background-color: #002366; padding: 10px; text-align: center;">
-        <img src="https://res.cloudinary.com/di6zff0rd/image/upload/v1747926532/Logo_debjuj.png" alt="Rex Vets Logo" width="150" style="display: block; margin: 0 auto;" />
+        <img src="https://res.cloudinary.com/di6zff0rd/image/upload/v1747926532/Logo_debjuj.png" alt="Rex Vet Logo" width="150" style="display: block; margin: 0 auto;" />
     </div>
   `;
 
@@ -265,15 +265,15 @@ export const reminderDoctorTemplate = (
 
     <p>To join the appointment, click the meeting link above when you're ready.</p>
 
-    <p>If you encounter any technical issues or need assistance, please contact our support team at <a href="mailto:support@rexvets.com">support@rexvets.com</a>.</p>
+    <p>If you encounter any technical issues or need assistance, please contact our support team at <a href="mailto:support@rexvet.org">support@rexvet.org</a>.</p>
 
-    <p>Thank you for your dedication to providing excellent veterinary care through Rex Vets.</p>
+    <p>Thank you for your dedication to providing excellent veterinary care through Rex Vet.</p>
 
-    <p>Best regards,<br>The Rex Vets Team</p>
+    <p>Best regards,<br>The Rex Vet Team</p>
 
     <!-- Add logo here -->
     <div style="background-color: #002366; padding: 10px; text-align: center;">
-        <img src="https://res.cloudinary.com/di6zff0rd/image/upload/v1747926532/Logo_debjuj.png" alt="Rex Vets Logo" width="150" style="display: block; margin: 0 auto;" />
+        <img src="https://res.cloudinary.com/di6zff0rd/image/upload/v1747926532/Logo_debjuj.png" alt="Rex Vet Logo" width="150" style="display: block; margin: 0 auto;" />
     </div>
   `;
 
@@ -296,14 +296,14 @@ export const donationThankYouTemplate = (
 <div style="max-width: 700px; margin: 0 auto; background: #ffffff; font-family: Arial, sans-serif; color: #333; border: 1px solid #e0e0e0; border-radius: 10px; overflow: hidden;">
   <!-- Header -->
    <div style="background-color: #002366; padding: 10px; text-align: center;">
-        <img src="https://res.cloudinary.com/di6zff0rd/image/upload/v1747926532/Logo_debjuj.png" alt="Rex Vets Logo" width="150" style="display: block; margin: 0 auto;" />
+        <img src="https://res.cloudinary.com/di6zff0rd/image/upload/v1747926532/Logo_debjuj.png" alt="Rex Vet Logo" width="150" style="display: block; margin: 0 auto;" />
     </div>
 
   <!-- Body -->
   <div style="padding: 10px 30px;">
     <h2 style="color: #1e3a8a;">Thank You for Your Generous Donation!</h2>
     <p>Dear <strong>${donorName}</strong>,</p>
-    <p>We sincerely appreciate your contribution to RexVets. ${recurringText}</p>
+    <p>We sincerely appreciate your contribution to RexVet. ${recurringText}</p>
 
     <div style="margin: 30px 0; border: 1px solid #d1d5db; border-radius: 8px; padding: 20px; background-color: #f9fafb;">
       <h3 style="margin-top: 0; color: #2563eb;">🧾 Donation Receipt</h3>
@@ -313,7 +313,7 @@ export const donationThankYouTemplate = (
       <p><strong>Badge:</strong> <span style="font-weight: bold;">${badgeName}</span></p>
       <p><strong>Payment Method:</strong> ${paymentMethod}</p>
       <h4>Tax Statement:</h4>
-      <p style="margin:0">Rex Vets Inc is a 501(c)(3) non-profit organization. No goods or services were received in exchange for this gift. It may be considered tax-deductible to the full extent of the law. Please retain this receipt for your records.</p>
+      <p style="margin:0">Rex Vet Inc is a 501(c)(3) non-profit organization. No goods or services were received in exchange for this gift. It may be considered tax-deductible to the full extent of the law. Please retain this receipt for your records.</p>
     </div>
 
    <h4 class="impact-title">A Note of Thanks:</h4>
@@ -324,18 +324,18 @@ export const donationThankYouTemplate = (
             <li>With your support, we’re one step closer to making quality vet care accessible for every pet, regardless of circumstance.</li>
           </ul>
 
-    <p>If you have any questions, feel free to reach out to us at <a href="mailto:support@rexvets.org" style="color: #2563eb;">support@rexvets.com</a>.</p>
+    <p>If you have any questions, feel free to reach out to us at <a href="mailto:support@rexvet.org" style="color: #2563eb;">support@rexvet.org</a>.</p>
     
     <p style="margin-top: 20px;">With heartfelt thanks,</p>
-    <p><em>– The RexVets Team</em></p>
+    <p><em>– The RexVet Team</em></p>
   </div>
 
    <!-- Footer -->
         <div class="footer">
-          <p>Rex Vets Inc</p>
+          <p>Rex  Inc</p>
           <p>📍 123 Animal Care Drive, Miami, FL 33101</p>
-          <p>EIN: (123) 456-7690 | ✉️ support@rexvets.com</p>
-          <p>🌐 www.rexvets.com</p>
+          <p>EIN: (123) 456-7690 | ✉️ support@rexvet.org</p>
+          <p>🌐 www.rexvet.org</p>
         </div>
 </div>
 `;
@@ -461,15 +461,15 @@ export const messageToParentTemplate = (
                                   <div style="color:#555555;font-family:Lato, Tahoma, Verdana, Segoe, sans-serif;font-size:14px;line-height:120%;text-align:left;mso-line-height-alt:16.8px;">
                                     <p style="margin: 0; word-break: break-word;">We hope you and your pet are doing well.</p>
                                     <p style="margin: 0; word-break: break-word;">&nbsp;</p>
-                                    <p style="margin: 0; word-break: break-word;">You have received a new message from your veterinarian at Rex Vets. To view your message and any related recommendations or treatment plans, please log in to your Rex Vets account using the link below:</p>
+                                    <p style="margin: 0; word-break: break-word;">You have received a new message from your veterinarian at Rex Vet. To view your message and any related recommendations or treatment plans, please log in to your Rex Vet account using the link below:</p>
                                     <p style="margin: 0; word-break: break-word;">&nbsp;</p>
-                                    <p style="margin: 0; word-break: break-word;"><strong><a href="https://www.rexvets.com/AppointmentsPetParents" target="_blank">Your Appointments</a></strong></p>
+                                    <p style="margin: 0; word-break: break-word;"><strong><a href="https://www.rexvet.org/AppointmentsPetParents" target="_blank">Your Appointments</a></strong></p>
                                     <p style="margin: 0; word-break: break-word;">&nbsp;</p>
                                     <p style="margin: 0; word-break: break-word;">If you have any questions or concerns, feel free to reach out to us through your account or by replying to this email. We're here to support you and your pet's health every step of the way!</p>
                                     <p style="margin: 0; word-break: break-word;">&nbsp;</p>
-                                    <p style="margin: 0; word-break: break-word;">Thank you for trusting Rex Vets with your pet's care.</p>
+                                    <p style="margin: 0; word-break: break-word;">Thank you for trusting Rex Vet with your pet's care.</p>
                                     <p style="margin: 0; word-break: break-word;">&nbsp;</p>
-                                    <p style="margin: 0; word-break: break-word;">Best regards,<br><strong>The Rex Vets Team</strong></p>
+                                    <p style="margin: 0; word-break: break-word;">Best regards,<br><strong>The Rex Vet Team</strong></p>
                                   </div>
                                 </td>
                               </tr>
@@ -478,7 +478,7 @@ export const messageToParentTemplate = (
                               <tr>
                                 <td class="pad">
                                   <div class="alignment" align="center">
-                                    <a href="https://www.rexvets.com/AppointmentsPetParents" target="_blank" style="background-color:#002366;border-bottom:0px solid transparent;border-left:0px solid transparent;border-radius:10px;border-right:0px solid transparent;border-top:0px solid transparent;color:#ffffff;display:inline-block;font-family:'Lato', Tahoma, Verdana, Segoe, sans-serif;font-size:16px;font-weight:undefined;mso-border-alt:none;padding-bottom:5px;padding-top:5px;text-align:center;text-decoration:none;width:auto;word-break:keep-all;">
+                                    <a href="https://www.rexvet.org/AppointmentsPetParents" target="_blank" style="background-color:#002366;border-bottom:0px solid transparent;border-left:0px solid transparent;border-radius:10px;border-right:0px solid transparent;border-top:0px solid transparent;color:#ffffff;display:inline-block;font-family:'Lato', Tahoma, Verdana, Segoe, sans-serif;font-size:16px;font-weight:undefined;mso-border-alt:none;padding-bottom:5px;padding-top:5px;text-align:center;text-decoration:none;width:auto;word-break:keep-all;">
                                       <span style="word-break: break-word; padding-left: 20px; padding-right: 20px; font-size: 16px; display: inline-block; letter-spacing: normal;">
                                         <strong>VIEW APPOINTMENTS</strong>
                                       </span>
@@ -514,7 +514,7 @@ export const messageToParentTemplate = (
                           <tr>
                             <td class="pad">
                               <div class="alignment" align="center" style="line-height:10px">
-                                <div style="max-width: 620px;"><a href="https://www.rexvets.com" target="_blank" style="outline:none" tabindex="-1"><img src="https://i.ibb.co/3CZBJyh/5bfa.png" style="display: block; height: auto; border: 0; width: 100%;" width="620" alt="Your Logo" title="Your Logo" height="auto"></a></div>
+                                <div style="max-width: 620px;"><a href="https://www.rexvet.org" target="_blank" style="outline:none" tabindex="-1"><img src="https://i.ibb.co/3CZBJyh/5bfa.png" style="display: block; height: auto; border: 0; width: 100%;" width="620" alt="Your Logo" title="Your Logo" height="auto"></a></div>
                               </div>
                             </td>
                           </tr>
@@ -537,7 +537,7 @@ export const messageToParentTemplate = (
                               <tr>
                                 <td class="pad">
                                   <div style="color:#555555;font-family:Lato, Tahoma, Verdana, Segoe, sans-serif;font-size:14px;line-height:120%;text-align:center;mso-line-height-alt:16.8px;">
-                                    <p style="margin: 0; word-break: break-word;"><span style="word-break: break-word; color: #ffffff;"><strong>Rex Vets </strong>is a <strong>non-profit organization</strong>, and our efforts are sustained by the generosity of our donors. If you would like to support our mission with a donation, we would be deeply grateful. You can make a contribution through <strong><a href="https://www.rexvets.com/PetParents" target="_blank" style="color: #ffffff;">the following link</a></strong></span></p>
+                                    <p style="margin: 0; word-break: break-word;"><span style="word-break: break-word; color: #ffffff;"><strong>Rex Vet </strong>is a <strong>non-profit organization</strong>, and our efforts are sustained by the generosity of our donors. If you would like to support our mission with a donation, we would be deeply grateful. You can make a contribution through <strong><a href="https://www.rexvet.org/PetParents" target="_blank" style="color: #ffffff;">the following link</a></strong></span></p>
                                   </div>
                                 </td>
                               </tr>
@@ -677,11 +677,11 @@ export const messageToDoctorTemplate = (
                               <tr>
                                 <td class="pad" style="padding-bottom:10px;padding-left:20px;padding-right:20px;padding-top:10px;">
                                   <div style="color:#555555;font-family:Lato, Tahoma, Verdana, Segoe, sans-serif;font-size:14px;line-height:120%;text-align:left;mso-line-height-alt:16.8px;">
-                                    <p style="margin: 0; word-break: break-word;">You have received a new message from your client, ${parentName}. Please log in to your Rex Vets account to review and respond.</p>
+                                    <p style="margin: 0; word-break: break-word;">You have received a new message from your client, ${parentName}. Please log in to your Rex Vet account to review and respond.</p>
                                     <p style="margin: 0; word-break: break-word;">&nbsp;</p>
-                                    <p style="margin: 0; word-break: break-word;"><strong><a href="https://www.rexvets.com/AppointmentsVetsandTechs" target="_blank">Your Appointments</a></strong></p>
+                                    <p style="margin: 0; word-break: break-word;"><strong><a href="https://www.rexvet.org/AppointmentsVetsandTechs" target="_blank">Your Appointments</a></strong></p>
                                     <p style="margin: 0; word-break: break-word;">&nbsp;</p>
-                                    <p style="margin: 0; word-break: break-word;">Thank you,<br><strong>The Rex Vets Team</strong></p>
+                                    <p style="margin: 0; word-break: break-word;">Thank you,<br><strong>The Rex Vet Team</strong></p>
                                   </div>
                                 </td>
                               </tr>
@@ -690,7 +690,7 @@ export const messageToDoctorTemplate = (
                               <tr>
                                 <td class="pad">
                                   <div class="alignment" align="center">
-                                    <a href="https://www.rexvets.com/AppointmentsVetsandTechs" target="_blank" style="background-color:#002366;border-bottom:0px solid transparent;border-left:0px solid transparent;border-radius:10px;border-right:0px solid transparent;border-top:0px solid transparent;color:#ffffff;display:inline-block;font-family:'Lato', Tahoma, Verdana, Segoe, sans-serif;font-size:16px;font-weight:undefined;mso-border-alt:none;padding-bottom:5px;padding-top:5px;text-align:center;text-decoration:none;width:auto;word-break:keep-all;">
+                                    <a href="https://www.rexvet.org/AppointmentsVetsandTechs" target="_blank" style="background-color:#002366;border-bottom:0px solid transparent;border-left:0px solid transparent;border-radius:10px;border-right:0px solid transparent;border-top:0px solid transparent;color:#ffffff;display:inline-block;font-family:'Lato', Tahoma, Verdana, Segoe, sans-serif;font-size:16px;font-weight:undefined;mso-border-alt:none;padding-bottom:5px;padding-top:5px;text-align:center;text-decoration:none;width:auto;word-break:keep-all;">
                                       <span style="word-break: break-word; padding-left: 20px; padding-right: 20px; font-size: 16px; display: inline-block; letter-spacing: normal;">
                                         <strong>VIEW APPOINTMENTS</strong>
                                       </span>
@@ -726,7 +726,7 @@ export const messageToDoctorTemplate = (
                           <tr>
                             <td class="pad">
                               <div class="alignment" align="center" style="line-height:10px">
-                                <div style="max-width: 620px;"><a href="https://www.rexvets.com" target="_blank" style="outline:none" tabindex="-1"><img src="https://i.ibb.co/3CZBJyh/5bfa.png" style="display: block; height: auto; border: 0; width: 100%;" width="620" alt="Your Logo" title="Your Logo" height="auto"></a></div>
+                                <div style="max-width: 620px;"><a href="https://www.rexvet.org" target="_blank" style="outline:none" tabindex="-1"><img src="https://i.ibb.co/3CZBJyh/5bfa.png" style="display: block; height: auto; border: 0; width: 100%;" width="620" alt="Your Logo" title="Your Logo" height="auto"></a></div>
                               </div>
                             </td>
                           </tr>
@@ -749,7 +749,7 @@ export const messageToDoctorTemplate = (
                               <tr>
                                 <td class="pad">
                                   <div style="color:#555555;font-family:Lato, Tahoma, Verdana, Segoe, sans-serif;font-size:14px;line-height:120%;text-align:center;mso-line-height-alt:16.8px;">
-                                    <p style="margin: 0; word-break: break-word;"><span style="word-break: break-word; color: #ffffff;"><strong>Rex Vets </strong>is a <strong>non-profit organization</strong>, and our efforts are sustained by the generosity of our donors. If you would like to support our mission with a donation, we would be deeply grateful. You can make a contribution through <strong><a href="https://www.rexvets.com/PetParents" target="_blank" style="color: #ffffff;">the following link</a></strong></span></p>
+                                    <p style="margin: 0; word-break: break-word;"><span style="word-break: break-word; color: #ffffff;"><strong>Rex Vet </strong>is a <strong>non-profit organization</strong>, and our efforts are sustained by the generosity of our donors. If you would like to support our mission with a donation, we would be deeply grateful. You can make a contribution through <strong><a href="https://www.rexvet.org/PetParents" target="_blank" style="color: #ffffff;">the following link</a></strong></span></p>
                                   </div>
                                 </td>
                               </tr>
@@ -832,8 +832,8 @@ export const pharmacyRequestPaymentTemplate = ({
 
       <!-- Footer -->
       <div style="background-color: #f0f0f0; text-align: center; padding: 20px; font-size: 13px; color: #777;">
-        🐾 RexVets • 123 Pet Lane, Animal City, USA<br />
-        <a href="mailto:support@rexvets.com" style="color: #002366;">support@rexvets.com</a>
+        🐾 Rex • 123 Pet Lane, Animal City, USA<br />
+        <a href="mailto:support@rexvet.org" style="color: #002366;">support@rexvet.org</a>
       </div>
     </div>
   </div>
@@ -895,12 +895,12 @@ export const pharmacyRequestAcceptedTemplate = ({
       If you have any questions or need further assistance, feel free to reply to this email. We're here to help!
     </p>
 
-    <p style="font-size: 16px; font-weight: 600; color: #002366; margin-top: 40px;">Sincerely,<br>Rex Vets Team 🐾</p>
+    <p style="font-size: 16px; font-weight: 600; color: #002366; margin-top: 40px;">Sincerely,<br>Rex Vet Team 🐾</p>
   </div>
 
   <!-- Footer -->
   <div style="background-color: #f5f5f5; padding: 15px; text-align: center; font-size: 12px; color: #888;">
-    © ${new Date().getFullYear()} Rex Vets. All rights reserved.
+    © ${new Date().getFullYear()} Rex Vet. All rights reserved.
   </div>
 </div>
 

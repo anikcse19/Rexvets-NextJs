@@ -1,12 +1,15 @@
 "use client";
 import { motion } from "framer-motion";
-import { Heart, Video } from "lucide-react";
+import { Heart, Shield, ShieldCheck, Star, Video } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import React from "react";
 import { LuClock } from "react-icons/lu";
 import { MdAutoAwesome } from "react-icons/md";
-const loadingPlaceholder = () => <p>Loading...</p>;
+import Loader from "../shared/Loader";
+
+const loadingPlaceholder = () => <Loader size={60} />;
+
 const AnimatedChip = dynamic(() => import("../AnimatedChip"), {
   loading: loadingPlaceholder,
 });
@@ -56,7 +59,7 @@ const HeroContent: React.FC = () => {
         </h3>
       </div>
 
-      <p className="text-[17px] text-white md:text-[21px] md:leading-[33px] max-w-lg mb-6">
+      <p className="text-[17px] text-white md:text-[21px] md:leading-[33px] max-w-3xl px-2 mb-6">
         As a non-profit organization, Rex Vet provides affordable telehealth
         consultations to ensure every pet gets the care they deserve from the
         comfort of home. Breaking barriers, building bonds.
@@ -70,7 +73,7 @@ const HeroContent: React.FC = () => {
             //   `/video-call?appointmentId=68b07c22569b1704b240c673&vetId=68a9477e0cc6dcbf64cbaf5c&petId=68ad599fea3a1dc3d32a6348&petParentId=68ad56a7ea3a1dc3d32a6314'`
             // )
           }
-          className=" z-50  inline-flex items-center justify-center box-border outline-none border-none m-0 cursor-pointer select-none align-middle appearance-none no-underline font-roboto text-base leading-[1.75] tracking-[0.02857em] min-w-[64px] rounded-full px-9 py-4 font-bold normal-case relative overflow-hidden transition-all duration-400 ease-[cubic-bezier(0.4,0,0.2,1)] bg-gradient-to-r from-blue-500 via-purple-500 to-pink-400 text-white shadow-[0_8px_25px_rgba(59,130,246,0.4)] gap-x-2"
+          className=" z-50  inline-flex items-center justify-center box-border outline-none hover:scale-105 border-none m-0 cursor-pointer select-none align-middle appearance-none no-underline font-roboto text-base leading-[1.75] tracking-[0.02857em] min-w-[64px] rounded-full px-9 py-4 font-bold normal-case relative overflow-hidden transition-all duration-400 ease-[cubic-bezier(0.4,0,0.2,1)] bg-gradient-to-r from-blue-500 via-purple-500 to-pink-400 text-white shadow-[0_8px_25px_rgba(59,130,246,0.4)] gap-x-2"
         >
           <Video /> <span className="mb-[2px]">Book Consultation</span>
         </button>
@@ -81,6 +84,36 @@ const HeroContent: React.FC = () => {
         >
           <Heart /> <span className="mb-[2px]">Support Our Mission</span>
         </button>
+      </div>
+
+      <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-5">
+        {/* Rating */}
+        <div className="flex items-center gap-1">
+          <div className="flex text-yellow-400">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <Star key={i} className="w-4 h-4 fill-current" />
+            ))}
+          </div>
+          <p className="ml-1 font-semibold text-white/90">4.9/5 Rating</p>
+        </div>
+
+        {/* Divider */}
+        <div className="hidden sm:block w-px h-5 bg-white/30" />
+
+        {/* Verified Owners */}
+        <div className="flex items-center gap-1">
+          <ShieldCheck className="w-5 h-5 text-emerald-400" />
+          <p className="font-semibold text-white/90">1k+ Happy Pet Owners</p>
+        </div>
+
+        {/* Divider */}
+        <div className="hidden sm:block w-px h-5 bg-white/30" />
+
+        {/* Secure */}
+        <div className="flex items-center gap-1">
+          <Shield className="w-5 h-5 text-blue-400" />
+          <p className="font-semibold text-white/90">100% Secure</p>
+        </div>
       </div>
     </div>
   );

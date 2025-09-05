@@ -1,5 +1,5 @@
-import nodemailer from 'nodemailer';
-import { commonStyles } from './emailStyles';
+import nodemailer from "nodemailer";
+import { commonStyles } from "./emailStyles";
 import {
   bookingConfirmationDoctorTemplate,
   bookingConfirmationParentTemplate,
@@ -12,13 +12,13 @@ import {
   helpRequestEmailTemplate,
   pharmacyRequestPaymentTemplate,
   pharmacyRequestAcceptedTemplate,
-} from './emailTemplates';
+} from "./emailTemplates";
 
 // Email configuration
 const emailConfig = {
-  host: process.env.EMAIL_HOST || 'smtp.gmail.org',
-  port: parseInt(process.env.EMAIL_PORT || '587'),
-  secure: process.env.EMAIL_SECURE === 'true', // true for 465, false for other ports
+  host: process.env.EMAIL_HOST || "smtp.gmail.org",
+  port: parseInt(process.env.EMAIL_PORT || "587"),
+  secure: process.env.EMAIL_SECURE === "true", // true for 465, false for other ports
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
@@ -31,7 +31,10 @@ const createTransporter = () => {
 };
 
 // Email templates
-const createEmailVerificationTemplate = (name: string, verificationUrl: string) => {
+const createEmailVerificationTemplate = (
+  name: string,
+  verificationUrl: string
+) => {
   return `
     <!DOCTYPE html>
     <html lang="en">
@@ -263,12 +266,18 @@ const createPasswordResetTemplate = (name: string, resetUrl: string) => {
 };
 
 // Email sending functions
-export async function sendEmailVerification(email: string, token: string, name: string): Promise<void> {
+export async function sendEmailVerification(
+  email: string,
+  token: string,
+  name: string
+): Promise<void> {
   try {
     // Check if email service is configured
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-      console.log('Email service not configured. Using development mode.');
-      console.log(`Email verification would be sent to ${email} for ${name} with token: ${token}`);
+      console.log("Email service not configured. Using development mode.");
+      console.log(
+        `Email verification would be sent to ${email} for ${name} with token: ${token}`
+      );
       const verificationUrl = `${process.env.NEXTAUTH_URL}/auth/verify-email?token=${token}`;
       console.log(`Verification URL: ${verificationUrl}`);
       return;
@@ -281,24 +290,30 @@ export async function sendEmailVerification(email: string, token: string, name: 
     const mailOptions = {
       from: `"RexVet" <${process.env.EMAIL_USER}>`,
       to: email,
-      subject: 'Verify Your Email - Welcome to RexVet! 🐾',
+      subject: "Verify Your Email - Welcome to RexVet! 🐾",
       html: htmlContent,
     };
 
     const info = await transporter.sendMail(mailOptions);
-    console.log('Email verification sent successfully:', info.messageId);
+    console.log("Email verification sent successfully:", info.messageId);
   } catch (error) {
-    console.error('Failed to send email verification:', error);
-    throw new Error('Failed to send verification email');
+    console.error("Failed to send email verification:", error);
+    throw new Error("Failed to send verification email");
   }
 }
 
-export async function sendPasswordReset(email: string, token: string, name: string): Promise<void> {
+export async function sendPasswordReset(
+  email: string,
+  token: string,
+  name: string
+): Promise<void> {
   try {
     // Check if email service is configured
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-      console.log('Email service not configured. Using development mode.');
-      console.log(`Password reset email would be sent to ${email} for ${name} with token: ${token}`);
+      console.log("Email service not configured. Using development mode.");
+      console.log(
+        `Password reset email would be sent to ${email} for ${name} with token: ${token}`
+      );
       const resetUrl = `${process.env.NEXTAUTH_URL}/auth/reset-password?token=${token}`;
       console.log(`Password reset URL: ${resetUrl}`);
       return;
@@ -311,20 +326,19 @@ export async function sendPasswordReset(email: string, token: string, name: stri
     const mailOptions = {
       from: `"RexVet" <${process.env.EMAIL_USER}>`,
       to: email,
-      subject: 'Reset Your Password - RexVet 🐾',
+      subject: "Reset Your Password - RexVet 🐾",
       html: htmlContent,
     };
 
     const info = await transporter.sendMail(mailOptions);
-    console.log('Password reset email sent successfully:', info.messageId);
+    console.log("Password reset email sent successfully:", info.messageId);
   } catch (error) {
-    console.error('Failed to send password reset email:', error);
-    throw new Error('Failed to send password reset email');
+    console.error("Failed to send password reset email:", error);
+    throw new Error("Failed to send password reset email");
   }
 }
 
 // Test email configuration
-
 
 // Appointment confirmation email templates
 // Deprecated inline templates replaced by shared templates in emailTemplates.ts
@@ -354,7 +368,7 @@ export async function sendAppointmentConfirmationEmails({
   donationPdfBuffer?: Buffer;
 }): Promise<void> {
   try {
-    console.log('sendAppointmentConfirmationEmails called with:', {
+    console.log("sendAppointmentConfirmationEmails called with:", {
       doctorEmail,
       doctorName,
       parentEmail,
@@ -368,11 +382,13 @@ export async function sendAppointmentConfirmationEmails({
 
     // Check if email service is configured
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-      console.log('Email service not configured. Using development mode.');
+      console.log("Email service not configured. Using development mode.");
       console.log(`Appointment confirmation emails would be sent to:`);
       console.log(`- Doctor: ${doctorEmail} (${doctorName})`);
       console.log(`- Parent: ${parentEmail} (${parentName})`);
-      console.log(`Appointment: ${appointmentDate} at ${appointmentTime} for ${petName}`);
+      console.log(
+        `Appointment: ${appointmentDate} at ${appointmentTime} for ${petName}`
+      );
       console.log(`Meeting link: ${meetingLink}`);
       return;
     }
@@ -392,7 +408,7 @@ export async function sendAppointmentConfirmationEmails({
     const doctorMailOptions = {
       from: `"RexVet" <${process.env.EMAIL_USER}>`,
       to: doctorEmail,
-      subject: 'Appointment Confirmation - RexVet',
+      subject: "Appointment Confirmation - RexVet",
       html: doctorHtmlContent,
     };
 
@@ -409,39 +425,39 @@ export async function sendAppointmentConfirmationEmails({
     const parentMailOptions: any = {
       from: `"Rex Vet" <${process.env.EMAIL_USER}>`,
       to: parentEmail,
-      subject: 'Your Appointment Confirmation - Rex Vet',
+      subject: "Your Appointment Confirmation - Rex Vet",
       html: parentHtmlContent,
     };
-    
+
     // Add PDF attachment if available
     if (donationPdfBuffer) {
       console.log("Adding PDF attachment to email");
       parentMailOptions.attachments = [
         {
-          filename: 'Donation_Receipt.pdf',
-          content: donationPdfBuffer.toString('base64'),
-          encoding: 'base64',
-          contentType: 'application/pdf',
+          filename: "Donation_Receipt.pdf",
+          content: donationPdfBuffer.toString("base64"),
+          encoding: "base64",
+          contentType: "application/pdf",
         },
       ];
     } else {
       console.log("No PDF attachment available");
     }
 
-    console.log('Attempting to send emails...');
-    
+    console.log("Attempting to send emails...");
+
     // Send both emails
     const [doctorInfo, parentInfo] = await Promise.all([
       transporter.sendMail(doctorMailOptions),
       transporter.sendMail(parentMailOptions),
     ]);
 
-    console.log('Appointment confirmation emails sent successfully:');
-    console.log('- Doctor email:', doctorInfo.messageId);
-    console.log('- Parent email:', parentInfo.messageId);
+    console.log("Appointment confirmation emails sent successfully:");
+    console.log("- Doctor email:", doctorInfo.messageId);
+    console.log("- Parent email:", parentInfo.messageId);
   } catch (error) {
-    console.error('Failed to send appointment confirmation emails:', error);
-    throw new Error('Failed to send appointment confirmation emails');
+    console.error("Failed to send appointment confirmation emails:", error);
+    throw new Error("Failed to send appointment confirmation emails");
   }
 }
 
@@ -465,7 +481,12 @@ export async function sendAppointmentReminderEmails({
 }): Promise<void> {
   try {
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-      console.log("[REMINDER] Dev mode. Would send to:", { doctorEmail, parentEmail, appointmentDateTime, meetingLink });
+      console.log("[REMINDER] Dev mode. Would send to:", {
+        doctorEmail,
+        parentEmail,
+        appointmentDateTime,
+        meetingLink,
+      });
       return;
     }
 
@@ -495,7 +516,10 @@ export async function sendAppointmentReminderEmails({
       ),
     } as any;
 
-    await Promise.all([transporter.sendMail(doctorMail), transporter.sendMail(parentMail)]);
+    await Promise.all([
+      transporter.sendMail(doctorMail),
+      transporter.sendMail(parentMail),
+    ]);
   } catch (err) {
     console.error("Failed to send reminder emails:", err);
     throw err;
@@ -549,7 +573,7 @@ const createDonationThankYouTemplate = (
         <p><strong>Badge:</strong> <span style="font-weight: bold;">${badgeName}</span></p>
         <p><strong>Payment Method:</strong> ${paymentMethod}</p>
         <h4>Tax Statement:</h4>
-        <p style="margin:0">Rex Vets Inc is a 501(c)(3) non-profit organization. No goods or services were received in exchange for this gift. It may be considered tax-deductible to the full extent of the law. Please retain this receipt for your records.</p>
+        <p style="margin:0">Rex Vet Inc is a 501(c)(3) non-profit organization. No goods or services were received in exchange for this gift. It may be considered tax-deductible to the full extent of the law. Please retain this receipt for your records.</p>
       </div>
 
       <h4 style="color: #1e3a8a; margin-top: 20px;">A Note of Thanks:</h4>
@@ -599,13 +623,17 @@ export async function sendDonationThankYouEmail({
   pdfBuffer?: Buffer;
 }): Promise<void> {
   try {
-    console.log('Sending donation thank you email to:', email);
+    console.log("Sending donation thank you email to:", email);
 
     // Check if email service is configured
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-      console.log('Email service not configured. Using development mode.');
+      console.log("Email service not configured. Using development mode.");
       console.log(`Donation thank you email would be sent to: ${email}`);
-      console.log(`Donation details: $${donationAmount} (${isRecurring ? 'recurring' : 'one-time'})`);
+      console.log(
+        `Donation details: $${donationAmount} (${
+          isRecurring ? "recurring" : "one-time"
+        })`
+      );
       return;
     }
 
@@ -625,7 +653,7 @@ export async function sendDonationThankYouEmail({
     const mailOptions = {
       from: `"RexVet" <${process.env.EMAIL_USER}>`,
       to: email,
-      subject: 'Thank You for Your Generous Donation - RexVet',
+      subject: "Thank You for Your Generous Donation - RexVet",
       html: htmlContent,
     } as any;
 
@@ -633,26 +661,29 @@ export async function sendDonationThankYouEmail({
     if (attachmentBuffer) {
       mailOptions.attachments = [
         {
-          filename: 'Donation_Receipt.pdf',
+          filename: "Donation_Receipt.pdf",
           content: attachmentBuffer,
-          contentType: 'application/pdf',
+          contentType: "application/pdf",
         },
       ];
     }
 
     const info = await transporter.sendMail(mailOptions);
-    console.log('Donation thank you email sent successfully:', info.messageId);
+    console.log("Donation thank you email sent successfully:", info.messageId);
   } catch (error) {
-    console.error('Failed to send donation thank you email:', error);
-    throw new Error('Failed to send donation thank you email');
+    console.error("Failed to send donation thank you email:", error);
+    throw new Error("Failed to send donation thank you email");
   }
 }
 
 // New: Send welcome email using shared template
-export async function sendWelcomeEmail(email: string, name: string): Promise<void> {
+export async function sendWelcomeEmail(
+  email: string,
+  name: string
+): Promise<void> {
   try {
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-      console.log('[WELCOME] Dev mode. Would send to:', email);
+      console.log("[WELCOME] Dev mode. Would send to:", email);
       return;
     }
     const transporter = createTransporter();
@@ -660,11 +691,11 @@ export async function sendWelcomeEmail(email: string, name: string): Promise<voi
     await transporter.sendMail({
       from: `"RexVet" <${process.env.EMAIL_USER}>`,
       to: email,
-      subject: 'Welcome to Rex Vets',
+      subject: "Welcome to Rex Vet",
       html,
     } as any);
   } catch (err) {
-    console.error('Failed to send welcome email:', err);
+    console.error("Failed to send welcome email:", err);
     throw err;
   }
 }
@@ -684,7 +715,7 @@ export async function sendHelpRequestEmail(params: {
 }): Promise<void> {
   try {
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-      console.log('[HELP] Dev mode. Would send to:', params.to);
+      console.log("[HELP] Dev mode. Would send to:", params.to);
       return;
     }
     const transporter = createTransporter();
@@ -692,11 +723,11 @@ export async function sendHelpRequestEmail(params: {
     await transporter.sendMail({
       from: `"RexVet" <${process.env.EMAIL_USER}>`,
       to: params.to,
-      subject: `Support Request: ${params.subject || 'New Request'}`,
+      subject: `Support Request: ${params.subject || "New Request"}`,
       html,
     } as any);
   } catch (err) {
-    console.error('Failed to send help request email:', err);
+    console.error("Failed to send help request email:", err);
     throw err;
   }
 }
@@ -712,7 +743,7 @@ export async function sendPharmacyPaymentEmail(params: {
 }): Promise<void> {
   try {
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-      console.log('[PHARMACY PAYMENT] Dev mode. Would send to:', params.to);
+      console.log("[PHARMACY PAYMENT] Dev mode. Would send to:", params.to);
       return;
     }
     const transporter = createTransporter();
@@ -720,11 +751,11 @@ export async function sendPharmacyPaymentEmail(params: {
     await transporter.sendMail({
       from: `"RexVet" <${process.env.EMAIL_USER}>`,
       to: params.to,
-      subject: 'Pharmacy Transfer Payment Receipt',
+      subject: "Pharmacy Transfer Payment Receipt",
       html,
     } as any);
   } catch (err) {
-    console.error('Failed to send pharmacy payment email:', err);
+    console.error("Failed to send pharmacy payment email:", err);
     throw err;
   }
 }
@@ -743,7 +774,7 @@ export async function sendPharmacyAcceptedEmail(params: {
 }): Promise<void> {
   try {
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-      console.log('[PHARMACY ACCEPTED] Dev mode. Would send to:', params.to);
+      console.log("[PHARMACY ACCEPTED] Dev mode. Would send to:", params.to);
       return;
     }
     const transporter = createTransporter();
@@ -751,11 +782,11 @@ export async function sendPharmacyAcceptedEmail(params: {
     await transporter.sendMail({
       from: `"RexVet" <${process.env.EMAIL_USER}>`,
       to: params.to,
-      subject: 'Pharmacy Transfer Accepted',
+      subject: "Pharmacy Transfer Accepted",
       html,
     } as any);
   } catch (err) {
-    console.error('Failed to send pharmacy accepted email:', err);
+    console.error("Failed to send pharmacy accepted email:", err);
     throw err;
   }
 }

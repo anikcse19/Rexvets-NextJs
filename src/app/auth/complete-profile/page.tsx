@@ -8,15 +8,22 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Phone, MapPin, User, ArrowRight } from "lucide-react";
 import LoadingSpinner from "@/components/ui/loading-spinner";
 import { US_STATES } from "@/lib";
+import Loader from "@/components/shared/Loader";
 
 function CompleteProfileContent() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  
+
   // Prevent SSR issues by checking if we're on the client
   const [isClient, setIsClient] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -30,17 +37,17 @@ function CompleteProfileContent() {
     emergencyContact: {
       name: "",
       phone: "",
-      relationship: ""
+      relationship: "",
     },
     preferences: {
       notifications: {
         email: true,
         sms: true,
-        push: true
+        push: true,
       },
       language: "en",
-      timezone: "UTC"
-    }
+      timezone: "UTC",
+    },
   });
 
   useEffect(() => {
@@ -49,15 +56,15 @@ function CompleteProfileContent() {
 
   useEffect(() => {
     if (status === "loading") return;
-    
+
     if (!session) {
       router.push("/auth/signin");
       return;
     }
 
     // Pre-fill form with session data if available
-    if ((session?.user as any)) {
-      setFormData(prev => ({
+    if (session?.user as any) {
+      setFormData((prev) => ({
         ...prev,
         phoneNumber: (session?.user as any).phoneNumber || "",
         state: (session?.user as any).state || "",
@@ -67,28 +74,24 @@ function CompleteProfileContent() {
         emergencyContact: (session?.user as any).emergencyContact || {
           name: "",
           phone: "",
-          relationship: ""
+          relationship: "",
         },
         preferences: (session?.user as any).preferences || {
           notifications: {
             email: true,
             sms: true,
-            push: true
+            push: true,
           },
           language: (session?.user as any).locale || "en",
-          timezone: "UTC"
-        }
+          timezone: "UTC",
+        },
       }));
     }
   }, [session, status, router]);
 
   // Don't render anything until we're on the client
   if (!isClient) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-white">Loading...</div>
-      </div>
-    );
+    return <Loader size={60} />;
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -110,7 +113,9 @@ function CompleteProfileContent() {
       if (response.ok) {
         // Redirect to dashboard based on user role
         const role = (session?.user as any)?.role || "pet_parent";
-        router.push(`/dashboard/${role === "pet_parent" ? "pet-parent" : role}`);
+        router.push(
+          `/dashboard/${role === "pet_parent" ? "pet-parent" : role}`
+        );
       } else {
         setError(data.error || "Failed to complete profile");
       }
@@ -123,7 +128,7 @@ function CompleteProfileContent() {
   };
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   if (status === "loading") {
@@ -197,7 +202,9 @@ function CompleteProfileContent() {
                       id="phoneNumber"
                       type="tel"
                       value={formData.phoneNumber}
-                      onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("phoneNumber", e.target.value)
+                      }
                       className="h-12 bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-cyan-400 focus:ring-cyan-400/20 backdrop-blur-sm"
                       placeholder="(555) 123-4567"
                       required
@@ -219,7 +226,9 @@ function CompleteProfileContent() {
                     </Label>
                     <Select
                       value={formData.state}
-                      onValueChange={(value) => handleInputChange('state', value)}
+                      onValueChange={(value) =>
+                        handleInputChange("state", value)
+                      }
                     >
                       <SelectTrigger className="h-12 bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-cyan-400 focus:ring-cyan-400/20 backdrop-blur-sm">
                         <SelectValue placeholder="Select your state" />
@@ -250,7 +259,9 @@ function CompleteProfileContent() {
                     <Input
                       id="city"
                       value={formData.city}
-                      onChange={(e) => handleInputChange('city', e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("city", e.target.value)
+                      }
                       className="h-12 bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-cyan-400 focus:ring-cyan-400/20 backdrop-blur-sm"
                       placeholder="Enter your city"
                     />
@@ -272,7 +283,9 @@ function CompleteProfileContent() {
                     <Input
                       id="address"
                       value={formData.address}
-                      onChange={(e) => handleInputChange('address', e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("address", e.target.value)
+                      }
                       className="h-12 bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-cyan-400 focus:ring-cyan-400/20 backdrop-blur-sm"
                       placeholder="Enter your address"
                     />
@@ -294,7 +307,9 @@ function CompleteProfileContent() {
                     <Input
                       id="zipCode"
                       value={formData.zipCode}
-                      onChange={(e) => handleInputChange('zipCode', e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("zipCode", e.target.value)
+                      }
                       className="h-12 bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-cyan-400 focus:ring-cyan-400/20 backdrop-blur-sm"
                       placeholder="Enter your zip code"
                     />
@@ -307,8 +322,10 @@ function CompleteProfileContent() {
                     transition={{ delay: 0.8 }}
                     className="space-y-4"
                   >
-                    <h3 className="text-lg font-semibold text-white">Emergency Contact</h3>
-                    
+                    <h3 className="text-lg font-semibold text-white">
+                      Emergency Contact
+                    </h3>
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <Label
@@ -320,15 +337,20 @@ function CompleteProfileContent() {
                         <Input
                           id="emergencyName"
                           value={formData.emergencyContact.name}
-                          onChange={(e) => setFormData(prev => ({
-                            ...prev,
-                            emergencyContact: { ...prev.emergencyContact, name: e.target.value }
-                          }))}
+                          onChange={(e) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              emergencyContact: {
+                                ...prev.emergencyContact,
+                                name: e.target.value,
+                              },
+                            }))
+                          }
                           className="h-12 bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-cyan-400 focus:ring-cyan-400/20 backdrop-blur-sm"
                           placeholder="Emergency contact name"
                         />
                       </div>
-                      
+
                       <div>
                         <Label
                           htmlFor="emergencyPhone"
@@ -339,16 +361,21 @@ function CompleteProfileContent() {
                         <Input
                           id="emergencyPhone"
                           value={formData.emergencyContact.phone}
-                          onChange={(e) => setFormData(prev => ({
-                            ...prev,
-                            emergencyContact: { ...prev.emergencyContact, phone: e.target.value }
-                          }))}
+                          onChange={(e) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              emergencyContact: {
+                                ...prev.emergencyContact,
+                                phone: e.target.value,
+                              },
+                            }))
+                          }
                           className="h-12 bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-cyan-400 focus:ring-cyan-400/20 backdrop-blur-sm"
                           placeholder="Emergency contact phone"
                         />
                       </div>
                     </div>
-                    
+
                     <div>
                       <Label
                         htmlFor="emergencyRelationship"
@@ -359,10 +386,15 @@ function CompleteProfileContent() {
                       <Input
                         id="emergencyRelationship"
                         value={formData.emergencyContact.relationship}
-                        onChange={(e) => setFormData(prev => ({
-                          ...prev,
-                          emergencyContact: { ...prev.emergencyContact, relationship: e.target.value }
-                        }))}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            emergencyContact: {
+                              ...prev.emergencyContact,
+                              relationship: e.target.value,
+                            },
+                          }))
+                        }
                         className="h-12 bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-cyan-400 focus:ring-cyan-400/20 backdrop-blur-sm"
                         placeholder="e.g., Spouse, Parent, Friend"
                       />
@@ -376,71 +408,88 @@ function CompleteProfileContent() {
                     transition={{ delay: 0.9 }}
                     className="space-y-4"
                   >
-                    <h3 className="text-lg font-semibold text-white">Preferences</h3>
-                    
+                    <h3 className="text-lg font-semibold text-white">
+                      Preferences
+                    </h3>
+
                     <div className="space-y-3">
                       <div className="flex items-center space-x-3">
                         <input
                           type="checkbox"
                           id="emailNotifications"
                           checked={formData.preferences.notifications.email}
-                          onChange={(e) => setFormData(prev => ({
-                            ...prev,
-                            preferences: {
-                              ...prev.preferences,
-                              notifications: {
-                                ...prev.preferences.notifications,
-                                email: e.target.checked
-                              }
-                            }
-                          }))}
+                          onChange={(e) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              preferences: {
+                                ...prev.preferences,
+                                notifications: {
+                                  ...prev.preferences.notifications,
+                                  email: e.target.checked,
+                                },
+                              },
+                            }))
+                          }
                           className="w-4 h-4 text-cyan-600 bg-white/10 border-white/20 rounded focus:ring-cyan-500"
                         />
-                        <Label htmlFor="emailNotifications" className="text-white/90">
+                        <Label
+                          htmlFor="emailNotifications"
+                          className="text-white/90"
+                        >
                           Email Notifications
                         </Label>
                       </div>
-                      
+
                       <div className="flex items-center space-x-3">
                         <input
                           type="checkbox"
                           id="smsNotifications"
                           checked={formData.preferences.notifications.sms}
-                          onChange={(e) => setFormData(prev => ({
-                            ...prev,
-                            preferences: {
-                              ...prev.preferences,
-                              notifications: {
-                                ...prev.preferences.notifications,
-                                sms: e.target.checked
-                              }
-                            }
-                          }))}
+                          onChange={(e) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              preferences: {
+                                ...prev.preferences,
+                                notifications: {
+                                  ...prev.preferences.notifications,
+                                  sms: e.target.checked,
+                                },
+                              },
+                            }))
+                          }
                           className="w-4 h-4 text-cyan-600 bg-white/10 border-white/20 rounded focus:ring-cyan-500"
                         />
-                        <Label htmlFor="smsNotifications" className="text-white/90">
+                        <Label
+                          htmlFor="smsNotifications"
+                          className="text-white/90"
+                        >
                           SMS Notifications
                         </Label>
                       </div>
-                      
+
                       <div className="flex items-center space-x-3">
                         <input
                           type="checkbox"
                           id="pushNotifications"
                           checked={formData.preferences.notifications.push}
-                          onChange={(e) => setFormData(prev => ({
-                            ...prev,
-                            preferences: {
-                              ...prev.preferences,
-                              notifications: {
-                                ...prev.preferences.notifications,
-                                push: e.target.checked
-                              }
-                            }
-                          }))}
+                          onChange={(e) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              preferences: {
+                                ...prev.preferences,
+                                notifications: {
+                                  ...prev.preferences.notifications,
+                                  push: e.target.checked,
+                                },
+                              },
+                            }))
+                          }
                           className="w-4 h-4 text-cyan-600 bg-white/10 border-white/20 rounded focus:ring-cyan-500"
                         />
-                        <Label htmlFor="pushNotifications" className="text-white/90">
+                        <Label
+                          htmlFor="pushNotifications"
+                          className="text-white/90"
+                        >
                           Push Notifications
                         </Label>
                       </div>
@@ -454,7 +503,9 @@ function CompleteProfileContent() {
                       animate={{ opacity: 1, y: 0 }}
                       className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg"
                     >
-                      <p className="text-red-400 text-sm text-center">{error}</p>
+                      <p className="text-red-400 text-sm text-center">
+                        {error}
+                      </p>
                     </motion.div>
                   )}
 
@@ -522,11 +573,7 @@ function CompleteProfileContent() {
 
 export default function CompleteProfilePage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-white">Loading...</div>
-      </div>
-    }>
+    <Suspense fallback={<Loader size={60} />}>
       <CompleteProfileContent />
     </Suspense>
   );
