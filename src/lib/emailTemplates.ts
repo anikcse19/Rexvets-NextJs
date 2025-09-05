@@ -4,15 +4,9 @@ export const welcomeEmailTemplate = (name: string) => `
             <p>Dear ${name},</p>
             <p>Welcome to Rex Vet and thank you for choosing us for your pet's healthcare needs. We're thrilled to have you on board and look forward to helping you and your furry friend live happier, healthier lives.</p>
             <p>You're now part of a community of pet lovers who are committed to providing the best care for their pets. To schedule your first video call with one of our experienced veterinarians, simply visit the 'Home' tab in your account and click 'Book a video call', and you'll be on your way to a virtual appointment.</p>
-<<<<<<< HEAD
             <p>If you have any questions or need assistance at any point along the way, please don't hesitate to reach out to our dedicated support team at support@rexvet.org. We're here to make your experience with Rex Vet as seamless and enjoyable as possible.</p>
             <p>Thank you once again for choosing Rex Vet. We can't wait to assist you in providing the best possible care for your pet.</p>
             <p>Warm regards,<br>The Team at Rex Vet</p>
-=======
-            <p>If you have any questions or need assistance at any point along the way, please don't hesitate to reach out to our dedicated support team at support@rexvets.com. We're here to make your experience with Rex Vets as seamless and enjoyable as possible.</p>
-            <p>Thank you once again for choosing Rex Vets. We can't wait to assist you in providing the best possible care for your pet.</p>
-            <p>Warm regards,<br>The Team at Rex Vets</p>
->>>>>>> c5275ce6e5b5f886a9307b33c9378a4d36788de8
             <div style="background-color: #002366; padding: 10px; text-align: center;">
                 <img src="https://res.cloudinary.com/di6zff0rd/image/upload/v1747926532/Logo_debjuj.png" alt="Rex Vet Logo" width="150" style="display: block; margin: 0 auto;" />
             </div>
@@ -137,7 +131,6 @@ export const reminderParentTemplate = (
   appointmentDateTime: string,
   meetingLink: string
 ) => `
-<<<<<<< HEAD
 <div style="background-color: #c5f1fc; padding: 0; text-align: center; width: 100%;">
         <img src="https://res.cloudinary.com/di6zff0rd/image/upload/v1748961858/emailtemp1_sv6jxx.jpg" alt="Top Banner" style="display: block; height: auto; border: 0; width: 100%;" />
     </div>
@@ -172,19 +165,6 @@ export const reminderParentTemplate = (
     <div style="background-color: #002366; padding: 10px; text-align: center;">
         <img src="https://res.cloudinary.com/di6zff0rd/image/upload/v1747926532/Logo_debjuj.png" alt="Rex Vet Logo" width="150" style="display: block; margin: 0 auto;" />
     </div>
-=======
-  <div style="background-color: #c5f1fc; padding: 0; text-align: center; width: 100%;">
-    <img src="https://res.cloudinary.com/di6zff0rd/image/upload/v1748961858/emailtemp1_sv6jxx.jpg" alt="Top Banner" style="display: block; height: auto; border: 0; width: 100%;" />
-  </div>
-  <p>Dear ${parentName},</p>
-  <p>This is a friendly reminder that your video call appointment with <strong> ${doctorName}</strong> at Rex Vets is starting in just 10 minutes!</p>
-  <p><strong>Date & Time:</strong> ${appointmentDateTime}</p>
-  <div style="text-align: center; margin: 20px 0;"><a href="${meetingLink}" style="background-color: #002366; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;">Join Appoinment Now</a></div>
-  <p style="text-align: center; word-break: break-all; color: #666;">Or copy and paste this link in your browser:<br/> ${meetingLink}</p>
-  <p>Thank you for choosing Rex Vets for your pet's healthcare needs.</p>
-  <p>Warm regards,<br>The Team at Rex Vets</p>
-  <div style="background-color: #002366; padding: 10px; text-align: center;"><img src="https://res.cloudinary.com/di6zff0rd/image/upload/v1747926532/Logo_debjuj.png" alt="Rex Vets Logo" width="150" style="display: block; margin: 0 auto;" /></div>
->>>>>>> c5275ce6e5b5f886a9307b33c9378a4d36788de8
 `;
 
 export const reminderDoctorTemplate = (
@@ -194,7 +174,6 @@ export const reminderDoctorTemplate = (
   meetingLink: string
 ) => `
   <div style="background-color: #c5f1fc; padding: 0; text-align: center; width: 100%;">
-<<<<<<< HEAD
         <img src="https://res.cloudinary.com/di6zff0rd/image/upload/v1748961858/emailtemp1_sv6jxx.jpg" alt="Top Banner" style="display: block; height: auto; border: 0; width: 100%;" />
     </div>
     <p>Dear ${doctorName},</p>
@@ -228,17 +207,6 @@ export const reminderDoctorTemplate = (
     <div style="background-color: #002366; padding: 10px; text-align: center;">
         <img src="https://res.cloudinary.com/di6zff0rd/image/upload/v1747926532/Logo_debjuj.png" alt="Rex Vet Logo" width="150" style="display: block; margin: 0 auto;" />
     </div>
-=======
-    <img src="https://res.cloudinary.com/di6zff0rd/image/upload/v1748961858/emailtemp1_sv6jxx.jpg" alt="Top Banner" style="display: block; height: auto; border: 0; width: 100%;" />
-  </div>
-  <p>Dear ${doctorName},</p>
-  <p>This is a reminder that your video call appointment with <strong>${parentName}</strong> is starting in 10 minutes.</p>
-  <p><strong>Date & Time:</strong> ${appointmentDateTime}</p>
-  <div style="text-align: center; margin: 20px 0;"><a href="${meetingLink}" style="background-color: #002366; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;">Join Appoinment Now</a></div>
-  <p style="text-align: center; word-break: break-all; color: #666;">Or copy and paste this link in your browser:<br/> ${meetingLink}</p>
-  <p>Best regards,<br>The Rex Vets Team</p>
-  <div style="background-color: #002366; padding: 10px; text-align: center;"><img src="https://res.cloudinary.com/di6zff0rd/image/upload/v1747926532/Logo_debjuj.png" alt="Rex Vets Logo" width="150" style="display: block; margin: 0 auto;" /></div>
->>>>>>> c5275ce6e5b5f886a9307b33c9378a4d36788de8
 `;
 
 export const donationThankYouTemplate = (
@@ -328,11 +296,7 @@ export const pharmacyRequestPaymentTemplate = ({
         <p style="margin-top: 30px; font-size: 15px; color: #333;">Our team will begin processing your pharmacy transfer right away. The typical turnaround is 2–3 business days.</p>
         <p style="font-size: 15px; color: #333;">If you have any questions or need support, feel free to reply to this email.</p>
       </div>
-<<<<<<< HEAD
       <div style="background-color: #f0f0f0; text-align: center; padding: 20px; font-size: 13px; color: #777;">🐾 RexVet • 123 Pet Lane, Animal City, USA<br/><a href="mailto:support@rexvet.org" style="color: #002366;">support@rexvet.org</a></div>
-=======
-      <div style="background-color: #f0f0f0; text-align: center; padding: 20px; font-size: 13px; color: #777;">🐾 RexVets • 123 Pet Lane, Animal City, USA<br/><a href="mailto:support@rexvets.com" style="color: #002366;">support@rexvets.com</a></div>
->>>>>>> c5275ce6e5b5f886a9307b33c9378a4d36788de8
     </div>
   </div>`;
 };
