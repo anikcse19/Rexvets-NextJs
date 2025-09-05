@@ -12,7 +12,7 @@ export interface INotification {
   type: NotificationType;
   title: string;
   body?: string;
-
+  subTitle?: string;
   recipientId: Types.ObjectId; // who will receive/see this notification (User)
   actorId?: Types.ObjectId; // who triggered it (User/Vet/System)
 
@@ -44,6 +44,7 @@ const notificationSchema = new Schema<INotification>(
       index: true,
     },
     title: { type: String, required: true, trim: true },
+    subTitle: { type: String, trim: true },
     body: { type: String, trim: true },
 
     // ids

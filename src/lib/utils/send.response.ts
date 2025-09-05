@@ -9,6 +9,9 @@ export interface ISendResponse<T> {
     page?: number;
     limit?: number;
     totalPages?: number;
+    total?: number;
+    hasNextPage?: boolean;
+    hasPrevPage?: boolean;
   };
 }
 

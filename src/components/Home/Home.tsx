@@ -73,7 +73,6 @@ const Home = () => {
       <TestimonialsSection />
 
       {/* Chat Icon */}
-      <ChatIcon />
     </div>
   );
 };

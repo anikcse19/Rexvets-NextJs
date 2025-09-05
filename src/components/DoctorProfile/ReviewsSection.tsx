@@ -1,16 +1,19 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 import { IReview } from "@/models";
 import { Star } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
-export default function ReviewsSection({
-  doctorId,
-}: {
-  doctorId: string;
-}) {
+export default function ReviewsSection({ doctorId }: { doctorId: string }) {
   const [reviews, setReviews] = useState<IReview[]>([]);
   const [page, setPage] = useState<number>(1);
   const [limit, setLimit] = useState<number>(5);
@@ -25,7 +28,9 @@ export default function ReviewsSection({
     }
     try {
       setLoading(true);
-      const res = await fetch(`/api/veterinarian/reviews/${doctorId}?page=${pageNum}&limit=${pageLimit}`);
+      const res = await fetch(
+        `/api/veterinarian/reviews/${doctorId}?page=${pageNum}&limit=${pageLimit}`
+      );
       if (!res.ok) {
         const error = await res.json();
         throw new Error(error.message || "Failed to fetch reviews");
@@ -98,7 +103,7 @@ export default function ReviewsSection({
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="flex">
-                    {[...Array(5)].map((_, i) => (
+                    {/* {[...Array(5)].map((_, i) => (
                       <Star
                         key={i}
                         className={`w-4 h-4 ${
@@ -107,7 +112,7 @@ export default function ReviewsSection({
                             : "text-gray-300"
                         }`}
                       />
-                    ))}
+                    ))} */}
                   </div>
                 </div>
               </div>

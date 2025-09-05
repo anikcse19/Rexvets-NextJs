@@ -378,14 +378,18 @@ export async function POST(req: NextRequest) {
 
     const notificationPayload: INotification = {
       type: NotificationType.NEW_APPOINTMENT,
-      title: "New Appointment",
-      body: `You have a new appointment with ${
+      title: "NEW BOOKING",
+      subTitle: "Appointment Confirmation",
+      body: `Your Appointment with Dr. ${
         existingPetOwner?.name || "Pet Parent"
-      }`,
+      } has been confirmed`,
       recipientId: new Types.ObjectId(vetUser?._id),
       actorId: new Types.ObjectId(petParent),
       data: {
         appointmentId: newAppointment._id,
+        vetId: new Types.ObjectId(veterinarian),
+        petId: new Types.ObjectId(pet),
+        petParentId: new Types.ObjectId(petParent),
       },
     };
     await NotificationModel.create([notificationPayload], {
@@ -399,14 +403,16 @@ export async function POST(req: NextRequest) {
     // After commit: try sending web push notification to the veterinarian, if token exists
     if (vetUser?.fcmTokens?.web) {
       try {
-        await sendPushNotification({
-          token: vetUser.fcmTokens.web as unknown as string,
-          title: "New Appointment",
-          body: `You have a new appointment with ${
-            existingPetOwner?.name || "Pet Parent"
-          }`,
-          page: `/dashboard/doctor/appointments?appointmentId=${newAppointment._id}`,
-        });
+        if (process.env.NODE_ENV !== "development") {
+          await sendPushNotification({
+            token: vetUser.fcmTokens.web as unknown as string,
+            title: "New Appointment",
+            body: `You have a new appointment with ${
+              existingPetOwner?.name || "Pet Parent"
+            }`,
+            page: `/dashboard/doctor/appointments?appointmentId=${newAppointment._id}`,
+          });
+        }
       } catch (pushErr) {
         console.error("Failed to send web push notification:", pushErr);
       }

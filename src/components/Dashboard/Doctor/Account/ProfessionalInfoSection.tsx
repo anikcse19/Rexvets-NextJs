@@ -26,8 +26,6 @@ import {
 } from "@/lib/validation/account";
 import { Doctor } from "@/lib/types";
 import { updateVet } from "../Service/update-vet";
-import { useRouter } from "next/navigation";
-import { uploadToCloudinary } from "@/lib/cloudinary";
 
 export default function ProfessionalInfoSection({
   doctorData,
@@ -56,8 +54,6 @@ export default function ProfessionalInfoSection({
     doctorData?.certifications || []
   );
 
-  const router = useRouter();
-
   function extractProfessionalInfo(doctorData: any) {
     return {
       licenseNumber: doctorData?.licenseNumber || "",
@@ -66,6 +62,7 @@ export default function ProfessionalInfoSection({
       certifications: doctorData?.certifications || [],
       clinicName: doctorData?.clinic?.name || "",
       clinicAddress: doctorData?.clinic?.address || "",
+      emergencyContact: doctorData?.emergencyContact || "",
     };
   }
 
@@ -87,22 +84,9 @@ export default function ProfessionalInfoSection({
   const onSubmit = async (data: ProfessionalInfoFormData) => {
     setIsLoading(true);
     try {
-      const submitData = {
-        ...data,
-        clinic: { name: data.clinicName, address: data.clinicAddress },
-        certifications,
-        licenses,
-      };
-      console.log("submitted data", submitData);
-      const res = await fetch(`/api/veterinarian/${doctorData?._id}`, {
-        method: "PUT",
-        body: JSON.stringify(submitData),
-      });
-
-      if (!res.ok) {
-        throw new Error();
-      }
-      router.refresh();
+      const submitData = { ...data, certifications, licenses };
+      await updateVet(submitData);
+      await new Promise((resolve) => setTimeout(resolve, 1000));
       setIsEditing(false);
     } catch (error) {
       console.error("Error updating professional info:", error);
@@ -238,7 +222,7 @@ export default function ProfessionalInfoSection({
               <InfoItem
                 icon={<GraduationCap className="w-5 h-5 text-orange-600" />}
                 label="Education"
-                value={doctorData?.education}
+                value={doctorData?.education[0]?.institution}
                 fullWidth
               />
             </div>
@@ -420,6 +404,20 @@ export default function ProfessionalInfoSection({
                 </p>
               )}
             </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="emergencyContact">Emergency Contact</Label>
+              <Input
+                id="emergencyContact"
+                {...register("emergencyContact")}
+                className="border-gray-300 focus:border-orange-500 focus:ring-orange-500"
+              />
+              {errors.emergencyContact && (
+                <p className="text-sm text-red-600">
+                  {errors.emergencyContact.message}
+                </p>
+              )}
+            </div>
           </div>
 
           {/* Education */}
@@ -500,7 +498,7 @@ export default function ProfessionalInfoSection({
 interface InfoItemProps {
   icon: React.ReactNode;
   label: string;
-  value: string | any[];
+  value: string;
   fullWidth?: boolean;
 }
 

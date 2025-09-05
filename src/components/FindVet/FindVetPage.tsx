@@ -3,6 +3,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { useDebounce } from "@/hooks/useDebounce";
 import useFCM from "@/hooks/useFCM";
 import {
   Award,
@@ -22,6 +23,16 @@ import { toast } from "sonner";
 import DoctorCard from "./DoctorCard";
 import { GetAllVetsResponse } from "./type";
 
+// Google Places API types
+interface GooglePlace {
+  place_id: string;
+  description: string;
+  structured_formatting: {
+    main_text: string;
+    secondary_text: string;
+  };
+}
+
 export default function FindVetPage({
   doctors: initialDoctors,
 }: {
@@ -34,37 +45,62 @@ export default function FindVetPage({
   const [userTimezone, setUserTimezone] = useState<string>("UTC");
   const [doctors, setDoctors] = useState<any>(initialDoctors || []);
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Google Places API states
+  const [locationInput, setLocationInput] = useState<string>("");
+  const [locationSuggestions, setLocationSuggestions] = useState<GooglePlace[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [selectedPlace, setSelectedPlace] = useState<GooglePlace | null>(null);
+  const [isLocationSearching, setIsLocationSearching] = useState(false);
+  
+  // Debounced location input for API calls
+  const debouncedLocationInput = useDebounce(locationInput, 300);
+  
+  // Ref for click outside detection
+  const locationInputRef = useRef<HTMLDivElement>(null);
 
   //PUSH NOTIFICATION TESTING_______________
   const { data: session } = useSession();
   const user = session?.user;
   console.log("USER", user);
-  const { requestPermission, getFcmToken, saveToken, token, error: fcmError, loading: fcmLoading, isSupported } = useFCM();
+  const {
+    requestPermission,
+    getFcmToken,
+    saveToken,
+    token,
+    error: fcmError,
+    loading: fcmLoading,
+    isSupported,
+  } = useFCM();
   const tokenSavedRef = useRef(false);
 
   useEffect(() => {
     if (isSupported) {
-      requestPermission();
-      getFcmToken();
+      if (process.env.NODE_ENV !== "development") {
+        requestPermission();
+        getFcmToken();
+      }
     } else {
       console.log("Push notifications not supported in this browser");
     }
   }, [isSupported, requestPermission, getFcmToken]);
 
   useEffect(() => {
-    const saveTokenToDatabase = async () => {
-      if (user?.id && token && !tokenSavedRef.current) {
-        console.log("Attempting to save token to database...");
-        tokenSavedRef.current = true;
-        const success = await saveToken(user.id);
-        if (success) {
-          console.log("Token saved successfully to database");
-        } else {
-          console.error("Failed to save token to database");
+    if (process.env.NODE_ENV !== "development") {
+      const saveTokenToDatabase = async () => {
+        if (user?.id && token && !tokenSavedRef.current) {
+          console.log("Attempting to save token to database...");
+          tokenSavedRef.current = true;
+          const success = await saveToken(user.id);
+          if (success) {
+            console.log("Token saved successfully to database");
+          } else {
+            console.error("Failed to save token to database");
+          }
         }
-      }
-    };
-    saveTokenToDatabase();
+      };
+      saveTokenToDatabase();
+    }
   }, [token, user, saveToken]);
 
   // Debug logging
@@ -74,7 +110,8 @@ export default function FindVetPage({
       error: fcmError,
       loading: fcmLoading,
       isSupported,
-      permission: typeof window !== "undefined" ? Notification.permission : "unknown"
+      permission:
+        typeof window !== "undefined" ? Notification.permission : "unknown",
     });
   }, [token, fcmError, fcmLoading, isSupported]);
   console.log("Doctors", doctors);
@@ -126,6 +163,31 @@ export default function FindVetPage({
     }
   }, []);
 
+  // Handle click outside to close suggestions
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (locationInputRef.current && !locationInputRef.current.contains(event.target as Node)) {
+        setShowSuggestions(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  // Trigger search when debounced location input changes
+  useEffect(() => {
+    if (debouncedLocationInput && debouncedLocationInput.length >= 3) {
+      searchPlaces(debouncedLocationInput);
+    } else {
+      setLocationSuggestions([]);
+      setShowSuggestions(false);
+      setIsLocationSearching(false);
+    }
+  }, [debouncedLocationInput]);
+
   console.log("doctors in find a vet page component", doctors);
 
   const bangladeshStates = [
@@ -148,9 +210,64 @@ export default function FindVetPage({
     { value: "name", label: "Name A-Z", icon: Stethoscope },
   ];
 
+  // Google Places API functions
+  const searchPlaces = async (query: string) => {
+    if (!query.trim() || query.length < 3) {
+      setLocationSuggestions([]);
+      setShowSuggestions(false);
+      setIsLocationSearching(false);
+      return;
+    }
+
+    try {
+      setIsLocationSearching(true);
+      const response = await fetch(`/api/places/autocomplete?input=${encodeURIComponent(query)}`);
+      if (response.ok) {
+        const data = await response.json();
+        setLocationSuggestions(data.predictions || []);
+        setShowSuggestions(true);
+      }
+    } catch (error) {
+      console.error("Error searching places:", error);
+      setLocationSuggestions([]);
+    } finally {
+      setIsLocationSearching(false);
+    }
+  };
+
+  const handleLocationInputChange = (value: string) => {
+    setLocationInput(value);
+    setSelectedPlace(null);
+  };
+
+  const handlePlaceSelect = (place: GooglePlace) => {
+    setSelectedPlace(place);
+    setLocationInput(place.description);
+    setShowSuggestions(false);
+    setLocationSuggestions([]);
+  };
+
   const handleSetLocation = () => {
-    setUserLocation("Dhaka, Bangladesh");
+    if (selectedPlace) {
+      setUserLocation(selectedPlace.description);
+      toast.success(`Location set to: ${selectedPlace.description}`);
+    } else {
+      setUserLocation("Dhaka, Bangladesh");
+      toast.success("Location set to: Dhaka, Bangladesh");
+    }
     setIsLocationModalOpen(false);
+    setLocationInput("");
+    setSelectedPlace(null);
+    setShowSuggestions(false);
+    setLocationSuggestions([]);
+  };
+
+  const handleCloseModal = () => {
+    setIsLocationModalOpen(false);
+    setLocationInput("");
+    setSelectedPlace(null);
+    setShowSuggestions(false);
+    setLocationSuggestions([]);
   };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -229,7 +346,9 @@ export default function FindVetPage({
       }
 
       if (!token) {
-        toast.error("No push subscription available. Please wait for subscription to be created.");
+        toast.error(
+          "No push subscription available. Please wait for subscription to be created."
+        );
         return;
       }
 
@@ -254,7 +373,7 @@ export default function FindVetPage({
       });
 
       const result = await response.json();
-      
+
       if (response.ok) {
         console.log("Push notification sent successfully:", result);
         toast.success("Test notification sent successfully!");
@@ -296,31 +415,24 @@ export default function FindVetPage({
             </div>
 
             <div className="flex gap-3">
-              <Button
-                onClick={() => sendPushNotification()}
-                disabled={!token || fcmLoading}
-                className="bg-white/20 hover:bg-white/30 text-white disabled:opacity-50"
-                aria-label="Send test push notification"
-              >
-                <Clock className="w-4 h-4 mr-2" aria-hidden="true" />
-                {fcmLoading ? "Setting up..." : token ? "Send Notification" : "Setup Required"}
-              </Button>
-              
+              {process.env.NODE_ENV !== "development" && (
+                <Button
+                  onClick={() => sendPushNotification()}
+                  disabled={!token || fcmLoading}
+                  className="bg-white/20 hover:bg-white/30 text-white disabled:opacity-50"
+                  aria-label="Send test push notification"
+                >
+                  <Clock className="w-4 h-4 mr-2" aria-hidden="true" />
+                  {fcmLoading
+                    ? "Setting up..."
+                    : token
+                    ? "Send Notification"
+                    : "Setup Required"}
+                </Button>
+              )}
+
               {/* Push Notification Status */}
-              <div className="bg-white/20 rounded-lg px-4 py-2 text-sm">
-                <div className="flex items-center gap-2 mb-1">
-                  <div className={`w-2 h-2 rounded-full ${token ? 'bg-green-400' : 'bg-yellow-400'}`}></div>
-                  <span className="font-medium">
-                    {token ? 'Push Ready' : 'Setting up...'}
-                  </span>
-                </div>
-                {fcmError && (
-                  <div className="text-red-200 text-xs">{fcmError}</div>
-                )}
-                {fcmLoading && (
-                  <div className="text-blue-200 text-xs">Loading...</div>
-                )}
-              </div>
+
               <Button
                 onClick={() => fetchDoctorsWithTimezone(userTimezone)}
                 disabled={isLoading}
@@ -341,59 +453,6 @@ export default function FindVetPage({
             </div>
           </div>
         </header>
-
-        {/* Push Notification Debug Section */}
-        {user && (
-          <section className="bg-white rounded-2xl shadow-lg p-6 border-0">
-            <h2 className="text-xl font-semibold mb-4">Push Notification Status</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <span className="font-medium">Status:</span>
-                  <div className={`w-3 h-3 rounded-full ${token ? 'bg-green-500' : 'bg-yellow-500'}`}></div>
-                  <span>{token ? 'Ready' : 'Setting up...'}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="font-medium">Permission:</span>
-                  <span className={`px-2 py-1 rounded text-xs ${
-                    typeof window !== "undefined" && Notification.permission === 'granted' 
-                      ? 'bg-green-100 text-green-800' 
-                      : typeof window !== "undefined" && Notification.permission === 'denied'
-                      ? 'bg-red-100 text-red-800'
-                      : 'bg-yellow-100 text-yellow-800'
-                  }`}>
-                    {typeof window !== "undefined" ? Notification.permission : 'unknown'}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="font-medium">Loading:</span>
-                  <span className={fcmLoading ? 'text-blue-600' : 'text-gray-600'}>
-                    {fcmLoading ? 'Yes' : 'No'}
-                  </span>
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                {fcmError && (
-                  <div className="text-red-600 text-sm">
-                    <span className="font-medium">Error:</span> {fcmError}
-                  </div>
-                )}
-                <div className="text-sm text-gray-600">
-                  <span className="font-medium">Token:</span> {token ? 'Present' : 'Missing'}
-                </div>
-                <Button
-                  onClick={() => getFcmToken()}
-                  disabled={fcmLoading}
-                  size="sm"
-                  variant="outline"
-                >
-                  {fcmLoading ? 'Setting up...' : 'Refresh Subscription'}
-                </Button>
-              </div>
-            </div>
-          </section>
-        )}
 
         {/* Search & Filter */}
         <section
@@ -578,40 +637,83 @@ export default function FindVetPage({
                 Set Location & Timezone
               </h3>
               <p id="location-modal-description" className="text-gray-600 mb-6">
-                Set your timezone to see accurate appointment availability and
+                Search for your location to see accurate appointment availability and
                 help us find veterinarians near you
               </p>
 
               <div className="space-y-4">
-                <div>
+                {/* Location Search Input */}
+                <div className="relative" ref={locationInputRef}>
                   <label
-                    htmlFor="timezone-select"
+                    htmlFor="location-input"
                     className="block text-sm font-medium text-gray-700 mb-2"
                   >
-                    Timezone
+                    Search Location
                   </label>
-                  {/* <select
-                    id="timezone-select"
-                    value={userTimezone}
-                    onChange={(e) => setUserTimezone(e.target.value)}
-                    className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    <option value="UTC">UTC</option>
-                    <option value="America/New_York">Eastern Time (ET)</option>
-                    <option value="America/Chicago">Central Time (CT)</option>
-                    <option value="America/Denver">Mountain Time (MT)</option>
-                    <option value="America/Los_Angeles">
-                      Pacific Time (PT)
-                    </option>
-                    <option value="Europe/London">London (GMT)</option>
-                    <option value="Europe/Paris">Paris (CET)</option>
-                    <option value="Asia/Tokyo">Tokyo (JST)</option>
-                    <option value="Asia/Shanghai">Shanghai (CST)</option>
-                    <option value="Asia/Kolkata">Kolkata (IST)</option>
-                    <option value="Asia/Dhaka">Dhaka (BST)</option>
-                    <option value="Australia/Sydney">Sydney (AEST)</option>
-                  </select> */}
+                  <div className="relative">
+                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+                                         <input
+                       id="location-input"
+                       type="text"
+                       placeholder="Start typing your city, state, or address..."
+                       value={locationInput}
+                       onChange={(e) => handleLocationInputChange(e.target.value)}
+                       className="w-full pl-10 pr-4 py-3 border rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 transition-all"
+                       autoComplete="off"
+                     />
+                     
+                     {/* Loading indicator */}
+                     {isLocationSearching && (
+                       <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                       </div>
+                     )}
+                    
+                                         {/* Location Suggestions Dropdown */}
+                     {showSuggestions && (
+                       <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto z-10">
+                         {isLocationSearching ? (
+                           <div className="px-4 py-3 text-center text-gray-500">
+                             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mx-auto mb-2"></div>
+                             Searching...
+                           </div>
+                         ) : locationSuggestions.length > 0 ? (
+                           locationSuggestions.map((place) => (
+                             <button
+                               key={place.place_id}
+                               onClick={() => handlePlaceSelect(place)}
+                               className="w-full text-left px-4 py-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0 transition-colors"
+                             >
+                               <div className="font-medium text-gray-900">
+                                 {place.structured_formatting.main_text}
+                               </div>
+                               <div className="text-sm text-gray-500">
+                                 {place.structured_formatting.secondary_text}
+                               </div>
+                             </button>
+                           ))
+                         ) : locationInput.length >= 3 ? (
+                           <div className="px-4 py-3 text-center text-gray-500">
+                             No locations found
+                           </div>
+                         ) : null}
+                       </div>
+                     )}
+                  </div>
                 </div>
+
+                {/* Selected Location Display */}
+                {selectedPlace && (
+                  <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <MapPin className="w-4 h-4 text-blue-600" />
+                      <span className="text-sm font-medium text-blue-900">
+                        Selected: {selectedPlace.description}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
                 <Button
                   onClick={() => {
                     fetchDoctorsWithTimezone(userTimezone);
@@ -622,15 +724,18 @@ export default function FindVetPage({
                   <Clock className="w-4 h-4 mr-2" aria-hidden="true" />
                   Update Timezone & Refresh
                 </Button>
+                
                 <Button
                   onClick={handleSetLocation}
-                  className="w-full bg-gradient-to-r from-green-600 to-blue-600 text-white"
+                  disabled={!selectedPlace}
+                  className="w-full bg-gradient-to-r from-green-600 to-blue-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <MapPin className="w-4 h-4 mr-2" aria-hidden="true" />
-                  Use Current Location
+                  {selectedPlace ? "Set Selected Location" : "Select a location first"}
                 </Button>
+                
                 <Button
-                  onClick={() => setIsLocationModalOpen(false)}
+                  onClick={handleCloseModal}
                   variant="outline"
                   className="w-full"
                 >

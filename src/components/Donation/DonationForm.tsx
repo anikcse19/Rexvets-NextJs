@@ -171,10 +171,14 @@ const DonationForm: React.FC<DonationFormProps> = ({
           body: JSON.stringify({
             paymentIntentId: data.paymentIntentId,
             donationId: data.donationId,
+            isRecurring,
           }),
         });
       } catch (emailError) {
-        console.error("Error confirming payment and sending thank you email:", emailError);
+        console.error(
+          "Error confirming payment and sending thank you email:",
+          emailError
+        );
       }
 
       // Mark donation as paid in PetParent record
