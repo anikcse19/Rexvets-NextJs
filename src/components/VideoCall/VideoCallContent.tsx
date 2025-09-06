@@ -121,6 +121,9 @@ const VideoCallContent: React.FC<VideoCallContentProps> = ({ onEndCall }) => {
             isVirtualBackgroundSupported={isVirtualBackgroundSupported}
             isProcessingVirtualBg={isProcessingVirtualBg}
             userRole={userRole as string}
+            appointmentId={appointmentDetails?._id as string}
+            otherPartyName={userRole === "veterinarian" ? petParent?.name : veterinarian?.name}
+            otherPartyImage={userRole === "veterinarian" ? petParent?.profileImage : veterinarian?.profileImage}
           />
         </div>
 

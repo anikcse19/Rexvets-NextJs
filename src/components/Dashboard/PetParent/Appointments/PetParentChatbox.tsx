@@ -75,6 +75,9 @@ export default function ChatBox({
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
+  const [isTyping, setIsTyping] = useState(false);
+  const [otherUserTyping, setOtherUserTyping] = useState(false);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Fetch messages on component mount and when appointmentId changes
   useEffect(() => {
@@ -90,14 +93,60 @@ export default function ChatBox({
     // Subscribe to the appointment's channel
     const channel = pusherClient.subscribe(`appointment-${appointmentId}`);
     
-    // Listen for new messages
-    channel.bind('new-message', () => {
-      fetchMessages();
+    // Listen for new messages - add directly instead of refetching all
+    channel.bind('new-message', (data: { message: Message }) => {
+      if (data.message) {
+        setMessages(prev => {
+          // Check if this is a message from the current user (replace optimistic message)
+          const isCurrentUser = data.message.senderId === (session?.user as any)?.refId;
+          
+          if (isCurrentUser) {
+            // Replace optimistic messages with real message
+            return prev.filter(msg => !msg._id.startsWith('temp-')).concat(data.message);
+          } else {
+            // Add new message from other user
+            return [...prev, data.message];
+          }
+        });
+      }
+    });
+
+    // Listen for typing events
+    channel.bind('typing-start', (data: { userId: string, userName: string }) => {
+      const isCurrentUser = data.userId === (session?.user as any)?.refId;
+      if (!isCurrentUser) {
+        setOtherUserTyping(true);
+      }
+    });
+
+    channel.bind('typing-stop', (data: { userId: string }) => {
+      const isCurrentUser = data.userId === (session?.user as any)?.refId;
+      if (!isCurrentUser) {
+        setOtherUserTyping(false);
+      }
     });
 
     return () => {
       channel.unbind_all();
       pusherClient.unsubscribe(`appointment-${appointmentId}`);
+      
+      // Cleanup typing timeout
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+      
+      // Send typing stop event on unmount
+      if (isTyping && appointmentId) {
+        fetch('/api/appointment-chat/typing', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            appointmentId,
+            userId: (session?.user as any)?.refId,
+            action: 'stop'
+          })
+        }).catch(console.error);
+      }
     };
   }, [appointmentId]);
 
@@ -177,14 +226,67 @@ export default function ChatBox({
   const handleSendMessage = async () => {
     if ((!newMessage.trim() && uploadedFiles.length === 0) || !appointmentId || isSending) return;
 
+    const currentUserId = (session?.user as any)?.refId;
+    const currentUserName = session?.user?.name || 'You';
+    const currentUserImage = session?.user?.image || undefined;
+
     try {
-      setIsSending(true);
       setError(null);
 
       // Force auto-scroll when user sends a message
       setShouldAutoScroll(true);
 
-      // Send text message if there's text content
+      // Create optimistic messages for instant display
+      const optimisticMessages: Message[] = [];
+
+      // Add optimistic text message if there's text content
+      if (newMessage.trim()) {
+        const optimisticTextMessage: Message = {
+          _id: `temp-${Date.now()}-text`,
+          senderId: currentUserId,
+          senderName: currentUserName,
+          senderImage: currentUserImage,
+          content: newMessage.trim(),
+          messageType: 'text',
+          isRead: false,
+          isDelivered: false,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+        optimisticMessages.push(optimisticTextMessage);
+      }
+
+      // Add optimistic file messages for each uploaded file
+      uploadedFiles.forEach((file, index) => {
+        const optimisticFileMessage: Message = {
+          _id: `temp-${Date.now()}-file-${index}`,
+          senderId: currentUserId,
+          senderName: currentUserName,
+          senderImage: currentUserImage,
+          content: file.fileName,
+          messageType: file.messageType as "image" | "video" | "file",
+          attachments: [{
+            url: file.url,
+            fileName: file.fileName,
+            fileSize: file.fileSize,
+          }],
+          isRead: false,
+          isDelivered: false,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+        optimisticMessages.push(optimisticFileMessage);
+      });
+
+      // Add optimistic messages to state immediately
+      setMessages(prev => [...prev, ...optimisticMessages]);
+
+      // Clear input fields immediately
+      setNewMessage('');
+      setUploadedFiles([]);
+      setShowFileUpload(false);
+
+      // Send messages to API in background
       if (newMessage.trim()) {
         const textResponse = await fetch('/api/appointment-chat/messages', {
           method: 'POST',
@@ -227,20 +329,15 @@ export default function ChatBox({
         }
       }
 
-      setNewMessage('');
-      setUploadedFiles([]);
-      setShowFileUpload(false);
-      
-      // Fetch latest messages to ensure consistency
-      setTimeout(() => {
-        fetchMessages();
-      }, 500);
+      // Remove optimistic messages when real messages arrive via Pusher
+      // The Pusher update will replace the optimistic messages with real ones
       
     } catch (err) {
       console.error('Error sending message:', err);
       setError('Failed to send message');
-    } finally {
-      setIsSending(false);
+      
+      // Remove optimistic messages on error
+      setMessages(prev => prev.filter(msg => !msg._id.startsWith('temp-')));
     }
   };
 
@@ -267,6 +364,55 @@ export default function ChatBox({
   const isParent = (senderId: string) => {
     // Check if the sender is the current user (pet parent) using refId
     return (session?.user as any)?.refId === senderId;
+  };
+
+  // Typing indicator functions
+  const sendTypingStart = () => {
+    if (!isTyping && appointmentId) {
+      setIsTyping(true);
+      fetch('/api/appointment-chat/typing', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          appointmentId,
+          userId: (session?.user as any)?.refId,
+          userName: session?.user?.name || 'You',
+          action: 'start'
+        })
+      }).catch(console.error);
+    }
+  };
+
+  const sendTypingStop = () => {
+    if (isTyping && appointmentId) {
+      setIsTyping(false);
+      fetch('/api/appointment-chat/typing', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          appointmentId,
+          userId: (session?.user as any)?.refId,
+          action: 'stop'
+        })
+      }).catch(console.error);
+    }
+  };
+
+  const handleTyping = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setNewMessage(e.target.value);
+    
+    // Send typing start event
+    sendTypingStart();
+    
+    // Clear existing timeout
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+    
+    // Set timeout to stop typing after 2 seconds of inactivity
+    typingTimeoutRef.current = setTimeout(() => {
+      sendTypingStop();
+    }, 2000);
   };
 
   return (
@@ -439,12 +585,18 @@ export default function ChatBox({
             </div>
           ))}
 
-          {isSending && (
-            <div className="flex gap-3 flex-row-reverse">
+          {/* Typing indicator */}
+          {otherUserTyping && (
+            <div className="flex gap-3">
               <Avatar className="w-8 h-8 flex-shrink-0">
-                <AvatarImage src={session?.user?.image || ""} alt="You" />
+                <AvatarImage src={doctorImage || ""} alt={doctorName || "Doctor"} />
                 <AvatarFallback className="text-xs">
-                  {session?.user?.name?.split(" ").map((n: string) => n.charAt(0)).join("") || "U"}
+                  {doctorName
+                    ? doctorName
+                        .split(" ")
+                        .map((n) => n.charAt(0))
+                        .join("")
+                    : "DR"}
                 </AvatarFallback>
               </Avatar>
               <div className="bg-gray-100 rounded-2xl px-4 py-3">
@@ -531,8 +683,18 @@ export default function ChatBox({
           <div className="flex-1 relative">
             <Input
               value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
-              onKeyPress={handleKeyPress}
+              onChange={handleTyping}
+              onKeyPress={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  // Stop typing indicator when sending
+                  if (typingTimeoutRef.current) {
+                    clearTimeout(typingTimeoutRef.current);
+                  }
+                  sendTypingStop();
+                  handleSendMessage();
+                }
+              }}
               placeholder="Type your message..."
               className="pr-12 border-gray-300 focus:border-teal-500 focus:ring-teal-500"
             />
@@ -540,14 +702,10 @@ export default function ChatBox({
 
           <Button
             onClick={handleSendMessage}
-            disabled={(!newMessage.trim() && uploadedFiles.length === 0) || isSending}
+            disabled={(!newMessage.trim() && uploadedFiles.length === 0)}
             className="bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 text-white"
           >
-            {isSending ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Send className="w-4 h-4" />
-            )}
+            <Send className="w-4 h-4" />
           </Button>
         </div>
       </div>
