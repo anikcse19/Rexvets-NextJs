@@ -1,6 +1,8 @@
 import { formatRelativeTime } from "@/lib/utils";
 import { RefreshCw, Trash2 } from "lucide-react";
 import React from "react";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import {
   FaCalendarCheck,
   FaComment,
@@ -45,10 +47,34 @@ const SystemNotification: React.FC<NotificationProps> = ({
   onDelete,
   className = "",
 }) => {
+  const router = useRouter();
+  const { data: session } = useSession();
+
   const handleClick = () => {
-    if (onClick) {
-      onClick(notification);
+    if (
+      notification.type === NotificationType.NEW_MESSAGE &&
+      notification.appointmentId
+    ) {
+      const base =
+        session?.user?.role === "pet_parent"
+          ? "/dashboard/pet-parent/appointments/"
+          : "/dashboard/doctor/appointments/";
+      
+      // Handle appointmentId - it could be a string, ObjectId, or populated object
+      let appointmentId: string;
+      if (typeof notification.appointmentId === 'string') {
+        appointmentId = notification.appointmentId;
+      } else if (notification.appointmentId && typeof notification.appointmentId === 'object') {
+        // If it's a populated object, get the _id
+        appointmentId = (notification.appointmentId as any)._id || String(notification.appointmentId);
+      } else {
+        appointmentId = String(notification.appointmentId);
+      }
+      
+      router.push(`${base}${appointmentId}`);
     }
+    // Always call onClick to close the panel, regardless of notification type
+    onClick?.(notification);
   };
 
   const handleDelete = (e: React.MouseEvent) => {
