@@ -128,7 +128,7 @@ TopbarProps) {
             setIsNotifications(false);
             setIsMessages(true);
           }}
-          className="relative text-white hover:bg-slate-700"
+          className="relative cursor-pointer text-white hover:bg-slate-700"
         >
           <MessageCircle className="w-5 h-5" />
           <Badge className="absolute -top-1 -right-1 w-5 h-5 p-0 flex items-center justify-center bg-red-500 text-white text-xs">
@@ -145,7 +145,7 @@ TopbarProps) {
             setIsNotifications(true);
             setIsMessages(false);
           }}
-          className="relative text-white hover:bg-slate-700"
+          className="relative cursor-pointer text-white hover:bg-slate-700"
         >
           <Bell className="w-5 h-5" />
           <Badge className="absolute -top-1 -right-1 w-5 h-5 p-0 flex items-center justify-center bg-blue-500 text-white text-xs">
@@ -222,6 +222,11 @@ TopbarProps) {
                   {notifications?.map(
                     (notification: INotification, index: number) => (
                       <SystemNotification
+                        onClose={() => {
+                          setOpen(false);
+                          setIsNotifications(false);
+                          setIsMessages(false);
+                        }}
                         key={`notif-${index}`}
                         notification={notification}
                       />

@@ -1,11 +1,21 @@
 import { formatRelativeTime } from "@/lib/utils";
 import { RefreshCw, Trash2 } from "lucide-react";
-import React from "react";
+import { useRouter } from "next/navigation";
+import React, { useState } from "react";
 import {
   FaCalendarCheck,
   FaComment,
   FaPrescriptionBottle,
 } from "react-icons/fa";
+import PrescriptionModal from "../Dashboard/Doctor/Appointments/PrescriptionModal";
+import { Button } from "../ui/button";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "../ui/dialog";
 
 export enum NotificationType {
   RECURRING_DONATION = "RECURRING_DONATION",
@@ -37,6 +47,7 @@ interface NotificationProps {
   onClick?: (notification: INotification) => void;
   onDelete?: (notification: INotification) => void;
   className?: string;
+  onClose?: () => void;
 }
 
 const SystemNotification: React.FC<NotificationProps> = ({
@@ -44,7 +55,10 @@ const SystemNotification: React.FC<NotificationProps> = ({
   onClick,
   onDelete,
   className = "",
+  onClose,
 }) => {
+  const router = useRouter();
+  const [isPrescriptionModalOpen, setIsPrescriptionModalOpen] = useState(false);
   const handleClick = () => {
     if (onClick) {
       onClick(notification);
@@ -101,7 +115,10 @@ const SystemNotification: React.FC<NotificationProps> = ({
   };
 
   const config = getNotificationConfig();
-
+  const handleWritePrescription = () => {
+    setIsPrescriptionModalOpen(true);
+    // onClose && onClose();
+  };
   return (
     <div
       className={`relative w-full max-w-md p-4 mx-4 mb-3 bg-white rounded-lg shadow-sm border-l-4 ${config.borderColor} cursor-pointer transition-all hover:shadow-md ${className}`}
@@ -173,6 +190,58 @@ const SystemNotification: React.FC<NotificationProps> = ({
           )} */}
         </div>
       )}
+      {notification.type === NotificationType.PRESCRIPTION_REQUEST && (
+        <div className="flex justify-end gap-x-4 mt-5">
+          <Button
+            onClick={() => {
+              router.push(
+                `/dashboard/doctor/appointments/${
+                  (notification.appointmentId as any)?._id
+                }`
+              );
+              onClose && onClose();
+            }}
+            className="cursor-pointer"
+            variant="ghost"
+            size={"lg"}
+          >
+            View
+          </Button>
+          <Button
+            onClick={handleWritePrescription}
+            className="cursor-pointer bg-blue-400 text-white hover:bg-blue-400 hover:text-white"
+            variant="ghost"
+            size={"lg"}
+          >
+            Start Prescription
+          </Button>
+        </div>
+      )}
+      <Dialog
+        open={isPrescriptionModalOpen}
+        onOpenChange={(open) => setIsPrescriptionModalOpen(open)}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>My Dialog</DialogTitle>
+          </DialogHeader>
+
+          <PrescriptionModal
+            isOpen={isPrescriptionModalOpen}
+            onClose={() => setIsPrescriptionModalOpen(false)}
+            appointmentId={(notification.appointmentId as any)?._id as any}
+            appointment={notification.appointmentId as any}
+            pet={notification.petId as any}
+            petParent={notification.petParentId as any}
+            veterinarian={notification.vetId as any}
+          />
+
+          {/* Close button */}
+          {/* <DialogClose asChild>
+            <Button>Close</Button>
+          </DialogClose> */}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
