@@ -1,11 +1,13 @@
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { useDashboardContext } from "@/hooks/DashboardContext";
 import { Slot, SlotStatus } from "@/lib";
 import { getTimezoneOffset } from "@/lib/timezone";
 import { convertTimesToUserTimezone } from "@/lib/timezone/index";
 import { cn } from "@/lib/utils";
+import { format } from "date-fns";
 import moment from "moment";
 import { useSession } from "next-auth/react";
-import React from "react";
+import React, { useState } from "react";
 import {
   FiCalendar,
   FiClock,
@@ -13,6 +15,7 @@ import {
   FiGlobe,
   FiLoader,
 } from "react-icons/fi";
+import { toast } from "sonner";
 import { Sheet, SheetContent } from "../../../ui/sheet";
 import { Switch } from "../../../ui/switch";
 import BookingSlotsPeriods from "./BookingSlotsPeriods";
@@ -74,17 +77,15 @@ const AvailabilityScheduler: React.FC<Props> = ({
     setSelectedSlot,
     setSlotStatus,
     slotStatus,
-    enabled,
-    setEnabled,
     open,
     setOpen,
-    disabledSlotIds,
-    setDisabledSlotIds,
+    getAvailableSlots,
+    selectedRange,
   } = useDashboardContext();
 
   const { data: session } = useSession();
   const user = session?.user as SessionUserWithRefId | undefined;
-
+  const [isLoading, setIsLoading] = useState(false);
   const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
   // Helper functions for timezone-aware formatting using convertTimesToUserTimezone
@@ -101,7 +102,6 @@ const AvailabilityScheduler: React.FC<Props> = ({
     }
     return moment(dateStr).format("dddd, MMM DD, YYYY");
   };
-
   const formatTime = (timeStr: string, dateStr: string, timezone?: string) => {
     if (timezone) {
       // Use convertTimesToUserTimezone for proper timezone conversion
@@ -115,7 +115,46 @@ const AvailabilityScheduler: React.FC<Props> = ({
     }
     return moment(`2000-01-01 ${timeStr}`).format("h:mm A");
   };
+  const updateSlotPeriod = async (slotIds: string[]) => {
+    try {
+      setIsLoading(true);
+      console.log("slotIDS", slotIds);
+      if (!user?.refId || !selectedRange) {
+        return;
+      }
+      const payload = {
+        slotIds,
+        status:
+          slotStatus === SlotStatus.DISABLED
+            ? SlotStatus.AVAILABLE
+            : SlotStatus.DISABLED,
+      };
 
+      const response = await fetch(
+        `/api/appointments/slots/slot-summary/${user.refId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to update slot status");
+      }
+
+      const startDate = format(selectedRange.start, "yyyy-MM-dd");
+      const endDate = format(selectedRange.end, "yyyy-MM-dd");
+
+      await getAvailableSlots(startDate, endDate, user.refId, userTimezone);
+    } catch (error: any) {
+      toast.error(error.message || "Failed to update slot status");
+    } finally {
+      setIsLoading(false);
+    }
+  };
   const formatDateRange = (periods: DayAvailability[]) => {
     if (periods?.length === 0) return "";
 
@@ -307,112 +346,118 @@ const AvailabilityScheduler: React.FC<Props> = ({
           </div>
 
           {/* Time Slots by Day */}
-          <div className="space-y-4">
-            {periods?.map((dayData, dayIndex) => (
-              <div
-                key={dayIndex}
-                className="border border-gray-200 rounded-lg p-3 bg-gray-50"
-              >
-                {/* Day Header */}
-                <div className="flex items-center justify-between mb-3">
-                  <h4 className="font-medium text-gray-800">
-                    {formatDate(dayData?.date?.start || "", dayData?.timezone)}
-                  </h4>
-                  <div className="text-xs text-gray-500 flex-row items-center flex">
-                    {dayData?.numberOfPeriods || 0} period
-                    {(dayData?.numberOfPeriods || 0) > 1 ? "s" : ""} •{" "}
-                    {dayData?.periods?.reduce(
-                      (sum, p) => sum + (p?.totalHours || 0),
-                      0
-                    ) || 0}
-                    h total
-                    {dayData?.timezone && (
-                      <span className="ml-1">• {dayData.timezone}</span>
-                    )}
+          <ScrollArea className="h-[55vh]">
+            <div className="space-y-4">
+              {periods?.map((dayData, dayIndex) => (
+                <div
+                  key={dayIndex}
+                  className="border border-gray-200 rounded-lg p-3 bg-gray-50"
+                >
+                  {/* Day Header */}
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="font-medium text-gray-800">
+                      {formatDate(
+                        dayData?.date?.start || "",
+                        dayData?.timezone
+                      )}
+                    </h4>
+                    <div className="text-xs text-gray-500 flex-row items-center flex">
+                      {dayData?.numberOfPeriods || 0} period
+                      {(dayData?.numberOfPeriods || 0) > 1 ? "s" : ""} •{" "}
+                      {dayData?.periods?.reduce(
+                        (sum, p) => sum + (p?.totalHours || 0),
+                        0
+                      ) || 0}
+                      h total
+                      {dayData?.timezone && (
+                        <span className="ml-1">• {dayData.timezone}</span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Day's Time Slots */}
+                  <div className="space-y-2">
+                    {dayData?.periods?.map((period, periodIndex) => (
+                      <div
+                        key={periodIndex}
+                        className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200"
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className="text-sm font-medium text-gray-700">
+                            Periods: {periodIndex + 1}
+                          </span>
+                          <span className="text-sm text-gray-600">
+                            {formatTime(
+                              period?.startTime || "",
+                              dayData?.date?.start || "",
+                              period?.timezone
+                            )}{" "}
+                            -{" "}
+                            {formatTime(
+                              period?.endTime || "",
+                              dayData?.date?.start || "",
+                              period?.timezone
+                            )}
+                          </span>
+                          <div className="flex items-center gap-1 text-xs">
+                            <span className="px-1.5 py-0.5 bg-green-100 text-green-700 rounded">
+                              Available
+                            </span>
+                            {period?.timezone &&
+                              period.timezone !== userTimezone && (
+                                <span className="px-1.5 py-0.5 bg-yellow-100 text-yellow-700 rounded">
+                                  {period.timezone}
+                                </span>
+                              )}
+                          </div>
+                        </div>
+                        <span className="text-sm font-medium text-gray-500">
+                          {period?.totalHours || 0}h
+                        </span>
+                        <div className="flex items-center gap-x-3">
+                          <div className="flex items-center gap-0 ml-1 gap-x-3">
+                            <Switch
+                              id="notifications"
+                              checked={isLoading}
+                              disabled={isLoading}
+                              onCheckedChange={() => {
+                                const slotIds =
+                                  period?.slots
+                                    ?.map((slot) => slot?._id)
+                                    ?.filter(Boolean) || [];
+                                updateSlotPeriod(slotIds);
+                                // console.log("slotIds:", slotIds);
+                                // setDisabledSlotIds((prev) => [
+                                //   ...prev,
+                                //   ...slotIds,
+                                // ]);
+                                // setEnabled(!enabled);
+                              }}
+                              className={cn(
+                                "peer rounded-full border-2 transition-colors duration-300 cursor-pointer",
+                                "data-[state=unchecked]:bg-gray-300", // background when OFF
+                                "data-[state=checked]:bg-green-500" // background when ON
+                              )}
+                            />
+                          </div>
+                          <button
+                            onClick={() => {
+                              setOpen(true);
+                              console.log("slots", period?.slots);
+                              setSelectedSlot(period?.slots || []);
+                            }}
+                            className="p-1.5 cursor-pointer text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded transition-colors"
+                          >
+                            <FiEdit2 size={16} />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
-
-                {/* Day's Time Slots */}
-                <div className="space-y-2">
-                  {dayData?.periods?.map((period, periodIndex) => (
-                    <div
-                      key={periodIndex}
-                      className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200"
-                    >
-                      <div className="flex items-center gap-3">
-                        <span className="text-sm font-medium text-gray-700">
-                          Periods: {periodIndex + 1}
-                        </span>
-                        <span className="text-sm text-gray-600">
-                          {formatTime(
-                            period?.startTime || "",
-                            dayData?.date?.start || "",
-                            period?.timezone
-                          )}{" "}
-                          -{" "}
-                          {formatTime(
-                            period?.endTime || "",
-                            dayData?.date?.start || "",
-                            period?.timezone
-                          )}
-                        </span>
-                        <div className="flex items-center gap-1 text-xs">
-                          <span className="px-1.5 py-0.5 bg-green-100 text-green-700 rounded">
-                            Available
-                          </span>
-                          {period?.timezone &&
-                            period.timezone !== userTimezone && (
-                              <span className="px-1.5 py-0.5 bg-yellow-100 text-yellow-700 rounded">
-                                {period.timezone}
-                              </span>
-                            )}
-                        </div>
-                      </div>
-                      <span className="text-sm font-medium text-gray-500">
-                        {period?.totalHours || 0}h
-                      </span>
-                      <div className="flex items-center gap-x-3">
-                        <div className="flex items-center gap-0 ml-1 gap-x-3">
-                          <Switch
-                            id="notifications"
-                            checked={
-                              period?.slots?.some((slot) =>
-                                disabledSlotIds?.includes(slot?._id || "")
-                              ) || false
-                            }
-                            onCheckedChange={() => {
-                              const slotIds =
-                                period?.slots
-                                  ?.map((slot) => slot?._id)
-                                  ?.filter(Boolean) || [];
-                              console.log("slotIds:", slotIds);
-                              setDisabledSlotIds(slotIds);
-                              setEnabled(!enabled);
-                            }}
-                            className={cn(
-                              "peer rounded-full border-2 transition-colors duration-300 cursor-pointer",
-                              "data-[state=unchecked]:bg-gray-300", // background when OFF
-                              "data-[state=checked]:bg-green-500" // background when ON
-                            )}
-                          />
-                        </div>
-                        <button
-                          onClick={() => {
-                            setOpen(true);
-                            console.log("slots", period?.slots);
-                            setSelectedSlot(period?.slots || []);
-                          }}
-                          className="p-1.5 cursor-pointer text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded transition-colors"
-                        >
-                          <FiEdit2 size={16} />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          </ScrollArea>
 
           {/* Summary Stats */}
           <div className="mt-6 p-4 bg-blue-50 rounded-lg">
