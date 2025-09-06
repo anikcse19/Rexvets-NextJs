@@ -22,6 +22,8 @@ import {
 } from "lucide-react";
 import ChatFileUpload from "@/components/shared/ChatFileUpload";
 import MessageAttachment from "@/components/shared/MessageAttachment";
+import pusherClient from "@/lib/pusherClient";
+import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 
 interface ChatBoxProps {
   appointmentId: string;
@@ -53,6 +55,9 @@ export default function ChatBox({
   parentImage,
 }: ChatBoxProps) {
   const { data: session, status } = useSession();
+  
+  // Track user's online status
+  useOnlineStatus();
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
@@ -79,16 +84,23 @@ export default function ChatBox({
     }
   }, [appointmentId]);
 
-  // Set up polling to fetch new messages every 5 seconds
+  // Set up Pusher for real-time messages
   useEffect(() => {
-    const interval = setInterval(() => {
-      if (appointmentId && !isLoading) {
-        fetchMessages();
-      }
-    }, 5000);
+    if (!appointmentId) return;
 
-    return () => clearInterval(interval);
-  }, [appointmentId, isLoading]);
+    // Subscribe to the appointment's channel
+    const channel = pusherClient.subscribe(`appointment-${appointmentId}`);
+    
+    // Listen for new messages
+    channel.bind('new-message', () => {
+      fetchMessages();
+    });
+
+    return () => {
+      channel.unbind_all();
+      pusherClient.unsubscribe(`appointment-${appointmentId}`);
+    };
+  }, [appointmentId]);
 
   // Check if user is at bottom of messages
   const isAtBottom = () => {

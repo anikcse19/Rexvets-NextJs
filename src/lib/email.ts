@@ -12,6 +12,8 @@ import {
   helpRequestEmailTemplate,
   pharmacyRequestPaymentTemplate,
   pharmacyRequestAcceptedTemplate,
+  messageToDoctorTemplate,
+  messageToParentTemplate,
 } from "./emailTemplates";
 
 // Email configuration
@@ -790,3 +792,35 @@ export async function sendPharmacyAcceptedEmail(params: {
     throw err;
   }
 }
+
+// ADD_SEND_CHAT_NOTIFICATION_EMAIL
+export async function sendChatNotificationEmail(params: {
+  to: string;
+  recipientName: string;
+  senderName: string;
+  isToDoctor: boolean;
+  appointmentId: string;
+}): Promise<void> {
+  const { to, recipientName, senderName, isToDoctor, appointmentId } = params;
+  try {
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+      console.log(`[CHAT] Dev mode. Would send to: ${to}`);
+      return;
+    }
+    const transporter = createTransporter();
+    const html = isToDoctor
+      ? messageToDoctorTemplate({ doctorName: recipientName, parentName: senderName, appointmentId })
+      : messageToParentTemplate({ parentName: recipientName, doctorName: senderName, appointmentId });
+
+    await transporter.sendMail({
+      from: `"RexVet" <${process.env.EMAIL_USER}>`,
+      to,
+      subject: "New chat message on RexVet",
+      html,
+    } as any);
+  } catch (err) {
+    console.error("Failed to send chat notification email:", err);
+  }
+}
+
+
