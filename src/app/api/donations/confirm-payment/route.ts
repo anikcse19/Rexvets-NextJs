@@ -248,9 +248,9 @@ export async function POST(request: NextRequest) {
 /**
  * Get badge name based on donation amount
  */
-function getBadgeNameFromAmount(amount: number): string {
-  if (amount >= 100) return "Champion";
-  if (amount >= 50) return "Guardian";
-  if (amount >= 25) return "Supporter";
-  return "Friend";
+function getBadgeNameFromAmount(amount: number) {
+  if (amount > 500) return "Pet Care Hero";
+  if (amount > 50 && amount <= 500) return "Community Champion";
+  if (amount > 5 && amount <= 50) return "Friend of Rex Vet";
+  return "";
 }

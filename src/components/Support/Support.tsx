@@ -4,7 +4,8 @@ import dynamic from "next/dynamic";
 import React from "react";
 import { FaClock, FaHospital } from "react-icons/fa";
 import { stayConnectedData, supportOptions } from "./support.data";
-const loader = () => <p>Loading...</p>;
+import Loader from "../shared/Loader";
+const loader = () => <Loader size={60} />;
 const SupportStayConnected = dynamic(() => import("./SupportStayConnected"), {
   loading: loader,
   ssr: false,

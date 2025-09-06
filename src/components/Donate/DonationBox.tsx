@@ -29,7 +29,7 @@ export default function DonationComponent({
   const { data: session } = useSession();
   const sessionEmail = (session?.user as any)?.email || "";
   const sessionName = (session?.user as any)?.name || "";
-  
+
   const [selectedAmount, setSelectedAmount] = useState<number>(35);
   const [customAmount, setCustomAmount] = useState<string>("");
   const [cardNumber, setCardNumber] = useState("");
@@ -58,13 +58,18 @@ export default function DonationComponent({
   const [donorEmail, setDonorEmail] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const donationOptions = [
-    { amount: 35, description: "Funds a full consultation for one pet" },
-    { amount: 45, description: "Supports a follow-up consultation" },
+    { amount: 25, description: "Funds a full consultation for one pet" },
+    { amount: 50, description: "Supports a follow-up consultation" },
     {
-      amount: 50,
+      amount: 250,
       description: "Helps cover care plans for chronic conditions",
     },
-    { amount: 100, description: "Expands care access for multiple families" },
+    { amount: 500, description: "Expands care access for multiple families" },
+    {
+      amount: 1000,
+      description: "Helps cover care plans for chronic conditions",
+    },
+    { amount: 1500, description: "Expands care access for multiple families" },
   ];
 
   const handleAmountSelect = (amount: number) => {
@@ -100,7 +105,7 @@ export default function DonationComponent({
       toast.error("Stripe has not loaded yet. Please try again.");
       return;
     }
-    
+
     setIsProcessing(true);
 
     try {
@@ -136,14 +141,16 @@ export default function DonationComponent({
         });
 
       if (paymentMethodError) {
-        toast.error(paymentMethodError.message || "Payment method creation failed");
+        toast.error(
+          paymentMethodError.message || "Payment method creation failed"
+        );
         return;
       }
 
       // Create payment intent via API
       console.log("Submitting donation with isRecurring:", isRecurring);
       console.log("Type of isRecurring:", typeof isRecurring);
-      
+
       const res = await fetch("/api/donations/create-payment-intent", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -192,12 +199,15 @@ export default function DonationComponent({
           }),
         });
       } catch (emailError) {
-        console.error("Error confirming payment and sending thank you email:", emailError);
+        console.error(
+          "Error confirming payment and sending thank you email:",
+          emailError
+        );
         // Don't show error to user, as payment was successful
       }
 
       toast.success("Thank you for your donation!");
-      
+
       // Reset form after successful donation
       setCustomAmount("");
       setSelectedAmount(35);
@@ -205,7 +215,7 @@ export default function DonationComponent({
       setDonorName("");
       setDonorEmail("");
       setIsRecurring(false);
-      
+
       // Clear card element
       if (elements) {
         const cardElement = elements.getElement(CardElement);
@@ -213,7 +223,7 @@ export default function DonationComponent({
           cardElement.clear();
         }
       }
-      
+
       // Call the onDonate callback if provided
       onDonate?.({
         amount: finalAmount,
@@ -249,7 +259,7 @@ export default function DonationComponent({
           <div className="py-3 px-5">
             {/* Donation Options */}
             <div className="mb-2">
-              <div className=" shadow rounded p-2 mb-2">
+              {/* <div className=" shadow rounded p-2 mb-2">
                 <h3 className="text-gray-700 text-[12px] mb-0">
                   Suggested Donation Options:
                 </h3>
@@ -260,16 +270,18 @@ export default function DonationComponent({
                     </div>
                   ))}
                 </div>
-              </div>
+              </div> */}
 
               {/* Amount Buttons */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-3">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-3">
                 {donationOptions.map((option) => (
                   <button
                     key={option.amount}
                     onClick={() => handleAmountSelect(option.amount)}
                     className={`py-1 px-4  cursor-pointer z-50 rounded-lg border-2 font-medium transition-all ${
-                      selectedAmount === option.amount && !customAmount && !showCustomInput
+                      selectedAmount === option.amount &&
+                      !customAmount &&
+                      !showCustomInput
                         ? " border-black bg-[#FFDB29] text-black"
                         : "border-gray-300 text-gray-700 hover:border-gray-400"
                     }`}
@@ -338,7 +350,7 @@ export default function DonationComponent({
                 </div>
               </div>
             )}
-            
+
             {/* Payment Form */}
             <div className="">
               <p className="text-sm mb-1">Card Information</p>

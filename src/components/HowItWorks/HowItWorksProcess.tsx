@@ -118,11 +118,11 @@ const HowItWorksProcess = () => {
                 asChild
                 variant="default"
                 size="lg"
-                className="bg-gradient-to-r from-white to-gray-100 text-gray-900 font-bold rounded-full px-11 py-7 shadow-lg hover:bg-gradient-to-r hover:from-gray-100 hover:to-gray-200 hover:-translate-y-0.5 transition-all"
+                className="group bg-gradient-to-r from-white to-gray-100 text-gray-900 font-bold rounded-full px-11 py-7 shadow-lg hover:bg-gradient-to-r hover:from-gray-100 hover:to-gray-200 hover:-translate-y-0.5 transition-all"
               >
                 <Link href="/find-a-vet">
                   Get Started Today
-                  <Star className="ml-2 h-5 w-5" />
+                  <Star className="ml-2 h-5 w-5 group-hover:text-yellow-500" />
                 </Link>
               </Button>
             </motion.div>

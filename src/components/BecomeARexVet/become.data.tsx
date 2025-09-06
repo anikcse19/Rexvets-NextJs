@@ -19,7 +19,7 @@ export const howItWorksBecomePlatformOverviewData: IBecomePlatformOverview[] = [
   {
     title: "One unified community.",
     description:
-      "Join Rex Vets' mission-driven network improving access to care. We support each other and grow together.",
+      "Join Rex Vet' mission-driven network improving access to care. We support each other and grow together.",
     icon: <HelpingHand className="w-6 h-6" />,
     color: "bg-purple-100 text-purple-600",
   },

@@ -31,9 +31,9 @@ const BecomeARexVet = () => {
         others: false,
       },
       {
-        feature: "Promotion on RexVets.com",
+        feature: "Promotion on rexvet.org",
         description:
-          "Promotion to new clients seeking help in RexVets's marketplace",
+          "Promotion to new clients seeking help in RexVet's marketplace",
         rexVets: true,
         others: false,
       },
@@ -71,7 +71,7 @@ const BecomeARexVet = () => {
         others: false,
       },
       {
-        feature: "RexVets Prescribing",
+        feature: "RexVet Prescribing",
         description: "Freeform and pharmacy-integrated options",
         rexVets: true,
         others: false,

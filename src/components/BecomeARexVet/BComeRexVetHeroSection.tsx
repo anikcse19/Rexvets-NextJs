@@ -79,7 +79,7 @@ const BComeRexVetHeroSection: React.FC<HeroSectionProps> = ({ isVisible }) => {
             </p>
             <div className="flex flex-col w-full md:flex-row items-center justify-start   gap-4 my-3">
               <Link
-                href="/register"
+                href="/auth/signup?role=veterinarian"
                 className=" w-full md:max-w-[307px]  md:min-w-[64px] h-[64px]  px-6 p-2 inline-flex items-center justify-center box-border tap-highlight-transparent outline-0 border-0 m-0 cursor-pointer select-none align-middle  leading-[1.75] tracking-[0.02857em] rounded-[16px]  text-[1.1rem] font-semibold normal-case relative overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] bg-gradient-to-br from-[#1976d2] to-[#9c27b0] text-white shadow-[0_8px_32px_-8px_rgba(25,118,210,0.376)]"
               >
                 <span className="flex items-center">
@@ -89,7 +89,7 @@ const BComeRexVetHeroSection: React.FC<HeroSectionProps> = ({ isVisible }) => {
               </Link>
 
               <Link
-                href="/how-it-works"
+                href="#how-it-works"
                 className=" w-full md:max-w-[307px]  md:min-w-[64px] h-[64px] bg-transparent px-6 inline-flex items-center justify-center box-border tap-highlight-transparent backdrop-blur-[20px] outline-0 m-0 cursor-pointer select-none align-middle leading-[1.75] tracking-[0.02857em] rounded-[16px] py-4 text-[1.1rem] font-medium normal-case relative overflow-hidden transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] border border-[rgba(25,118,210,0.19)] text-black/87 transform hover:scale-105 active:scale-95"
               >
                 <span className="flex items-center">
@@ -153,7 +153,7 @@ const BComeRexVetHeroSection: React.FC<HeroSectionProps> = ({ isVisible }) => {
                   Virtual Veterinary Care
                 </h3>
                 <p className="mt-2 text-gray-600">
-                  Connecting vets with pet owners nationwide
+                  Connecting vet with pet owners nationwide
                 </p>
                 <div className="grid grid-cols-2 gap-4 mt-4">
                   {[

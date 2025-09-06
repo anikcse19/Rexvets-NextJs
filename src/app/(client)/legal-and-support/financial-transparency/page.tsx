@@ -20,13 +20,13 @@ const FinancialTransparency = () => {
             Your Donations at Work
           </h1>
           <p className="text-lg md:text-xl max-w-3xl mx-auto mb-8 text-white/90 leading-relaxed drop-shadow-lg">
-            At Rex Vets, transparency is key to building trust with our
+            At Rex Vet, transparency is key to building trust with our
             community. We want you to know exactly how your donations are being
             used to support pets in need through telehealth services.
           </p>
 
           <Link
-            href="/DonatePage2"
+            href="/donate-now"
             className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl font-semibold text-white text-lg transition-transform transform hover:-translate-y-1 shadow-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
           >
             <Heart className="w-6 h-6" /> Donate Now
@@ -80,7 +80,7 @@ const FinancialTransparency = () => {
             support.
           </p>
           <Link
-            href="/DonatePage2"
+            href="/donate-now"
             className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl font-semibold text-white text-lg transition-transform transform hover:-translate-y-1 shadow-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
           >
             <Heart className="w-6 h-6" /> Donate Now

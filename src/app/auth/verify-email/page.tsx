@@ -8,11 +8,12 @@ import { ArrowLeft, CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Suspense } from "react";
+import Loader from "@/components/shared/Loader";
 
 function VerifyEmailContent() {
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
-  
+
   const [verificationStatus, setVerificationStatus] = useState<
     "loading" | "success" | "error"
   >("loading");
@@ -21,7 +22,9 @@ function VerifyEmailContent() {
   useEffect(() => {
     if (!token) {
       setVerificationStatus("error");
-      setMessage("Invalid verification link. Please check your email and try again.");
+      setMessage(
+        "Invalid verification link. Please check your email and try again."
+      );
       return;
     }
 
@@ -33,7 +36,9 @@ function VerifyEmailContent() {
 
         if (response.ok) {
           setVerificationStatus("success");
-          setMessage("Email verified successfully! You can now sign in to your account.");
+          setMessage(
+            "Email verified successfully! You can now sign in to your account."
+          );
         } else {
           const data = await response.json();
           setVerificationStatus("error");
@@ -119,7 +124,9 @@ function VerifyEmailContent() {
               transition={{ duration: 0.6, delay: 0.2 }}
               className="mb-6"
             >
-              <div className={`w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-r ${getStatusColor()} flex items-center justify-center shadow-2xl`}>
+              <div
+                className={`w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-r ${getStatusColor()} flex items-center justify-center shadow-2xl`}
+              >
                 {getStatusIcon()}
               </div>
               <h1 className="text-4xl font-bold text-white mb-2">
@@ -246,17 +253,7 @@ function VerifyEmailContent() {
 }
 
 function LoadingFallback() {
-  return (
-    <div
-      style={{
-        background:
-          "linear-gradient(135deg, #0f0c29 0%, #24243e 25%, #302b63 50%, #0f3460 75%, #002366 100%)",
-      }}
-      className="min-h-screen flex items-center justify-center"
-    >
-      <div className="text-white text-lg">Loading...</div>
-    </div>
-  );
+  return <Loader size={60} />;
 }
 
 export default function VerifyEmailPage() {

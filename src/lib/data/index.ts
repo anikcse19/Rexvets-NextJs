@@ -209,25 +209,25 @@ export const BlogsData = [
         title: "Early Detection of Health Issues",
         paragraph:
           "Regular vet checkups enable the early detection of potential health issues. Pets, like humans, can get illnesses that do not produce noticeable symptoms until they become serious. Routine examinations can detect these issues early, making therapy more tolerable and successful. This preventive strategy helps keep minor difficulties from turning into serious health concerns.",
-        image: "/images/Blogs/Blog2/img1webp",
+        image: "/images/Blogs/Blog2/img1.webp",
       },
       {
         title: "Preventive Care",
         paragraph:
           "Preventive treatment is essential for maintaining good pet health. Vaccinations, parasite management, dental care, and nutritional guidance are all included in a routine vet check-up. These preventive actions can protect your pet from diseases and health issues, allowing them to live a long and healthy life.",
-        image: "/images/Blogs/Blog2/img2webp",
+        image: "/images/Blogs/Blog2/img2.webp",
       },
       {
         title: "Monitoring Chronic Conditions",
         paragraph:
           "Regular vet check-ups are essential for pets suffering from chronic diseases such as diabetes, arthritis, or heart disease. These visits allow your veterinarian to monitor the condition and modify the medication as needed. Consistent treatment allows you to efficiently manage your pet's condition, improving their quality of life.",
-        image: "/images/Blogs/Blog2/img3webp",
+        image: "/images/Blogs/Blog2/img3.webp",
       },
       {
         title: "Behavioral Insights",
         paragraph:
           "Veterinarians can also provide vital information about your pet's behavior. Changes in behavior might occasionally suggest underlying health difficulties. Discussing your pet's behavior at a check-up might reveal hints about their overall health and well-being, allowing for early intervention when necessary.",
-        image: "/images/Blogs/Blog2/img4webp",
+        image: "/images/Blogs/Blog2/img4.webp",
       },
       {
         titleBig: "What to Expect During a Vet Check-up",
@@ -265,13 +265,13 @@ export const BlogsData = [
         title: "Protection from Deadly Diseases",
         paragraph:
           "Vaccinations protect pets from a number of potentially fatal diseases, including rabies, distemper, and parvovirus. These illnesses can cause serious sickness or even death, but they are avoidable with the proper vaccines. Keeping your pet up to date on vaccinations is an important step in giving them a long, healthy life.",
-        image: "/images/Blogs/Blog3/img1webp",
+        image: "/images/Blogs/Blog3/img1.webp",
       },
       {
         title: "Herd Immunity",
         paragraph:
           "Herd immunity develops when a large proportion of the pet population gets vaccinated. This implies that even pets that are unable to be vaccinated due to medical reasons benefit from some protection because disease transmission is limited overall. Vaccinating your pet helps to improve the overall health and safety of the pet community.",
-        image: "/images/Blogs/Blog3/img2webp",
+        image: "/images/Blogs/Blog3/img2.webp",
       },
       {
         title: "Legal Requirements",
@@ -338,13 +338,13 @@ export const BlogsData = [
         title: "Convenience at Your Fingertips ",
         paragraph:
           "Imagine being able to speak with a qualified veterinarian from the comfort of your own home. You may get medicines, make appointments, and get professional guidance all online with online veterinary care. This not only saves time but also reduces the stress on your pets, making the whole experience more comfortable for them.",
-        image: "/images/Blogs/Blog1/img1webp",
+        image: "/images/Blogs/Blog1/img1.webp",
       },
       {
         title: "Access to Expert Vet Anytime, Anywhere ",
         paragraph:
           "Whether you're at home, on vacation, or anywhere in between, online vet care guarantees that skilled veterinarian care is always accessible. Platforms link you with qualified veterinarians who can give advice and assistance on a wide range of pet health concerns, from simple diseases to more serious conditions.",
-        image: "/images/Blogs/Blog1/img2webp",
+        image: "/images/Blogs/Blog1/img2.webp",
       },
       {
         titleBig: "Comprehensive Vet Care Services",
@@ -353,19 +353,19 @@ export const BlogsData = [
         title: "Online Consultations",
         paragraph:
           "Online consultation services enable you to discuss your pet's health issues with a qualified veterinarian via video call. Whether it's a sudden sickness or a normal check-up, veterinarians can help.",
-        image: "/images/Blogs/Blog1/img3webp",
+        image: "/images/Blogs/Blog1/img3.webp",
       },
       {
         title: "Prescription Services",
         paragraph:
           "Does your pet's prescription need to be refilled? Prescriptions can be easily obtained online without the need to visit the vet clinic. Delivering your pet's medication directly to your door is made feasible by the simple procedure.",
-        image: "/images/Blogs/Blog1/img4webp",
+        image: "/images/Blogs/Blog1/img4.webp",
       },
       {
         title: "Health and Wellness Plans ",
         paragraph:
           "For the long-term health of your pet, preventive care is essential. Comprehensive wellness treatments customized to your pet's individual needs are available with online veterinary care. A proactive approach to pet health includes routine examinations, shots, and wellness tests.",
-        image: "/images/Blogs/Blog1/img5webp",
+        image: "/images/Blogs/Blog1/img5.webp",
       },
       {
         titleBig: "Join Our Community",
@@ -398,25 +398,25 @@ export const BlogsData = [
         title: "Early Detection of Health Issues",
         paragraph:
           "Regular vet checkups enable the early detection of potential health issues. Pets, like humans, can get illnesses that do not produce noticeable symptoms until they become serious. Routine examinations can detect these issues early, making therapy more tolerable and successful. This preventive strategy helps keep minor difficulties from turning into serious health concerns.",
-        image: "/images/Blogs/Blog2/img1webp",
+        image: "/images/Blogs/Blog2/img1.webp",
       },
       {
         title: "Preventive Care",
         paragraph:
           "Preventive treatment is essential for maintaining good pet health. Vaccinations, parasite management, dental care, and nutritional guidance are all included in a routine vet check-up. These preventive actions can protect your pet from diseases and health issues, allowing them to live a long and healthy life.",
-        image: "/images/Blogs/Blog2/img2webp",
+        image: "/images/Blogs/Blog2/img2.webp",
       },
       {
         title: "Monitoring Chronic Conditions",
         paragraph:
           "Regular vet check-ups are essential for pets suffering from chronic diseases such as diabetes, arthritis, or heart disease. These visits allow your veterinarian to monitor the condition and modify the medication as needed. Consistent treatment allows you to efficiently manage your pet's condition, improving their quality of life.",
-        image: "/images/Blogs/Blog2/img3webp",
+        image: "/images/Blogs/Blog2/img3.webp",
       },
       {
         title: "Behavioral Insights",
         paragraph:
           "Veterinarians can also provide vital information about your pet's behavior. Changes in behavior might occasionally suggest underlying health difficulties. Discussing your pet's behavior at a check-up might reveal hints about their overall health and well-being, allowing for early intervention when necessary.",
-        image: "/images/Blogs/Blog2/img4webp",
+        image: "/images/Blogs/Blog2/img4.webp",
       },
       {
         titleBig: "What to Expect During a Vet Check-up",
@@ -454,19 +454,19 @@ export const BlogsData = [
         title: "Protection from Deadly Diseases",
         paragraph:
           "Vaccinations protect pets from a number of potentially fatal diseases, including rabies, distemper, and parvovirus. These illnesses can cause serious sickness or even death, but they are avoidable with the proper vaccines. Keeping your pet up to date on vaccinations is an important step in giving them a long, healthy life.",
-        image: "/images/Blogs/Blog3/img1webp",
+        image: "/images/Blogs/Blog3/img1.webp",
       },
       {
         title: "Herd Immunity",
         paragraph:
           "Herd immunity develops when a large proportion of the pet population gets vaccinated. This implies that even pets that are unable to be vaccinated due to medical reasons benefit from some protection because disease transmission is limited overall. Vaccinating your pet helps to improve the overall health and safety of the pet community.",
-        image: "/images/Blogs/Blog3/img2webp",
+        image: "/images/Blogs/Blog3/img2.webp",
       },
       {
         title: "Legal Requirements",
         paragraph:
           "In many places, certain vaccinations are legally compulsory. Rabies vaccinations, for example, are required in the majority of places due to the disease's serious public health danger. Keeping up on your pet's vaccines helps you comply with local rules and regulations.",
-        image: "/images/Blogs/Blog3/img3webp",
+        image: "/images/Blogs/Blog3/img2.webp",
       },
       {
         titleBig: "Core Vaccinations for Dogs and Cats",

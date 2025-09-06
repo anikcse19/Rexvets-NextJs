@@ -6,8 +6,9 @@ import {
   prescriptionHeroSectionTabs,
   prescriptionSteps,
 } from "./prescription.data";
+import Loader from "../shared/Loader";
 // import GetAPrescriptionPharmacySection from "./GetAPrescriptionPharmacySection";
-const loader = () => <p>loading..........</p>;
+const loader = () => <Loader size={60} />;
 const GetAPrescriptionHeroSectionSection = dynamic(
   () => import("./GetAPrescriptionHeroSectionSection"),
   {
@@ -55,7 +56,7 @@ const GetAPrescription = () => {
         sub_title="Pharmacy"
         description=" Get trusted, veterinarian-approved products delivered right to your
             door. From prescription medications to wellness supplements, our
-            online pharmacy ensures your pet gets exactly what they need—safely,
+            online pharmacy ensures your pets get exactly what they need—safely,
             affordably, and conveniently."
       />
       <GetAPrescriptionStepsSection steps={prescriptionSteps} />

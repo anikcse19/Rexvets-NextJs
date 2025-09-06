@@ -94,7 +94,7 @@ const BeComeHowItWorksSection: React.FC<HowItWorksSectionProps> = ({
               className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-2xl"
             >
               <Link
-                href="/register"
+                href="/auth/signup?role=veterinarian"
                 className="bg-gradient-to-br from-[#1976d2] to-[#9c27b0] py-7 px-24 rounded-md inline-flex items-center justify-center text-white text-xl font-semibold transform transition-all duration-300 ease-in-out hover:-translate-y-1"
               >
                 Join the Movement

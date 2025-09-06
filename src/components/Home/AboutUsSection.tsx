@@ -47,19 +47,19 @@ const AboutUsSection: React.FC<AboutUsSectionProps> = ({
       <div className="relative z-10 3xl:max-w-screen-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-16 lg:py-20">
         {/* Header */}
         <div className="text-center mb-8 md:mb-12  md:w-[80%] md:mx-auto">
-          <h2 className="  mb-4 ">
-            <span className="text-3xl leading-tight lg:text-[72px] lg:leading-[79px] text-[#0f172a] font-extrabold ">
-              Only{" "}
+          <h2 className="mb-4 ">
+            <span className="text-3xl leading-tight lg:text-[52px] lg:leading-[79px] text-[#0f172a] font-extrabold ">
+              Connect with
             </span>
-            <span className="relative text-3xl leading-tight lg:text-[72px] lg:leading-[79px] bg-clip-text text-transparent  bg-gradient-to-r from-[#0f172a] via-[#3b82f6] to-[#8b5cf6]">
-              Rexvet
-              <span className=" absolute bottom-[-4px] md:bottom-[-6px] lg:bottom-[-8px] left-0 right-0 h-1 bg-gradient-to-r from-[#3b82f6] via-[#8b5cf6] to-[#06b6d4] rounded-sm opacity-30" />
+            <span className="relative text-3xl leading-tight lg:text-[52px] lg:leading-[79px] bg-clip-text text-transparent  bg-gradient-to-r from-[#0f172a] via-[#3b82f6] to-[#8b5cf6]">
+              Trusted Vets
+              <span className=" absolute bottom-[-2px] md:bottom-[-6px] lg:bottom-[-8px] left-0 right-0 h-1 bg-gradient-to-r from-[#3b82f6] via-[#8b5cf6] to-[#06b6d4] rounded-sm opacity-30" />
             </span>{" "}
-            <span className="text-3xl leading-tight lg:text-[72px] lg:leading-[79px]  lg:font-extrabold font-bold ml-1">
-              connects you to Vet who care
+            <span className="text-3xl leading-tight lg:text-[52px] lg:leading-[79px]  lg:font-extrabold font-bold ml-1">
+              Online for Your Pet’s Needs
             </span>
           </h2>
-          <p className="text-base  lg:text-[21px] lg:leading-[33px]  my-14 text-[#64748b] font-normal max-w-xl mx-auto leading-relaxed ">
+          <p className="text-base  lg:text-[21px] lg:leading-[33px] my-7 text-[#64748b] font-normal max-w-xl mx-auto leading-relaxed ">
             Building a future where no pet goes without care
           </p>
           <div className="w-20 h-1 bg-gradient-to-r from-[#3b82f6] via-[#8b5cf6] to-[#06b6d4] rounded-sm mx-auto mt-4" />

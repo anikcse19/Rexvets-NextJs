@@ -75,7 +75,7 @@ const FamilyPlanModal: React.FC<IProps> = ({
                 <Heart className="w-4 h-4" />
               </div>
               <div className="text-sm text-gray-700">
-                4 virtual vet appointments ($140 value)
+                4 virtual vet appointments ($289 value)
               </div>
             </div>
 

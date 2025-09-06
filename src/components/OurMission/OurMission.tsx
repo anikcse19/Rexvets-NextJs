@@ -6,7 +6,10 @@ import AchieveOurMissionSection from "./AchieveOurMissionSection";
 import { weAimFeatures } from "./our-mission.data";
 
 import dynamic from "next/dynamic";
-const loader = () => <p>loading...........</p>;
+import Loader from "../shared/Loader";
+
+const loader = () => <Loader size={60} />;
+
 const OurMissionWhyWeExist = dynamic(() => import("./OurMissionWhyWeExist"), {
   ssr: false,
   loading: loader,
@@ -29,7 +32,7 @@ const OurMission: React.FC = () => {
         badgeText="Transforming Pet Care"
         subtitle="Affordable Veterinary Care for Every Pet"
         subTitleClassName="text-center"
-        description="At Rex Vets, we're revolutionizing pet healthcare by breaking down barriers and making quality veterinary care accessible to every family, regardless of financial or geographic limitations."
+        description="At Rex Vet, we're revolutionizing pet healthcare by breaking down barriers and making quality veterinary care accessible to every family, regardless of financial or geographic limitations."
         secondaryButton={{
           text: "Talk to vet",
           icon: (

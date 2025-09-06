@@ -48,7 +48,7 @@ const BecomeRexVetStatsCTASection: React.FC<StatsCTASectionProps> = ({
               You're Needed Now More Than Ever
             </h2>
             <p className="text-lg opacity-90 mb-6">
-              Veterinarians on Rex Vets are helping fill critical care gaps for
+              Veterinarians on Rex Vet are helping fill critical care gaps for
               pets across the country.
             </p>
             <motion.button
@@ -59,7 +59,10 @@ const BecomeRexVetStatsCTASection: React.FC<StatsCTASectionProps> = ({
               whileTap={{ scale: 0.95 }}
               className="inline-flex items-center justify-center min-w-[64px] rounded-2xl px-8 py-4 text-[1.1rem] font-semibold text-white no-underline transition duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] bg-[linear-gradient(135deg,rgb(25,118,210),rgb(156,39,176))] shadow-[0_8px_32px_-8px_rgba(25,118,210,0.376)]"
             >
-              <Link href="/register" className="flex items-center">
+              <Link
+                href="/auth/signup?role=veterinarian"
+                className="flex items-center"
+              >
                 Join the Movement <ArrowRight className="ml-2" />
               </Link>
             </motion.button>
@@ -80,12 +83,12 @@ const BecomeRexVetStatsCTASection: React.FC<StatsCTASectionProps> = ({
                     >
                       {stat.icon}
                     </Avatar>
-                    <h3 className="text-2xl font-bold text-white">
-                      {stat.value}
-                    </h3>
                     <h4 className="text-base font-semibold text-white">
                       {stat.title}
                     </h4>
+                    <h3 className="text-2xl font-bold text-white">
+                      {stat.value}
+                    </h3>
                     <p className="text-sm opacity-80 text-white hidden md:block">
                       {stat.description}
                     </p>

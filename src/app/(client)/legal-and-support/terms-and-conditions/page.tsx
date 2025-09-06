@@ -236,7 +236,7 @@ const TermsC = () => {
                               size={16}
                               className="text-green-500 mt-1"
                             />{" "}
-                            {w}
+                            <p className="flex-1">{w}</p>{" "}
                           </li>
                         ))}
                       </ul>
