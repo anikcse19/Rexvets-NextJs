@@ -54,7 +54,7 @@ const rexVetTeam = {
         name: "Tiffany Delacruz",
         title: "Chief Executive Officer",
         description:
-          "Tiffany Delacruz, the CEO of Rex Vets, is a licensed veterinarian with a profound dedication to preventive medicine, striving to enhance the well-being of pets. With extensive experience in veterinary practice, Tiffany possesses a comprehensive understanding of the concerns of pet owners and their beloved companions. Under her astute leadership, Rex Vets has emerged as a renowned entity in the veterinary realm.",
+          "Tiffany Delacruz, the CEO of Rex Vet, is a licensed veterinarian with a profound dedication to preventive medicine, striving to enhance the well-being of pets. With extensive experience in veterinary practice, Tiffany possesses a comprehensive understanding of the concerns of pet owners and their beloved companions. Under her astute leadership, Rex Vet has emerged as a renowned entity in the veterinary realm.",
         image: "/images/our-team/CEO.webp",
         icon: "School",
         gradient: "accent",
@@ -63,7 +63,7 @@ const rexVetTeam = {
         name: "Johnny Dominguez",
         title: "Founder",
         description:
-          "Johnny Dominguez is the visionary founder behind Rex Vets. With a doctorate in computer science philosophy and a lifelong love for animals, Johnny set out to reimagine how pet families access care. Driven by a passion for innovation and compassion, he built Rex Vets to make veterinary support more accessible, especially for those who need it most.",
+          "Johnny Dominguez is the visionary founder behind Rex Vet. With a doctorate in computer science philosophy and a lifelong love for animals, Johnny set out to reimagine how pet families access care. Driven by a passion for innovation and compassion, he built Rex Vet to make veterinary support more accessible, especially for those who need it most.",
         image: "/images/our-team/Founder.webp",
         icon: "Psychology",
         gradient: "secondary",

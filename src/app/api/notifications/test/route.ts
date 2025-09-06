@@ -44,12 +44,13 @@ export async function POST(req: NextRequest) {
         "Retrieved token from user:",
         targetToken ? "present" : "missing"
       );
-      
+
       if (!targetToken) {
         return NextResponse.json(
           {
             success: false,
-            message: "No push subscription found for this user. Please enable push notifications first.",
+            message:
+              "No push subscription found for this user. Please enable push notifications first.",
           },
           { status: 400 }
         );
@@ -60,7 +61,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          message: "No push subscription found. Provide token or userId with saved subscription.",
+          message:
+            "No push subscription found. Provide token or userId with saved subscription.",
         },
         { status: 400 }
       );
@@ -110,7 +112,7 @@ export async function POST(req: NextRequest) {
     await sendPushNotification({
       token: subscription,
       title: title || "Test Notification",
-      body: body || "Hello from Rexvets",
+      body: body || "Hello from Rexvet",
       page,
     });
 

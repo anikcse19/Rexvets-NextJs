@@ -109,27 +109,6 @@ const ContactSocial: React.FC = () => {
           </motion.div>
         ))}
       </motion.div>
-      <motion.div variants={buttonVariants} className="mt-8">
-        <Card className="rounded-2xl bg-gradient-to-r from-indigo-500 to-purple-600 text-white text-center">
-          <CardContent className="p-6">
-            <h3 className="text-lg font-bold mb-2">Need Immediate Help?</h3>
-            <p className="text-sm opacity-90 mb-4">
-              For urgent pet health concerns, don&apos;t hesitate to reach out
-              immediately.
-            </p>
-            <Button
-              asChild
-              variant="outline"
-              className="bg-white/20 text-white border border-white/30 rounded-full px-6 py-2 hover:bg-white/30"
-            >
-              <Link href="tel:+18888080495">
-                Call Now
-                <Phone className="ml-2 h-5 w-5" />
-              </Link>
-            </Button>
-          </CardContent>
-        </Card>
-      </motion.div>
     </div>
   );
 };

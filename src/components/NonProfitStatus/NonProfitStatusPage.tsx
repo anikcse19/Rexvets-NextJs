@@ -22,7 +22,7 @@ const NonProfitPage = () => {
             Commitment
           </h1>
           <p className="text-lg md:text-xl max-w-3xl mx-auto text-white/90 leading-relaxed drop-shadow">
-            At Rex Vets, we’re dedicated to expanding access to veterinary care
+            At Rex Vet, we’re dedicated to expanding access to veterinary care
             through compassionate, affordable telehealth services. Our mission
             is to increase access to veterinary care for all pets—regardless of
             their family’s financial or geographic limitations.
@@ -81,8 +81,8 @@ const NonProfitPage = () => {
             <Users size={32} className="text-emerald-500 mb-4 mx-auto" />
             <h3 className="text-xl font-bold mb-2">50+ Volunteers</h3>
             <p className="text-gray-300">
-              Helping us spread awareness and provide support where it&apos;s needed
-              most.
+              Helping us spread awareness and provide support where it&apos;s
+              needed most.
             </p>
           </div>
           <div className="bg-white/10 backdrop-blur-lg p-8 rounded-3xl shadow-lg hover:-translate-y-2 transition transform">
@@ -102,18 +102,18 @@ const NonProfitPage = () => {
           Join Us in Making a Difference
         </h2>
         <p className="text-white/90 max-w-2xl mx-auto mb-8">
-          Learn more about how you can support Rex Vets or make a donation today
+          Learn more about how you can support Rex Vet or make a donation today
           to help expand our telehealth programs.
         </p>
         <div className="flex flex-wrap justify-center gap-6">
           <Link
-            href="/Donate"
+            href="/donate"
             className="px-8 py-4 rounded-full font-semibold bg-white text-blue-600 hover:bg-gray-100 transition"
           >
             Learn More
           </Link>
           <Link
-            href="/DonatePage1"
+            href="/donate-now"
             className="px-8 py-4 rounded-full font-semibold bg-amber-400 text-white hover:bg-amber-500 transition flex items-center gap-2"
           >
             Donate Now <Heart size={20} />

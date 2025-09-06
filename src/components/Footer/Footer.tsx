@@ -39,11 +39,11 @@ const Footer = React.memo(() => {
   const sitemapLinks = useMemo(
     () => [
       { to: "/", text: "Home" },
-      { to: "/pet-parents", text: "For pet parents" },
-      { to: "/become-a-rex-vet", text: "For Vet & techs" },
+      { to: "/pet-parents", text: "Pet parents" },
+      { to: "/become-a-rex-vet", text: "Vet & techs" },
       { to: "/about", text: "About" },
-      { to: "/Blogs", text: "Blogs" },
-      { to: "/Support", text: "Support" },
+      { to: "/rex-health-hub", text: "Blogs" },
+      { to: "/support", text: "Support" },
     ],
     []
   );

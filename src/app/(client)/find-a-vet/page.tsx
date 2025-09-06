@@ -1,5 +1,6 @@
 import FindVetPage from "@/components/FindVet/FindVetPage";
 import { getAllVets } from "@/components/FindVet/Service/get-all-vets";
+import Loader from "@/components/shared/Loader";
 import { Metadata } from "next";
 import React, { Suspense } from "react";
 
@@ -210,7 +211,7 @@ const page = async () => {
         />
 
         <div>
-          <Suspense fallback={<div>Loading...</div>}>
+          <Suspense fallback={<Loader size={60} />}>
             <FindVetPage doctors={result?.data} />
           </Suspense>
         </div>
@@ -230,7 +231,7 @@ const page = async () => {
         />
 
         <div>
-          <Suspense fallback={<div>Loading...</div>}>
+          <Suspense fallback={<Loader size={60} />}>
             <FindVetPage
               doctors={{
                 veterinarians: [],

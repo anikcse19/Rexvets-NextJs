@@ -5,23 +5,24 @@ import { redirect } from "next/navigation";
 import { connectToDatabase } from "@/lib/mongoose";
 import { PetParentModel } from "@/models";
 import React, { Suspense } from "react";
+import Loader from "@/components/shared/Loader";
 
 const page = async () => {
   // Server-side access check
   const session = await getServerSession(authOptions as any);
-  
+
   if (!(session as any)?.user?.refId) {
     redirect("/auth/signin");
   }
 
   try {
     await connectToDatabase();
-    
+
     // Check donation status server-side
-    const petParent = await PetParentModel.findOne({ 
+    const petParent = await PetParentModel.findOne({
       _id: (session as any).user.refId,
-      isActive: true 
-    }).select('donationPaid');
+      isActive: true,
+    }).select("donationPaid");
 
     if (!petParent || !petParent.donationPaid) {
       redirect("/donate");
@@ -33,7 +34,7 @@ const page = async () => {
 
   return (
     <div>
-      <Suspense fallback={<div>Loading...</div>}>
+      <Suspense fallback={<Loader size={60} />}>
         <AppointmentConfirmationPage />
       </Suspense>
     </div>

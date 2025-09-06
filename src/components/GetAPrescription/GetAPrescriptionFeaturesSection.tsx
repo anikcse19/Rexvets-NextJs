@@ -68,9 +68,9 @@ const GetAPrescriptionFeaturesSection: React.FC<IProps> = ({
             className="transform transition-transform duration-300 ease-out hover:scale-105 hover:-translate-y-3  min-w-[346px] mx-auto"
           >
             <Card className="bg-white/95 backdrop-blur-3xl border border-gray-200 rounded-3xl shadow-sm">
-              <CardContent className="p-6 flex flex-col items-center">
+              <CardContent className="p-6 flex flex-col items-center justify-center">
                 <div
-                  className={`${feature.color} w-20 h-20 rounded-3xl flex items-center justify-center mb-4 shadow-lg self-start`}
+                  className={`${feature.color} w-20 h-20 rounded-3xl flex items-center justify-center mb-4 shadow-lg`}
                 >
                   <feature.icon className="text-white text-3xl" />
                 </div>

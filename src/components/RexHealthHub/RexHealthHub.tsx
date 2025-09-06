@@ -3,25 +3,26 @@ import { BlogsData } from "@/lib";
 import { BookOpen, User } from "lucide-react";
 import dynamic from "next/dynamic";
 import React from "react";
+import Loader from "../shared/Loader";
 
 const RexHealthHubHeroSection = dynamic(
   () => import("./RexHealthHubHeroSection"),
   {
-    loading: () => <p>Loading...</p>,
+    loading: () => <Loader size={60} />,
     ssr: false,
   }
 );
 const RexHealthHubCtaSection = dynamic(
   () => import("./RexHealthHubCtaSection"),
   {
-    loading: () => <p>Loading...</p>,
+    loading: () => <Loader size={60} />,
     ssr: false,
   }
 );
 const RexHealthHubBlogSection = dynamic(
   () => import("./RexHealthHubBlogSection"),
   {
-    loading: () => <p>Loading...</p>,
+    loading: () => <Loader size={60} />,
     ssr: false,
   }
 );

@@ -1,5 +1,6 @@
 "use client";
 import { HumanChatBox } from "@/components/Chat";
+import Loader from "@/components/shared/Loader";
 import { useSearchParams } from "next/navigation";
 import React, { Suspense } from "react";
 
@@ -23,7 +24,7 @@ const ChatPageContent = () => {
 
 const Page = () => {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<Loader />}>
       <ChatPageContent />
     </Suspense>
   );

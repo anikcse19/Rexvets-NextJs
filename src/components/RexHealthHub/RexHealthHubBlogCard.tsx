@@ -16,7 +16,7 @@ const RexHealthHubBlogCard: React.FC<IRexHealthHubBlogCardProps> = ({
   by,
   excerpt,
 }) => (
-  <Link href={`/blog/${slug}`} className="no-underline block">
+  <Link href={`/rex-health-hub/${slug}`} className="no-underline block">
     <motion.div
       variants={rexHealthHubCardHover}
       initial="initial"

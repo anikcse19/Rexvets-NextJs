@@ -10,6 +10,7 @@ import localFont from "next/font/local";
 import { Suspense } from "react";
 import { Toaster } from "sonner";
 import "./globals.css";
+import Loader from "@/components/shared/Loader";
 
 const garet = localFont({
   src: [
@@ -428,7 +429,7 @@ export default function RootLayout({
           {/* Performance Monitor */}
           <PerformanceMonitor>
             {/* Google Analytics Provider */}
-            <Suspense fallback={<div>Loading...</div>}>
+            <Suspense fallback={<Loader />}>
               <GoogleAnalytics>{children}</GoogleAnalytics>
             </Suspense>
           </PerformanceMonitor>

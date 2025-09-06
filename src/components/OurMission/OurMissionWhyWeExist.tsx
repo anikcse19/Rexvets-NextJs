@@ -98,7 +98,7 @@ const OurMissionWhyWeExist: React.FC<IProps> = ({
             <div className="relative h-[60vh] min-h-[400px] overflow-hidden">
               <video
                 ref={videoRef}
-                className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+                className="w-full h-full object-contain transition-transform duration-500 hover:scale-105"
                 muted={muted}
                 loop
                 controls={false}

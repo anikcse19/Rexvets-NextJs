@@ -1,13 +1,14 @@
+import Loader from "@/components/shared/Loader";
 import { siteName, siteUrl } from "@/lib";
 import type { Metadata } from "next";
 import dynamic from "next/dynamic";
-import React from "react";
-
+import React, { Suspense } from "react";
 
 // SEO Metadata for Home Page
 export const metadata: Metadata = {
   title: "RexVet | 24/7 Affordable Online Pet Telehealth from Home",
-  description: "Get 24/7 online pet telehealth with RexVet. Affordable online veterinary care from your home, trusted by pet owners. 501(c)(3) non-profit. Book your vet now!",
+  description:
+    "Get 24/7 online pet telehealth with RexVet. Affordable online veterinary care from your home, trusted by pet owners. 501(c)(3) non-profit. Book your vet now!",
   keywords: [
     "online vet",
     "pet telehealth",
@@ -23,11 +24,12 @@ export const metadata: Metadata = {
     "veterinary telehealth",
     "pet health online",
     "virtual pet care",
-    "online animal healthcare"
+    "online animal healthcare",
   ],
   openGraph: {
     title: "RexVet | 24/7 Affordable Online Pet Telehealth from Home",
-    description: "Get 24/7 online pet telehealth with RexVet. Affordable online veterinary care from your home, trusted by pet owners. 501(c)(3) non-profit. Book your vet now!",
+    description:
+      "Get 24/7 online pet telehealth with RexVet. Affordable online veterinary care from your home, trusted by pet owners. 501(c)(3) non-profit. Book your vet now!",
     url: siteUrl,
     type: "website",
     siteName: siteName,
@@ -43,7 +45,8 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "RexVet | 24/7 Affordable Online Pet Telehealth from Home",
-    description: "Get 24/7 online pet telehealth with RexVet. Affordable online veterinary care from your home, trusted by pet owners. 501(c)(3) non-profit. Book your vet now!",
+    description:
+      "Get 24/7 online pet telehealth with RexVet. Affordable online veterinary care from your home, trusted by pet owners. 501(c)(3) non-profit. Book your vet now!",
     images: [`${siteUrl}/images/Logo.svg`],
     creator: "@RexVet",
   },
@@ -68,7 +71,7 @@ const Home = dynamic(
   {
     loading: () => (
       <div className="">
-        <p>Loading Home page...</p>
+        <Loader />
       </div>
     ),
   }
@@ -87,125 +90,125 @@ const page = () => {
               {
                 "@type": "WebSite",
                 "@id": `${siteUrl}/#website`,
-                "url": siteUrl,
-                "name": "RexVet | 24/7 Affordable Online Pet Telehealth from Home",
-                "potentialAction": [
+                url: siteUrl,
+                name: "RexVet | 24/7 Affordable Online Pet Telehealth from Home",
+                potentialAction: [
                   {
                     "@type": "SearchAction",
-                    "target": `${siteUrl}/search?q={search_term_string}`,
-                    "query-input": "required name=search_term_string"
-                  }
-                ]
+                    target: `${siteUrl}/search?q={search_term_string}`,
+                    "query-input": "required name=search_term_string",
+                  },
+                ],
               },
               {
                 "@type": "WebPage",
                 "@id": `${siteUrl}/#webpage`,
-                "url": siteUrl,
-                "inLanguage": "en",
-                "name": "RexVet | 24/7 Affordable Online Pet Telehealth from Home",
-                "isPartOf": {
-                  "@id": `${siteUrl}/#website`
+                url: siteUrl,
+                inLanguage: "en",
+                name: "RexVet | 24/7 Affordable Online Pet Telehealth from Home",
+                isPartOf: {
+                  "@id": `${siteUrl}/#website`,
                 },
-                "description": "Get 24/7 online pet telehealth with RexVet. Affordable online veterinary care from your home, trusted by pet owners. 501(c)(3) non-profit. Book your vet now!",
-                "breadcrumb": {
+                description:
+                  "Get 24/7 online pet telehealth with RexVet. Affordable online veterinary care from your home, trusted by pet owners. 501(c)(3) non-profit. Book your vet now!",
+                breadcrumb: {
                   "@type": "BreadcrumbList",
-                  "itemListElement": [
+                  itemListElement: [
                     {
                       "@type": "ListItem",
-                      "position": 1,
-                      "name": "Home",
-                      "item": siteUrl
-                    }
-                  ]
-                }
+                      position: 1,
+                      name: "Home",
+                      item: siteUrl,
+                    },
+                  ],
+                },
               },
               {
                 "@type": "Veterinary",
                 "@id": `${siteUrl}/#organization`,
-                "name": "RexVet",
-                "url": siteUrl,
-                "logo": `${siteUrl}/images/Logo.svg`,
-                "description": "RexVet is a 501(c)(3) non-profit organization providing 24/7 affordable online pet telehealth services. Connect with licensed veterinarians from the comfort of your home for comprehensive pet care.",
-                "telephone": "+1-555-555-5555",
-                "email": "info@rexvet.org",
-                "address": {
+                name: "RexVet",
+                url: siteUrl,
+                logo: `${siteUrl}/images/Logo.svg`,
+                description:
+                  "RexVet is a 501(c)(3) non-profit organization providing 24/7 affordable online pet telehealth services. Connect with licensed veterinarians from the comfort of your home for comprehensive pet care.",
+                telephone: "+1-555-555-5555",
+                email: "info@rexvet.org",
+                address: {
                   "@type": "PostalAddress",
-                  "addressCountry": "US"
+                  addressCountry: "US",
                 },
-                "serviceType": [
+                serviceType: [
                   "Online Veterinary Consultation",
                   "Pet Telehealth",
                   "Emergency Pet Care",
                   "Pet Health Advice",
-                  "Prescription Services"
+                  "Prescription Services",
                 ],
-                "availableService": [
+                availableService: [
                   {
                     "@type": "Service",
-                    "name": "Online Veterinary Consultation",
-                    "description": "24/7 virtual veterinary consultations for pets"
-                  },
-                  {
-                    "@type": "Service", 
-                    "name": "Emergency Pet Care",
-                    "description": "Immediate online emergency veterinary care"
+                    name: "Online Veterinary Consultation",
+                    description:
+                      "24/7 virtual veterinary consultations for pets",
                   },
                   {
                     "@type": "Service",
-                    "name": "Prescription Services", 
-                    "description": "Online prescription and medication services for pets"
-                  }
+                    name: "Emergency Pet Care",
+                    description: "Immediate online emergency veterinary care",
+                  },
+                  {
+                    "@type": "Service",
+                    name: "Prescription Services",
+                    description:
+                      "Online prescription and medication services for pets",
+                  },
                 ],
-                "areaServed": "United States",
-                "priceRange": "$$",
-                "paymentAccepted": [
-                  "Credit Card",
-                  "Debit Card",
-                  "Insurance"
-                ],
-                "openingHours": "Mo-Su 00:00-23:59",
-                "sameAs": [
+                areaServed: "United States",
+                priceRange: "$$",
+                paymentAccepted: ["Credit Card", "Debit Card", "Insurance"],
+                openingHours: "Mo-Su 00:00-23:59",
+                sameAs: [
                   "https://facebook.com/RexVet",
-                  "https://instagram.com/RexVet", 
-                  "https://twitter.com/RexVet"
-                ]
+                  "https://instagram.com/RexVet",
+                  "https://twitter.com/RexVet",
+                ],
               },
               {
                 "@type": "FAQPage",
-                "mainEntity": [
+                mainEntity: [
                   {
                     "@type": "Question",
-                    "name": "What is RexVet?",
-                    "acceptedAnswer": {
+                    name: "What is RexVet?",
+                    acceptedAnswer: {
                       "@type": "Answer",
-                      "text": "RexVet is a 501(c)(3) non-profit organization providing 24/7 affordable online pet telehealth services. We connect pet owners with licensed veterinarians for virtual consultations from the comfort of home."
-                    }
-                  },
-                  {
-                    "@type": "Question", 
-                    "name": "How much does RexVet cost?",
-                    "acceptedAnswer": {
-                      "@type": "Answer",
-                      "text": "RexVet offers affordable online veterinary care with transparent pricing. Our consultation fees are significantly lower than traditional in-person vet visits, making quality pet care accessible to everyone."
-                    }
+                      text: "RexVet is a 501(c)(3) non-profit organization providing 24/7 affordable online pet telehealth services. We connect pet owners with licensed veterinarians for virtual consultations from the comfort of home.",
+                    },
                   },
                   {
                     "@type": "Question",
-                    "name": "Is RexVet available 24/7?",
-                    "acceptedAnswer": {
-                      "@type": "Answer", 
-                      "text": "Yes, RexVet provides 24/7 online veterinary services. You can connect with licensed veterinarians anytime, day or night, for emergency care or routine consultations."
-                    }
-                  }
-                ]
-              }
-            ]
-          })
+                    name: "How much does RexVet cost?",
+                    acceptedAnswer: {
+                      "@type": "Answer",
+                      text: "RexVet offers affordable online veterinary care with transparent pricing. Our consultation fees are significantly lower than traditional in-person vet visits, making quality pet care accessible to everyone.",
+                    },
+                  },
+                  {
+                    "@type": "Question",
+                    name: "Is RexVet available 24/7?",
+                    acceptedAnswer: {
+                      "@type": "Answer",
+                      text: "Yes, RexVet provides 24/7 online veterinary services. You can connect with licensed veterinarians anytime, day or night, for emergency care or routine consultations.",
+                    },
+                  },
+                ],
+              },
+            ],
+          }),
         }}
       />
-      
-      <Home />
-
+      <Suspense fallback={<Loader size={60} />}>
+        <Home />
+      </Suspense>
     </>
   );
 };

@@ -47,7 +47,14 @@ const ReadyToGetStarted: React.FC<IProps> = ({
           </div>
           {isShowVisitPerfumery && (
             <div className="items-center justify-between flex mt-11">
-              <Link href={"/find-a-vet"} passHref>
+              <div
+                onClick={() =>
+                  window.open(
+                    "https://rexvets.securevetsource.com/site/view/230921_Home.pml",
+                    "__blank"
+                  )
+                }
+              >
                 <button className=" bg-transparent border border-white  rounded-full cursor-pointer flex items-center justify-center px-11 py-4 text-lg font-bold shadow-lg text-white hover:opacity-40 hover:-translate-y-0.5 transition-all duration-300">
                   Visit Pharmacy
                   <FaArrowRightLong
@@ -55,7 +62,7 @@ const ReadyToGetStarted: React.FC<IProps> = ({
                     className="ml-2 text-gray-100  "
                   />
                 </button>
-              </Link>
+              </div>
             </div>
           )}
         </div>

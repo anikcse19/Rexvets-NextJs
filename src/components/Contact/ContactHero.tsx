@@ -34,7 +34,7 @@ const ContactHero = () => {
     <section
       className="relative min-h-[60vh] flex items-center bg-cover bg-center bg-fixed"
       style={{
-        backgroundImage: `linear-gradient(135deg, rgba(59, 130, 246, 0.9) 0%, rgba(139, 92, 246, 0.9) 50%, rgba(6, 182, 212, 0.9) 100%), url('https://images.pexels.com/photos/6235667/pexels-photo-6235667.jpeg?auto=compress&cs=tinysrgb&w=1920')`,
+        backgroundImage: `linear-gradient(135deg, rgba(59, 130, 246, 0.9) 0%, rgba(139, 92, 246, 0.9) 50%, rgba(6, 182, 212, 0.9) 100%), url('/images/contact-bg.jpg')`,
       }}
     >
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.1)_0%,transparent_50%),radial-gradient(circle_at_80%_80%,rgba(255,255,255,0.08)_0%,transparent_50%),radial-gradient(circle_at_40%_60%,rgba(139,92,246,0.1)_0%,transparent_50%)] pointer-events-none" />
@@ -47,8 +47,8 @@ const ContactHero = () => {
             </span>
           </h1>
           <p className="text-lg md:text-2xl text-white/90 mb-8 max-w-3xl mx-auto">
-            Have questions about our telehealth services? Need support? We&apos;re
-            here to help you and your pets get the care you deserve.
+            Have questions about our telehealth services? Need support?
+            We&apos;re here to help you and your pets get the care you deserve.
           </p>
           <motion.div
             variants={badgeVariants}

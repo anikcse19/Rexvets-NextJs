@@ -23,18 +23,31 @@ import { toSlug } from "@/lib/utils";
 import { DialogTitle } from "@radix-ui/react-dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { AnimatePresence, motion } from "framer-motion";
-import { ChevronDown, LogOut, Menu, User, UserCircle } from "lucide-react";
+import {
+  ChevronDown,
+  LogOut,
+  Menu,
+  User,
+  UserCircle,
+  Video,
+} from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import TalkToVetButton from "../TalkToVet";
 import { ScrollArea } from "../ui/scroll-area";
 import IconWrapper from "./IconWrapper";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 const menuItems = {
-  "For pet parents": ["Donate", "What we treat"],
-  "For Vet & techs": ["Become a Rex Vet", "Rex Health Hub", "Support"],
+  "Pet parents": ["Donate", "What we treat"],
+  "Vet & techs": ["Become a Rex Vet", "Rex Health Hub", "Support"],
   About: ["Our Mission", "Our Team", "How it Works"],
 };
 
@@ -42,6 +55,7 @@ const Header: React.FC = () => {
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [badge, setBadge] = useState("");
   const { data: session } = useSession();
 
   // const session = {
@@ -90,6 +104,24 @@ const Header: React.FC = () => {
     }
   };
 
+  useEffect(() => {
+    const getBadgeName = async () => {
+      try {
+        const res = await fetch("/api/check-category-badge");
+
+        if (!res.ok) {
+          throw new Error();
+        }
+
+        const data = await res.json();
+        setBadge(data?.badgeName);
+      } catch (error: any) {
+        console.log(error?.message);
+      }
+    };
+    getBadgeName();
+  }, []);
+
   return (
     <header
       style={{
@@ -123,17 +155,10 @@ const Header: React.FC = () => {
           >
             Home
           </Link>
-          {/* <Link
-            aria-label="Join Video Call"
-            className="text-white hover:opacity-60 hover:text-emerald-400 font-bold transition-colors duration-300 text-center"
-            href={"/video-call?isPublisher=false"}
-          >
-            Join Video Call
-          </Link> */}
 
           {Object.entries(menuItems).map(([label, items]) => {
             // Render "For pet parents" and "For Vet & techs" dropdowns
-            if (label === "For pet parents" || label === "For Vet & techs") {
+            if (label === "Pet parents" || label === "Vet & techs") {
               return (
                 <div
                   key={label}
@@ -161,14 +186,14 @@ const Header: React.FC = () => {
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 20, scale: 0.95 }}
                         transition={{ duration: 0.3, ease: "easeOut" }}
-                        className="absolute top-full mt-2 w-56 py-3 max-h-80 overflow-y-auto bg-[#002366] shadow-xl z-[10000] origin-top"
+                        className="absolute top-full mt-2 w-56 py-3 max-h-80 overflow-y-auto bg-gradient-to-br from-blue-600 via-purple-600 to-white shadow-xl z-[10000] origin-top rounded-md"
                       >
                         {items.map((item) => (
                           <Link
                             role="menuitem"
                             key={item}
                             href={`/${toSlug(item)}`}
-                            className="block px-4 py-2 text-white font-garet hover:text-emerald-400 hover:opacity-60 text-sm transition-all duration-200 text-center"
+                            className="block px-4 py-2 text-white font-garet text-left hover:text-black hover:opacity-60 text-sm transition-all duration-200"
                           >
                             {item}
                           </Link>
@@ -215,14 +240,14 @@ const Header: React.FC = () => {
                           animate={{ opacity: 1, y: 0, scale: 1 }}
                           exit={{ opacity: 0, y: 20, scale: 0.95 }}
                           transition={{ duration: 0.3, ease: "easeOut" }}
-                          className="absolute top-full mt-2 w-56 py-3 max-h-80 overflow-y-auto bg-[#002366] shadow-xl z-[10000] origin-top"
+                          className="absolute top-full mt-2 w-56 py-3 max-h-80 overflow-y-auto bg-gradient-to-br from-blue-600 via-purple-600 to-white shadow-xl z-[10000] origin-top rounded-md"
                         >
                           {items.map((item) => (
                             <Link
                               role="menuitem"
                               key={item}
                               href={`/${toSlug(item)}`}
-                              className="block px-4 py-2 text-white font-garet hover:text-emerald-400 hover:opacity-60 text-sm transition-all duration-200 text-center"
+                              className="block px-4 py-2 text-white font-garet hover:text-black hover:opacity-60 text-sm transition-all duration-200 text-left"
                             >
                               {item}
                             </Link>
@@ -368,8 +393,8 @@ const Header: React.FC = () => {
                       {Object.entries(menuItems).map(([label, items]) => {
                         // Render "For pet parents" and "For Vet & techs" collapsible menus
                         if (
-                          label === "For pet parents" ||
-                          label === "For Vet & techs"
+                          label === "Pet parents" ||
+                          label === "Vet & techs"
                         ) {
                           return (
                             <Collapsible key={label}>
@@ -468,24 +493,61 @@ const Header: React.FC = () => {
             {/* User Profile Dropdown for Desktop */}
             {session ? (
               <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    className="relative h-10 w-10 rounded-full hover:ring-2 hover:ring-emerald-400 transition-all cursor-pointer"
-                  >
-                    <Avatar className="h-10 w-10">
-                      <AvatarImage
-                        src={(session?.user as any)?.image || ""}
-                        alt={(session?.user as any)?.name || ""}
-                      />
-                      <AvatarFallback className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-semibold">
-                        {(session?.user as any)?.name
-                          ? getUserInitials((session?.user as any).name)
-                          : "U"}
-                      </AvatarFallback>
-                    </Avatar>
-                  </Button>
-                </DropdownMenuTrigger>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          className="h-10 w-10 rounded-full hover:ring-2 hover:ring-emerald-400 transition-all cursor-pointer"
+                        >
+                          <div className="relative h-10 w-10">
+                            <Avatar className="h-10 w-10">
+                              <AvatarImage
+                                src={(session?.user as any)?.image || ""}
+                                alt={(session?.user as any)?.name || ""}
+                              />
+                              <AvatarFallback className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-semibold">
+                                {(session?.user as any)?.name
+                                  ? getUserInitials((session?.user as any).name)
+                                  : "U"}
+                              </AvatarFallback>
+                            </Avatar>
+
+                            {/* Badge (just a static div, no trigger here) */}
+                            <div className="absolute -top-1 -right-1 h-5 w-5 rounded-full overflow-hidden border-2 border-white">
+                              <img
+                                src={`/images/badge/${
+                                  badge === "Friend of Rex Vet"
+                                    ? "friendBadge3.webp"
+                                    : badge === "Champion Community"
+                                    ? "championBadge3.webp"
+                                    : "heroBadge4.webp"
+                                }`}
+                                alt="Badge"
+                                className="h-full w-full object-cover"
+                              />
+                            </div>
+                          </div>
+                        </Button>
+                      </DropdownMenuTrigger>
+                    </TooltipTrigger>
+
+                    <TooltipContent
+                      className="z-[9999]"
+                      side="top"
+                      align="center"
+                    >
+                      <p>
+                        {badge === "Friend of Rex Vet"
+                          ? "Friend of Rex Vet"
+                          : badge === "Champion Community"
+                          ? "Champion Community"
+                          : "Pet Care Hero"}
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
 
                 <DropdownMenuContent
                   className="w-64 z-[99999] rounded-2xl shadow-lg border border-emerald-100 bg-[#211951] backdrop-blur-md p-2"
@@ -500,6 +562,7 @@ const Header: React.FC = () => {
                           src={(session?.user as any)?.image || ""}
                           alt={(session?.user as any)?.name || ""}
                         />
+
                         <AvatarFallback className="bg-emerald-500 text-white">
                           {(session?.user as any)?.name
                             ? getUserInitials((session?.user as any).name)
@@ -521,6 +584,23 @@ const Header: React.FC = () => {
                       </div>
                     </div>
                   </DropdownMenuLabel>
+
+                  <DropdownMenuSeparator className="my-2 bg-emerald-100" />
+
+                  <DropdownMenuItem
+                    asChild
+                    className="group hover:bg-red-50 focus:bg-red-50 data-[highlighted]:bg-red-50 text-blue-200 data-[highlighted]:text-[#211951]"
+                  >
+                    <Link
+                      href={`/find-a-vet`}
+                      className="flex items-center px-3 py-2 rounded-lg cursor-pointer"
+                    >
+                      <Video className="mr-2 h-4 w-4 text-blue-200 group-data-[highlighted]:text-black" />
+                      <span className="text-sm group-data-[highlighted]:text-black">
+                        Talk to Vet
+                      </span>
+                    </Link>
+                  </DropdownMenuItem>
 
                   <DropdownMenuSeparator className="my-2 bg-emerald-100" />
 

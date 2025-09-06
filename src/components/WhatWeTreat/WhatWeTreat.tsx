@@ -1,7 +1,8 @@
 "use client";
 import dynamic from "next/dynamic";
 import React from "react";
-const Loading = () => <p>Loading...</p>;
+import Loader from "../shared/Loader";
+const Loading = () => <Loader size={60} />;
 
 const ReadyToGetStarted = dynamic(
   () => import("@/components/shared/ReadyToGetStarted"),

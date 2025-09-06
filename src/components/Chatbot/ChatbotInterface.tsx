@@ -104,7 +104,8 @@ export const ChatbotInterface: React.FC<ChatbotInterfaceProps> = ({
       console.error("Error sending message:", error);
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
-        content: "I'm sorry, I'm having trouble connecting. Please try again later.",
+        content:
+          "I'm sorry, I'm having trouble connecting. Please try again later.",
         sender: "bot",
         timestamp: new Date(),
       };
@@ -132,7 +133,7 @@ export const ChatbotInterface: React.FC<ChatbotInterfaceProps> = ({
   };
 
   const suggestedQuestions = [
-    "What services does Rex Vets offer?",
+    "What services does Rex Vet offer?",
     "How much does a consultation cost?",
     "Can you help me find a vet for my dog?",
     "What should I do if my pet is sick?",
@@ -159,7 +160,7 @@ export const ChatbotInterface: React.FC<ChatbotInterfaceProps> = ({
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <Bot className="h-5 w-5" />
-              <CardTitle className="text-lg">Rex Vets AI Assistant</CardTitle>
+              <CardTitle className="text-lg">Rex Vet AI Assistant</CardTitle>
             </div>
             <Button
               variant="ghost"

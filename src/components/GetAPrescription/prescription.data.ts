@@ -36,7 +36,7 @@ export const prescriptionFeatures: IPrescriptionFeature[] = [
   {
     icon: FaPills,
     title: "Prescription Available",
-    description: "Prescriptions available in select states",
+    description: "Prescriptions available in selected states",
     color: "bg-blue-500",
   },
   {

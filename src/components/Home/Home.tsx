@@ -3,8 +3,10 @@
 import { doubledBrands, features, whyChooseFeaturesData } from "@/lib";
 import dynamic from "next/dynamic";
 import React from "react";
+import ChatIcon from "./ChatIcon";
+import Loader from "../shared/Loader";
 
-const loadingPlaceholder = () => <p>Loading...</p>;
+const loadingPlaceholder = () => <Loader size={60} />;
 
 const AboutUsSection = dynamic(() => import("./AboutUsSection"), {
   loading: loadingPlaceholder,
