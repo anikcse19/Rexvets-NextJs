@@ -14,6 +14,7 @@ import NotificationModel, { NotificationType } from "@/models/Notification";
 import UserModel from "@/models/User";
 import { pusher } from "@/lib/pusher";
 import type { Session } from "next-auth";
+import { sendChatNotificationEmail } from "@/lib/email";
 
 // Schema for sending messages
 const sendMessageSchema = z.object({
@@ -218,7 +219,16 @@ export async function POST(req: NextRequest) {
     // Return the new message
     const savedMessage = chat.messages[chat.messages.length - 1];
 
-    // ---------- NEW: create notification for receiver ----------
+    // Trigger Pusher event for real-time chat update
+    try {
+      await pusher.trigger(`appointment-${appointmentId}`, "new-message", {
+        message: savedMessage
+      });
+    } catch (pusherErr) {
+      console.error("[PUSHER] Failed to trigger chat event", pusherErr);
+    }
+
+    // Create notification for receiver
     try {
       const receiverRefId =
         userRole === "pet_parent" ? appointmentVeterinarianId : appointmentPetParentId;
@@ -230,7 +240,7 @@ export async function POST(req: NextRequest) {
           { petParentRef: receiverRefId },
           { vetTechRef: receiverRefId },
         ],
-      }).select({ _id: 1 });
+      }).select({ _id: 1, email: 1, name: 1, isOnline: 1 });
 
       if (receiverUser) {
         await NotificationModel.create({
@@ -243,13 +253,24 @@ export async function POST(req: NextRequest) {
           data: { appointmentId },
         });
 
-        // Push realtime event
+        // Push realtime notification event
         await pusher.trigger(`user-${receiverUser._id.toString()}`, "new-notification", {
           appointmentId,
         });
+
+        // Send email notification ONLY if user is offline
+        if (receiverUser.email && (!receiverUser.isOnline)) {
+          await sendChatNotificationEmail({
+            to: receiverUser.email,
+            recipientName: receiverUser.name || "there",
+            senderName: senderName,
+            isToDoctor: userRole === "pet_parent",
+            appointmentId: appointmentId,
+          });
+        }
       }
     } catch (notifErr) {
-      console.error("[NOTIFICATION] Failed to create push notification", notifErr);
+      console.error("[NOTIFICATION] Failed to create notification", notifErr);
     }
 
     return NextResponse.json({
