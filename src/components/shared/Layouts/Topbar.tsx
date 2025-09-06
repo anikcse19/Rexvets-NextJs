@@ -124,9 +124,16 @@ TopbarProps) {
     try {
       const notificationId = (notification as any)._id;
       if (!notificationId) {
-        console.error("No notification ID found");
+        console.error("No notification ID found", notification);
+        toast.error("Notification ID not found");
         return;
       }
+
+      // Optimistically remove from UI immediately
+      setNotifications(prev => prev.filter(n => (n as any)._id !== notificationId));
+      setMessageNotifications(prev => prev.filter(n => (n as any)._id !== notificationId));
+
+      console.log("Deleting notification with ID:", notificationId);
 
       const res = await fetch(`/api/notifications/${notificationId}`, {
         method: "DELETE",
@@ -136,17 +143,24 @@ TopbarProps) {
       });
       
       if (!res.ok) {
-        console.error("Failed to delete notification");
-        toast.error("Failed to delete notification");
+        const errorData = await res.json().catch(() => ({}));
+        console.error("Failed to delete notification:", res.status, errorData);
+        toast.error(`Failed to delete notification: ${res.status}`);
+        
+        // Revert the optimistic update on error
+        getMessageNotifications();
+        getNotifications();
         return;
       }
       
-      // Refresh notifications to update the count
-      getMessageNotifications();
       toast.success("Notification deleted successfully");
     } catch (error) {
       console.error("Error deleting notification:", error);
       toast.error("Failed to delete notification");
+      
+      // Revert the optimistic update on error
+      getMessageNotifications();
+      getNotifications();
     }
   };
 
