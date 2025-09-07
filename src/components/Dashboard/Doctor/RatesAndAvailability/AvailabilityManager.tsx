@@ -32,7 +32,13 @@ import { AlertTriangle, Calendar, Clock, Globe } from "lucide-react";
 import moment from "moment";
 import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
-import React, { useCallback, useDeferredValue, useEffect, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useDeferredValue,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { toast } from "sonner";
 import DateRangeCalendar from "./DateRangeCalender";
 
@@ -566,21 +572,13 @@ const AvailabilityManager: React.FC = () => {
               {/* <SheetTitle>Controlled Right Side Sheet</SheetTitle> */}
             </SheetHeader>
             <div>
-              {!mountCreator ? (
-                <div className="flex items-center justify-center h-64">
-                  <div className="flex flex-col items-center space-y-4">
-                    <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                    <p className="text-gray-600">Opening editor...</p>
-                  </div>
-                </div>
-              ) : (
-                <TimeSlotCreator
-                  selectedRange={selectedRange}
-                  onSaveSlots={handleSaveSlots}
-                  hasExistingSlots={hasExistingSlots}
-                  existingPeriods={deferredExistingPeriods}
-                />
-              )}
+              <TimeSlotCreator
+                selectedRange={selectedRange}
+                onSaveSlots={handleSaveSlots}
+                hasExistingSlots={hasExistingSlots}
+                existingPeriods={deferredExistingPeriods}
+              />
+
               {/* Close Button inside sheet */}
               <Button
                 variant="outline"

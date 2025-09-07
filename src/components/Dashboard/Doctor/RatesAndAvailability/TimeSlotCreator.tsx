@@ -3,11 +3,6 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Select,
@@ -215,314 +210,252 @@ export default function TimeSlotCreator({
   };
 
   return (
-    <div className="w-full min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 p-6">
+    <div className="w-full min-h-screen  p-6">
       {!selectedRange ? (
         <div className="max-w-2xl mx-auto">
-          <Card className="border-0 shadow-2xl bg-white/60 backdrop-blur-xl">
+          <Card className="border-0 shadow-2xl ">
             <CardContent className="p-16 text-center">
               <div className="relative mb-8">
-                <div className="w-32 h-32 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full mx-auto flex items-center justify-center shadow-xl">
-                  <Clock className="h-16 w-16 text-gray-400" />
+                <div className="w-32 h-32  rounded-full mx-auto flex items-center justify-center shadow-xl">
+                  <Clock className="h-16 w-16 text-white" />
                 </div>
-                <div className="absolute -bottom-2 -right-2 w-12 h-12 bg-gradient-to-r from-orange-400 to-pink-400 rounded-full flex items-center justify-center shadow-lg">
+                <div className="absolute -bottom-2 -right-2 w-12 h-12 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full flex items-center justify-center shadow-lg">
                   <Calendar className="h-6 w-6 text-white" />
                 </div>
               </div>
-              <h2 className="text-3xl font-bold text-gray-800 mb-4">
+              <h2 className="text-3xl font-bold text-white mb-4">
                 Ready to Begin?
               </h2>
-              <p className="text-xl text-gray-600 mb-8 leading-relaxed">
+              <p className="text-xl text-purple-200 mb-8 leading-relaxed">
                 Select your available dates from the calendar above to unlock
                 the time slot designer
               </p>
-              <div className="w-24 h-1 bg-gradient-to-r from-violet-400 to-purple-400 rounded mx-auto"></div>
+              <div className="w-24 h-1 bg-gradient-to-r from-emerald-400 to-teal-400 rounded mx-auto"></div>
             </CardContent>
           </Card>
         </div>
       ) : (
-        <div className=" container mx-auto">
-          {/* Existing Slots Info */}
-          {hasExistingSlots && existingPeriods.length > 0 && (
-            <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-xl flex items-center justify-center">
-                  <CheckCircle className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-blue-800">
-                    Existing Availability Loaded
-                  </h3>
-                  <p className="text-sm text-blue-600">
-                    Your current availability periods are displayed below. You
-                    can modify them or add new periods.
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          <div className="flex flex-col  lg:flex-row gap-8">
-            {/* Time Slots Section */}
-            <div className="w-full md:w-[50%] space-y-6">
-              {slots.map((slot, index) => (
-                <Card
-                  key={slot.id}
-                  className="group relative border-0 shadow-xl bg-white/70 backdrop-blur-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-1 overflow-hidden"
-                >
-                  {/* Gradient Border */}
-                  <div
-                    className={`absolute inset-0 ${
-                      slot.isExisting
-                        ? "bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600"
-                        : "bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600"
-                    } rounded-3xl p-0.5`}
+        <div className="container mx-auto max-w-7xl">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Availability Section */}
+            <div className="md:col-span-2">
+              <div className="p-6">
+                {/* Header */}
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center">
+                      <Calendar className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h2 className="text-2xl font-bold">
+                        Availability
+                      </h2>
+                      <p className="text-sm">
+                        Manage your schedule periods
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    onClick={addSlot}
+                    className="font-semibold px-6 py-2 rounded-xl transition-all duration-200"
                   >
-                    <div className="w-full h-full bg-white rounded-3xl"></div>
-                  </div>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Period
+                  </Button>
+                </div>
 
-                  <div className="relative p-8">
-                    {/* Floating Slot Number */}
-                    <div className="absolute -top-4 left-8 z-10">
-                      <div
-                        className={`${
-                          slot.isExisting
-                            ? "bg-gradient-to-r from-emerald-600 to-teal-600"
-                            : "bg-gradient-to-r from-violet-600 to-purple-600"
-                        } text-white px-6 py-3 rounded-2xl shadow-lg`}
-                      >
+                {/* Period Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {slots.map((slot, index) => (
+                    <div
+                      key={slot.id}
+                      className="group relative rounded-2xl p-4 border border-gray-300 hover:border-purple-400/50 transition-all duration-300"
+                    >
+                      <div className="space-y-3">
+                        {/* Status Dot and Title */}
                         <div className="flex items-center space-x-2">
-                          <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-                          <span className="font-bold text-sm">
-                            {slot.isExisting ? "EXISTING" : "NEW"} PERIOD{" "}
+                          <div className="w-3 h-3 bg-emerald-400 rounded-full animate-pulse"></div>
+                          <h3 className="font-bold text-lg">
+                            {slot.isExisting ? "Existing Period" : "New Period"}{" "}
                             {index + 1}
-                          </span>
+                          </h3>
                         </div>
-                      </div>
-                    </div>
 
-                    {/* Delete Button */}
-                    {slots.length > 1 && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => removeSlot(slot.id)}
-                        className="absolute top-6 right-6 h-10 w-10 p-0 bg-red-50/80 backdrop-blur border-red-200 hover:bg-red-100 hover:border-red-300 text-red-600 rounded-2xl opacity-0 group-hover:opacity-100 transition-all duration-300 shadow-lg hover:shadow-xl"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    )}
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
-                      {/* Start Time */}
-                      <div className="space-y-3">
-                        <label className="text-sm font-bold text-gray-700 flex items-center space-x-2">
-                          <div className="w-8 h-8 bg-gradient-to-r from-emerald-400 to-teal-400 rounded-lg flex items-center justify-center">
-                            <Clock className="w-4 h-4 text-white" />
+                        {/* Period Info */}
+                        <div className="space-y-2">
+                          <div className="flex items-center space-x-2">
+                            <Clock className="w-4 h-4" />
+                            <span className="text-sm">
+                              {formatDisplayTime(slot.startTime)} -{" "}
+                              {formatDisplayTime(slot.endTime)}
+                            </span>
                           </div>
-                          <span>Start Time</span>
-                        </label>
-                        <Select
-                          value={slot.startTime}
-                          onValueChange={(value) =>
-                            updateSlot(slot.id, "startTime", value)
-                          }
-                        >
-                          <SelectTrigger className="h-14 border-2 border-gray-200 hover:border-violet-300 focus:border-violet-500 rounded-2xl bg-white/80 backdrop-blur transition-all duration-200 text-lg font-medium shadow-lg hover:shadow-xl">
-                            <SelectValue placeholder="Select start time" />
-                          </SelectTrigger>
-                          <SelectContent className="rounded-xl border-0 shadow-2xl bg-white/95 backdrop-blur-xl">
-                            {timeOptions.map((time) => (
-                              <SelectItem
-                                key={time}
-                                value={time}
-                                className="rounded-lg hover:bg-violet-50 focus:bg-violet-100 text-base py-3"
-                              >
-                                {formatDisplayTime(time)}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      {/* End Time */}
-                      <div className="space-y-3">
-                        <label className="text-sm font-bold text-gray-700 flex items-center space-x-2">
-                          <div className="w-8 h-8 bg-gradient-to-r from-rose-400 to-pink-400 rounded-lg flex items-center justify-center">
-                            <Timer className="w-4 h-4 text-white" />
+                          <div className="flex items-center space-x-2">
+                            <Timer className="w-4 h-4" />
+                            <span className="text-sm font-medium">
+                              {isValidSlot(slot)
+                                ? formatDuration(
+                                    (() => {
+                                      const [sh, sm] = slot.startTime
+                                        .split(":")
+                                        .map(Number);
+                                      const [eh, em] = slot.endTime
+                                        .split(":")
+                                        .map(Number);
+                                      const start = new Date(
+                                        `2000-01-01T${String(sh).padStart(
+                                          2,
+                                          "0"
+                                        )}:${String(sm).padStart(2, "0")}:00`
+                                      );
+                                      const end = new Date(
+                                        `2000-01-01T${String(eh).padStart(
+                                          2,
+                                          "0"
+                                        )}:${String(em).padStart(2, "0")}:00`
+                                      );
+                                      return (
+                                        (end.getTime() - start.getTime()) /
+                                        (1000 * 60 * 60)
+                                      );
+                                    })()
+                                  )
+                                : "Invalid"}
+                            </span>
                           </div>
-                          <span>End Time</span>
-                        </label>
-                        <Select
-                          value={slot.endTime}
-                          onValueChange={(value) =>
-                            updateSlot(slot.id, "endTime", value)
-                          }
-                        >
-                          <SelectTrigger className="h-14 border-2 border-gray-200 hover:border-violet-300 focus:border-violet-500 rounded-2xl bg-white/80 backdrop-blur transition-all duration-200 text-lg font-medium shadow-lg hover:shadow-xl">
-                            <SelectValue placeholder="Select end time" />
-                          </SelectTrigger>
-                          <SelectContent className="rounded-xl border-0 shadow-2xl bg-white/95 backdrop-blur-xl">
-                            {timeOptions.map((time) => (
-                              <SelectItem
-                                key={time}
-                                value={time}
-                                className="rounded-lg hover:bg-violet-50 focus:bg-violet-100 text-base py-3"
-                              >
-                                {formatDisplayTime(time)}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
+                        </div>
 
-                    {/* Duration & Status */}
-                    {isValidSlot(slot) && (
-                      <div className="mt-6 p-4 bg-gradient-to-r from-violet-50 to-purple-50 rounded-2xl border border-violet-200">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-3">
-                            <div className="w-10 h-10 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-xl flex items-center justify-center">
-                              <Timer className="w-5 h-5 text-white" />
-                            </div>
-                            <div>
-                              <p className="text-sm font-medium text-gray-600">
-                                Duration
-                              </p>
-                              <p className="text-xl font-bold text-gray-800">
-                                {formatDuration(
-                                  (() => {
-                                    const [sh, sm] = slot.startTime
-                                      .split(":")
-                                      .map(Number);
-                                    const [eh, em] = slot.endTime
-                                      .split(":")
-                                      .map(Number);
-                                    const start = new Date(
-                                      `2000-01-01T${String(sh).padStart(
-                                        2,
-                                        "0"
-                                      )}:${String(sm).padStart(2, "0")}:00`
-                                    );
-                                    const end = new Date(
-                                      `2000-01-01T${String(eh).padStart(
-                                        2,
-                                        "0"
-                                      )}:${String(em).padStart(2, "0")}:00`
-                                    );
-                                    return (
-                                      (end.getTime() - start.getTime()) /
-                                      (1000 * 60 * 60)
-                                    );
-                                  })()
-                                )}
-                              </p>
-                            </div>
-                          </div>
-                          <Badge
-                            className={`${
-                              slot.isExisting
-                                ? "bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-700 border-blue-200"
-                                : "bg-gradient-to-r from-emerald-100 to-teal-100 text-emerald-700 border-emerald-200"
-                            } px-4 py-2 text-sm font-bold shadow-lg`}
+                        {/* Time Selectors */}
+                        <div className="flex items-center space-x-2">
+                          <Select
+                            value={slot.startTime}
+                            onValueChange={(value) =>
+                              updateSlot(slot.id, "startTime", value)
+                            }
                           >
-                            <CheckCircle className="w-4 h-4 mr-2" />
-                            {slot.isExisting
-                              ? "Existing Period"
-                              : "Valid Period"}
-                          </Badge>
+                            <SelectTrigger className="w-20 h-8 border border-gray-300 text-xs">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {timeOptions.map((time) => (
+                                <SelectItem
+                                  key={time}
+                                  value={time}
+                                >
+                                  {formatDisplayTime(time)}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <span className="text-xs">to</span>
+                          <Select
+                            value={slot.endTime}
+                            onValueChange={(value) =>
+                              updateSlot(slot.id, "endTime", value)
+                            }
+                          >
+                            <SelectTrigger className="w-20 h-8 border border-gray-300 text-xs">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {timeOptions.map((time) => (
+                                <SelectItem
+                                  key={time}
+                                  value={time}
+                                >
+                                  {formatDisplayTime(time)}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         </div>
-                      </div>
-                    )}
 
-                    {!isValidSlot(slot) && (
-                      <div className="mt-6 p-4 bg-gradient-to-r from-red-50 to-orange-50 rounded-2xl border border-red-200">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-10 h-10 bg-gradient-to-r from-red-500 to-orange-500 rounded-xl flex items-center justify-center">
-                            <AlertTriangle className="w-5 h-5 text-white" />
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium text-red-600">
-                              Invalid Configuration
-                            </p>
-                            <p className="text-sm text-red-500">
-                              End time must be after start time
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </Card>
-              ))}
+                        {/* Delete Button */}
+                        {slots.length > 1 && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeSlot(slot.id)}
+                            className="h-8 w-8 p-0 text-red-400 hover:text-red-300 hover:bg-red-500/20 rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-200"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
 
-              {/* Add New Slot Button */}
-              <div className="flex justify-center py-8">
-                <Button
-                  onClick={addSlot}
-                  variant="outline"
-                  className="border-2 border-gray-300 hover:border-gray-400 bg-transparent hover:bg-gray-50 text-gray-700 hover:text-gray-800 rounded-xl px-8 py-3 font-medium transition-all duration-200 hover:shadow-md"
-                >
-                  Add Time Period
-                </Button>
+                        {/* Error Message */}
+                        {!isValidSlot(slot) && (
+                          <div className="mt-3 p-2 bg-red-500/20 border border-red-500/30 rounded-lg">
+                            <div className="flex items-center space-x-2">
+                              <AlertTriangle className="w-4 h-4 text-red-400" />
+                              <span className="text-red-300 text-xs">
+                                End time must be after start time
+                              </span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
 
-            {/* Stats Sidebar */}
-            <div className="w-full md:w-[50%] ">
-              <div className="flex md:flex-row  flex-col gap-x-4">
-                {/* Overview Card */}
-                <Card className="border-0 shadow-2xl w-full md:w-[40%] bg-white/70 backdrop-blur-xl overflow-hidden">
-                  <div className="h-[270px] p-6 flex flex-col justify-start">
-                    <h3 className="text-black font-bold text-lg flex items-center mb-4">
-                      <Target className="w-5 h-5 mr-2" />
-                      Overview
-                    </h3>
+            {/* Overview Section */}
+            <div className="md:col-span-1">
+              <div className="p-6">
+                {/* Header */}
+                <div className="text-center mb-6">
+                  <div className="w-16 h-16 rounded-2xl mx-auto flex items-center justify-center mb-4">
+                    <Calendar className="w-8 h-8" />
+                  </div>
+                  <h2 className="text-2xl font-bold">Overview</h2>
+                  <p className="text-sm">Your schedule summary</p>
+                </div>
+
+                {/* Stats Cards */}
+                <div className="grid grid-cols-1 gap-4 mb-6">
+                  <div className="rounded-xl p-4 border">
                     <div className="flex items-center justify-between">
-                      <div className="flex flex-col">
-                        <p className="text-sm font-medium text-blue-600">
-                          Active Periods
-                        </p>
-                        <p className="text-2xl font-bold text-blue-800">
+                      <div>
+                        <p className="text-sm">Active Periods</p>
+                        <p className="text-2xl font-bold">
                           {slots.length}
                         </p>
                       </div>
-                      <div className="flex flex-col">
-                        <p className="text-sm font-medium text-emerald-600">
-                          Total Duration
-                        </p>
-                        <p className="text-2xl font-bold text-emerald-800">
+                      <div className="w-3 h-3 bg-emerald-400 rounded-full"></div>
+                    </div>
+                  </div>
+                  <div className="rounded-xl p-4 border">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm">Total Duration</p>
+                        <p className="text-2xl font-bold">
                           {formatDuration(getTotalHours())}
                         </p>
                       </div>
+                      <Clock className="w-5 h-5 text-blue-400" />
                     </div>
                   </div>
-                </Card>
+                </div>
 
-                {/* Action Card */}
-                <Card className="border w-full  md:w-[40%] border-gray-200 shadow-lg bg-gray-900">
-                  <div className="h-[270px] p-6 flex flex-col items-center justify-center text-white">
-                    <h3 className="text-lg font-bold mb-2 text-center">
-                      Ready to Launch?
-                    </h3>
-                    <Button
-                      onClick={handleSave}
-                      disabled={!validateSlots() || isLoading}
-                      className="w-full bg-white text-gray-900 hover:bg-gray-100 font-bold py-2 rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-                    >
-                      {isLoading ? (
-                        <div className="flex items-center justify-center space-x-2">
-                          <div className="w-4 h-4 border-2 border-gray-900 border-t-transparent rounded-full animate-spin"></div>
-                          <span>Creating...</span>
-                        </div>
-                      ) : (
-                        <div className="flex items-center justify-center space-x-2">
-                          <Save className="w-4 h-4" />
-                          <span>Create Availability</span>
-                        </div>
-                      )}
-                    </Button>
-                  </div>
-                </Card>
+                {/* Save Button */}
+                <Button
+                  onClick={handleSave}
+                  disabled={!validateSlots() || isLoading}
+                  className="w-full font-bold py-3 rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isLoading ? (
+                    <div className="flex items-center justify-center space-x-2">
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <span>Saving...</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-center space-x-2">
+                      <Save className="w-5 h-5" />
+                      <span>Save & Launch</span>
+                    </div>
+                  )}
+                </Button>
               </div>
             </div>
           </div>
