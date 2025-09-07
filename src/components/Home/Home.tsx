@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import React from "react";
 import ChatIcon from "./ChatIcon";
 import type { ComponentType } from "react";
+import LazyLoad from '../LazyLoad';
 
 const Skeleton = () => (
   <div className="w-full h-56 bg-gray-100 animate-pulse rounded-lg" />
@@ -20,23 +21,29 @@ const lazy = (importer: () => Promise<any>): ComponentType<any> =>
 // HeroSection stays SSR for LCP
 const HeroSection = dynamic(() => import("./HeroSection"));
 
-const AboutUsSection = lazy(() => import("./AboutUsSection"));
-const AwardsMarquee = lazy(() => import("./AwardsMarquee"));
-const FeaturesSection = lazy(() => import("./FeaturesSection"));
-const BlogPostSection = lazy(() =>
-  import("./BlogPostSection").then((m) => m.BlogPostSection)
+const AboutUsSection = () => (
+  <LazyLoad importer={() => import('./AboutUsSection')} props={{ features, footer: { title: 'Join thousands of pet parents who trust Rex vet', tabs: ['Trusted','Verified','Available 24/7'] } }} />
 );
-const RexVetPlan = lazy(() =>
-  import("./HomeRexVetPlan").then((m) => m.RexVetPlan)
+const AwardsMarquee = () => (
+  <LazyLoad importer={() => import('./AwardsMarquee')} props={{ brands: doubledBrands }} />
 );
-const SupportOurMission = lazy(() =>
-  import("./SupportOurMission").then((m) => m.SupportOurMission)
+const FeaturesSection = () => (
+  <LazyLoad importer={() => import('./FeaturesSection')} props={{ data: whyChooseFeaturesData }} />
 );
-const TestimonialsSection = lazy(() =>
-  import("./TestimonialsSection").then((m) => m.TestimonialsSection)
+const BlogPostSection = () => (
+  <LazyLoad importer={() => import('./BlogPostSection').then((m)=>({default:m.BlogPostSection}))} />
 );
-const VirtualCareIntroSection = lazy(() =>
-  import("./VirtualCareIntroSection").then((m) => m.VirtualCareIntroSection)
+const RexVetPlan = () => (
+  <LazyLoad importer={() => import('./HomeRexVetPlan').then((m)=>({default:m.RexVetPlan}))} />
+);
+const SupportOurMission = () => (
+  <LazyLoad importer={() => import('./SupportOurMission').then((m)=>({default:m.SupportOurMission}))} />
+);
+const TestimonialsSection = () => (
+  <LazyLoad importer={() => import('./TestimonialsSection').then((m)=>({default:m.TestimonialsSection}))} />
+);
+const VirtualCareIntroSection = () => (
+  <LazyLoad importer={() => import('./VirtualCareIntroSection').then((m)=>({default:m.VirtualCareIntroSection}))} />
 );
 const Home = () => {
   // Temporarily disabled automatic push notification registration to fix service worker conflicts
@@ -52,15 +59,9 @@ const Home = () => {
   return (
     <div>
       <HeroSection />
-      <AwardsMarquee brands={doubledBrands} />
-      <AboutUsSection
-        features={features}
-        footer={{
-          title: "Join thousands of pet parents who trust Rex vet",
-          tabs: ["Trusted", "Verified", "Available 24/7"],
-        }}
-      />
-      <FeaturesSection data={whyChooseFeaturesData} />
+      <AwardsMarquee />
+      <AboutUsSection />
+      <FeaturesSection />
       <RexVetPlan />
       <SupportOurMission />
       <VirtualCareIntroSection />
