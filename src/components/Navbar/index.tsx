@@ -129,7 +129,7 @@ const Header: React.FC = () => {
           "linear-gradient(135deg, #0f0c29 0%, #24243e 25%, #302b63 50%, #0f3460 75%, #002366 100%)",
       }}
       className={`fixed py-3  md:py-${
-        session?.user && session.user.role !== "veterinarian" ? "1" : "3"
+        session?.user && session.user.role !== "veterinarian" ? "3" : "5"
       }   w-full  backdrop-blur-sm px-3 lg:px-7  border-b border-slate-800/50 z-[9998]`}
     >
       <nav className="flex items-center justify-between  mx-auto">
