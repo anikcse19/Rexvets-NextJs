@@ -8,7 +8,7 @@ const Loader = ({ size = 45 }: { size?: number }) => {
       <Image
         src="/logo/loaderR.webp"
         alt="Loading"
-        className="animate-spin object-contain"
+        className="animate-spin-slow object-contain"
         width={size}
         height={size}
       />
