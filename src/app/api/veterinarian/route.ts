@@ -114,12 +114,12 @@ export async function GET(req: NextRequest) {
     // Build aggregation pipeline to include next two available slots
     // Get user's timezone from query params or default to UTC
     const userTimezone = searchParams.get("timezone") || "UTC";
-    
+
     // Get current time in user's timezone
     const now = moment().tz(userTimezone);
-    const todayStart = now.clone().startOf('day');
-    const currentTime = now.format('HH:mm');
-    
+    const todayStart = now.clone().startOf("day");
+    const currentTime = now.format("HH:mm");
+
     const pipeline: any[] = [
       { $match: filter },
       {
@@ -138,20 +138,20 @@ export async function GET(req: NextRequest) {
                   {
                     $and: [
                       { date: { $eq: todayStart.toDate() } },
-                      { startTime: { $gt: currentTime } }
-                    ]
-                  }
-                ]
-              }
+                      { startTime: { $gt: currentTime } },
+                    ],
+                  },
+                ],
+              },
             },
             {
               $sort: {
                 date: 1,
-                startTime: 1
-              }
+                startTime: 1,
+              },
             },
             {
-              $limit: 2 // Get only next 2 available slots
+              $limit: 2, // Get only next 2 available slots
             },
             {
               $project: {
@@ -161,28 +161,28 @@ export async function GET(req: NextRequest) {
                 endTime: 1,
                 timezone: 1,
                 status: 1,
-                notes: 1
-              }
-            }
+                notes: 1,
+              },
+            },
           ],
-          as: "nextAvailableSlots"
-        }
+          as: "nextAvailableSlots",
+        },
       },
       {
         $addFields: {
           // Ensure all fields are included except sensitive ones
-          nextAvailableSlots: "$nextAvailableSlots"
-        }
+          nextAvailableSlots: "$nextAvailableSlots",
+        },
       },
       // Filter out veterinarians who have no available slots
       {
         $match: {
-          "nextAvailableSlots.0": { $exists: true }
-        }
+          "nextAvailableSlots.0": { $exists: true },
+        },
       },
       { $sort: { createdAt: -1 } },
       { $skip: (page - 1) * limit },
-      { $limit: limit }
+      { $limit: limit },
     ];
 
     // Execute aggregation pipeline
