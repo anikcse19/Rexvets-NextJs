@@ -499,7 +499,9 @@ const Header: React.FC = () => {
                       <DropdownMenuTrigger asChild>
                         <Button
                           variant="ghost"
-                          className="h-10 w-10 rounded-full hover:ring-2 hover:ring-emerald-400 transition-all cursor-pointer"
+                          className={`h-10 w-10 rounded-full hover:ring-2 hover:ring-emerald-400 transition-all cursor-pointer ${
+                            session.user.role === "veterinarian" && "mr-10"
+                          }`}
                         >
                           <div className="relative h-10 w-10">
                             <Avatar className="h-10 w-10">
@@ -585,22 +587,25 @@ const Header: React.FC = () => {
                     </div>
                   </DropdownMenuLabel>
 
-                  <DropdownMenuSeparator className="my-2 bg-emerald-100" />
-
-                  <DropdownMenuItem
-                    asChild
-                    className="group hover:bg-red-50 focus:bg-red-50 data-[highlighted]:bg-red-50 text-blue-200 data-[highlighted]:text-[#211951]"
-                  >
-                    <Link
-                      href={`/find-a-vet`}
-                      className="flex items-center px-3 py-2 rounded-lg cursor-pointer"
-                    >
-                      <Video className="mr-2 h-4 w-4 text-blue-200 group-data-[highlighted]:text-black" />
-                      <span className="text-sm group-data-[highlighted]:text-black">
-                        Talk to Vet
-                      </span>
-                    </Link>
-                  </DropdownMenuItem>
+                  {session?.user?.role === "pet_parent" && (
+                    <>
+                      <DropdownMenuSeparator className="my-2 bg-emerald-100" />
+                      <DropdownMenuItem
+                        asChild
+                        className="group hover:bg-red-50 focus:bg-red-50 data-[highlighted]:bg-red-50 text-blue-200 data-[highlighted]:text-[#211951]"
+                      >
+                        <Link
+                          href={`/find-a-vet`}
+                          className="flex items-center px-3 py-2 rounded-lg cursor-pointer"
+                        >
+                          <Video className="mr-2 h-4 w-4 text-blue-200 group-data-[highlighted]:text-black" />
+                          <span className="text-sm group-data-[highlighted]:text-black">
+                            Talk to Vet
+                          </span>
+                        </Link>
+                      </DropdownMenuItem>
+                    </>
+                  )}
 
                   <DropdownMenuSeparator className="my-2 bg-emerald-100" />
 
