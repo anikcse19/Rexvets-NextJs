@@ -1,7 +1,8 @@
+import { getUserTimezone } from "@/lib/timezone";
 import { Clock } from "lucide-react";
-import { Veterinarian } from "./type";
-import { getVetSlots } from "../DoctorProfile/service/get-vet-slots";
 import { useEffect, useState } from "react";
+import { getVetSlots } from "../DoctorProfile/service/get-vet-slots";
+import { Veterinarian } from "./type";
 
 export default function DoctorSlots({ doctor }: { doctor: Veterinarian }) {
   const [slots, setSlots] = useState<any[]>();
@@ -9,17 +10,31 @@ export default function DoctorSlots({ doctor }: { doctor: Veterinarian }) {
   const today = new Date().toISOString().split("T")[0];
 
   const fetchVetSlots = async () => {
-    const data = await getVetSlots({
-      id: doctor?._id,
-      startDate: today,
-      endDate: today,
-    });
-    // Sort by startTime (assumes format 'HH:mm')
-    const sorted = (data || []).slice().sort((a: any, b: any) => {
-      if (!a.startTime || !b.startTime) return 0;
-      return a.startTime.localeCompare(b.startTime);
-    });
-    setSlots(sorted);
+    if (!doctor?._id) {
+      console.error("Doctor ID is missing");
+      return;
+    }
+
+    const userTimezone = getUserTimezone();
+    
+    try {
+      const data = await getVetSlots({
+        id: doctor._id,
+        startDate: today,
+        endDate: today,
+        timezone: doctor?.timezone || userTimezone,
+      });
+      
+      // Sort by startTime (assumes format 'HH:mm')
+      const sorted = (data || []).slice().sort((a: any, b: any) => {
+        if (!a.startTime || !b.startTime) return 0;
+        return a.startTime.localeCompare(b.startTime);
+      });
+      setSlots(sorted);
+    } catch (error) {
+      console.error("Error fetching vet slots:", error);
+      setSlots([]);
+    }
     // if (data && data.length > 0) {
     //   setVeterinarianTimezone(data[0]?.timezone || "UTC");
     //   console.log("Slot timezone conversion:", {

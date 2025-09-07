@@ -31,10 +31,22 @@ import { format } from "date-fns";
 import { AlertTriangle, Calendar, Clock, Globe } from "lucide-react";
 import moment from "moment";
 import { useSession } from "next-auth/react";
-import React, { useCallback, useEffect, useState } from "react";
+import dynamic from "next/dynamic";
+import React, { useCallback, useDeferredValue, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import DateRangeCalendar from "./DateRangeCalender";
-import TimeSlotCreator from "./TimeSlotCreator";
+
+const TimeSlotCreator = dynamic(() => import("./TimeSlotCreator"), {
+  ssr: false,
+  loading: () => (
+    <div className="flex items-center justify-center h-64">
+      <div className="flex flex-col items-center space-y-4">
+        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+        <p className="text-gray-600">Preparing editor...</p>
+      </div>
+    </div>
+  ),
+});
 
 interface SessionUserWithRefId {
   refId: string;
@@ -59,6 +71,7 @@ const AvailabilityManager: React.FC = () => {
     slotStatus,
   } = useDashboardContext();
   const [isTimePeriodsOpen, setIsTimePeriodOpen] = useState(false);
+  const [mountCreator, setMountCreator] = useState(false);
   const { data: session } = useSession();
   const user = session?.user as SessionUserWithRefId | undefined;
   const [hasExistingSlots, setHasExistingSlots] = useState(false);
@@ -67,7 +80,6 @@ const AvailabilityManager: React.FC = () => {
   //   getFcmToken();
   //   requestPermission();
   // }, []);
-  console.log("availableSlotsApiResponse", availableSlotsApiResponse.data);
   const userTimezone = user?.timezone || "";
   const currentTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
@@ -280,6 +292,21 @@ const AvailabilityManager: React.FC = () => {
       });
     }
   }, [user?.refId, selectedRange, setSelectedRange]);
+  // Memoize the existing periods to avoid recalculating on every render
+  const existingPeriods = useMemo(() => {
+    if (!availableSlotsApiResponse.data?.periods) return [];
+    return availableSlotsApiResponse.data.periods.flatMap(
+      (dateGroup) => dateGroup.periods
+    );
+  }, [availableSlotsApiResponse.data?.periods]);
+
+  // Defer large arrays to avoid blocking rendering
+  const deferredExistingPeriods = useDeferredValue(existingPeriods);
+
+  console.log(
+    "availableSlotsApiResponse",
+    availableSlotsApiResponse.data?.periods
+  );
   return (
     <div className="container mx-auto p-6 space-y-6">
       <BookingNoticePeriod vetId={user?.refId} />
@@ -482,7 +509,19 @@ const AvailabilityManager: React.FC = () => {
           </DialogContent>
         </Dialog>
       )}
-      <Sheet open={isTimePeriodsOpen} onOpenChange={setIsTimePeriodOpen}>
+      <Sheet
+        open={isTimePeriodsOpen}
+        onOpenChange={(open) => {
+          setIsTimePeriodOpen(open);
+          if (open) {
+            setMountCreator(false);
+            // Mount TimeSlotCreator on next frame so the sheet opens instantly
+            requestAnimationFrame(() => setMountCreator(true));
+          } else {
+            setMountCreator(false);
+          }
+        }}
+      >
         <SheetContent side="right">
           <ScrollArea className="h-[96vh]">
             <SheetHeader>
@@ -527,10 +566,21 @@ const AvailabilityManager: React.FC = () => {
               {/* <SheetTitle>Controlled Right Side Sheet</SheetTitle> */}
             </SheetHeader>
             <div>
-              <TimeSlotCreator
-                selectedRange={selectedRange}
-                onSaveSlots={handleSaveSlots}
-              />
+              {!mountCreator ? (
+                <div className="flex items-center justify-center h-64">
+                  <div className="flex flex-col items-center space-y-4">
+                    <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                    <p className="text-gray-600">Opening editor...</p>
+                  </div>
+                </div>
+              ) : (
+                <TimeSlotCreator
+                  selectedRange={selectedRange}
+                  onSaveSlots={handleSaveSlots}
+                  hasExistingSlots={hasExistingSlots}
+                  existingPeriods={deferredExistingPeriods}
+                />
+              )}
               {/* Close Button inside sheet */}
               <Button
                 variant="outline"
