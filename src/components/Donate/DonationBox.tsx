@@ -30,7 +30,7 @@ export default function DonationComponent({
   const sessionEmail = (session?.user as any)?.email || "";
   const sessionName = (session?.user as any)?.name || "";
 
-  const [selectedAmount, setSelectedAmount] = useState<number>(35);
+  const [selectedAmount, setSelectedAmount] = useState<number>(25);
   const [customAmount, setCustomAmount] = useState<string>("");
   const [cardNumber, setCardNumber] = useState("");
   const [expiryDate, setExpiryDate] = useState("");
