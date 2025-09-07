@@ -9,13 +9,13 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import pusherClient from "@/lib/pusherClient";
 import { Bell, Menu, MessageCircle } from "lucide-react";
 import { useSession } from "next-auth/react";
 import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
 import AnnouncementsDrawer from "../AnnouncementDrawer";
 import SystemNotification, { INotification } from "../SystemNotification";
-import pusherClient from "@/lib/pusherClient";
 
 interface TopbarProps {
   title?: string;
@@ -106,12 +106,12 @@ TopbarProps) {
         },
         body: JSON.stringify({ isRead: true }),
       });
-      
+
       if (!res.ok) {
         console.error("Failed to mark notification as read");
         return;
       }
-      
+
       // Refresh notifications to update the count
       getMessageNotifications();
     } catch (error) {
@@ -130,8 +130,12 @@ TopbarProps) {
       }
 
       // Optimistically remove from UI immediately
-      setNotifications(prev => prev.filter(n => (n as any)._id !== notificationId));
-      setMessageNotifications(prev => prev.filter(n => (n as any)._id !== notificationId));
+      setNotifications((prev) =>
+        prev.filter((n) => (n as any)._id !== notificationId)
+      );
+      setMessageNotifications((prev) =>
+        prev.filter((n) => (n as any)._id !== notificationId)
+      );
 
       console.log("Deleting notification with ID:", notificationId);
 
@@ -141,23 +145,23 @@ TopbarProps) {
           "Content-Type": "application/json",
         },
       });
-      
+
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
         console.error("Failed to delete notification:", res.status, errorData);
         toast.error(`Failed to delete notification: ${res.status}`);
-        
+
         // Revert the optimistic update on error
         getMessageNotifications();
         getNotifications();
         return;
       }
-      
+
       toast.success("Notification deleted successfully");
     } catch (error) {
       console.error("Error deleting notification:", error);
       toast.error("Failed to delete notification");
-      
+
       // Revert the optimistic update on error
       getMessageNotifications();
       getNotifications();
@@ -216,7 +220,7 @@ TopbarProps) {
         >
           {/* Message circle icon */}
           <MessageCircle className="w-5 h-5" />
-     
+
           {/* Red badge showing unread message count */}
           <Badge className="absolute -top-1 -right-1 w-5 h-5 p-0 flex items-center justify-center bg-red-500 text-white text-xs">
             {/* Display count of unread message notifications, default to 0 if none */}
@@ -233,7 +237,7 @@ TopbarProps) {
             setIsNotifications(true);
             setIsMessages(false);
           }}
-          className="relative text-white hover:bg-slate-700"
+          className="relative cursor-pointer text-white hover:bg-slate-700"
         >
           <Bell className="w-5 h-5" />
           <Badge className="absolute -top-1 -right-1 w-5 h-5 p-0 flex items-center justify-center bg-blue-500 text-white text-xs">
@@ -319,6 +323,11 @@ TopbarProps) {
                   {notifications?.map(
                     (notification: INotification, index: number) => (
                       <SystemNotification
+                        onClose={() => {
+                          setOpen(false);
+                          setIsNotifications(false);
+                          setIsMessages(false);
+                        }}
                         key={`notif-${index}`}
                         notification={notification}
                         onDelete={deleteNotification}
