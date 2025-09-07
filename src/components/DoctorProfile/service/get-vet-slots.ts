@@ -13,7 +13,11 @@ export const getVetSlots = async ({
 }) => {
   // Fetch only available slots (excludes booked, blocked, and past slots)
   const res = await fetch(
-    `${config.BASE_URL}/api/appointments/booking/slot/todays-slot?vetId=${id}&startDate=${startDate}&endDate=${endDate}&timezone=${encodeURIComponent(timezone)}`,
+    `${
+      config.BASE_URL
+    }/api/appointments/booking/slot/todays-slot?vetId=${id}&startDate=${startDate}&endDate=${endDate}&timezone=${encodeURIComponent(
+      timezone
+    )}`,
     {
       method: "GET",
       headers: { "Content-Type": "application/json" },

@@ -1,6 +1,7 @@
 "use client";
 
 import AvailabilityScheduler from "@/components/Dashboard/Doctor/RatesAndAvailability/AvailabilityScheduler";
+import BookingNoticePeriod from "@/components/shared/BookingNoticePeriod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -18,7 +19,13 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { useDashboardContext } from "@/hooks/DashboardContext";
-import { getMonthRange, getTimezoneOffset, getTodayUTC } from "@/lib/timezone";
+import {
+  getMonthRange,
+  getTimezoneOffset,
+  getTimezones,
+  getTodayUTC,
+  getUserTimezone,
+} from "@/lib/timezone";
 import { CreateAvailabilityRequest, DateRange, SlotPeriod } from "@/lib/types";
 import { format } from "date-fns";
 import { AlertTriangle, Calendar, Clock, Globe } from "lucide-react";
@@ -61,7 +68,6 @@ const AvailabilityManager: React.FC = () => {
   //   requestPermission();
   // }, []);
   console.log("availableSlotsApiResponse", availableSlotsApiResponse.data);
-  // const [userTimezone, setUserTimezone] = useState<string>("");
   const userTimezone = user?.timezone || "";
   const currentTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
@@ -276,6 +282,7 @@ const AvailabilityManager: React.FC = () => {
   }, [user?.refId, selectedRange, setSelectedRange]);
   return (
     <div className="container mx-auto p-6 space-y-6">
+      <BookingNoticePeriod vetId={user?.refId} />
       {/* Debug Information */}
       {process.env.NODE_ENV === "development" && (
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">

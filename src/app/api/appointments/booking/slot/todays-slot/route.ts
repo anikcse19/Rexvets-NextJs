@@ -4,7 +4,9 @@ import {
   sendResponse,
   throwAppError,
 } from "@/lib/utils/send.response";
+import { Types } from "mongoose";
 import { NextRequest } from "next/server";
+import Veterinarian from "../../../../../../models/Veterinarian";
 import { getSlotsByNoticePeriodAndDateRangeByVetId } from "../slot.util";
 
 export const GET = async (req: NextRequest) => {
@@ -19,12 +21,20 @@ export const GET = async (req: NextRequest) => {
         "Missing required query parameters: vetId, startDate, endDate , timezone"
       );
     }
+    const veterinarian = await Veterinarian.findOne(
+      { _id: new Types.ObjectId(vetId) },
+      { noticePeriod: 1 }
+    );
+    if (!veterinarian) {
+      throw Error("Veterinarian not found");
+    }
+    console.log(" veterinarian?.noticePeriod", veterinarian?.noticePeriod);
     const payload = {
       vetId,
-      noticePeriod: 30,
+      noticePeriod: veterinarian?.noticePeriod,
+      timezone: timezone,
       startDate: new Date(startDate),
       endDate: new Date(endDate),
-      timezone,
     };
     console.log("payload", payload);
     const response = await getSlotsByNoticePeriodAndDateRangeByVetId(payload);
