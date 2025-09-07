@@ -128,9 +128,9 @@ const Header: React.FC = () => {
         background:
           "linear-gradient(135deg, #0f0c29 0%, #24243e 25%, #302b63 50%, #0f3460 75%, #002366 100%)",
       }}
-      className={` relative py-2 h-auto md:py-${
+      className={`fixed py-3 h-auto md:py-${
         session?.user && session.user.role !== "veterinarian" ? "1" : "3"
-      }   w-full  backdrop-blur-sm px-7  border-b border-slate-800/50 z-[9998]`}
+      }   w-full  backdrop-blur-sm px-3 lg:px-7  border-b border-slate-800/50 z-[9998]`}
     >
       <nav className="flex items-center justify-between  mx-auto">
         {/* Logo */}
@@ -139,8 +139,8 @@ const Header: React.FC = () => {
             <Image
               src="/images/Logo.svg"
               alt="Logo RexVet"
-              width={120}
-              height={100}
+              width={150}
+              height={150}
               quality={100}
             />
           </Link>
@@ -278,218 +278,7 @@ const Header: React.FC = () => {
 
         {/* Right Side (Hamburger for mobile, User Profile and TalkToVetButton for desktop) */}
         <div className="flex items-center space-x-3 z-[9997]">
-          <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-            <SheetTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="lg:hidden text-white hover:text-emerald-400"
-              >
-                <Menu className="h-6 w-6" />
-                <span className="sr-only">Toggle menu</span>
-              </Button>
-            </SheetTrigger>
-
-            <SheetContent
-              side="left"
-              className="w-[80%] bg-[#001a4d] z-[10000] sheet-close-white"
-            >
-              <VisuallyHidden asChild>
-                <DialogTitle>Main Menu</DialogTitle>
-              </VisuallyHidden>
-
-              <div className="bg-[#27305A] h-screen flex flex-col">
-                <div className="p-6 pt-11 flex-shrink-0">
-                  <div className="flex items-center">
-                    <Image
-                      src="/images/Logo.svg"
-                      alt="Logo RexVet"
-                      width={200}
-                      height={200}
-                      quality={100}
-                    />
-                  </div>
-                </div>
-
-                <ScrollArea className="flex-1 px-6">
-                  <div className="flex flex-col gap-4 pb-24">
-                    <div className="mt-8">
-                      {/* User Profile Section for Mobile */}
-                      {session ? (
-                        <div className="pb-4 border-b border-[#3D456B] mb-4">
-                          <div className="flex items-center space-x-3">
-                            <Avatar className="w-10 h-10">
-                              <AvatarImage
-                                src={(session?.user as any)?.image || ""}
-                              />
-                              <AvatarFallback className="bg-emerald-500 text-white">
-                                {(session?.user as any)?.name
-                                  ? getUserInitials((session?.user as any).name)
-                                  : "U"}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div className="flex-1">
-                              <p className="text-white font-semibold text-sm">
-                                {(session?.user as any)?.name || "User"}
-                              </p>
-                              <p className="text-white/70 text-xs">
-                                {(session?.user as any)?.role
-                                  ? getRoleDisplayName(
-                                      (session?.user as any)?.role
-                                    )
-                                  : "User"}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="mt-3 space-y-2">
-                            <Link
-                              href="/dashboard"
-                              className="block text-white/80 hover:text-emerald-400 text-sm transition-colors"
-                              onClick={() => setMobileMenuOpen(false)}
-                            >
-                              Dashboard
-                            </Link>
-                            <button
-                              onClick={() => {
-                                handleSignOut();
-                                setMobileMenuOpen(false);
-                              }}
-                              className="block text-white/80 hover:text-red-400 text-sm transition-colors w-full text-left"
-                            >
-                              Sign Out
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="pb-4 border-b border-[#3D456B] mb-4">
-                          <Link
-                            href="/auth/signin"
-                            className="text-white hover:text-emerald-400 font-semibold text-lg"
-                            onClick={() => setMobileMenuOpen(false)}
-                          >
-                            Sign In
-                          </Link>
-                        </div>
-                      )}
-
-                      <div className="pb-3 border-b border-[#3D456B] text-start">
-                        <Link
-                          href="/"
-                          className="text-white hover:text-emerald-400 font-semibold text-lg block"
-                          onClick={() => setMobileMenuOpen(false)}
-                        >
-                          Home
-                        </Link>
-                      </div>
-                      {/* <div className="pb-3 border-b border-[#3D456B] text-center">
-                      <Link
-                        href={"/video-call?isPublisher=false"}
-                        className="text-white hover:text-emerald-400 font-semibold text-lg block"
-                        onClick={() => setMobileMenuOpen(false)}
-                      >
-                        Join Video Call
-                      </Link>
-                    </div> */}
-                      {Object.entries(menuItems).map(([label, items]) => {
-                        // Render "For pet parents" and "For Vet & techs" collapsible menus
-                        if (
-                          label === "Pet parents" ||
-                          label === "Vet & techs"
-                        ) {
-                          return (
-                            <Collapsible key={label}>
-                              <div className="py-4 border-b border-[#3D456B]">
-                                <CollapsibleTrigger className="flex justify-between items-start text-white hover:text-emerald-400 font-semibold text-lg w-full">
-                                  {label}
-                                  <ChevronDown className="w-4 h-4 ml-1" />
-                                </CollapsibleTrigger>
-                              </div>
-                              <CollapsibleContent className="pl-4">
-                                {items.map((item) => (
-                                  <a
-                                    key={item}
-                                    href="#"
-                                    className="block px-4 py-4 border-b border-[#3D456B] text-white hover:text-emerald-400 hover:bg-[#002a66] text-sm transition-all duration-200"
-                                    onClick={() => setMobileMenuOpen(false)}
-                                  >
-                                    {item}
-                                  </a>
-                                ))}
-                              </CollapsibleContent>
-                            </Collapsible>
-                          );
-                        }
-
-                        // Render "Get a prescription" as standalone link before About
-                        if (label === "About") {
-                          return (
-                            <React.Fragment key="get-prescription-and-about">
-                              <div className="py-4 border-b border-[#3D456B] text-center">
-                                <Link
-                                  href="/get-a-prescription"
-                                  className="text-white text-start hover:text-emerald-400 font-semibold text-lg block"
-                                  onClick={() => setMobileMenuOpen(false)}
-                                >
-                                  Get a prescription
-                                </Link>
-                              </div>
-                              <Collapsible key={label}>
-                                <div className="py-4 border-b border-[#3D456B]">
-                                  <CollapsibleTrigger className="flex items-start justify-between text-white hover:text-emerald-400 font-semibold text-lg w-full">
-                                    {label}
-                                    <ChevronDown className="w-4 h-4 ml-1" />
-                                  </CollapsibleTrigger>
-                                </div>
-                                <CollapsibleContent className="pl-4">
-                                  {items.map((item) => (
-                                    <a
-                                      key={item}
-                                      href="#"
-                                      className="block px-4 py-4 border-b text-start border-[#3D456B] text-white hover:text-emerald-400 hover:bg-[#002a66] text-sm transition-all duration-200"
-                                      onClick={() => setMobileMenuOpen(false)}
-                                    >
-                                      {item}
-                                    </a>
-                                  ))}
-                                </CollapsibleContent>
-                              </Collapsible>
-                            </React.Fragment>
-                          );
-                        }
-
-                        return null;
-                      })}
-                      <div className="pb-3 border-b border-[#3D456B] text-start">
-                        <Link
-                          href="/support"
-                          className="text-white hover:text-emerald-400 font-semibold text-lg block"
-                          onClick={() => setMobileMenuOpen(false)}
-                        >
-                          Support
-                        </Link>
-                      </div>
-                      <div className="pb-3 border-b border-[#3D456B] text-start">
-                        <Link
-                          href="/donate"
-                          className="text-white hover:text-emerald-400 font-semibold text-lg block"
-                          onClick={() => setMobileMenuOpen(false)}
-                        >
-                          Donate
-                        </Link>
-                      </div>
-                    </div>
-                  </div>
-                </ScrollArea>
-
-                {/* Footer - Fixed at bottom */}
-                <div className="flex-shrink-0">
-                  <HeaderSmallDeviceFooter />
-                </div>
-              </div>
-            </SheetContent>
-          </Sheet>
-
-          <div className="lg:flex hidden items-center space-x-3">
+          <div className="flex items-center space-x-3">
             {/* User Profile Dropdown for Desktop */}
             {session ? (
               <DropdownMenu>
@@ -500,7 +289,7 @@ const Header: React.FC = () => {
                         <Button
                           variant="ghost"
                           className={`h-10 w-10 rounded-full hover:ring-2 hover:ring-emerald-400 transition-all cursor-pointer ${
-                            session.user.role === "veterinarian" && "mr-10"
+                            session.user.role === "veterinarian" && "lg:mr-20"
                           }`}
                         >
                           <div className="relative h-10 w-10">
@@ -658,6 +447,158 @@ const Header: React.FC = () => {
               </div>
             )}
           </div>
+          <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+            <SheetTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="lg:hidden text-white hover:text-emerald-400"
+              >
+                <Menu className="h-6 w-6" />
+                <span className="sr-only">Toggle menu</span>
+              </Button>
+            </SheetTrigger>
+
+            <SheetContent
+              side="left"
+              className="w-[80%] bg-[#001a4d] z-[10000] sheet-close-white"
+            >
+              <VisuallyHidden asChild>
+                <DialogTitle>Main Menu</DialogTitle>
+              </VisuallyHidden>
+
+              <div className="bg-[#27305A] h-screen flex flex-col">
+                <div className="p-6 pt-11 flex-shrink-0">
+                  <div className="flex items-center">
+                    <Image
+                      src="/images/Logo.svg"
+                      alt="Logo RexVet"
+                      width={200}
+                      height={200}
+                      quality={100}
+                    />
+                  </div>
+                </div>
+
+                <ScrollArea className="flex-1 px-6">
+                  <div className="flex flex-col gap-4 pb-24">
+                    <div className="mt-8">
+                      <div className="pb-3 border-b border-[#3D456B] text-start">
+                        <Link
+                          href="/"
+                          className="text-white hover:text-emerald-400 font-semibold text-lg block"
+                          onClick={() => setMobileMenuOpen(false)}
+                        >
+                          Home
+                        </Link>
+                      </div>
+                      {/* <div className="pb-3 border-b border-[#3D456B] text-center">
+                      <Link
+                        href={"/video-call?isPublisher=false"}
+                        className="text-white hover:text-emerald-400 font-semibold text-lg block"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        Join Video Call
+                      </Link>
+                    </div> */}
+                      {Object.entries(menuItems).map(([label, items]) => {
+                        // Render "For pet parents" and "For Vet & techs" collapsible menus
+                        if (
+                          label === "Pet parents" ||
+                          label === "Vet & techs"
+                        ) {
+                          return (
+                            <Collapsible key={label}>
+                              <div className="py-4 border-b border-[#3D456B]">
+                                <CollapsibleTrigger className="flex justify-between items-start text-white hover:text-emerald-400 font-semibold text-lg w-full">
+                                  {label}
+                                  <ChevronDown className="w-4 h-4 ml-1" />
+                                </CollapsibleTrigger>
+                              </div>
+                              <CollapsibleContent className="pl-4">
+                                {items.map((item) => (
+                                  <a
+                                    key={item}
+                                    href="#"
+                                    className="block px-4 py-4 border-b border-[#3D456B] text-white hover:text-emerald-400 hover:bg-[#002a66] text-sm transition-all duration-200"
+                                    onClick={() => setMobileMenuOpen(false)}
+                                  >
+                                    {item}
+                                  </a>
+                                ))}
+                              </CollapsibleContent>
+                            </Collapsible>
+                          );
+                        }
+
+                        // Render "Get a prescription" as standalone link before About
+                        if (label === "About") {
+                          return (
+                            <React.Fragment key="get-prescription-and-about">
+                              <div className="py-4 border-b border-[#3D456B] text-center">
+                                <Link
+                                  href="/get-a-prescription"
+                                  className="text-white text-start hover:text-emerald-400 font-semibold text-lg block"
+                                  onClick={() => setMobileMenuOpen(false)}
+                                >
+                                  Get a prescription
+                                </Link>
+                              </div>
+                              <Collapsible key={label}>
+                                <div className="py-4 border-b border-[#3D456B]">
+                                  <CollapsibleTrigger className="flex items-start justify-between text-white hover:text-emerald-400 font-semibold text-lg w-full">
+                                    {label}
+                                    <ChevronDown className="w-4 h-4 ml-1" />
+                                  </CollapsibleTrigger>
+                                </div>
+                                <CollapsibleContent className="pl-4">
+                                  {items.map((item) => (
+                                    <a
+                                      key={item}
+                                      href="#"
+                                      className="block px-4 py-4 border-b text-start border-[#3D456B] text-white hover:text-emerald-400 hover:bg-[#002a66] text-sm transition-all duration-200"
+                                      onClick={() => setMobileMenuOpen(false)}
+                                    >
+                                      {item}
+                                    </a>
+                                  ))}
+                                </CollapsibleContent>
+                              </Collapsible>
+                            </React.Fragment>
+                          );
+                        }
+
+                        return null;
+                      })}
+                      <div className="pb-3 border-b border-[#3D456B] text-start">
+                        <Link
+                          href="/support"
+                          className="text-white hover:text-emerald-400 font-semibold text-lg block"
+                          onClick={() => setMobileMenuOpen(false)}
+                        >
+                          Support
+                        </Link>
+                      </div>
+                      <div className="pb-3 border-b border-[#3D456B] text-start">
+                        <Link
+                          href="/donate"
+                          className="text-white hover:text-emerald-400 font-semibold text-lg block"
+                          onClick={() => setMobileMenuOpen(false)}
+                        >
+                          Donate
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                </ScrollArea>
+
+                {/* Footer - Fixed at bottom */}
+                <div className="flex-shrink-0">
+                  <HeaderSmallDeviceFooter />
+                </div>
+              </div>
+            </SheetContent>
+          </Sheet>
         </div>
       </nav>
     </header>
