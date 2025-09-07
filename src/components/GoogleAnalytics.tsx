@@ -1,8 +1,9 @@
 'use client';
 
 import { useEffect } from 'react';
+import Script from 'next/script';
 import { usePathname, useSearchParams } from 'next/navigation';
-import { initGA, initGTM, trackPageView, GA_MEASUREMENT_ID, GTM_ID } from '@/lib/analytics';
+import { initGA, trackPageView, GA_MEASUREMENT_ID, GTM_ID } from '@/lib/analytics';
 
 interface GoogleAnalyticsProps {
   children?: React.ReactNode;
@@ -12,13 +13,9 @@ export default function GoogleAnalytics({ children }: GoogleAnalyticsProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  // Initialize Google Analytics and GTM on mount
+  // Initialize GA on route changes (after script loads)
   useEffect(() => {
-    // Only initialize in production or when IDs are provided
-    if (process.env.NODE_ENV === 'production' || GA_MEASUREMENT_ID || GTM_ID) {
-      initGA();
-      initGTM();
-    }
+    if ((window as any).gtag) initGA();
   }, []);
 
   // Track page views when route changes
@@ -29,7 +26,28 @@ export default function GoogleAnalytics({ children }: GoogleAnalyticsProps) {
     }
   }, [pathname, searchParams]);
 
-  return <>{children}</>;
+  return (
+    <>
+      {/* Google Analytics script */}
+      {GA_MEASUREMENT_ID && (
+        <Script
+          src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
+          strategy="lazyOnload"
+        />
+      )}
+      {GA_MEASUREMENT_ID && (
+        <Script id="ga-inline" strategy="lazyOnload">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', '${GA_MEASUREMENT_ID}', { page_path: window.location.pathname });
+          `}
+        </Script>
+      )}
+      {children}
+    </>
+  );
 }
 
 // Google Tag Manager NoScript component
