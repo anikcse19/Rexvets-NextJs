@@ -118,6 +118,8 @@ export default function AddPetModal({
   const watchedDOB = watch("dateOfBirth");
   const calculatedAge = watchedDOB ? calculatePetAge(watchedDOB) : null;
 
+  const today = new Date().toISOString().split("T")[0];
+
   const onSubmit = async (data: PetRegistrationData) => {
     setIsSubmitting(true);
     try {
@@ -502,6 +504,7 @@ export default function AddPetModal({
                 <Input
                   id="dateOfBirth"
                   type="date"
+                  max={today}
                   {...register("dateOfBirth")}
                   className="border-gray-300 focus:border-green-500 focus:ring-green-500"
                 />

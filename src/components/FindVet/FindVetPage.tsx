@@ -394,7 +394,12 @@ export default function FindVetPage({
     <main className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 p-4 lg:p-6">
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Header */}
-        <header className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-700 p-8 text-white shadow-2xl">
+        <header
+          style={{
+            background: "linear-gradient(to right,#002366,#1a8693",
+          }}
+          className="relative overflow-hidden rounded-3xl  p-8 text-white shadow-2xl"
+        >
           <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
             <div>
               <h1 className="text-3xl lg:text-4xl font-bold mb-4">
