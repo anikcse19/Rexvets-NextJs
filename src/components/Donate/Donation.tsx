@@ -34,12 +34,6 @@ const Donation: React.FC = () => {
     // router.push("/DonatePage2");
   }, []);
 
-  const handleGoogleSignUp = useCallback(async () => {
-    // Dummy Google sign up
-    toast.success("Google sign-up simulated!");
-    setShowPopUp(false);
-    router.push("/DonatePage2");
-  }, [router]);
 
   const handleLoginSubmit = useCallback(
     async (email: string, password: string) => {
@@ -171,7 +165,6 @@ const Donation: React.FC = () => {
             <DialogTitle className="sr-only">Sign In</DialogTitle>
             <SignIn
               onGoogleSignIn={handleGoogleSignIn}
-              onGoogleSignUp={handleGoogleSignUp}
               onSignIn={handleLoginSubmit}
               onSignUp={handleSignupSubmit}
             />

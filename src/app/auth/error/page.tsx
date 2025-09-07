@@ -24,9 +24,9 @@ function AuthErrorContent() {
         };
       case "AccessDenied":
         return {
-          title: "Access Denied",
-          message: "You do not have permission to access this resource.",
-          icon: Shield,
+          title: "Account Not Found",
+          message: "This Google account is not registered with RexVet. Please create an account first using our signup form to provide complete information.",
+          icon: AlertTriangle,
         };
       case "Verification":
         return {

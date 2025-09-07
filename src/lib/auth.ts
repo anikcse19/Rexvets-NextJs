@@ -279,27 +279,12 @@ export const authOptions = {
                 ? existingUser.veterinarianRef?.toString()
                 : existingUser.vetTechRef?.toString();
           } else {
-            // Create new user with Google OAuth
-            const newUser = await createOrUpdateUserAuth(
-              googleData.email,
-              "pet_parent", // Default role for Google sign-up
-              undefined, // No password for OAuth
-              googleData
-            );
-
-            // Set session data for new user
-            user.id = newUser._id.toString();
-            user.role = newUser.role;
-            user.emailVerified = true;
-            user.name = newUser.name;
-            user.timezone = newUser?.timezone;
-            user.image = newUser.profileImage;
-            user.refId =
-              newUser.role === "pet_parent"
-                ? newUser.petParentRef?.toString()
-                : newUser.role === "veterinarian"
-                ? newUser.veterinarianRef?.toString()
-                : newUser.vetTechRef?.toString();
+            // Prevent new user creation through Google OAuth
+            // Users must register through the proper signup process
+            console.error("Google OAuth sign-up blocked for new users:", user.email);
+            // Return false to trigger error redirect, NextAuth will use "AccessDenied" by default
+            // We'll handle this specific case in the error page
+            return false;
           }
 
           return true;
