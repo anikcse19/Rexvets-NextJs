@@ -69,11 +69,11 @@ export async function GET(request: NextRequest) {
           name: user.name
         });
       }
-    } catch (welcomeErr) {
+    } catch (welcomeErr: unknown) {
       console.error('Failed to send welcome email after verification:', welcomeErr);
       console.error('Welcome email error details:', {
-        message: welcomeErr.message,
-        stack: welcomeErr.stack,
+        message: welcomeErr instanceof Error ? welcomeErr.message : String(welcomeErr),
+        stack: welcomeErr instanceof Error ? welcomeErr.stack : undefined,
         userEmail: user.email,
         userName: user.name
       });

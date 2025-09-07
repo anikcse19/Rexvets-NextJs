@@ -20,12 +20,12 @@ export async function POST(request: NextRequest) {
       message: "Welcome email sent successfully",
       email: email
     });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("[TEST] Failed to send welcome email:", error);
     return NextResponse.json(
       { 
         error: "Failed to send welcome email",
-        details: error.message 
+        details: error instanceof Error ? error.message : String(error)
       },
       { status: 500 }
     );
