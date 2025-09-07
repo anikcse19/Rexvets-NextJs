@@ -9,6 +9,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import pusherClient from "@/lib/pusherClient";
 import { Bell, Menu, MessageCircle } from "lucide-react";
 import { useSession } from "next-auth/react";
 import React, { useEffect, useState } from "react";
@@ -95,10 +96,94 @@ TopbarProps) {
     }
   };
 
+  // Function to mark a notification as read
+  const markNotificationAsRead = async (notificationId: string) => {
+    try {
+      const res = await fetch(`/api/notifications/${notificationId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ isRead: true }),
+      });
+
+      if (!res.ok) {
+        console.error("Failed to mark notification as read");
+        return;
+      }
+
+      // Refresh notifications to update the count
+      getMessageNotifications();
+    } catch (error) {
+      console.error("Error marking notification as read:", error);
+    }
+  };
+
+  // Function to delete a notification
+  const deleteNotification = async (notification: INotification) => {
+    try {
+      const notificationId = (notification as any)._id;
+      if (!notificationId) {
+        console.error("No notification ID found", notification);
+        toast.error("Notification ID not found");
+        return;
+      }
+
+      // Optimistically remove from UI immediately
+      setNotifications((prev) =>
+        prev.filter((n) => (n as any)._id !== notificationId)
+      );
+      setMessageNotifications((prev) =>
+        prev.filter((n) => (n as any)._id !== notificationId)
+      );
+
+      console.log("Deleting notification with ID:", notificationId);
+
+      const res = await fetch(`/api/notifications/${notificationId}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        console.error("Failed to delete notification:", res.status, errorData);
+        toast.error(`Failed to delete notification: ${res.status}`);
+
+        // Revert the optimistic update on error
+        getMessageNotifications();
+        getNotifications();
+        return;
+      }
+
+      toast.success("Notification deleted successfully");
+    } catch (error) {
+      console.error("Error deleting notification:", error);
+      toast.error("Failed to delete notification");
+
+      // Revert the optimistic update on error
+      getMessageNotifications();
+      getNotifications();
+    }
+  };
+
   useEffect(() => {
     if (session) {
       getNotifications();
       getMessageNotifications();
+
+      // subscribe for realtime notifications
+      const channel = pusherClient.subscribe(`user-${session.user.id}`);
+      const refresh = () => {
+        getNotifications();
+        getMessageNotifications();
+      };
+      channel.bind("new-notification", refresh);
+      return () => {
+        channel.unbind("new-notification", refresh);
+        pusherClient.unsubscribe(`user-${session.user.id}`);
+      };
     }
   }, [session]);
   console.log("notifications", notifications);
@@ -119,19 +204,26 @@ TopbarProps) {
       </div>
 
       <div className="flex items-center gap-2 lg:gap-4">
-        {/* Messages Button */}
+        {/* Messages Button - Shows chat message notifications */}
         <Button
-          variant="ghost"
-          size="sm"
+          variant="ghost" // Transparent background button style
+          size="sm" // Small button size
           onClick={() => {
+            // When clicked, open the notification panel
             setOpen(true);
+            // Hide general notifications section
             setIsNotifications(false);
+            // Show messages section in the panel
             setIsMessages(true);
           }}
-          className="relative text-white hover:bg-slate-700"
+          className="relative text-white hover:bg-slate-700" // White text, dark hover effect, relative positioning for badge
         >
+          {/* Message circle icon */}
           <MessageCircle className="w-5 h-5" />
+
+          {/* Red badge showing unread message count */}
           <Badge className="absolute -top-1 -right-1 w-5 h-5 p-0 flex items-center justify-center bg-red-500 text-white text-xs">
+            {/* Display count of unread message notifications, default to 0 if none */}
             {messageNotifications?.length || 0}
           </Badge>
         </Button>
@@ -145,7 +237,7 @@ TopbarProps) {
             setIsNotifications(true);
             setIsMessages(false);
           }}
-          className="relative text-white hover:bg-slate-700"
+          className="relative cursor-pointer text-white hover:bg-slate-700"
         >
           <Bell className="w-5 h-5" />
           <Badge className="absolute -top-1 -right-1 w-5 h-5 p-0 flex items-center justify-center bg-blue-500 text-white text-xs">
@@ -208,6 +300,15 @@ TopbarProps) {
                       <SystemNotification
                         key={`msg-${index}`}
                         notification={notification}
+                        onClick={() => {
+                          // Mark notification as read when clicked
+                          if ((notification as any)._id) {
+                            markNotificationAsRead((notification as any)._id);
+                          }
+                          // Close the notification panel when clicking on a message notification
+                          setOpen(false);
+                        }}
+                        onDelete={deleteNotification}
                       />
                     )
                   )}
@@ -222,8 +323,14 @@ TopbarProps) {
                   {notifications?.map(
                     (notification: INotification, index: number) => (
                       <SystemNotification
+                        onClose={() => {
+                          setOpen(false);
+                          setIsNotifications(false);
+                          setIsMessages(false);
+                        }}
                         key={`notif-${index}`}
                         notification={notification}
+                        onDelete={deleteNotification}
                       />
                     )
                   )}

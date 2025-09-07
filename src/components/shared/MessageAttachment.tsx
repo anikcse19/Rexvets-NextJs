@@ -42,12 +42,23 @@ const MessageAttachment: React.FC<MessageAttachmentProps> = ({
       return;
     }
     
-    setImageUrl(url);
+    // Log the URL for debugging
+    console.log('Setting image URL in MessageAttachment:', {
+      originalUrl: url,
+      fileName: fileName,
+      messageType: messageType
+    });
+    
+    // Add a cache-busting parameter to avoid caching issues
+    const cacheBuster = `?_t=${Date.now()}`;
+    const urlWithCacheBuster = url.includes('?') ? `${url}&_t=${Date.now()}` : `${url}${cacheBuster}`;
+    
+    setImageUrl(urlWithCacheBuster);
     setImageLoading(true);
     setImageError(false);
     setRetryCount(0);
     setErrorMessage('');
-  }, [url]);
+  }, [url, fileName, messageType]);
 
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return '0 Bytes';
@@ -111,7 +122,12 @@ const MessageAttachment: React.FC<MessageAttachmentProps> = ({
       url: imageUrl,
       urlType: typeof imageUrl,
       fileName,
-      retryCount
+      retryCount,
+      crossOrigin: target.crossOrigin,
+      naturalWidth: target.naturalWidth,
+      naturalHeight: target.naturalHeight,
+      complete: target.complete,
+      currentSrc: target.currentSrc
     });
     
     // Debug the Cloudinary URL if it's a Cloudinary URL
@@ -164,14 +180,14 @@ const MessageAttachment: React.FC<MessageAttachmentProps> = ({
     if (typeof imageUrl !== 'string' || !imageUrl) {
       return (
         <div className={`relative group ${className}`}>
-          <div className="flex flex-col space-y-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
+          <div className={`flex flex-col space-y-3 p-4 ${className?.includes('dark-theme') ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-200'} rounded-lg border`}>
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
                 {getFileIcon()}
-                <span className="text-sm font-medium text-gray-700">{fileName}</span>
+                <span className={`text-sm font-medium ${className?.includes('dark-theme') ? 'text-gray-300' : 'text-gray-700'}`}>{fileName}</span>
               </div>
             </div>
-            <div className="text-xs text-red-600 bg-red-50 p-2 rounded">
+            <div className={`text-xs ${className?.includes('dark-theme') ? 'text-red-400 bg-red-900/30' : 'text-red-600 bg-red-50'} p-2 rounded`}>
               Invalid image URL provided
             </div>
           </div>
@@ -194,6 +210,7 @@ const MessageAttachment: React.FC<MessageAttachmentProps> = ({
                 <img
                   src={imageUrl}
                   alt={fileName}
+                  crossOrigin="anonymous"
                   className="max-w-xs max-h-64 rounded-lg cursor-pointer object-contain"
                   style={{
                     maxHeight: '256px',
@@ -208,11 +225,11 @@ const MessageAttachment: React.FC<MessageAttachmentProps> = ({
               </div>
             </div>
           ) : (
-            <div className="flex flex-col space-y-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <div className={`flex flex-col space-y-3 p-4 ${className?.includes('dark-theme') ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-200'} rounded-lg border`}>
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   {getFileIcon()}
-                  <span className="text-sm font-medium text-gray-700">{fileName}</span>
+                  <span className={`text-sm font-medium ${className?.includes('dark-theme') ? 'text-gray-300' : 'text-gray-700'}`}>{fileName}</span>
                 </div>
                 <div className="flex items-center space-x-2">
                   {retryCount < 3 && (
@@ -232,16 +249,16 @@ const MessageAttachment: React.FC<MessageAttachmentProps> = ({
                 </div>
               </div>
               
-              <div className="text-xs text-red-600 bg-red-50 p-2 rounded">
+              <div className={`text-xs ${className?.includes('dark-theme') ? 'text-red-400 bg-red-900/30' : 'text-red-600 bg-red-50'} p-2 rounded`}>
                 {errorMessage}
               </div>
               
-              <div className="text-xs text-gray-500 break-all">
+              <div className={`text-xs ${className?.includes('dark-theme') ? 'text-gray-400' : 'text-gray-500'} break-all`}>
                 <strong>URL:</strong> {imageUrl}
               </div>
               
               {retryCount >= 3 && (
-                <div className="text-xs text-orange-600 bg-orange-50 p-2 rounded">
+                <div className={`text-xs ${className?.includes('dark-theme') ? 'text-orange-400 bg-orange-900/30' : 'text-orange-600 bg-orange-50'} p-2 rounded`}>
                   Maximum retry attempts reached. The image may be temporarily unavailable.
                 </div>
               )}
@@ -256,20 +273,23 @@ const MessageAttachment: React.FC<MessageAttachmentProps> = ({
             onClick={() => setShowFullImage(false)}
           >
             <div className="relative max-w-4xl max-h-full p-4">
-              <img
-                src={url}
-                alt={fileName}
-                className="max-w-full max-h-full object-contain bg-gray-50"
-                style={{
-                  filter: 'none',
-                  opacity: 1
-                }}
-                onClick={(e) => e.stopPropagation()}
-                onError={(e) => {
+                <img
+                  src={url}
+                  alt={fileName}
+                  crossOrigin="anonymous"
+                  className="max-w-full max-h-full object-contain bg-gray-50"
+                  style={{
+                    filter: 'none',
+                    opacity: 1
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                  onError={(e) => {
                   const target = e.target as HTMLImageElement;
                   target.style.display = 'none';
                   const fallback = document.createElement('div');
-                  fallback.className = 'max-w-full max-h-full flex items-center justify-center text-gray-500 text-lg bg-gray-100 rounded';
+                  fallback.className = className?.includes('dark-theme') 
+                    ? 'max-w-full max-h-full flex items-center justify-center text-gray-400 text-lg bg-gray-800 rounded' 
+                    : 'max-w-full max-h-full flex items-center justify-center text-gray-500 text-lg bg-gray-100 rounded';
                   fallback.textContent = 'Image failed to load';
                   target.parentNode?.appendChild(fallback);
                 }}

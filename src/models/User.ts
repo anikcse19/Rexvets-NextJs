@@ -25,6 +25,7 @@ export interface IUser extends Document {
   lockUntil?: Date;
   isActive: boolean;
   isDeleted?: boolean;
+  isOnline: boolean;
 
   // Google OAuth
   googleId?: string;
@@ -140,6 +141,10 @@ const userSchema = new Schema<IUser>(
       default: true,
     },
     isDeleted: {
+      type: Boolean,
+      default: false,
+    },
+    isOnline: {
       type: Boolean,
       default: false,
     },

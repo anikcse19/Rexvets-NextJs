@@ -10,7 +10,11 @@ import {
   VeterinarianModel 
 } from "@/models";
 import { z } from "zod";
+import NotificationModel, { NotificationType } from "@/models/Notification";
+import UserModel from "@/models/User";
+import { pusher } from "@/lib/pusher";
 import type { Session } from "next-auth";
+import { sendChatNotificationEmail } from "@/lib/email";
 
 // Schema for sending messages
 const sendMessageSchema = z.object({
@@ -214,6 +218,60 @@ export async function POST(req: NextRequest) {
 
     // Return the new message
     const savedMessage = chat.messages[chat.messages.length - 1];
+
+    // Trigger Pusher event for real-time chat update
+    try {
+      await pusher.trigger(`appointment-${appointmentId}`, "new-message", {
+        message: savedMessage
+      });
+    } catch (pusherErr) {
+      console.error("[PUSHER] Failed to trigger chat event", pusherErr);
+    }
+
+    // Create notification for receiver
+    try {
+      const receiverRefId =
+        userRole === "pet_parent" ? appointmentVeterinarianId : appointmentPetParentId;
+
+      // Map refId -> User _id (one-time lookup)
+      const receiverUser = await UserModel.findOne({
+        $or: [
+          { veterinarianRef: receiverRefId },
+          { petParentRef: receiverRefId },
+          { vetTechRef: receiverRefId },
+        ],
+      }).select({ _id: 1, email: 1, name: 1, isOnline: 1 });
+
+      if (receiverUser) {
+        await NotificationModel.create({
+          type: NotificationType.NEW_MESSAGE,
+          title: "New chat message",
+          subTitle: `${appointment.pet?.name || "Pet"}: ${content}`,
+          recipientId: receiverUser._id,
+          actorId: session.user.id,
+          appointmentId: appointmentId,
+          data: { appointmentId },
+        });
+
+        // Push realtime notification event
+        await pusher.trigger(`user-${receiverUser._id.toString()}`, "new-notification", {
+          appointmentId,
+        });
+
+        // Send email notification ONLY if user is offline
+        if (receiverUser.email && (!receiverUser.isOnline)) {
+          await sendChatNotificationEmail({
+            to: receiverUser.email,
+            recipientName: receiverUser.name || "there",
+            senderName: senderName,
+            isToDoctor: userRole === "pet_parent",
+            appointmentId: appointmentId,
+          });
+        }
+      }
+    } catch (notifErr) {
+      console.error("[NOTIFICATION] Failed to create notification", notifErr);
+    }
 
     return NextResponse.json({
       message: savedMessage,
