@@ -1,5 +1,6 @@
 import { connectToDatabase } from "@/lib/mongoose";
 import { VeterinarianModel } from "@/models";
+import User from "@/models/User";
 import moment from "moment-timezone";
 import { NextRequest, NextResponse } from "next/server";
 import { getSlotsByNoticePeriodAndDateRangeByVetId } from "../appointments/booking/slot/slot.util";
@@ -128,11 +129,25 @@ export async function GET(req: NextRequest) {
       .limit(limit)
       .lean();
 
+    // Build a map of veterinarianId -> user timezone from User model
+    const veterinarianIds = veterinarians.map((v) => (v._id as any));
+    const usersForVets = await User.find(
+      { veterinarianRef: { $in: veterinarianIds } },
+      { timezone: 1, veterinarianRef: 1 }
+    ).lean();
+    const vetIdToUserTimezone = new Map<string, string>();
+    usersForVets.forEach((u: any) => {
+      if (u?.veterinarianRef) {
+        vetIdToUserTimezone.set((u.veterinarianRef as any).toString(), u.timezone || "");
+      }
+    });
+
     // For each veterinarian, get their next 2 available slots using the working utility
     const veterinariansWithSlots = await Promise.all(
       veterinarians.map(async (vet) => {
         try {
           const vetNoticePeriod = vet.noticePeriod || 30; // Default to 30 minutes
+          const perVetTimezone = vetIdToUserTimezone.get((vet._id as any).toString()) || userTimezone;
 
           // Get slots for the next 7 days to ensure we have enough slots
           const startDate = now.clone().startOf("day").toDate();
@@ -143,7 +158,7 @@ export async function GET(req: NextRequest) {
             noticePeriod: vetNoticePeriod,
             startDate,
             endDate,
-            timezone: userTimezone,
+            timezone: perVetTimezone,
           });
 
           // Take only the first 2 slots
