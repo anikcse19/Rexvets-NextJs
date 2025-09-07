@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
+import { getUserTimezone } from "@/lib/timezone";
 import { convertTimesToUserTimezone } from "@/lib/timezone/index";
 import { format, parseISO } from "date-fns";
 import {
@@ -108,12 +109,13 @@ export default function BookingSystem({
 
   const fetchVetSlots = async () => {
     const date = parseISO(selectedSlotDate ?? selectedDate);
-
+    const userTimezone = getUserTimezone();
     const formatted = format(date, "yyyy-MM-dd");
     const data = await getVetSlots({
       id: doctorData?._id,
       startDate: formatted,
       endDate: formatted,
+      timezone: userTimezone,
     });
     // Sort by startTime (assumes format 'HH:mm')
     const sorted = (data || []).slice().sort((a: any, b: any) => {
@@ -123,17 +125,13 @@ export default function BookingSystem({
     setSlots(sorted);
     if (data && data.length > 0) {
       setVeterinarianTimezone(data[0]?.timezone || "UTC");
-      console.log("Slot timezone conversion:", {
-        userTimezone: currentTimezone,
-        vetTimezone: data[0]?.timezone,
-        sampleSlot: data[0],
-      });
     }
   };
 
   useEffect(() => {
     fetchVetSlots();
   }, [selectedDate, selectedSlotDate, selectedSlotId]);
+  console.log("slots", slots);
   useEffect(() => {
     if (selectedSlotDate && selectedSlotId) {
       const date = parseISO(selectedSlotDate);

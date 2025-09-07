@@ -3,9 +3,8 @@
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 
-import { IReview } from "@/models";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import DonationFormWrapper from "../Donation/DonationFormWrapper";
@@ -16,7 +15,6 @@ import DoctorHeader from "./DoctorHeader";
 import ReviewsSection from "./ReviewsSection";
 import Specialties from "./Specialties";
 import SpeciesTreated from "./SpeciesTreated";
-import { mockDoctor } from "./data";
 import { Doctor } from "./type";
 
 export default function DoctorProfilePage({

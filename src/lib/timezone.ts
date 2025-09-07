@@ -113,7 +113,7 @@ export const formatSlotTimeForUser = (
   if (slotTimezone === userTimezone) {
     return moment(`2000-01-01 ${time}`).format("hh:mm A");
   }
-  
+
   const dateStr = moment(date).format("YYYY-MM-DD");
   const slotDateTime = moment.tz(`${dateStr} ${time}`, slotTimezone);
   return slotDateTime.tz(userTimezone).format("hh:mm A");
@@ -137,7 +137,7 @@ export const getTimezoneOffset = (timezone: string): string => {
 export const isDateToday = (date: Date): boolean => {
   const today = new Date();
   const dateToCheck = new Date(date);
-  
+
   return (
     dateToCheck.getFullYear() === today.getFullYear() &&
     dateToCheck.getMonth() === today.getMonth() &&
@@ -152,5 +152,18 @@ export const isDateToday = (date: Date): boolean => {
  */
 export const getTodayUTC = (): Date => {
   const today = new Date();
-  return new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate()));
+  return new Date(
+    Date.UTC(today.getFullYear(), today.getMonth(), today.getDate())
+  );
+};
+export const getMonthRange = (timezone?: string) => {
+  const startOfMonth = moment
+    .tz(timezone || getUserTimezone())
+    .startOf("month");
+  const endOfMonth = moment.tz(timezone || getUserTimezone()).endOf("month");
+
+  return {
+    start: startOfMonth.format("ddd MMM DD YYYY HH:mm:ss [GMT]ZZ"),
+    end: endOfMonth.format("ddd MMM DD YYYY HH:mm:ss [GMT]ZZ"),
+  };
 };
