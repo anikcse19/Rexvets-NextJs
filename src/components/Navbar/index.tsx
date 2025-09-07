@@ -330,19 +330,25 @@ const Header: React.FC = () => {
                       </DropdownMenuTrigger>
                     </TooltipTrigger>
 
-                    <TooltipContent
-                      className="z-[9999]"
-                      side="top"
-                      align="center"
-                    >
-                      <p>
-                        {badge === "Friend of Rex Vet"
-                          ? "Friend of Rex Vet"
-                          : badge === "Champion Community"
-                          ? "Champion Community"
-                          : "Pet Care Hero"}
-                      </p>
-                    </TooltipContent>
+                    {(badge === "Pet Care Hero" ||
+                      badge === "Community Champion" ||
+                      badge === "Friend of Rex Vet") && (
+                      <TooltipContent
+                        className="z-[9999]"
+                        side="top"
+                        align="center"
+                      >
+                        <p>
+                          {badge === "Friend of Rex Vet"
+                            ? "Friend of Rex Vet"
+                            : badge === "Community Champion"
+                            ? "Community Champion"
+                            : badge === "Pet Care Hero"
+                            ? "Pet Care Hero"
+                            : ""}
+                        </p>
+                      </TooltipContent>
+                    )}
                   </Tooltip>
                 </TooltipProvider>
 

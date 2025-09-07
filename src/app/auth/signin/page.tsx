@@ -251,8 +251,8 @@ export default function SignInPage() {
                   <div className="absolute inset-0 flex items-center">
                     <div className="w-full border-t border-white/20"></div>
                   </div>
-                  <div className="relative flex justify-center text-sm">
-                    <span className="px-4 bg-transparent text-white/70">
+                  <div className="relative flex justify-center">
+                    <span className="px-4 backdrop-blur-xl bg-white/70 border-white/20 shadow-2xl text-sm text-black">
                       or continue with email
                     </span>
                   </div>
