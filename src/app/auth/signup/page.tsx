@@ -136,7 +136,7 @@ export default function SignUpPage() {
               />
 
               {/* Google Sign Up Option */}
-              <motion.div
+              {/* <motion.div
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.8 }}
@@ -182,7 +182,7 @@ export default function SignUpPage() {
                     Continue with Google
                   </Button>
                 </motion.div>
-              </motion.div>
+              </motion.div> */}
 
               <motion.div
                 initial={{ opacity: 0 }}

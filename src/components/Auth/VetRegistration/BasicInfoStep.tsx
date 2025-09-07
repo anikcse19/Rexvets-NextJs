@@ -41,13 +41,13 @@ export default function BasicInfoStep({
     email: initialData.email || "",
     city: initialData.city || "",
     state: initialData.state || "",
-    countryCode: initialData.countryCode || "",
     phone: initialData.phone || "",
     password: initialData.password || "",
     confirmPassword: initialData.confirmPassword || "",
   });
 
   const handleSubmit = (e: React.FormEvent) => {
+    console.log("basic info data", formData);
     e.preventDefault();
     onNext(formData);
   };
@@ -139,26 +139,23 @@ export default function BasicInfoStep({
                   placeholder="DVM, PhD"
                 />
               </div>
-
               <div>
-                <Label className="text-white font-medium mb-2" htmlFor="gender">
-                  Gender *
-                </Label>
-                <Select
-                  value={formData.gender}
-                  onValueChange={(value) => handleInputChange("gender", value)}
+                <Label
+                  className="text-white font-medium mb-2 flex items-center gap-2"
+                  htmlFor="city"
                 >
-                  <SelectTrigger className="h-12 placeholder:text-gray-500 text-gray-900 bg-white/80 border-gray-300">
-                    <SelectValue placeholder="Select gender" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="male">Male</SelectItem>
-                    <SelectItem value="female">Female</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-                {errors.gender && (
-                  <p className="text-sm text-red-500 mt-1">{errors.gender}</p>
+                  <MapPin className="w-4 h-4 text-blue-600" />
+                  City *
+                </Label>
+                <Input
+                  id="city"
+                  value={formData.city}
+                  onChange={(e) => handleInputChange("city", e.target.value)}
+                  className="h-12 placeholder:text-gray-500 text-gray-900 bg-white/80 border-gray-300"
+                  placeholder="New York"
+                />
+                {errors.city && (
+                  <p className="text-sm text-red-500 mt-1">{errors.city}</p>
                 )}
               </div>
             </div>
@@ -196,25 +193,25 @@ export default function BasicInfoStep({
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label
-                  className="text-white font-medium mb-2 flex items-center gap-2"
-                  htmlFor="city"
-                >
-                  <MapPin className="w-4 h-4 text-blue-600" />
-                  City *
+                <Label className="text-white font-medium mb-2" htmlFor="gender">
+                  Gender *
                 </Label>
-                <Input
-                  id="city"
-                  value={formData.city}
-                  onChange={(e) => handleInputChange("city", e.target.value)}
-                  className="h-12 placeholder:text-gray-500 text-gray-900 bg-white/80 border-gray-300"
-                  placeholder="New York"
-                />
-                {errors.city && (
-                  <p className="text-sm text-red-500 mt-1">{errors.city}</p>
+                <Select
+                  value={formData.gender}
+                  onValueChange={(value) => handleInputChange("gender", value)}
+                >
+                  <SelectTrigger className="h-12 py-2 placeholder:text-gray-500 text-gray-900 w-full bg-white/80 border-gray-300">
+                    <SelectValue placeholder="Select gender" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="male">Male</SelectItem>
+                    <SelectItem value="female">Female</SelectItem>
+                  </SelectContent>
+                </Select>
+                {errors.gender && (
+                  <p className="text-sm text-red-500 mt-1">{errors.gender}</p>
                 )}
               </div>
-
               <div>
                 <Label className="text-white font-medium mb-2" htmlFor="state">
                   State *
@@ -223,7 +220,7 @@ export default function BasicInfoStep({
                   value={formData.state}
                   onValueChange={(value) => handleInputChange("state", value)}
                 >
-                  <SelectTrigger className="h-12 placeholder:text-gray-500 text-gray-900 bg-white/80 border-gray-300">
+                  <SelectTrigger className="h-12 w-full placeholder:text-gray-500 text-gray-900 bg-white/80 border-gray-300">
                     <SelectValue placeholder="Select state" />
                   </SelectTrigger>
                   <SelectContent>
@@ -249,13 +246,13 @@ export default function BasicInfoStep({
                 Phone Number *
               </Label>
               <div className="flex gap-2">
-                <Select
+                {/* <Select
                   value={formData.countryCode}
                   onValueChange={(value) =>
                     handleInputChange("countryCode", value)
                   }
                 >
-                  <SelectTrigger className="w-32 h-12 placeholder:text-gray-500 text-gray-900 bg-white/80 border-gray-300">
+                  <SelectTrigger className="w-52 h-12 placeholder:text-gray-500 text-gray-900 bg-white/80 border-gray-300">
                     <SelectValue placeholder="+1" />
                   </SelectTrigger>
                   <SelectContent>
@@ -265,12 +262,12 @@ export default function BasicInfoStep({
                       </SelectItem>
                     ))}
                   </SelectContent>
-                </Select>
+                </Select> */}
                 <Input
                   id="phone"
                   value={formData.phone}
                   onChange={(e) => handleInputChange("phone", e.target.value)}
-                  className="flex-1 h-12 placeholder:text-gray-500 text-gray-900 bg-white/80 border-gray-300"
+                  className="flex-1 h-12 !py-0 placeholder:text-gray-500 text-gray-900 bg-white/80 border-gray-300"
                   placeholder="(555) 123-4567"
                 />
               </div>

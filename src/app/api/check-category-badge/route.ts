@@ -28,6 +28,13 @@ export async function GET(req: NextRequest) {
       );
     }
 
+    if (!user.categoryBadge) {
+      return NextResponse.json(
+        { success: false, message: "Badge not found." },
+        { status: 404 }
+      );
+    }
+
     return NextResponse.json(
       { success: true, badgeName: user.categoryBadge },
       { status: 200 }

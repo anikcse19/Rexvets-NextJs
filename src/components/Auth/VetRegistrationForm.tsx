@@ -5,7 +5,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { VeterinarianProfile } from "@/lib/types";
-import { basicInfoSchema, scheduleSchema, profileSchema } from "@/lib/validation/veterinarian";
+import {
+  basicInfoSchema,
+  scheduleSchema,
+  profileSchema,
+} from "@/lib/validation/veterinarian";
 import StepIndicator from "./VetRegistration/StepIndicator";
 import BasicInfoStep from "./VetRegistration/BasicInfoStep";
 import ScheduleStep from "./VetRegistration/ScheduleStep";
@@ -18,7 +22,7 @@ const REGISTRATION_STEPS = [
 ];
 
 // Progress storage key
-const PROGRESS_KEY = 'vetRegistrationProgress';
+const PROGRESS_KEY = "vetRegistrationProgress";
 
 export default function VetRegistrationForm() {
   const router = useRouter();
@@ -27,7 +31,9 @@ export default function VetRegistrationForm() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [emailAvailability, setEmailAvailability] = useState<boolean | null>(null);
+  const [emailAvailability, setEmailAvailability] = useState<boolean | null>(
+    null
+  );
   const [generalError, setGeneralError] = useState<string | null>(null);
 
   // Load saved progress on mount
@@ -44,7 +50,7 @@ export default function VetRegistrationForm() {
           localStorage.removeItem(PROGRESS_KEY);
         }
       } catch (error) {
-        console.warn('Failed to restore progress:', error);
+        console.warn("Failed to restore progress:", error);
         localStorage.removeItem(PROGRESS_KEY);
       }
     }
@@ -69,25 +75,30 @@ export default function VetRegistrationForm() {
 
   // Real-time email availability check
   const checkEmailAvailability = useCallback(async (email: string) => {
-    if (!email || !email.includes('@')) return;
+    if (!email || !email.includes("@")) return;
 
     try {
       setIsLoading(true);
-      const response = await fetch(`/api/check-email?email=${encodeURIComponent(email)}`);
+      const response = await fetch(
+        `/api/check-email?email=${encodeURIComponent(email)}`
+      );
       const isAvailable = response.ok;
       setEmailAvailability(isAvailable);
-      
+
       if (!isAvailable) {
-        setErrors(prev => ({ ...prev, email: 'Email is already registered' }));
+        setErrors((prev) => ({
+          ...prev,
+          email: "Email is already registered",
+        }));
       } else {
-        setErrors(prev => {
+        setErrors((prev) => {
           const newErrors = { ...prev };
           delete newErrors.email;
           return newErrors;
         });
       }
     } catch (error) {
-      console.error('Email check failed:', error);
+      console.error("Email check failed:", error);
     } finally {
       setIsLoading(false);
     }
@@ -105,7 +116,7 @@ export default function VetRegistrationForm() {
         break;
       case 3:
         schema = profileSchema;
-        break;
+
       default:
         return true;
     }
@@ -113,8 +124,8 @@ export default function VetRegistrationForm() {
     const result = schema.safeParse(stepData);
     if (!result.success) {
       const newErrors: Record<string, string> = {};
-      result.error.issues.forEach(issue => {
-        const path = issue.path.join('.');
+      result.error.issues.forEach((issue) => {
+        const path = issue.path.join(".");
         newErrors[path] = issue.message;
       });
       setErrors(newErrors);
@@ -126,163 +137,189 @@ export default function VetRegistrationForm() {
   }, []);
 
   // Handle basic info step
-  const handleBasicInfoNext = useCallback(async (data: any) => {
-    if (!validateStep(data, 1)) {
-      toast.error('Please fix the errors before continuing');
-      return;
-    }
-
-    // Check email availability
-    if (data.email && data.email !== formData.email) {
-      await checkEmailAvailability(data.email);
-      if (emailAvailability === false) {
-        toast.error('Email is already registered');
+  const handleBasicInfoNext = useCallback(
+    async (data: any) => {
+      if (!validateStep(data, 1)) {
+        toast.error("Please fix the errors before continuing");
         return;
       }
-    }
 
-    setFormData(prev => ({ ...prev, ...data }));
-    setCurrentStep(2);
-    toast.success('Basic information saved');
-  }, [validateStep, formData.email, emailAvailability, checkEmailAvailability]);
-
-  // Handle schedule step
-  const handleScheduleNext = useCallback((schedule: any) => {
-    if (!validateStep({ schedule }, 2)) {
-      toast.error('Please fix the errors before continuing');
-      return;
-    }
-
-    setFormData(prev => ({ ...prev, schedule }));
-    setCurrentStep(3);
-    toast.success('Schedule saved');
-  }, [validateStep]);
-
-  // Handle profile step and final submission
-  const handleProfileNext = useCallback(async (profileData: any) => {
-    if (!validateStep(profileData, 3)) {
-      toast.error('Please fix the errors before continuing');
-      return;
-    }
-
-    const completedData = { ...formData, ...profileData };
-    
-    // Clear any previous general errors
-    setGeneralError(null);
-    
-    // Debug: Log the completed data
-    
-    
-    try {
-      setIsSubmitting(true);
-      
-      // Create FormData for file uploads
-      const formDataToSend = new FormData();
-      
-      // Add basic info
-      Object.entries(completedData).forEach(([key, value]) => {
-        if (key === 'schedule') {
-          formDataToSend.append(key, JSON.stringify(value));
-        } else if (key === 'licenses') {
-          formDataToSend.append(key, JSON.stringify(value));
-        } else if (value instanceof File) {
-          formDataToSend.append(key, value);
-        } else if (value !== undefined && value !== null) {
-          formDataToSend.append(key, String(value));
-        }
-      });
-
-      // Debug: Log FormData contents
-      console.log('FormData entries:');
-      for (const [key, value] of formDataToSend.entries()) {
-        console.log(`${key}:`, value instanceof File ? `File: ${value.name} (${value.size} bytes)` : value);
-      }
-
-      // Add license files
-      if (completedData.licenses) {
-        console.log('License data:', completedData.licenses);
-        completedData.licenses.forEach((license: any, index: number) => {
-          if (license.licenseFile instanceof File) {
-            formDataToSend.append(`licenseFiles`, license.licenseFile);
-            console.log(`Added license file ${index}:`, license.licenseFile.name);
-          } else {
-            console.log(`License ${index} has no file:`, license);
-          }
-        });
-      }
-
-      const response = await fetch('/api/auth/register/veterinarian', {
-        method: 'POST',
-        body: formDataToSend,
-      });
-
-      console.log('Response status:', response.status);
-      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
-
-      const result = await response.json();
-      console.log('Response body:', result);
-
-      if (!response.ok) {
-        // Handle specific error types
-        if (response.status === 409) {
-          // Duplicate email or other unique field
-          if (result.field === 'email') {
-            setErrors(prev => ({ ...prev, email: result.error }));
-            setCurrentStep(1); // Go back to basic info step
-            toast.error(result.error);
-            return;
-          } else if (result.field === 'licenseNumber') {
-            setErrors(prev => ({ ...prev, 'licenses.0.licenseNumber': result.error }));
-            toast.error(result.error);
-            return;
-          } else if (result.field === 'phoneNumber') {
-            setErrors(prev => ({ ...prev, phone: result.error }));
-            setCurrentStep(1); // Go back to basic info step
-            toast.error(result.error);
-            return;
-          }
-        }
-        
-        // Handle validation errors
-        if (response.status === 400 && result.details) {
-          const newErrors: Record<string, string> = {};
-          if (Array.isArray(result.details)) {
-            result.details.forEach((detail: any) => {
-              if (detail.path) {
-                newErrors[detail.path.join('.')] = detail.message;
-              }
-            });
-          }
-          setErrors(newErrors);
-          toast.error('Please fix the validation errors and try again.');
+      // Check email availability
+      if (data.email && data.email !== formData.email) {
+        await checkEmailAvailability(data.email);
+        if (emailAvailability === false) {
+          toast.error("Email is already registered");
           return;
         }
-        
-        // Handle other errors
-        throw new Error(result.error || 'Registration failed');
       }
 
+      setFormData((prev) => ({ ...prev, ...data }));
+      setCurrentStep(3);
+      toast.success("Basic information saved");
+    },
+    [validateStep, formData.email, emailAvailability, checkEmailAvailability]
+  );
 
+  // Handle schedule step
+  const handleScheduleNext = useCallback(
+    (schedule: any) => {
+      if (!validateStep({ schedule }, 2)) {
+        toast.error("Please fix the errors before continuing");
+        return;
+      }
 
-      // Clear progress and show success
-      clearProgress();
-      toast.success('Registration successful! Please check your email for verification.');
-      
-      // Redirect to check email page
-      router.push(`/auth/check-email?email=${encodeURIComponent(completedData.email)}`);
-      
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Registration failed. Please try again.';
-      setGeneralError(errorMessage);
-      toast.error(errorMessage);
-    } finally {
-      setIsSubmitting(false);
-    }
-  }, [formData, validateStep, clearProgress, router]);
+      setFormData((prev) => ({ ...prev, schedule }));
+      setCurrentStep(3);
+      toast.success("Schedule saved");
+    },
+    [validateStep]
+  );
+
+  // Handle profile step and final submission
+  const handleProfileNext = useCallback(
+    async (profileData: any) => {
+      if (!validateStep(profileData, 3)) {
+        toast.error("Please fix the errors before continuing");
+        return;
+      }
+
+      const completedData = { ...formData, ...profileData };
+
+      // Clear any previous general errors
+      setGeneralError(null);
+
+      // Debug: Log the completed data
+
+      try {
+        setIsSubmitting(true);
+
+        // Create FormData for file uploads
+        const formDataToSend = new FormData();
+
+        // Add basic info
+        Object.entries(completedData).forEach(([key, value]) => {
+          if (key === "schedule") {
+            formDataToSend.append(key, JSON.stringify(value));
+          } else if (key === "licenses") {
+            formDataToSend.append(key, JSON.stringify(value));
+          } else if (value instanceof File) {
+            formDataToSend.append(key, value);
+          } else if (value !== undefined && value !== null) {
+            formDataToSend.append(key, String(value));
+          }
+        });
+
+        // Debug: Log FormData contents
+        console.log("FormData entries:");
+        for (const [key, value] of formDataToSend.entries()) {
+          console.log(
+            `${key}:`,
+            value instanceof File
+              ? `File: ${value.name} (${value.size} bytes)`
+              : value
+          );
+        }
+
+        // Add license files
+        if (completedData.licenses) {
+          console.log("License data:", completedData.licenses);
+          completedData.licenses.forEach((license: any, index: number) => {
+            if (license.licenseFile instanceof File) {
+              formDataToSend.append(`licenseFiles`, license.licenseFile);
+              console.log(
+                `Added license file ${index}:`,
+                license.licenseFile.name
+              );
+            } else {
+              console.log(`License ${index} has no file:`, license);
+            }
+          });
+        }
+
+        const response = await fetch("/api/auth/register/veterinarian", {
+          method: "POST",
+          body: formDataToSend,
+        });
+
+        console.log("Response status:", response.status);
+        console.log(
+          "Response headers:",
+          Object.fromEntries(response.headers.entries())
+        );
+
+        const result = await response.json();
+        console.log("Response body:", result);
+
+        if (!response.ok) {
+          // Handle specific error types
+          if (response.status === 409) {
+            // Duplicate email or other unique field
+            if (result.field === "email") {
+              setErrors((prev) => ({ ...prev, email: result.error }));
+              setCurrentStep(1); // Go back to basic info step
+              toast.error(result.error);
+              return;
+            } else if (result.field === "licenseNumber") {
+              setErrors((prev) => ({
+                ...prev,
+                "licenses.0.licenseNumber": result.error,
+              }));
+              toast.error(result.error);
+              return;
+            } else if (result.field === "phoneNumber") {
+              setErrors((prev) => ({ ...prev, phone: result.error }));
+              setCurrentStep(1); // Go back to basic info step
+              toast.error(result.error);
+              return;
+            }
+          }
+
+          // Handle validation errors
+          if (response.status === 400 && result.details) {
+            const newErrors: Record<string, string> = {};
+            if (Array.isArray(result.details)) {
+              result.details.forEach((detail: any) => {
+                if (detail.path) {
+                  newErrors[detail.path.join(".")] = detail.message;
+                }
+              });
+            }
+            setErrors(newErrors);
+            toast.error("Please fix the validation errors and try again.");
+            return;
+          }
+
+          // Handle other errors
+          throw new Error(result.error || "Registration failed");
+        }
+
+        // Clear progress and show success
+        clearProgress();
+        toast.success(
+          "Registration successful! Please check your email for verification."
+        );
+
+        // Redirect to check email page
+        router.push(
+          `/auth/check-email?email=${encodeURIComponent(completedData.email)}`
+        );
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : "Registration failed. Please try again.";
+        setGeneralError(errorMessage);
+        toast.error(errorMessage);
+      } finally {
+        setIsSubmitting(false);
+      }
+    },
+    [formData, validateStep, clearProgress, router]
+  );
 
   // Handle back navigation
   const handleBack = useCallback(() => {
-    setCurrentStep(prev => Math.max(1, prev - 1));
+    setCurrentStep((prev) => Math.max(1, prev - 1));
     setErrors({});
     setGeneralError(null);
   }, []);
@@ -310,12 +347,12 @@ export default function VetRegistrationForm() {
         </div>
 
         {/* Progress Indicator */}
-        <StepIndicator
+        {/* <StepIndicator
           currentStep={currentStep}
           totalSteps={REGISTRATION_STEPS.length}
           steps={REGISTRATION_STEPS}
           onStepClick={handleStepChange}
-        />
+        /> */}
 
         {/* Form Steps */}
         <div className="mt-8">
@@ -353,7 +390,7 @@ export default function VetRegistrationForm() {
               </motion.div>
             )}
 
-            {currentStep === 2 && (
+            {/* {currentStep === 2 && (
               <motion.div
                 key="schedule"
                 initial={{ opacity: 0, x: 20 }}
@@ -368,7 +405,7 @@ export default function VetRegistrationForm() {
                   errors={errors}
                 />
               </motion.div>
-            )}
+            )} */}
 
             {currentStep === 3 && (
               <motion.div

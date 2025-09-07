@@ -137,7 +137,7 @@ const veterinarianSchema = new Schema<IVeterinarian>(
       type: String,
       required: [true, "Phone number is required"],
       trim: true,
-      match: [/^[\+]?[1-9][\d]{0,15}$/, "Please enter a valid phone number"],
+      // match: [/^[\+]?[1-9][\d]{0,15}$/, "Please enter a valid phone number"],
     },
     specialization: {
       type: String,
@@ -432,19 +432,19 @@ const veterinarianSchema = new Schema<IVeterinarian>(
         ref: "Review",
       },
     ],
-    reviewCount:{
+    reviewCount: {
       type: Number,
       default: 0,
       min: [0, "Review count cannot be negative"],
     },
-    averageRating:{
+    averageRating: {
       type: Number,
       default: 0,
       min: [0, "Average rating cannot be negative"],
       max: [5, "Average rating cannot exceed 5"],
     },
 
-    ratingCount:{
+    ratingCount: {
       type: Number,
       default: 0,
       min: [0, "Rating count cannot be negative"],
@@ -475,14 +475,14 @@ veterinarianSchema.index(
 );
 
 // Virtual for calculated average rating
-veterinarianSchema.virtual('calculatedAverageRating').get(function() {
+veterinarianSchema.virtual("calculatedAverageRating").get(function () {
   return this.averageRating || 0;
 });
 
 // Method to recalculate review statistics
-veterinarianSchema.methods.recalculateReviewStats = async function() {
+veterinarianSchema.methods.recalculateReviewStats = async function () {
   try {
-    const ReviewModel = mongoose.model('Review');
+    const ReviewModel = mongoose.model("Review");
     const stats = await ReviewModel.aggregate([
       { $match: { vetId: this._id, visible: true, isDeleted: { $ne: true } } },
       {
@@ -511,7 +511,7 @@ veterinarianSchema.methods.recalculateReviewStats = async function() {
       averageRating: this.averageRating,
     };
   } catch (error) {
-    console.error('Error recalculating review stats:', error);
+    console.error("Error recalculating review stats:", error);
     throw error;
   }
 };

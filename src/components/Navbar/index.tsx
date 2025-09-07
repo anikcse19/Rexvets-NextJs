@@ -121,16 +121,16 @@ const Header: React.FC = () => {
     };
     getBadgeName();
   }, []);
-
+  console.log("badge", badge);
   return (
     <header
       style={{
         background:
           "linear-gradient(135deg, #0f0c29 0%, #24243e 25%, #302b63 50%, #0f3460 75%, #002366 100%)",
       }}
-      className={`fixed h-[100px] py-3  md:py-${
-        session?.user && session.user.role !== "veterinarian" ? "3" : "5"
-      }   w-full  backdrop-blur-sm px-3 lg:px-7  border-b border-slate-800/50 z-[9998]`}
+      className={`fixed bg-red-400 py-2 ${
+        session?.user.role === "pet_parent" ? "md:py-2" : "md:py-4"
+      } w-full backdrop-blur-sm px-3 lg:px-7  border-b border-slate-800/50 z-[9998]`}
     >
       <nav className="flex items-center justify-between  mx-auto">
         {/* Logo */}
@@ -139,8 +139,8 @@ const Header: React.FC = () => {
             <Image
               src="/images/Logo.svg"
               alt="Logo RexVet"
-              width={150}
-              height={150}
+              width={120}
+              height={120}
               quality={100}
             />
           </Link>
@@ -186,14 +186,14 @@ const Header: React.FC = () => {
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 20, scale: 0.95 }}
                         transition={{ duration: 0.3, ease: "easeOut" }}
-                        className="absolute top-full mt-2 w-56 py-3 max-h-80 overflow-y-auto bg-gradient-to-br from-blue-600 via-purple-600 to-white shadow-xl z-[10000] origin-top rounded-md"
+                        className="absolute top-full mt-2 w-56 py-3 max-h-80 overflow-y-auto bg-[#2A274F] border border-slate-400 shadow-xl z-[10000] origin-top rounded"
                       >
                         {items.map((item) => (
                           <Link
                             role="menuitem"
                             key={item}
                             href={`/${toSlug(item)}`}
-                            className="block px-4 py-2 text-white font-garet text-left hover:text-black hover:opacity-60 text-sm transition-all duration-200"
+                            className="block mx-1 px-4 py-2 text-white font-garet text-left hover:bg-teal-300 hover:text-black text-sm transition-all duration-200"
                           >
                             {item}
                           </Link>
@@ -240,14 +240,14 @@ const Header: React.FC = () => {
                           animate={{ opacity: 1, y: 0, scale: 1 }}
                           exit={{ opacity: 0, y: 20, scale: 0.95 }}
                           transition={{ duration: 0.3, ease: "easeOut" }}
-                          className="absolute top-full mt-2 w-56 py-3 max-h-80 overflow-y-auto bg-gradient-to-br from-blue-600 via-purple-600 to-white shadow-xl z-[10000] origin-top rounded-md"
+                          className="absolute top-full mt-2 w-56 py-3 max-h-80 overflow-y-auto bg-[#143361] border border-slate-400 shadow-xl z-[10000] origin-top rounded"
                         >
                           {items.map((item) => (
                             <Link
                               role="menuitem"
                               key={item}
                               href={`/${toSlug(item)}`}
-                              className="block px-4 py-2 text-white font-garet hover:text-black hover:opacity-60 text-sm transition-all duration-200 text-left"
+                              className="block mx-1 px-4 py-2 text-white font-garet hover:bg-teal-300 hover:text-black text-sm transition-all duration-200 text-left"
                             >
                               {item}
                             </Link>
@@ -306,19 +306,25 @@ const Header: React.FC = () => {
                             </Avatar>
 
                             {/* Badge (just a static div, no trigger here) */}
-                            <div className="absolute -top-1 -right-1 h-5 w-5 rounded-full overflow-hidden border-2 border-white">
-                              <img
-                                src={`/images/badge/${
-                                  badge === "Friend of Rex Vet"
-                                    ? "friendBadge3.webp"
-                                    : badge === "Champion Community"
-                                    ? "championBadge3.webp"
-                                    : "heroBadge4.webp"
-                                }`}
-                                alt="Badge"
-                                className="h-full w-full object-cover"
-                              />
-                            </div>
+                            {(badge === "Pet Care Hero" ||
+                              badge === "Community Champion" ||
+                              badge === "Friend of Rex Vet") && (
+                              <div className="absolute -top-1 -right-1 h-5 w-5 rounded-full overflow-hidden border-2 border-white">
+                                <img
+                                  src={`/images/badge/${
+                                    badge === "Friend of Rex Vet"
+                                      ? "friendBadge3.webp"
+                                      : badge === "Community Champion"
+                                      ? "championBadge3.webp"
+                                      : badge === "Pet Care Hero"
+                                      ? "heroBadge4.webp"
+                                      : ""
+                                  }`}
+                                  alt="Badge"
+                                  className="h-full w-full object-cover"
+                                />
+                              </div>
+                            )}
                           </div>
                         </Button>
                       </DropdownMenuTrigger>
@@ -606,6 +612,7 @@ const Header: React.FC = () => {
 };
 
 export default React.memo(Header);
+
 const HeaderSmallDeviceFooter = () => {
   return (
     <div className="p-6 flex flex-col items-center justify-center">
