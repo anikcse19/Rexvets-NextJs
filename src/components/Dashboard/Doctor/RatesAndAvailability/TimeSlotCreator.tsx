@@ -31,33 +31,65 @@ import {
   Trash2,
   Zap,
 } from "lucide-react";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 interface TimeSlotCreatorProps {
   selectedRange: DateRange | null;
   onSaveSlots: (slots: SlotPeriod[]) => void;
+  hasExistingSlots?: boolean;
+  existingPeriods?: Array<{
+    startTime: string;
+    endTime: string;
+    totalHours: number;
+    slots: any[];
+    timezone?: string;
+  }>;
 }
 
 interface TimeSlot {
   id: string;
   startTime: string;
   endTime: string;
+  isExisting?: boolean;
 }
 
 export default function TimeSlotCreator({
   selectedRange,
   onSaveSlots,
+  hasExistingSlots = false,
+  existingPeriods = [],
 }: TimeSlotCreatorProps) {
-  // start with one slot with default times (9 AM to 5 PM)
   const [slots, setSlots] = useState<TimeSlot[]>([
-    { id: "1", startTime: "09:00", endTime: "17:00" },
+    { id: "1", startTime: "09:00", endTime: "17:00", isExisting: false },
   ]);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [openPopover, setOpenPopover] = useState<{
     [key: string]: boolean;
   }>({});
+
+  // Memoize the processed existing periods to avoid recalculation
+  const processedExistingPeriods = useMemo(() => {
+    if (!hasExistingSlots || !existingPeriods.length) return [];
+    return existingPeriods.map((period, index) => ({
+      id: `existing-${index + 1}`,
+      startTime: period.startTime,
+      endTime: period.endTime,
+      isExisting: true,
+    }));
+  }, [hasExistingSlots, existingPeriods]);
+
+  // Reinitialize slots when processed periods change
+  useEffect(() => {
+    if (hasExistingSlots && processedExistingPeriods.length > 0) {
+      setSlots(processedExistingPeriods);
+    } else {
+      setSlots([
+        { id: "1", startTime: "09:00", endTime: "17:00", isExisting: false },
+      ]);
+    }
+  }, [hasExistingSlots, processedExistingPeriods]);
 
   const timeOptions = generateTimeOptions();
 
@@ -66,6 +98,7 @@ export default function TimeSlotCreator({
       id: Date.now().toString(),
       startTime: "09:00", // Default start time
       endTime: "17:00", // Default end time
+      isExisting: false,
     };
     setSlots([...slots, newSlot]);
   };
@@ -125,10 +158,16 @@ export default function TimeSlotCreator({
       console.log("Saving slots:", slots);
       console.log("Slot periods:", slotPeriods);
 
-      await onSaveSlots(slotPeriods);
+      onSaveSlots(slotPeriods);
 
-      // Reset slots to default after successful save
-      setSlots([{ id: "1", startTime: "09:00", endTime: "17:00" }]);
+      // Reset slots after successful save
+      if (hasExistingSlots && processedExistingPeriods.length > 0) {
+        setSlots(processedExistingPeriods);
+      } else {
+        setSlots([
+          { id: "1", startTime: "09:00", endTime: "17:00", isExisting: false },
+        ]);
+      }
     } catch (error) {
       console.error("Error saving slots:", error);
     } finally {
@@ -202,6 +241,26 @@ export default function TimeSlotCreator({
         </div>
       ) : (
         <div className=" container mx-auto">
+          {/* Existing Slots Info */}
+          {hasExistingSlots && existingPeriods.length > 0 && (
+            <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-xl flex items-center justify-center">
+                  <CheckCircle className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-blue-800">
+                    Existing Availability Loaded
+                  </h3>
+                  <p className="text-sm text-blue-600">
+                    Your current availability periods are displayed below. You
+                    can modify them or add new periods.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="flex flex-col  lg:flex-row gap-8">
             {/* Time Slots Section */}
             <div className="w-full md:w-[50%] space-y-6">
@@ -211,18 +270,31 @@ export default function TimeSlotCreator({
                   className="group relative border-0 shadow-xl bg-white/70 backdrop-blur-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-1 overflow-hidden"
                 >
                   {/* Gradient Border */}
-                  <div className="absolute inset-0 bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 rounded-3xl p-0.5">
+                  <div
+                    className={`absolute inset-0 ${
+                      slot.isExisting
+                        ? "bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600"
+                        : "bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600"
+                    } rounded-3xl p-0.5`}
+                  >
                     <div className="w-full h-full bg-white rounded-3xl"></div>
                   </div>
 
                   <div className="relative p-8">
                     {/* Floating Slot Number */}
                     <div className="absolute -top-4 left-8 z-10">
-                      <div className="bg-gradient-to-r from-violet-600 to-purple-600 text-white px-6 py-3 rounded-2xl shadow-lg">
+                      <div
+                        className={`${
+                          slot.isExisting
+                            ? "bg-gradient-to-r from-emerald-600 to-teal-600"
+                            : "bg-gradient-to-r from-violet-600 to-purple-600"
+                        } text-white px-6 py-3 rounded-2xl shadow-lg`}
+                      >
                         <div className="flex items-center space-x-2">
                           <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
                           <span className="font-bold text-sm">
-                            SLOT {index + 1}
+                            {slot.isExisting ? "EXISTING" : "NEW"} PERIOD{" "}
+                            {index + 1}
                           </span>
                         </div>
                       </div>
@@ -346,9 +418,17 @@ export default function TimeSlotCreator({
                               </p>
                             </div>
                           </div>
-                          <Badge className="bg-gradient-to-r from-emerald-100 to-teal-100 text-emerald-700 border-emerald-200 px-4 py-2 text-sm font-bold shadow-lg">
+                          <Badge
+                            className={`${
+                              slot.isExisting
+                                ? "bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-700 border-blue-200"
+                                : "bg-gradient-to-r from-emerald-100 to-teal-100 text-emerald-700 border-emerald-200"
+                            } px-4 py-2 text-sm font-bold shadow-lg`}
+                          >
                             <CheckCircle className="w-4 h-4 mr-2" />
-                            Valid Slot
+                            {slot.isExisting
+                              ? "Existing Period"
+                              : "Valid Period"}
                           </Badge>
                         </div>
                       </div>
@@ -382,7 +462,7 @@ export default function TimeSlotCreator({
                   variant="outline"
                   className="border-2 border-gray-300 hover:border-gray-400 bg-transparent hover:bg-gray-50 text-gray-700 hover:text-gray-800 rounded-xl px-8 py-3 font-medium transition-all duration-200 hover:shadow-md"
                 >
-                  Add Time Slot
+                  Add Time Period
                 </Button>
               </div>
             </div>
@@ -400,7 +480,7 @@ export default function TimeSlotCreator({
                     <div className="flex items-center justify-between">
                       <div className="flex flex-col">
                         <p className="text-sm font-medium text-blue-600">
-                          Active Slots
+                          Active Periods
                         </p>
                         <p className="text-2xl font-bold text-blue-800">
                           {slots.length}
