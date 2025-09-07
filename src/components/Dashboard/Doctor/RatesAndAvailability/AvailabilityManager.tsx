@@ -18,7 +18,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { useDashboardContext } from "@/hooks/DashboardContext";
-import { getTimezoneOffset, getTodayUTC } from "@/lib/timezone";
+import { getMonthRange, getTimezoneOffset, getTodayUTC } from "@/lib/timezone";
 import { CreateAvailabilityRequest, DateRange, SlotPeriod } from "@/lib/types";
 import { format } from "date-fns";
 import { AlertTriangle, Calendar, Clock, Globe } from "lucide-react";
@@ -54,12 +54,13 @@ const AvailabilityManager: React.FC = () => {
   const [isTimePeriodsOpen, setIsTimePeriodOpen] = useState(false);
   const { data: session } = useSession();
   const user = session?.user as SessionUserWithRefId | undefined;
+  const [hasExistingSlots, setHasExistingSlots] = useState(false);
   // const { requestPermission, getFcmToken } = useFCM();
   // useEffect(() => {
   //   getFcmToken();
   //   requestPermission();
   // }, []);
-
+  console.log("availableSlotsApiResponse", availableSlotsApiResponse.data);
   // const [userTimezone, setUserTimezone] = useState<string>("");
   const userTimezone = user?.timezone || "";
   const currentTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -90,17 +91,88 @@ const AvailabilityManager: React.FC = () => {
         currentTimezone: currentTimeZone,
         slotPeriods,
         onConfirm: async (selectedTimezone: string) => {
-          // console.log("selectedTimezone", selectedTimezone);
-          // console.log("slot periods ", slotPeriods);
-          await createSlots(slotPeriods, selectedTimezone);
+          if (hasExistingSlots) {
+            await updateSlotPeriod(
+              slotPeriods,
+              selectedTimezone,
+              user.refId,
+              selectedRange
+            );
+          } else {
+            await createSlots(slotPeriods, selectedTimezone);
+          }
           setTimezoneModal(null);
         },
       });
-      return;
+    } else {
+      // If timezones are the same or user has no timezone, proceed normally
+      if (hasExistingSlots) {
+        await updateSlotPeriod(
+          slotPeriods,
+          userTimezone || currentTimeZone,
+          user.refId,
+          selectedRange
+        );
+      } else {
+        await createSlots(slotPeriods, userTimezone || currentTimeZone);
+      }
     }
+  };
+  const updateSlotPeriod = async (
+    slotPeriods: SlotPeriod[],
+    timezone: string,
+    userRefId: string,
+    selectedRange: { start: Date; end: Date }
+  ) => {
+    try {
+      const requestData: CreateAvailabilityRequest = {
+        dateRange: {
+          start: format(selectedRange.start, "yyyy-MM-dd"),
+          end: format(selectedRange.end, "yyyy-MM-dd"),
+        },
+        slotPeriods: slotPeriods.map((slot) => ({
+          start: format(slot.start, "HH:mm"),
+          end: format(slot.end, "HH:mm"),
+        })),
+        timezone,
+      };
 
-    // If timezones are the same or user has no timezone, proceed normally
-    await createSlots(slotPeriods, userTimezone || currentTimeZone);
+      console.log("request PATCH DATA", requestData);
+
+      const response = await fetch(
+        `/api/appointments/generate-appointment-slot/${userRefId}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(requestData),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(
+          errorData.message || `Failed to update slots: ${response.statusText}`
+        );
+      }
+
+      const result = await response.json();
+      toast.success("Availability slots updated successfully!");
+
+      // Refresh the available slots after updating
+      if (selectedRange) {
+        await fetchAvailableSlots();
+      }
+
+      return result;
+    } catch (error: any) {
+      console.error("Error updating availability slots:", error);
+      toast.error("Failed to update availability slots", {
+        description: error.message || "Please try again.",
+      });
+      throw error;
+    }
   };
 
   const createSlots = async (slotPeriods: SlotPeriod[], timezone: string) => {
@@ -185,17 +257,20 @@ const AvailabilityManager: React.FC = () => {
     userTimezone,
     fetchAvailableSlots,
   ]);
-
+  useEffect(() => {
+    if (availableSlotsApiResponse.data) {
+      setHasExistingSlots(availableSlotsApiResponse.data.periods.length > 0);
+    }
+  }, [availableSlotsApiResponse.data]);
   // Initialize with today's date when component mounts and user is available
   useEffect(() => {
     if (user?.refId && !selectedRange) {
       // Use timezone-agnostic date to ensure slots are always visible
       // regardless of the user's current timezone
-      const todayUTC = getTodayUTC();
-      console.log("todayUTC", todayUTC);
+      const monthsDateUTC = getMonthRange();
       setSelectedRange({
-        start: todayUTC,
-        end: todayUTC,
+        start: new Date(monthsDateUTC.start),
+        end: new Date(monthsDateUTC.end),
       });
     }
   }, [user?.refId, selectedRange, setSelectedRange]);
@@ -243,9 +318,18 @@ const AvailabilityManager: React.FC = () => {
             selectedRange={selectedRange}
             onRangeSelect={setSelectedRange}
           />
-          <Button variant="outline" onClick={() => setIsTimePeriodOpen(true)}>
-            Create Availability Slots
-          </Button>
+          <div className=" flex items-center justify-end">
+            <Button
+              className="  cursor-pointer"
+              disabled={availableSlotsApiResponse.loading}
+              variant="outline"
+              onClick={() => setIsTimePeriodOpen(true)}
+            >
+              {hasExistingSlots
+                ? "Update Availability Slots"
+                : "Create Availability Slots"}
+            </Button>
+          </div>
 
           {/* <TimeSlotCreator
           // selectedRange={selectedRange}
