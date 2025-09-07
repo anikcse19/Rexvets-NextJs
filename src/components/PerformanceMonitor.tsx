@@ -17,8 +17,6 @@ export default function PerformanceMonitor({
   const [detectedTimezone, setDetectedTimezone] = useState<string>("");
   const [isUpdating, setIsUpdating] = useState(false);
 
-  console.log("TIMEZONE:", session?.user?.timezone);
-
   useEffect(() => {
     // Initialize performance monitoring
     performanceMonitor.init();
@@ -85,7 +83,6 @@ export default function PerformanceMonitor({
       };
       addedTimezone();
     }
-    console.log("TIMEZONE:", session?.user?.timezone);
   }, [detectedTimezone]);
 
   const handleUpdateTimezone = async () => {
@@ -137,7 +134,6 @@ export default function PerformanceMonitor({
 
     setShowTimezoneModal(false);
   };
-  console.log("RENDER FROM PET PARENT PROFILE");
   return (
     <>
       {children}

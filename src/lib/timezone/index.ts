@@ -24,25 +24,18 @@ export function convertTimesToUserTimezone(
 
   // Parse the slot date and create full datetime strings in the slot's timezone
   const slotMoment = moment.tz(slotDate, slotTimezone);
-  
+
   // Create the full datetime strings in the slot's timezone
-  const slotStartDateTime = `${slotMoment.format("YYYY-MM-DD")}T${startTime}:00`;
+  const slotStartDateTime = `${slotMoment.format(
+    "YYYY-MM-DD"
+  )}T${startTime}:00`;
   const slotEndDateTime = `${slotMoment.format("YYYY-MM-DD")}T${endTime}:00`;
 
   // Convert from slot timezone to user's local timezone
-  const localStart = moment.tz(slotStartDateTime, slotTimezone).tz(userTimeZone);
+  const localStart = moment
+    .tz(slotStartDateTime, slotTimezone)
+    .tz(userTimeZone);
   const localEnd = moment.tz(slotEndDateTime, slotTimezone).tz(userTimeZone);
-
-  // Debug logging
-  console.log("Timezone conversion:", {
-    original: { startTime, endTime, slotDate, slotTimezone },
-    converted: {
-      startTime: localStart.format("hh:mm A"),
-      endTime: localEnd.format("hh:mm A"),
-      date: localStart.format("YYYY-MM-DD"),
-      userTimezone: userTimeZone
-    }
-  });
 
   return {
     formattedStartTime: localStart.format("h:mm A"), // e.g. 11:30 PM (no leading zero)

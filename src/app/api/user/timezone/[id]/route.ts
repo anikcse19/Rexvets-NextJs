@@ -19,7 +19,6 @@ export const PATCH = async (
     await connectToDatabase();
     const { id } = await params;
     const session = await getServerSession(authOptions);
-    console.log("CALLED TIMEZONE UPDATED API");
     // Check authentication
     if (!session?.user) {
       const errResponse: IErrorResponse = {
@@ -131,7 +130,6 @@ export const PATCH = async (
       };
       return throwAppError(errResponse, 500);
     }
-    console.log("UPDATED TIMEZONE");
     const responseFormat: ISendResponse<any> = {
       statusCode: 200,
       success: true,
