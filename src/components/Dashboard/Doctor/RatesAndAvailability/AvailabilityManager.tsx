@@ -393,59 +393,61 @@ const AvailabilityManager: React.FC = () => {
       )}
       <Sheet open={isTimePeriodsOpen} onOpenChange={setIsTimePeriodOpen}>
         <SheetContent side="right">
-          <SheetHeader>
-            {/* Header */}
-            <div className="text-center mb-10">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl mb-4 shadow-lg">
-                <Calendar className="w-8 h-8 text-white" />
-              </div>
-              <SheetTitle className="text-4xl md:text-5xl font-bold text-slate-800 mb-3">
-                Time Slot Creator
-              </SheetTitle>
-              {/* Instructions */}
-              <div className=" w-full md:w-[44%] mx-auto bg-gradient-to-r p-4 from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl">
-                <div className="flex  gap-4">
-                  <div className="space-y-2">
-                    <h3 className="text-lg font-semibold text-slate-800">
-                      How to Set Up Your Availability
-                    </h3>
-                    <div className="text-sm text-slate-600 space-y-1">
-                      <p>
-                        • <strong>Minimum Duration:</strong> Each time slot must
-                        be at least 1 hour long
-                      </p>
-                      <p>
-                        • <strong>Gap Requirement:</strong> There must be at
-                        least 1 hour gap between the end of one period and the
-                        start of another
-                      </p>
-                      <p>
-                        • <strong>No Overlaps:</strong> Time slots cannot
-                        overlap with each other
-                      </p>
-                      <p>
-                        • <strong>Add Multiple Slots:</strong> Click "Add New
-                        Time Period" to create additional availability windows
-                      </p>
+          <ScrollArea className="h-[96vh]">
+            <SheetHeader>
+              {/* Header */}
+              <div className="text-center mb-10">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl mb-4 shadow-lg">
+                  <Calendar className="w-8 h-8 text-white" />
+                </div>
+                <SheetTitle className="text-4xl md:text-5xl font-bold text-slate-800 mb-3">
+                  Time Slot Creator
+                </SheetTitle>
+                {/* Instructions */}
+                <div className=" w-full md:w-[44%] mx-auto bg-gradient-to-r p-4 from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl">
+                  <div className="flex  gap-4">
+                    <div className="space-y-2">
+                      <h3 className="text-lg font-semibold text-slate-800">
+                        How to Set Up Your Availability
+                      </h3>
+                      <div className="text-sm text-slate-600 space-y-1">
+                        <p>
+                          • <strong>Minimum Duration:</strong> Each time slot
+                          must be at least 1 hour long
+                        </p>
+                        <p>
+                          • <strong>Gap Requirement:</strong> There must be at
+                          least 1 hour gap between the end of one period and the
+                          start of another
+                        </p>
+                        <p>
+                          • <strong>No Overlaps:</strong> Time slots cannot
+                          overlap with each other
+                        </p>
+                        <p>
+                          • <strong>Add Multiple Slots:</strong> Click "Add New
+                          Time Period" to create additional availability windows
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
+              {/* <SheetTitle>Controlled Right Side Sheet</SheetTitle> */}
+            </SheetHeader>
+            <div>
+              <TimeSlotCreator
+                selectedRange={selectedRange}
+                onSaveSlots={handleSaveSlots}
+              />
+              {/* Close Button inside sheet */}
+              <Button
+                variant="outline"
+                onClick={() => setIsTimePeriodOpen(false)}
+              >
+                Close
+              </Button>
             </div>
-            {/* <SheetTitle>Controlled Right Side Sheet</SheetTitle> */}
-          </SheetHeader>
-          <ScrollArea className="h-[60vh] py-8">
-            <TimeSlotCreator
-              selectedRange={selectedRange}
-              onSaveSlots={handleSaveSlots}
-            />
-            {/* Close Button inside sheet */}
-            <Button
-              variant="outline"
-              onClick={() => setIsTimePeriodOpen(false)}
-            >
-              Close
-            </Button>
           </ScrollArea>
         </SheetContent>
       </Sheet>

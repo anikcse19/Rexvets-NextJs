@@ -20,13 +20,16 @@ import { DateRange, SlotPeriod } from "@/lib/types";
 import { formatDisplayTime, generateTimeOptions } from "@/lib/utils";
 import {
   AlertTriangle,
+  Calendar,
   CheckCircle,
   ChevronDown,
   Clock,
   Plus,
   Save,
+  Target,
   Timer,
   Trash2,
+  Zap,
 } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -173,259 +176,278 @@ export default function TimeSlotCreator({
   };
 
   return (
-    <Card className="w-full shadow-lg border-0 bg-gradient-to-br from-white to-gray-50/50">
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-3 text-xl font-semibold text-gray-800">
-            <div className="p-2 bg-purple-100 rounded-lg">
-              <Clock className="h-5 w-5 text-purple-600" />
-            </div>
-            Time Slots
-          </CardTitle>
-          <Badge
-            variant="secondary"
-            className="text-sm bg-purple-100 text-purple-700 border-purple-200"
-          >
-            Total: {getTotalHours().toFixed(1)}h
-          </Badge>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {!selectedRange ? (
-          <div className="text-center py-12">
-            <div className="p-4 bg-gray-100 rounded-full w-20 h-20 mx-auto mb-6 flex items-center justify-center">
-              <Clock className="h-10 w-10 text-gray-400" />
-            </div>
-            <p className="text-lg font-medium text-gray-700 mb-2">
-              Select a date range first
-            </p>
-            <p className="text-gray-500">
-              Choose your available dates from the calendar above to create time
-              slots.
-            </p>
-          </div>
-        ) : (
-          <>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              <div className="md:col-span-2">
-                <div>
-                  <div className="space-y-3">
-                    {slots.map((slot, index) => (
-                      <div
-                        key={slot.id}
-                        className="group relative bg-white border-2 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all duration-200"
-                      >
-                        {/* Slot Number Badge */}
-                        <div className="absolute -top-3 left-6 bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-sm font-bold px-3 py-1 rounded-lg shadow-lg">
-                          Time Slot {index + 1}
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                          <div className="space-y-2">
-                            <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-                              <Clock className="w-4 h-4 text-slate-500" />
-                              Start Time
-                            </label>
-                            <Select
-                              value={slot.startTime}
-                              onValueChange={(value) =>
-                                updateSlot(slot.id, "startTime", value)
-                              }
-                            >
-                              <SelectTrigger className="h-12 border-2 border-slate-200 focus:border-purple-500 transition-colors">
-                                <SelectValue placeholder="Select start time" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {timeOptions.map((time) => (
-                                  <SelectItem key={time} value={time}>
-                                    {formatDisplayTime(time)}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          <div className="space-y-2">
-                            <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-                              <Clock className="w-4 h-4 text-slate-500" />
-                              End Time
-                            </label>
-                            <Select
-                              value={slot.endTime}
-                              onValueChange={(value) =>
-                                updateSlot(slot.id, "endTime", value)
-                              }
-                            >
-                              <SelectTrigger className="h-12 border-2 border-slate-200 focus:border-purple-500 transition-colors">
-                                <SelectValue placeholder="Select end time" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {timeOptions.map((time) => (
-                                  <SelectItem key={time} value={time}>
-                                    {formatDisplayTime(time)}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        </div>
-
-                        {/* Duration Display */}
-                        {isValidSlot(slot) && (
-                          <div className="mt-4 flex items-center justify-between">
-                            <div className="flex items-center gap-2 text-sm text-slate-600">
-                              <Timer className="w-4 h-4" />
-                              Duration:{" "}
-                              {formatDuration(
-                                (() => {
-                                  const [sh, sm] = slot.startTime
-                                    .split(":")
-                                    .map(Number);
-                                  const [eh, em] = slot.endTime
-                                    .split(":")
-                                    .map(Number);
-                                  const start = new Date(
-                                    `2000-01-01T${String(sh).padStart(
-                                      2,
-                                      "0"
-                                    )}:${String(sm).padStart(2, "0")}:00`
-                                  );
-                                  const end = new Date(
-                                    `2000-01-01T${String(eh).padStart(
-                                      2,
-                                      "0"
-                                    )}:${String(em).padStart(2, "0")}:00`
-                                  );
-                                  return (
-                                    (end.getTime() - start.getTime()) /
-                                    (1000 * 60 * 60)
-                                  );
-                                })()
-                              )}
-                            </div>
-                            <div className="flex items-center gap-2">
-                              {isValidSlot(slot) ? (
-                                <Badge className="bg-green-100 text-green-700 border-green-200">
-                                  <CheckCircle className="w-3 h-3 mr-1" />
-                                  Valid
-                                </Badge>
-                              ) : (
-                                <Badge variant="destructive">
-                                  <AlertTriangle className="w-3 h-3 mr-1" />
-                                  Invalid
-                                </Badge>
-                              )}
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Delete Button */}
-                        {slots.length > 1 && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => removeSlot(slot.id)}
-                            className="absolute top-4 right-4 h-8 w-8 p-0 hover:bg-red-50 hover:border-red-200 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-all duration-200"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        )}
-                      </div>
-                    ))}
-                    {/* Add Period Button */}
-                    <div className="flex justify-center my-8">
-                      <Button
-                        variant="outline"
-                        onClick={addSlot}
-                        className="group flex items-center gap-3 bg-gradient-to-r from-white to-blue-50 hover:from-blue-50 hover:to-indigo-50 text-slate-700 border-2 border-dashed border-blue-300 hover:border-blue-500 hover:text-blue-700 transition-all duration-300 px-8 py-4 rounded-2xl shadow-sm hover:shadow-md transform hover:-translate-y-1"
-                      >
-                        <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
-                          <Plus className="h-5 w-5 text-white" />
-                        </div>
-                        <span className="font-semibold text-lg">
-                          Add New Time Period
-                        </span>
-                      </Button>
-                    </div>
-                  </div>
+    <div className="w-full min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 p-6">
+      {!selectedRange ? (
+        <div className="max-w-2xl mx-auto">
+          <Card className="border-0 shadow-2xl bg-white/60 backdrop-blur-xl">
+            <CardContent className="p-16 text-center">
+              <div className="relative mb-8">
+                <div className="w-32 h-32 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full mx-auto flex items-center justify-center shadow-xl">
+                  <Clock className="h-16 w-16 text-gray-400" />
+                </div>
+                <div className="absolute -bottom-2 -right-2 w-12 h-12 bg-gradient-to-r from-orange-400 to-pink-400 rounded-full flex items-center justify-center shadow-lg">
+                  <Calendar className="h-6 w-6 text-white" />
                 </div>
               </div>
+              <h2 className="text-3xl font-bold text-gray-800 mb-4">
+                Ready to Begin?
+              </h2>
+              <p className="text-xl text-gray-600 mb-8 leading-relaxed">
+                Select your available dates from the calendar above to unlock
+                the time slot designer
+              </p>
+              <div className="w-24 h-1 bg-gradient-to-r from-violet-400 to-purple-400 rounded mx-auto"></div>
+            </CardContent>
+          </Card>
+        </div>
+      ) : (
+        <div className=" container mx-auto">
+          <div className="flex flex-col  lg:flex-row gap-8">
+            {/* Time Slots Section */}
+            <div className="w-full md:w-[50%] space-y-6">
+              {slots.map((slot, index) => (
+                <Card
+                  key={slot.id}
+                  className="group relative border-0 shadow-xl bg-white/70 backdrop-blur-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-1 overflow-hidden"
+                >
+                  {/* Gradient Border */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 rounded-3xl p-0.5">
+                    <div className="w-full h-full bg-white rounded-3xl"></div>
+                  </div>
 
-              {/* Stats Section */}
-              <div className="space-y-4">
-                <div className="bg-white/70 backdrop-blur-sm border border-white/50 rounded-2xl p-6 shadow-lg">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-slate-600 mb-1">
-                        Active Slots
-                      </p>
-                      <p className="text-3xl font-bold text-slate-800">
-                        {slots.length}
-                      </p>
+                  <div className="relative p-8">
+                    {/* Floating Slot Number */}
+                    <div className="absolute -top-4 left-8 z-10">
+                      <div className="bg-gradient-to-r from-violet-600 to-purple-600 text-white px-6 py-3 rounded-2xl shadow-lg">
+                        <div className="flex items-center space-x-2">
+                          <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                          <span className="font-bold text-sm">
+                            SLOT {index + 1}
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                    <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                      <Clock className="w-6 h-6 text-blue-600" />
+
+                    {/* Delete Button */}
+                    {slots.length > 1 && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => removeSlot(slot.id)}
+                        className="absolute top-6 right-6 h-10 w-10 p-0 bg-red-50/80 backdrop-blur border-red-200 hover:bg-red-100 hover:border-red-300 text-red-600 rounded-2xl opacity-0 group-hover:opacity-100 transition-all duration-300 shadow-lg hover:shadow-xl"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
+                      {/* Start Time */}
+                      <div className="space-y-3">
+                        <label className="text-sm font-bold text-gray-700 flex items-center space-x-2">
+                          <div className="w-8 h-8 bg-gradient-to-r from-emerald-400 to-teal-400 rounded-lg flex items-center justify-center">
+                            <Clock className="w-4 h-4 text-white" />
+                          </div>
+                          <span>Start Time</span>
+                        </label>
+                        <Select
+                          value={slot.startTime}
+                          onValueChange={(value) =>
+                            updateSlot(slot.id, "startTime", value)
+                          }
+                        >
+                          <SelectTrigger className="h-14 border-2 border-gray-200 hover:border-violet-300 focus:border-violet-500 rounded-2xl bg-white/80 backdrop-blur transition-all duration-200 text-lg font-medium shadow-lg hover:shadow-xl">
+                            <SelectValue placeholder="Select start time" />
+                          </SelectTrigger>
+                          <SelectContent className="rounded-xl border-0 shadow-2xl bg-white/95 backdrop-blur-xl">
+                            {timeOptions.map((time) => (
+                              <SelectItem
+                                key={time}
+                                value={time}
+                                className="rounded-lg hover:bg-violet-50 focus:bg-violet-100 text-base py-3"
+                              >
+                                {formatDisplayTime(time)}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* End Time */}
+                      <div className="space-y-3">
+                        <label className="text-sm font-bold text-gray-700 flex items-center space-x-2">
+                          <div className="w-8 h-8 bg-gradient-to-r from-rose-400 to-pink-400 rounded-lg flex items-center justify-center">
+                            <Timer className="w-4 h-4 text-white" />
+                          </div>
+                          <span>End Time</span>
+                        </label>
+                        <Select
+                          value={slot.endTime}
+                          onValueChange={(value) =>
+                            updateSlot(slot.id, "endTime", value)
+                          }
+                        >
+                          <SelectTrigger className="h-14 border-2 border-gray-200 hover:border-violet-300 focus:border-violet-500 rounded-2xl bg-white/80 backdrop-blur transition-all duration-200 text-lg font-medium shadow-lg hover:shadow-xl">
+                            <SelectValue placeholder="Select end time" />
+                          </SelectTrigger>
+                          <SelectContent className="rounded-xl border-0 shadow-2xl bg-white/95 backdrop-blur-xl">
+                            {timeOptions.map((time) => (
+                              <SelectItem
+                                key={time}
+                                value={time}
+                                className="rounded-lg hover:bg-violet-50 focus:bg-violet-100 text-base py-3"
+                              >
+                                {formatDisplayTime(time)}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    {/* Duration & Status */}
+                    {isValidSlot(slot) && (
+                      <div className="mt-6 p-4 bg-gradient-to-r from-violet-50 to-purple-50 rounded-2xl border border-violet-200">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-10 h-10 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-xl flex items-center justify-center">
+                              <Timer className="w-5 h-5 text-white" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-600">
+                                Duration
+                              </p>
+                              <p className="text-xl font-bold text-gray-800">
+                                {formatDuration(
+                                  (() => {
+                                    const [sh, sm] = slot.startTime
+                                      .split(":")
+                                      .map(Number);
+                                    const [eh, em] = slot.endTime
+                                      .split(":")
+                                      .map(Number);
+                                    const start = new Date(
+                                      `2000-01-01T${String(sh).padStart(
+                                        2,
+                                        "0"
+                                      )}:${String(sm).padStart(2, "0")}:00`
+                                    );
+                                    const end = new Date(
+                                      `2000-01-01T${String(eh).padStart(
+                                        2,
+                                        "0"
+                                      )}:${String(em).padStart(2, "0")}:00`
+                                    );
+                                    return (
+                                      (end.getTime() - start.getTime()) /
+                                      (1000 * 60 * 60)
+                                    );
+                                  })()
+                                )}
+                              </p>
+                            </div>
+                          </div>
+                          <Badge className="bg-gradient-to-r from-emerald-100 to-teal-100 text-emerald-700 border-emerald-200 px-4 py-2 text-sm font-bold shadow-lg">
+                            <CheckCircle className="w-4 h-4 mr-2" />
+                            Valid Slot
+                          </Badge>
+                        </div>
+                      </div>
+                    )}
+
+                    {!isValidSlot(slot) && (
+                      <div className="mt-6 p-4 bg-gradient-to-r from-red-50 to-orange-50 rounded-2xl border border-red-200">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-10 h-10 bg-gradient-to-r from-red-500 to-orange-500 rounded-xl flex items-center justify-center">
+                            <AlertTriangle className="w-5 h-5 text-white" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-red-600">
+                              Invalid Configuration
+                            </p>
+                            <p className="text-sm text-red-500">
+                              End time must be after start time
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </Card>
+              ))}
+
+              {/* Add New Slot Button */}
+              <div className="flex justify-center py-8">
+                <Button
+                  onClick={addSlot}
+                  variant="outline"
+                  className="border-2 border-gray-300 hover:border-gray-400 bg-transparent hover:bg-gray-50 text-gray-700 hover:text-gray-800 rounded-xl px-8 py-3 font-medium transition-all duration-200 hover:shadow-md"
+                >
+                  Add Time Slot
+                </Button>
+              </div>
+            </div>
+
+            {/* Stats Sidebar */}
+            <div className="w-full md:w-[50%] ">
+              <div className="flex md:flex-row  flex-col gap-x-4">
+                {/* Overview Card */}
+                <Card className="border-0 shadow-2xl w-full md:w-[40%] bg-white/70 backdrop-blur-xl overflow-hidden">
+                  <div className="h-[270px] p-6 flex flex-col justify-start">
+                    <h3 className="text-black font-bold text-lg flex items-center mb-4">
+                      <Target className="w-5 h-5 mr-2" />
+                      Overview
+                    </h3>
+                    <div className="flex items-center justify-between">
+                      <div className="flex flex-col">
+                        <p className="text-sm font-medium text-blue-600">
+                          Active Slots
+                        </p>
+                        <p className="text-2xl font-bold text-blue-800">
+                          {slots.length}
+                        </p>
+                      </div>
+                      <div className="flex flex-col">
+                        <p className="text-sm font-medium text-emerald-600">
+                          Total Duration
+                        </p>
+                        <p className="text-2xl font-bold text-emerald-800">
+                          {formatDuration(getTotalHours())}
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </div>
+                </Card>
 
-                <div className="bg-white/70 backdrop-blur-sm border border-white/50 rounded-2xl p-6 shadow-lg">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-slate-600 mb-1">
-                        Total Duration
-                      </p>
-                      <p className="text-3xl font-bold text-slate-800">
-                        {formatDuration(getTotalHours())}
-                      </p>
-                    </div>
-                    <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center">
-                      <Timer className="w-6 h-6 text-emerald-600" />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Create Availability Button */}
-                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl p-6 shadow-lg">
-                  <div className="text-center space-y-4">
-                    <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl mx-auto flex items-center justify-center shadow-lg">
-                      <Save className="w-8 h-8 text-white" />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-semibold text-slate-800 mb-1">
-                        Ready to Create?
-                      </h3>
-                      <p className="text-sm text-slate-600 mb-4">
-                        {validateSlots()
-                          ? `${slots.length} time slot${
-                              slots.length !== 1 ? "s" : ""
-                            } configured`
-                          : "Please configure valid time slots"}
-                      </p>
-                    </div>
+                {/* Action Card */}
+                <Card className="border w-full  md:w-[40%] border-gray-200 shadow-lg bg-gray-900">
+                  <div className="h-[270px] p-6 flex flex-col items-center justify-center text-white">
+                    <h3 className="text-lg font-bold mb-2 text-center">
+                      Ready to Launch?
+                    </h3>
                     <Button
                       onClick={handleSave}
                       disabled={!validateSlots() || isLoading}
-                      className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 font-semibold py-3"
+                      className="w-full bg-white text-gray-900 hover:bg-gray-100 font-bold py-2 rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                     >
                       {isLoading ? (
-                        <div className="flex items-center gap-2">
-                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                          Creating...
+                        <div className="flex items-center justify-center space-x-2">
+                          <div className="w-4 h-4 border-2 border-gray-900 border-t-transparent rounded-full animate-spin"></div>
+                          <span>Creating...</span>
                         </div>
                       ) : (
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center justify-center space-x-2">
                           <Save className="w-4 h-4" />
-                          Create Availability
+                          <span>Create Availability</span>
                         </div>
                       )}
                     </Button>
                   </div>
-                </div>
+                </Card>
               </div>
             </div>
-          </>
-        )}
-      </CardContent>
-    </Card>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
