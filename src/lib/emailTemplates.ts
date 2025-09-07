@@ -1,16 +1,90 @@
 // Email templates to follow (ported from emailTemplatestoFollow.js)
 export const welcomeEmailTemplate = (name: string) => `
-            <h1>Welcome to Rex Vet!</h1>
-            <p>Dear ${name},</p>
-            <p>Welcome to Rex Vet and thank you for choosing us for your pet's healthcare needs. We're thrilled to have you on board and look forward to helping you and your furry friend live happier, healthier lives.</p>
-            <p>You're now part of a community of pet lovers who are committed to providing the best care for their pets. To schedule your first video call with one of our experienced veterinarians, simply visit the 'Home' tab in your account and click 'Book a video call', and you'll be on your way to a virtual appointment.</p>
-            <p>If you have any questions or need assistance at any point along the way, please don't hesitate to reach out to our dedicated support team at support@rexvet.org. We're here to make your experience with Rex Vet as seamless and enjoyable as possible.</p>
-            <p>Thank you once again for choosing Rex Vet. We can't wait to assist you in providing the best possible care for your pet.</p>
-            <p>Warm regards,<br>The Team at Rex Vet</p>
-            <div style="background-color: #002366; padding: 10px; text-align: center;">
-                <img src="https://res.cloudinary.com/di6zff0rd/image/upload/v1747926532/Logo_debjuj.png" alt="Rex Vet Logo" width="150" style="display: block; margin: 0 auto;" />
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Welcome to RexVet</title>
+        <style>
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                line-height: 1.6;
+                color: #333;
+                max-width: 600px;
+                margin: 0 auto;
+                padding: 20px;
+                background-color: #f4f4f4;
+            }
+            .container {
+                background-color: #ffffff;
+                border-radius: 10px;
+                padding: 30px;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            }
+            .header {
+                text-align: center;
+                margin-bottom: 30px;
+            }
+            .logo {
+                font-size: 28px;
+                font-weight: bold;
+                color: #ff6b6b;
+                margin-bottom: 10px;
+            }
+            .title {
+                color: #2c3e50;
+                font-size: 24px;
+                margin-bottom: 20px;
+            }
+            .content {
+                margin-bottom: 30px;
+            }
+            .footer {
+                text-align: center;
+                margin-top: 30px;
+                padding-top: 20px;
+                border-top: 1px solid #eee;
+                color: #666;
+                font-size: 14px;
+            }
+            .highlight {
+                color: #ff6b6b;
+                font-weight: bold;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <div class="logo">🐾 RexVet</div>
+                <h1 class="title">Welcome to RexVet!</h1>
             </div>
-        `;
+            
+            <div class="content">
+                <p>Dear <span class="highlight">${name}</span>,</p>
+                
+                <p>Welcome to RexVet and thank you for choosing us for your pet's healthcare needs. We're thrilled to have you on board and look forward to helping you and your furry friend live happier, healthier lives.</p>
+                
+                <p>You're now part of a community of pet lovers who are committed to providing the best care for their pets. To schedule your first video call with one of our experienced veterinarians, simply visit the 'Home' tab in your account and click 'Book a video call', and you'll be on your way to a virtual appointment.</p>
+                
+                <p>If you have any questions or need assistance at any point along the way, please don't hesitate to reach out to our dedicated support team at support@rexvet.org. We're here to make your experience with RexVet as seamless and enjoyable as possible.</p>
+                
+                <p>Thank you once again for choosing RexVet. We can't wait to assist you in providing the best possible care for your pet.</p>
+                
+                <p>Warm regards,<br>The Team at RexVet</p>
+            </div>
+            
+            <div class="footer">
+                <p>© 2024 RexVet. All rights reserved.</p>
+                <div style="background-color: #002366; padding: 10px; text-align: center; margin-top: 20px;">
+                    <img src="https://res.cloudinary.com/di6zff0rd/image/upload/v1747926532/Logo_debjuj.png" alt="Rex Vet Logo" width="150" style="display: block; margin: 0 auto;" />
+                </div>
+            </div>
+        </div>
+    </body>
+    </html>
+`;
 
 export const bookingConfirmationDoctorTemplate = (
   doctorName: string,

@@ -205,7 +205,7 @@ export default function PetParentForm() {
         </CardHeader>
 
         <CardContent className="space-y-6 p-8">
-          {/* Google Sign In */}
+          {/* Google Sign In for existing users */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -241,7 +241,7 @@ export default function PetParentForm() {
                   />
                 </svg>
               )}
-              Continue with Google
+              Sign in with Google
             </Button>
           </motion.div>
 
