@@ -45,24 +45,25 @@ export default function FindVetPage({
   const [userTimezone, setUserTimezone] = useState<string>("UTC");
   const [doctors, setDoctors] = useState<any>(initialDoctors || []);
   const [isLoading, setIsLoading] = useState(false);
-  
+
   // Google Places API states
   const [locationInput, setLocationInput] = useState<string>("");
-  const [locationSuggestions, setLocationSuggestions] = useState<GooglePlace[]>([]);
+  const [locationSuggestions, setLocationSuggestions] = useState<GooglePlace[]>(
+    []
+  );
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedPlace, setSelectedPlace] = useState<GooglePlace | null>(null);
   const [isLocationSearching, setIsLocationSearching] = useState(false);
-  
+
   // Debounced location input for API calls
   const debouncedLocationInput = useDebounce(locationInput, 300);
-  
+
   // Ref for click outside detection
   const locationInputRef = useRef<HTMLDivElement>(null);
 
   //PUSH NOTIFICATION TESTING_______________
   const { data: session } = useSession();
   const user = session?.user;
-  console.log("USER", user);
   const {
     requestPermission,
     getFcmToken,
@@ -114,7 +115,6 @@ export default function FindVetPage({
         typeof window !== "undefined" ? Notification.permission : "unknown",
     });
   }, [token, fcmError, fcmLoading, isSupported]);
-  console.log("Doctors", doctors);
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -166,7 +166,10 @@ export default function FindVetPage({
   // Handle click outside to close suggestions
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (locationInputRef.current && !locationInputRef.current.contains(event.target as Node)) {
+      if (
+        locationInputRef.current &&
+        !locationInputRef.current.contains(event.target as Node)
+      ) {
         setShowSuggestions(false);
       }
     };
@@ -187,8 +190,6 @@ export default function FindVetPage({
       setIsLocationSearching(false);
     }
   }, [debouncedLocationInput]);
-
-  console.log("doctors in find a vet page component", doctors);
 
   const bangladeshStates = [
     "All States",
@@ -221,7 +222,9 @@ export default function FindVetPage({
 
     try {
       setIsLocationSearching(true);
-      const response = await fetch(`/api/places/autocomplete?input=${encodeURIComponent(query)}`);
+      const response = await fetch(
+        `/api/places/autocomplete?input=${encodeURIComponent(query)}`
+      );
       if (response.ok) {
         const data = await response.json();
         setLocationSuggestions(data.predictions || []);
@@ -637,8 +640,8 @@ export default function FindVetPage({
                 Set Location & Timezone
               </h3>
               <p id="location-modal-description" className="text-gray-600 mb-6">
-                Search for your location to see accurate appointment availability and
-                help us find veterinarians near you
+                Search for your location to see accurate appointment
+                availability and help us find veterinarians near you
               </p>
 
               <div className="space-y-4">
@@ -652,53 +655,55 @@ export default function FindVetPage({
                   </label>
                   <div className="relative">
                     <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-                                         <input
-                       id="location-input"
-                       type="text"
-                       placeholder="Start typing your city, state, or address..."
-                       value={locationInput}
-                       onChange={(e) => handleLocationInputChange(e.target.value)}
-                       className="w-full pl-10 pr-4 py-3 border rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 transition-all"
-                       autoComplete="off"
-                     />
-                     
-                     {/* Loading indicator */}
-                     {isLocationSearching && (
-                       <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-                       </div>
-                     )}
-                    
-                                         {/* Location Suggestions Dropdown */}
-                     {showSuggestions && (
-                       <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto z-10">
-                         {isLocationSearching ? (
-                           <div className="px-4 py-3 text-center text-gray-500">
-                             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mx-auto mb-2"></div>
-                             Searching...
-                           </div>
-                         ) : locationSuggestions.length > 0 ? (
-                           locationSuggestions.map((place) => (
-                             <button
-                               key={place.place_id}
-                               onClick={() => handlePlaceSelect(place)}
-                               className="w-full text-left px-4 py-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0 transition-colors"
-                             >
-                               <div className="font-medium text-gray-900">
-                                 {place.structured_formatting.main_text}
-                               </div>
-                               <div className="text-sm text-gray-500">
-                                 {place.structured_formatting.secondary_text}
-                               </div>
-                             </button>
-                           ))
-                         ) : locationInput.length >= 3 ? (
-                           <div className="px-4 py-3 text-center text-gray-500">
-                             No locations found
-                           </div>
-                         ) : null}
-                       </div>
-                     )}
+                    <input
+                      id="location-input"
+                      type="text"
+                      placeholder="Start typing your city, state, or address..."
+                      value={locationInput}
+                      onChange={(e) =>
+                        handleLocationInputChange(e.target.value)
+                      }
+                      className="w-full pl-10 pr-4 py-3 border rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 transition-all"
+                      autoComplete="off"
+                    />
+
+                    {/* Loading indicator */}
+                    {isLocationSearching && (
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                      </div>
+                    )}
+
+                    {/* Location Suggestions Dropdown */}
+                    {showSuggestions && (
+                      <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto z-10">
+                        {isLocationSearching ? (
+                          <div className="px-4 py-3 text-center text-gray-500">
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mx-auto mb-2"></div>
+                            Searching...
+                          </div>
+                        ) : locationSuggestions.length > 0 ? (
+                          locationSuggestions.map((place) => (
+                            <button
+                              key={place.place_id}
+                              onClick={() => handlePlaceSelect(place)}
+                              className="w-full text-left px-4 py-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0 transition-colors"
+                            >
+                              <div className="font-medium text-gray-900">
+                                {place.structured_formatting.main_text}
+                              </div>
+                              <div className="text-sm text-gray-500">
+                                {place.structured_formatting.secondary_text}
+                              </div>
+                            </button>
+                          ))
+                        ) : locationInput.length >= 3 ? (
+                          <div className="px-4 py-3 text-center text-gray-500">
+                            No locations found
+                          </div>
+                        ) : null}
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -724,16 +729,18 @@ export default function FindVetPage({
                   <Clock className="w-4 h-4 mr-2" aria-hidden="true" />
                   Update Timezone & Refresh
                 </Button>
-                
+
                 <Button
                   onClick={handleSetLocation}
                   disabled={!selectedPlace}
                   className="w-full bg-gradient-to-r from-green-600 to-blue-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <MapPin className="w-4 h-4 mr-2" aria-hidden="true" />
-                  {selectedPlace ? "Set Selected Location" : "Select a location first"}
+                  {selectedPlace
+                    ? "Set Selected Location"
+                    : "Select a location first"}
                 </Button>
-                
+
                 <Button
                   onClick={handleCloseModal}
                   variant="outline"

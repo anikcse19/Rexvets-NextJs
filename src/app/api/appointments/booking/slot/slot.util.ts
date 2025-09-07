@@ -110,19 +110,19 @@ export const getSlotsByNoticePeriodAndDateRangeByVetId = async (
     const todayStart = now.clone().startOf("day");
     const currentTime = now.format("HH:mm");
 
-    console.log(
-      `[SLOT FILTERING] Current time in ${timezone}: ${now.format(
-        "YYYY-MM-DD HH:mm:ss"
-      )}`
-    );
-    console.log(`[SLOT FILTERING] Notice period: ${noticePeriod} minutes`);
-    console.log(`[SLOT FILTERING] Current time string: ${currentTime}`);
-    
-    // Example scenario: Notice period = 15 minutes
-    // If current time is 8:46 AM and slot is at 9:00 AM:
-    // Time difference = 14 minutes (9:00 - 8:46 = 14 minutes)
-    // Since 14 < 15 (notice period), this slot should be FILTERED OUT
-    console.log(`[SLOT FILTERING] Example: If current time is 8:46 and slot is 9:00, time diff = 14min, notice period = ${noticePeriod}min, so slot should be FILTERED OUT`);
+    // console.log(
+    //   `[SLOT FILTERING] Current time in ${timezone}: ${now.format(
+    //     "YYYY-MM-DD HH:mm:ss"
+    //   )}`
+    // );
+    // console.log(`[SLOT FILTERING] Notice period: ${noticePeriod} minutes`);
+    // console.log(`[SLOT FILTERING] Current time string: ${currentTime}`);
+
+    // // Example scenario: Notice period = 15 minutes
+    // // If current time is 8:46 AM and slot is at 9:00 AM:
+    // // Time difference = 14 minutes (9:00 - 8:46 = 14 minutes)
+    // // Since 14 < 15 (notice period), this slot should be FILTERED OUT
+    // console.log(`[SLOT FILTERING] Example: If current time is 8:46 and slot is 9:00, time diff = 14min, notice period = ${noticePeriod}min, so slot should be FILTERED OUT`);
 
     // Convert input dates to UTC start and end of day for proper range query
     const startDateUtc = moment.utc(startDate).startOf("day").toDate();
@@ -236,22 +236,25 @@ export const getSlotsByNoticePeriodAndDateRangeByVetId = async (
       },
     }).sort({ date: 1, startTime: 1 });
 
-    console.log(`[SLOT FILTERING] Total slots before any filtering: ${allSlotsBeforeFiltering.length}`);
+    console.log(
+      `[SLOT FILTERING] Total slots before any filtering: ${allSlotsBeforeFiltering.length}`
+    );
 
     // Log all slots with their time calculations
     allSlotsBeforeFiltering.forEach((slot) => {
-      const slotDate = moment(slot.date).format('YYYY-MM-DD');
+      const slotDate = moment(slot.date).format("YYYY-MM-DD");
       const slotDateTime = moment.tz(`${slotDate} ${slot.startTime}`, timezone);
       const timeDifference = slotDateTime.diff(now, "minutes");
       const isPast = timeDifference <= 0;
       const isWithinNoticePeriod = timeDifference < noticePeriod;
       const shouldKeep = timeDifference > 0 && timeDifference >= noticePeriod;
-      
+
       let reason = "";
       if (isPast) reason = "FILTERED OUT (past slot)";
-      else if (isWithinNoticePeriod) reason = "FILTERED OUT (within notice period)";
+      else if (isWithinNoticePeriod)
+        reason = "FILTERED OUT (within notice period)";
       else reason = "KEPT (valid slot)";
-      
+
       console.log(
         `[SLOT ANALYSIS] ${slotDate} ${slot.startTime} - Time diff: ${timeDifference}min - ${reason}`
       );

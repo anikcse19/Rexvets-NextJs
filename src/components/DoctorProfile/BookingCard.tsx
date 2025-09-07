@@ -42,6 +42,7 @@ interface BookingSystemProps {
   onConfirm: (date: string, time: string, slot: string) => void;
   selectedSlotDate: string | null;
   selectedSlotId: string | null;
+  vetTimezone: string;
 }
 
 export default function BookingSystem({
@@ -50,6 +51,7 @@ export default function BookingSystem({
   onConfirm,
   selectedSlotDate,
   selectedSlotId,
+  vetTimezone,
 }: BookingSystemProps) {
   const [selectedDate, setSelectedDate] = useState<string>(
     () => new Date().toLocaleDateString("en-CA") // today initially
@@ -115,7 +117,7 @@ export default function BookingSystem({
       id: doctorData?._id,
       startDate: formatted,
       endDate: formatted,
-      timezone: userTimezone,
+      timezone: vetTimezone || userTimezone,
     });
     // Sort by startTime (assumes format 'HH:mm')
     const sorted = (data || []).slice().sort((a: any, b: any) => {

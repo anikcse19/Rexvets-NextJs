@@ -19,9 +19,12 @@ import { Doctor } from "./type";
 
 export default function DoctorProfilePage({
   doctorData,
+  vetTimezone,
 }: {
   doctorData: Doctor;
+  vetTimezone: string;
 }) {
+  console.log("doctorData", doctorData);
   const searchParams = useSearchParams();
   const slotDate = searchParams.get("slotDate");
   const slotId = searchParams.get("slotId");
@@ -94,6 +97,7 @@ export default function DoctorProfilePage({
             {/* Booking */}
             <div className="xl:col-span-1">
               <BookingCard
+                vetTimezone={vetTimezone}
                 selectedSlotDate={slotDate}
                 selectedSlotId={slotId}
                 doctorName={doctorData?.name}
