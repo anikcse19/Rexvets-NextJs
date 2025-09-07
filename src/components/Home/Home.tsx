@@ -4,44 +4,39 @@ import { doubledBrands, features, whyChooseFeaturesData } from "@/lib";
 import dynamic from "next/dynamic";
 import React from "react";
 import ChatIcon from "./ChatIcon";
-import Loader from "../shared/Loader";
+import type { ComponentType } from "react";
 
-const loadingPlaceholder = () => <Loader size={60} />;
+const Skeleton = () => (
+  <div className="w-full h-56 bg-gray-100 animate-pulse rounded-lg" />
+);
 
-const AboutUsSection = dynamic(() => import("./AboutUsSection"), {
-  loading: loadingPlaceholder,
-});
-const AwardsMarquee = dynamic(() => import("./AwardsMarquee"), {
-  loading: loadingPlaceholder,
-});
-const FeaturesSection = dynamic(() => import("./FeaturesSection"), {
-  loading: loadingPlaceholder,
-});
-const HeroSection = dynamic(() => import("./HeroSection"), {
-  loading: loadingPlaceholder,
-});
-const BlogPostSection = dynamic(
-  () => import("./BlogPostSection").then((mod) => mod.BlogPostSection),
-  { loading: loadingPlaceholder }
+// Helper to lazy-import client-only components
+const lazy = (importer: () => Promise<any>): ComponentType<any> =>
+  dynamic(importer, {
+    ssr: false,
+    loading: () => <Skeleton />,
+  }) as ComponentType<any>;
+
+// HeroSection stays SSR for LCP
+const HeroSection = dynamic(() => import("./HeroSection"));
+
+const AboutUsSection = lazy(() => import("./AboutUsSection"));
+const AwardsMarquee = lazy(() => import("./AwardsMarquee"));
+const FeaturesSection = lazy(() => import("./FeaturesSection"));
+const BlogPostSection = lazy(() =>
+  import("./BlogPostSection").then((m) => m.BlogPostSection)
 );
-const RexVetPlan = dynamic(
-  () => import("./HomeRexVetPlan").then((mod) => mod.RexVetPlan),
-  { loading: loadingPlaceholder }
+const RexVetPlan = lazy(() =>
+  import("./HomeRexVetPlan").then((m) => m.RexVetPlan)
 );
-const SupportOurMission = dynamic(
-  () => import("./SupportOurMission").then((mod) => mod.SupportOurMission),
-  { loading: loadingPlaceholder }
+const SupportOurMission = lazy(() =>
+  import("./SupportOurMission").then((m) => m.SupportOurMission)
 );
-const TestimonialsSection = dynamic(
-  () => import("./TestimonialsSection").then((mod) => mod.TestimonialsSection),
-  { loading: loadingPlaceholder }
+const TestimonialsSection = lazy(() =>
+  import("./TestimonialsSection").then((m) => m.TestimonialsSection)
 );
-const VirtualCareIntroSection = dynamic(
-  () =>
-    import("./VirtualCareIntroSection").then(
-      (mod) => mod.VirtualCareIntroSection
-    ),
-  { loading: loadingPlaceholder }
+const VirtualCareIntroSection = lazy(() =>
+  import("./VirtualCareIntroSection").then((m) => m.VirtualCareIntroSection)
 );
 const Home = () => {
   // Temporarily disabled automatic push notification registration to fix service worker conflicts

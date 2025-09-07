@@ -38,15 +38,12 @@ const videoSource =
 const HeroSection = () => {
   const [shouldPauseVideo, setShouldPauseVideo] = useState(false);
   const [showFloating, setShowFloating] = useState(false);
+  const [videoReady, setVideoReady] = useState(false);
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(false);
 
-  const handlePlayPause = useCallback(() => {
-    setPlaying((prev) => !prev);
-  }, []);
-  const handleMuteToggle = useCallback(() => {
-    setMuted((prev) => !prev);
-  }, []);
+  const handlePlayPause = useCallback(() => setPlaying((p)=>!p),[]);
+  const handleMuteToggle = useCallback(()=>setMuted((m)=>!m),[]);
 
   // Scroll detection for video pause
   useEffect(() => {
@@ -132,8 +129,14 @@ const HeroSection = () => {
                     heading="Meet Our CEO"
                     name="Dr. Tiffany Delacruz, DVM"
                   />
-                  <div className="w-full">
-                    <HeroVideo shouldPause={shouldPauseVideo} />
+                  <div className="w-full relative" style={{aspectRatio:"16/9"}}>
+                    {!videoReady && (
+                      <div className="absolute inset-0 bg-gray-100 animate-pulse rounded-md" />
+                    )}
+                    <HeroVideo
+                      shouldPause={shouldPauseVideo}
+                      onReady={() => setVideoReady(true)}
+                    />
                   </div>
                 </motion.div>
               </div>
