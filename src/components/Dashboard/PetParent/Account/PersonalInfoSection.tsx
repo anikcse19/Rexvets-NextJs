@@ -161,7 +161,7 @@ export default function PersonalInfoSection({
                   </AvatarFallback>
                 </Avatar>
                 <h3 className="text-xl font-bold text-gray-900 mb-1">
-                  Dr. {petParentData?.name}
+                  {petParentData?.name}
                 </h3>
                 <Badge className="bg-blue-100 text-blue-700 border-blue-300">
                   Verified Profile

@@ -350,7 +350,7 @@ export default function MyPetsPage() {
 
                 {/* Allergies */}
                 {pet?.allergies && pet?.allergies?.length > 0 && (
-                  <div>
+                  <div className="hidden">
                     <div className="flex items-center gap-2 mb-2">
                       <AlertTriangle className="w-4 h-4 text-red-600" />
                       <p className="text-sm font-medium text-gray-900">
@@ -375,7 +375,7 @@ export default function MyPetsPage() {
                 {/* Current Medications */}
                 {pet?.currentMedications &&
                   pet?.currentMedications?.length > 0 && (
-                    <div>
+                    <div className="hidden">
                       <div className="flex items-center gap-2 mb-2">
                         <Pill className="w-4 h-4 text-orange-600" />
                         <p className="text-sm font-medium text-gray-900">
@@ -398,7 +398,7 @@ export default function MyPetsPage() {
                   )}
 
                 {/* Medical Dates */}
-                <div className="grid grid-cols-1 gap-3 pt-4 border-t border-gray-200">
+                <div className="grid grid-cols-1 gap-3 pt-4 border-t border-gray-200 hidden">
                   <div className="flex items-center justify-between text-sm">
                     <div className="flex items-center gap-2">
                       <Calendar className="w-4 h-4 text-gray-500" />
