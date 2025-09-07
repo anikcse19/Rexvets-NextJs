@@ -174,10 +174,20 @@ export default function AppointmentDetailsPage() {
 
       {loading ? (
         <div className="flex items-center gap-4">
-          <Skeleton className="h-10 w-10 rounded-md" />
+          {/* Avatar placeholder */}
+          <div className="h-10 w-10 rounded-md bg-gray-200 flex items-center justify-center text-gray-400 text-sm font-medium">
+            AV
+          </div>
+
           <div>
-            <Skeleton className="h-6 w-40 mb-2" />
-            <Skeleton className="h-4 w-60" />
+            {/* Hardcoded title */}
+            <p className="h-6 w-40 mb-2 text-gray-400 font-semibold">
+              Appointment Details
+            </p>
+            {/* Hardcoded subtitle */}
+            <p className="h-4 w-60 text-gray-300 text-sm">
+              Loading date & time...
+            </p>
           </div>
         </div>
       ) : (
@@ -203,6 +213,7 @@ export default function AppointmentDetailsPage() {
             </div>
           </div>
 
+          {/* Right side */}
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2">
               <label htmlFor="status" className="font-semibold">
@@ -212,7 +223,7 @@ export default function AppointmentDetailsPage() {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <div
-                    className={`flex items-center gap-2 px-4 py-2 rounded-md  text-sm font-semibold cursor-pointer ${getStatusColor(
+                    className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-semibold cursor-pointer ${getStatusColor(
                       appointment.status
                     )}`}
                   >
@@ -238,13 +249,6 @@ export default function AppointmentDetailsPage() {
               </DropdownMenu>
             </div>
 
-            {/* <Badge
-            className={`${getStatusColor(
-              appointment.status
-            )} px-4 py-2 text-sm font-semibold`}
-          >
-            {appointment.status.replace("-", " ").toUpperCase()}
-          </Badge> */}
             {appointment.status === "upcoming" && appointment.meetingLink && (
               <Button
                 onClick={handleJoinMeeting}
@@ -261,7 +265,7 @@ export default function AppointmentDetailsPage() {
       {/* Appointment Overview Card */}
 
       {loading ? (
-        <Card className="p-6 space-y-4">
+        <Card className="p-6 space-y-4 hidden">
           <Skeleton className="h-6 w-40" />
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <Skeleton className="h-16 w-full" />
@@ -270,7 +274,7 @@ export default function AppointmentDetailsPage() {
           </div>
         </Card>
       ) : (
-        <Card className="shadow-lg border-0 bg-gradient-to-br from-blue-50 to-indigo-50 overflow-hidden">
+        <Card className="shadow-lg border-0 bg-gradient-to-br from-blue-50 to-indigo-50 overflow-hidden hidden">
           <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-6 text-white">
             <div className="flex items-center gap-4">
               <div className="bg-white/20 p-3 rounded-xl">
@@ -343,7 +347,7 @@ export default function AppointmentDetailsPage() {
         ) : (
           <>
             {/* Left Column - Pet & Parent Info */}
-            <div className="xl:col-span-1 space-y-6">
+            <div className="xl:col-span-1 space-y-6 xl:order-1 order-1">
               {/* <PetInfoCard pet={appointment?.pet} /> */}
               {appointment?.petParent && (
                 <ParentInfoCard parent={appointment.petParent} />
@@ -351,7 +355,7 @@ export default function AppointmentDetailsPage() {
             </div>
 
             {/* Middle Column - Data Assessment & Prescription */}
-            <div className="xl:col-span-1 space-y-6">
+            <div className="xl:col-span-1 space-y-6 xl:order-2 order-3">
               {appointment && (
                 <>
                   <DataAssessmentSection
@@ -368,7 +372,7 @@ export default function AppointmentDetailsPage() {
             </div>
 
             {/* Right Column - Chat */}
-            <div className="xl:col-span-1">
+            <div className="xl:col-span-1 xl:order-3 order-2">
               {appointment?._id && appointment?.petParent ? (
                 <ChatBox
                   appointmentId={appointment._id}

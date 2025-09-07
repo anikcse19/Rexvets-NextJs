@@ -94,10 +94,20 @@ export default function PetParentAppointmentDetailsPage({
         {/* Header */}
         {loading ? (
           <div className="flex items-center gap-4">
-            <Skeleton className="h-10 w-10 rounded-md" />
+            {/* Avatar placeholder */}
+            <div className="h-10 w-10 rounded-md bg-gray-200 flex items-center justify-center text-gray-400 text-sm font-medium">
+              AV
+            </div>
+
             <div>
-              <Skeleton className="h-6 w-40 mb-2" />
-              <Skeleton className="h-4 w-60" />
+              {/* Hardcoded title */}
+              <h1 className="text-2xl lg:text-3xl font-bold text-gray-400">
+                Appointment Details
+              </h1>
+              {/* Hardcoded subtitle */}
+              <p className="text-gray-300 mt-1 text-sm">
+                Loading date & time...
+              </p>
             </div>
           </div>
         ) : (
@@ -147,7 +157,7 @@ export default function PetParentAppointmentDetailsPage({
 
         {/* Appointment Overview Card */}
         {loading ? (
-          <Card className="p-6 space-y-4">
+          <Card className="p-6 space-y-4 hidden">
             <Skeleton className="h-6 w-40" />
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <Skeleton className="h-16 w-full" />
@@ -156,7 +166,7 @@ export default function PetParentAppointmentDetailsPage({
             </div>
           </Card>
         ) : (
-          <Card className="shadow-lg border-0 bg-gradient-to-br from-blue-50 to-indigo-50 overflow-hidden">
+          <Card className="shadow-lg border-0 bg-gradient-to-br from-blue-50 to-indigo-50 overflow-hidden hidden">
             <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-6 text-white">
               <div className="flex items-center gap-4">
                 <div className="bg-white/20 p-3 rounded-xl">
@@ -227,13 +237,13 @@ export default function PetParentAppointmentDetailsPage({
             </>
           ) : (
             <>
-              <div className="xl:col-span-1 space-y-6">
+              <div className="xl:col-span-1 space-y-6 xl:order-1 order-1">
                 <PetInfoCard pet={appointmentDetails?.pet} />
                 {appointmentDetails?.veterinarian && (
                   <DoctorInfoCard doctor={appointmentDetails?.veterinarian} />
                 )}
               </div>
-              <div className="xl:col-span-1 space-y-6">
+              <div className="xl:col-span-1 space-y-6 xl:order-2 order-3">
                 {appointmentDetails?._id && (
                   <DataAssessmentSection
                     appointmentId={appointmentDetails?._id}
@@ -243,7 +253,7 @@ export default function PetParentAppointmentDetailsPage({
                   <PrescriptionSection appointmentId={appointmentDetails._id} />
                 )}
               </div>
-              <div className="xl:col-span-1">
+              <div className="xl:col-span-1 xl:order-3 order-2 ">
                 {appointmentDetails?._id &&
                   appointmentDetails?.veterinarian && (
                     <ChatBox

@@ -128,9 +128,9 @@ const Header: React.FC = () => {
         background:
           "linear-gradient(135deg, #0f0c29 0%, #24243e 25%, #302b63 50%, #0f3460 75%, #002366 100%)",
       }}
-      className={` relative py-2 h-auto md:py-${
-        session?.user && session.user.role !== "veterinarian" ? "1" : "3"
-      }   w-full  backdrop-blur-sm px-7  border-b border-slate-800/50 z-[9998]`}
+      className={`fixed h-[100px] py-3  md:py-${
+        session?.user && session.user.role !== "veterinarian" ? "3" : "5"
+      }   w-full  backdrop-blur-sm px-3 lg:px-7  border-b border-slate-800/50 z-[9998]`}
     >
       <nav className="flex items-center justify-between  mx-auto">
         {/* Logo */}
@@ -139,8 +139,8 @@ const Header: React.FC = () => {
             <Image
               src="/images/Logo.svg"
               alt="Logo RexVet"
-              width={120}
-              height={100}
+              width={150}
+              height={150}
               quality={100}
             />
           </Link>
@@ -278,6 +278,175 @@ const Header: React.FC = () => {
 
         {/* Right Side (Hamburger for mobile, User Profile and TalkToVetButton for desktop) */}
         <div className="flex items-center space-x-3 z-[9997]">
+          <div className="flex items-center space-x-3">
+            {/* User Profile Dropdown for Desktop */}
+            {session ? (
+              <DropdownMenu>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          className={`h-10 w-10 rounded-full hover:ring-2 hover:ring-emerald-400 transition-all cursor-pointer ${
+                            session.user.role === "veterinarian" && "lg:mr-20"
+                          }`}
+                        >
+                          <div className="relative h-10 w-10">
+                            <Avatar className="h-10 w-10">
+                              <AvatarImage
+                                src={(session?.user as any)?.image || ""}
+                                alt={(session?.user as any)?.name || ""}
+                              />
+                              <AvatarFallback className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-semibold">
+                                {(session?.user as any)?.name
+                                  ? getUserInitials((session?.user as any).name)
+                                  : "U"}
+                              </AvatarFallback>
+                            </Avatar>
+
+                            {/* Badge (just a static div, no trigger here) */}
+                            <div className="absolute -top-1 -right-1 h-5 w-5 rounded-full overflow-hidden border-2 border-white">
+                              <img
+                                src={`/images/badge/${
+                                  badge === "Friend of Rex Vet"
+                                    ? "friendBadge3.webp"
+                                    : badge === "Champion Community"
+                                    ? "championBadge3.webp"
+                                    : "heroBadge4.webp"
+                                }`}
+                                alt="Badge"
+                                className="h-full w-full object-cover"
+                              />
+                            </div>
+                          </div>
+                        </Button>
+                      </DropdownMenuTrigger>
+                    </TooltipTrigger>
+
+                    <TooltipContent
+                      className="z-[9999]"
+                      side="top"
+                      align="center"
+                    >
+                      <p>
+                        {badge === "Friend of Rex Vet"
+                          ? "Friend of Rex Vet"
+                          : badge === "Champion Community"
+                          ? "Champion Community"
+                          : "Pet Care Hero"}
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+
+                <DropdownMenuContent
+                  className="w-64 z-[99999] rounded-2xl shadow-lg border border-emerald-100 bg-[#211951] backdrop-blur-md p-2"
+                  align="end"
+                  forceMount
+                >
+                  {/* User Info */}
+                  <DropdownMenuLabel className="font-normal px-2 py-3">
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-10 w-10">
+                        <AvatarImage
+                          src={(session?.user as any)?.image || ""}
+                          alt={(session?.user as any)?.name || ""}
+                        />
+
+                        <AvatarFallback className="bg-emerald-500 text-white">
+                          {(session?.user as any)?.name
+                            ? getUserInitials((session?.user as any).name)
+                            : "U"}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex flex-col">
+                        <p className="text-sm font-semibold text-white">
+                          {(session?.user as any)?.name || "User"}
+                        </p>
+                        <p className="text-xs text-gray-300 truncate">
+                          {(session?.user as any)?.email}
+                        </p>
+                        <p className="text-xs text-emerald-600 font-medium">
+                          {(session?.user as any)?.role
+                            ? getRoleDisplayName((session?.user as any).role)
+                            : "User"}
+                        </p>
+                      </div>
+                    </div>
+                  </DropdownMenuLabel>
+
+                  {session?.user?.role === "pet_parent" && (
+                    <>
+                      <DropdownMenuSeparator className="my-2 bg-emerald-100" />
+                      <DropdownMenuItem
+                        asChild
+                        className="group hover:bg-red-50 focus:bg-red-50 data-[highlighted]:bg-red-50 text-blue-200 data-[highlighted]:text-[#211951]"
+                      >
+                        <Link
+                          href={`/find-a-vet`}
+                          className="flex items-center px-3 py-2 rounded-lg cursor-pointer"
+                        >
+                          <Video className="mr-2 h-4 w-4 text-blue-200 group-data-[highlighted]:text-black" />
+                          <span className="text-sm group-data-[highlighted]:text-black">
+                            Talk to Vet
+                          </span>
+                        </Link>
+                      </DropdownMenuItem>
+                    </>
+                  )}
+
+                  <DropdownMenuSeparator className="my-2 bg-emerald-100" />
+
+                  {/* Dashboard */}
+                  <DropdownMenuItem
+                    asChild
+                    className="group hover:bg-red-50 focus:bg-red-50 data-[highlighted]:bg-red-50 text-blue-200 data-[highlighted]:text-[#211951]"
+                  >
+                    <Link
+                      href={`/dashboard/${
+                        (session?.user as any).role === "veterinarian"
+                          ? "doctor"
+                          : "pet-parent"
+                      }/overview`}
+                      className="flex items-center px-3 py-2 rounded-lg cursor-pointer"
+                    >
+                      <UserCircle className="mr-2 h-4 w-4 text-blue-200 group-data-[highlighted]:text-black" />
+                      <span className="text-sm group-data-[highlighted]:text-black">
+                        Dashboard
+                      </span>
+                    </Link>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuSeparator className="my-2 bg-emerald-100" />
+
+                  {/* Logout */}
+                  <DropdownMenuItem
+                    className="flex items-center px-3 py-2 rounded-lg text-red-400 hover:bg-red-50 focus:text-red-600 cursor-pointer transition-colors"
+                    onClick={handleSignOut}
+                  >
+                    <LogOut className="mr-2 h-4 w-4 text-red-400" />
+                    <span className="text-sm">Sign Out</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Link href="/auth/signin">
+                <Button
+                  variant="ghost"
+                  className="text-white hover:text-emerald-400 cursor-pointer"
+                >
+                  <User className="h-5 w-5 mr-2" />
+                  Sign In
+                </Button>
+              </Link>
+            )}
+            {session?.user.role !== "veterinarian" && (
+              <div className="hidden 2xl:block">
+                <TalkToVetButton />
+              </div>
+            )}
+          </div>
           <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
             <SheetTrigger asChild>
               <Button
@@ -314,64 +483,6 @@ const Header: React.FC = () => {
                 <ScrollArea className="flex-1 px-6">
                   <div className="flex flex-col gap-4 pb-24">
                     <div className="mt-8">
-                      {/* User Profile Section for Mobile */}
-                      {session ? (
-                        <div className="pb-4 border-b border-[#3D456B] mb-4">
-                          <div className="flex items-center space-x-3">
-                            <Avatar className="w-10 h-10">
-                              <AvatarImage
-                                src={(session?.user as any)?.image || ""}
-                              />
-                              <AvatarFallback className="bg-emerald-500 text-white">
-                                {(session?.user as any)?.name
-                                  ? getUserInitials((session?.user as any).name)
-                                  : "U"}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div className="flex-1">
-                              <p className="text-white font-semibold text-sm">
-                                {(session?.user as any)?.name || "User"}
-                              </p>
-                              <p className="text-white/70 text-xs">
-                                {(session?.user as any)?.role
-                                  ? getRoleDisplayName(
-                                      (session?.user as any)?.role
-                                    )
-                                  : "User"}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="mt-3 space-y-2">
-                            <Link
-                              href="/dashboard"
-                              className="block text-white/80 hover:text-emerald-400 text-sm transition-colors"
-                              onClick={() => setMobileMenuOpen(false)}
-                            >
-                              Dashboard
-                            </Link>
-                            <button
-                              onClick={() => {
-                                handleSignOut();
-                                setMobileMenuOpen(false);
-                              }}
-                              className="block text-white/80 hover:text-red-400 text-sm transition-colors w-full text-left"
-                            >
-                              Sign Out
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="pb-4 border-b border-[#3D456B] mb-4">
-                          <Link
-                            href="/auth/signin"
-                            className="text-white hover:text-emerald-400 font-semibold text-lg"
-                            onClick={() => setMobileMenuOpen(false)}
-                          >
-                            Sign In
-                          </Link>
-                        </div>
-                      )}
-
                       <div className="pb-3 border-b border-[#3D456B] text-start">
                         <Link
                           href="/"
@@ -488,171 +599,6 @@ const Header: React.FC = () => {
               </div>
             </SheetContent>
           </Sheet>
-
-          <div className="lg:flex hidden items-center space-x-3">
-            {/* User Profile Dropdown for Desktop */}
-            {session ? (
-              <DropdownMenu>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          className="h-10 w-10 rounded-full hover:ring-2 hover:ring-emerald-400 transition-all cursor-pointer"
-                        >
-                          <div className="relative h-10 w-10">
-                            <Avatar className="h-10 w-10">
-                              <AvatarImage
-                                src={(session?.user as any)?.image || ""}
-                                alt={(session?.user as any)?.name || ""}
-                              />
-                              <AvatarFallback className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-semibold">
-                                {(session?.user as any)?.name
-                                  ? getUserInitials((session?.user as any).name)
-                                  : "U"}
-                              </AvatarFallback>
-                            </Avatar>
-
-                            {/* Badge (just a static div, no trigger here) */}
-                            <div className="absolute -top-1 -right-1 h-5 w-5 rounded-full overflow-hidden border-2 border-white">
-                              <img
-                                src={`/images/badge/${
-                                  badge === "Friend of Rex Vet"
-                                    ? "friendBadge3.webp"
-                                    : badge === "Champion Community"
-                                    ? "championBadge3.webp"
-                                    : "heroBadge4.webp"
-                                }`}
-                                alt="Badge"
-                                className="h-full w-full object-cover"
-                              />
-                            </div>
-                          </div>
-                        </Button>
-                      </DropdownMenuTrigger>
-                    </TooltipTrigger>
-
-                    <TooltipContent
-                      className="z-[9999]"
-                      side="top"
-                      align="center"
-                    >
-                      <p>
-                        {badge === "Friend of Rex Vet"
-                          ? "Friend of Rex Vet"
-                          : badge === "Champion Community"
-                          ? "Champion Community"
-                          : "Pet Care Hero"}
-                      </p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-
-                <DropdownMenuContent
-                  className="w-64 z-[99999] rounded-2xl shadow-lg border border-emerald-100 bg-[#211951] backdrop-blur-md p-2"
-                  align="end"
-                  forceMount
-                >
-                  {/* User Info */}
-                  <DropdownMenuLabel className="font-normal px-2 py-3">
-                    <div className="flex items-center gap-3">
-                      <Avatar className="h-10 w-10">
-                        <AvatarImage
-                          src={(session?.user as any)?.image || ""}
-                          alt={(session?.user as any)?.name || ""}
-                        />
-
-                        <AvatarFallback className="bg-emerald-500 text-white">
-                          {(session?.user as any)?.name
-                            ? getUserInitials((session?.user as any).name)
-                            : "U"}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex flex-col">
-                        <p className="text-sm font-semibold text-white">
-                          {(session?.user as any)?.name || "User"}
-                        </p>
-                        <p className="text-xs text-gray-300 truncate">
-                          {(session?.user as any)?.email}
-                        </p>
-                        <p className="text-xs text-emerald-600 font-medium">
-                          {(session?.user as any)?.role
-                            ? getRoleDisplayName((session?.user as any).role)
-                            : "User"}
-                        </p>
-                      </div>
-                    </div>
-                  </DropdownMenuLabel>
-
-                  <DropdownMenuSeparator className="my-2 bg-emerald-100" />
-
-                  <DropdownMenuItem
-                    asChild
-                    className="group hover:bg-red-50 focus:bg-red-50 data-[highlighted]:bg-red-50 text-blue-200 data-[highlighted]:text-[#211951]"
-                  >
-                    <Link
-                      href={`/find-a-vet`}
-                      className="flex items-center px-3 py-2 rounded-lg cursor-pointer"
-                    >
-                      <Video className="mr-2 h-4 w-4 text-blue-200 group-data-[highlighted]:text-black" />
-                      <span className="text-sm group-data-[highlighted]:text-black">
-                        Talk to Vet
-                      </span>
-                    </Link>
-                  </DropdownMenuItem>
-
-                  <DropdownMenuSeparator className="my-2 bg-emerald-100" />
-
-                  {/* Dashboard */}
-                  <DropdownMenuItem
-                    asChild
-                    className="group hover:bg-red-50 focus:bg-red-50 data-[highlighted]:bg-red-50 text-blue-200 data-[highlighted]:text-[#211951]"
-                  >
-                    <Link
-                      href={`/dashboard/${
-                        (session?.user as any).role === "veterinarian"
-                          ? "doctor"
-                          : "pet-parent"
-                      }/overview`}
-                      className="flex items-center px-3 py-2 rounded-lg cursor-pointer"
-                    >
-                      <UserCircle className="mr-2 h-4 w-4 text-blue-200 group-data-[highlighted]:text-black" />
-                      <span className="text-sm group-data-[highlighted]:text-black">
-                        Dashboard
-                      </span>
-                    </Link>
-                  </DropdownMenuItem>
-
-                  <DropdownMenuSeparator className="my-2 bg-emerald-100" />
-
-                  {/* Logout */}
-                  <DropdownMenuItem
-                    className="flex items-center px-3 py-2 rounded-lg text-red-400 hover:bg-red-50 focus:text-red-600 cursor-pointer transition-colors"
-                    onClick={handleSignOut}
-                  >
-                    <LogOut className="mr-2 h-4 w-4 text-red-400" />
-                    <span className="text-sm">Sign Out</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : (
-              <Link href="/auth/signin">
-                <Button
-                  variant="ghost"
-                  className="text-white hover:text-emerald-400 cursor-pointer"
-                >
-                  <User className="h-5 w-5 mr-2" />
-                  Sign In
-                </Button>
-              </Link>
-            )}
-            {session?.user.role !== "veterinarian" && (
-              <div className="hidden 2xl:block">
-                <TalkToVetButton />
-              </div>
-            )}
-          </div>
         </div>
       </nav>
     </header>

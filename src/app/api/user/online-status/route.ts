@@ -11,22 +11,22 @@ const statusSchema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions as any);
+    const session = await getServerSession(authOptions);
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     await connectToDatabase();
-    
+
     const body = await req.json();
     const { isOnline } = statusSchema.parse(body);
-    
+
     // Update user's online status
-    await UserModel.findByIdAndUpdate(session.user.id, { 
+    await UserModel.findByIdAndUpdate(session.user.id, {
       isOnline,
-      ...(isOnline ? { lastLogin: new Date() } : {})
+      ...(isOnline ? { lastLogin: new Date() } : {}),
     });
-    
+
     return NextResponse.json({
       success: true,
       message: `User status updated to ${isOnline ? "online" : "offline"}`,

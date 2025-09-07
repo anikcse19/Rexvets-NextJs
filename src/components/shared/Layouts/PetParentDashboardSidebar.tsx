@@ -68,12 +68,15 @@ export default function Sidebar({ onClose }: SidebarProps) {
       {/* Bottom Menu Items */}
       <div className="p-4 border-t border-slate-600 space-y-2">
         {bottomMenuItems.map((item) => (
-          <MenuItem
+          <Button
             key={item.id}
-            item={item}
-            isActive={pathname === item.href}
-            onClick={onClose}
-          />
+            variant="ghost"
+            className="w-full justify-start gap-3 text-white cursor-pointer transition-colors duration-200 hover:text-white hover:bg-[#6e6cb1]"
+            onClick={handleSignOut}
+          >
+            <item.icon className="w-10 h-10 flex-shrink-0" />
+            <span className="truncate text-base">{item.label}</span>
+          </Button>
         ))}
       </div>
     </aside>

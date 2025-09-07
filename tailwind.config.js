@@ -6,7 +6,13 @@ module.exports = {
     "./src/app/**/*.{js,ts,jsx,tsx}", // App Router inside src
   ],
   theme: {
-    extend: {},
+    extend: {
+      animation: {
+        "spin-slow": "spin 3s linear infinite",
+        "spin-slower": "spin 5s linear infinite",
+        "spin-slowest": "spin 8s linear infinite",
+      },
+    },
   },
   plugins: [],
 };

@@ -242,14 +242,14 @@ export default function DonationComponent({
   };
 
   return (
-    <div className=" bg-transparent   h-auto flex items-center justify-center w-full p-2">
+    <div className="bg-transparent  h-auto flex items-center justify-center w-full p-2">
       <div className="relative z-10 w-full  ">
         {/* Main Card */}
         <div className="bg-white bg-opacity-95 backdrop-blur-lg rounded-2xl shadow-2xl overflow-hidden">
           {/* Card Header */}
           <div className="bg-blue-900 text-white p-6 items-center justify-center flex flex-col">
             <h2 className="text-2xl font-bold ">Registered Donation</h2>
-            <p className="text-blue-100">
+            <p className="text-blue-100 text-center">
               Your generous contribution helps us provide essential veterinary
               care to pets in need.
             </p>

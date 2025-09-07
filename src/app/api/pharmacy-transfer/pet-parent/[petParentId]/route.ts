@@ -5,12 +5,12 @@ import "@/models/Appointment";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { petParentId: string } }
+  { params }: { params: Promise<{ petParentId: string }> }
 ) {
   await connectToDatabase();
 
   try {
-    const { petParentId } = params;
+    const { petParentId } = await params;
 
     if (!petParentId) {
       return NextResponse.json(
