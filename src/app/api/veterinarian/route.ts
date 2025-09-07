@@ -130,7 +130,7 @@ export async function GET(req: NextRequest) {
       .lean();
 
     // Build a map of veterinarianId -> user timezone from User model
-    const veterinarianIds = veterinarians.map((v) => (v._id as any));
+    const veterinarianIds = veterinarians.map((v) => v._id as any);
     const usersForVets = await User.find(
       { veterinarianRef: { $in: veterinarianIds } },
       { timezone: 1, veterinarianRef: 1 }
@@ -138,17 +138,22 @@ export async function GET(req: NextRequest) {
     const vetIdToUserTimezone = new Map<string, string>();
     usersForVets.forEach((u: any) => {
       if (u?.veterinarianRef) {
-        vetIdToUserTimezone.set((u.veterinarianRef as any).toString(), u.timezone || "");
+        vetIdToUserTimezone.set(
+          (u.veterinarianRef as any).toString(),
+          u.timezone || ""
+        );
       }
     });
-
+    console.log("vetIdToUserTimezone", vetIdToUserTimezone);
     // For each veterinarian, get their next 2 available slots using the working utility
     const veterinariansWithSlots = await Promise.all(
       veterinarians.map(async (vet) => {
         try {
           const vetNoticePeriod = vet.noticePeriod || 30; // Default to 30 minutes
-          const perVetTimezone = vetIdToUserTimezone.get((vet._id as any).toString()) || userTimezone;
-
+          const perVetTimezone =
+            vetIdToUserTimezone.get((vet._id as any).toString()) ||
+            userTimezone;
+          console.log("perVetTimezone", perVetTimezone);
           // Get slots for the next 7 days to ensure we have enough slots
           const startDate = now.clone().startOf("day").toDate();
           const endDate = now.clone().add(7, "days").endOf("day").toDate();
@@ -197,39 +202,39 @@ export async function GET(req: NextRequest) {
     // Get total count for pagination
     const total = await VeterinarianModel.countDocuments(filter);
 
-    // Debug logging
-    console.log("User timezone:", userTimezone);
-    console.log("Current time in user timezone:", currentTime);
-    console.log("Today start in user timezone:", todayStart.format());
-    console.log("Filter applied:", JSON.stringify(filter, null, 2));
-    console.log("Total veterinarians found:", total);
-    console.log("Items returned:", items.length);
+    // // Debug logging
+    // console.log("User timezone:", userTimezone);
+    // console.log("Current time in user timezone:", currentTime);
+    // console.log("Today start in user timezone:", todayStart.format());
+    // console.log("Filter applied:", JSON.stringify(filter, null, 2));
+    // console.log("Total veterinarians found:", total);
+    // console.log("Items returned:", items.length);
 
     // Log notice period filtering results
-    items.forEach((vet: any, index) => {
-      console.log(
-        `Vet ${index + 1} (${vet.name}): noticePeriod=${
-          vet.noticePeriod
-        }min, available slots=${vet.nextAvailableSlots?.length || 0}`
-      );
-      if (vet.nextAvailableSlots?.length > 0) {
-        vet.nextAvailableSlots.forEach((slot: any, slotIndex: number) => {
-          console.log(
-            `  Slot ${slotIndex + 1}: ${slot.date} ${
-              slot.startTime
-            } (${slot.minutesFromNow?.toFixed(1)}min from now)`
-          );
-        });
-      }
-    });
+    // items.forEach((vet: any, index) => {
+    //   console.log(
+    //     `Vet ${index + 1} (${vet.name}): noticePeriod=${
+    //       vet.noticePeriod
+    //     }min, available slots=${vet.nextAvailableSlots?.length || 0}`
+    //   );
+    //   if (vet.nextAvailableSlots?.length > 0) {
+    //     vet.nextAvailableSlots.forEach((slot: any, slotIndex: number) => {
+    //       console.log(
+    //         `  Slot ${slotIndex + 1}: ${slot.date} ${
+    //           slot.startTime
+    //         } (${slot.minutesFromNow?.toFixed(1)}min from now)`
+    //       );
+    //     });
+    //   }
+    // });
 
     // Check total count without filters
     const totalWithoutFilters = await VeterinarianModel.countDocuments({});
-    console.log(
-      "Total veterinarians in database (no filters):",
-      totalWithoutFilters
-    );
-    console.log("items", items);
+    // console.log(
+    //   "Total veterinarians in database (no filters):",
+    //   totalWithoutFilters
+    // );
+    // console.log("items", items);
     // Return veterinarians with their next two available appointment slots
     // Each veterinarian object now includes a 'nextAvailableSlots' array
     // containing up to 2 available slots with date, startTime, endTime, timezone, status, and notes
