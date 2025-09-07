@@ -444,7 +444,8 @@ export async function POST(request: NextRequest) {
         await sendEmailVerification(
           basicInfo.email,
           verificationToken,
-          veterinarian.name
+          veterinarian.name,
+          true
         );
         console.log(
           "Email verification sent successfully to:",

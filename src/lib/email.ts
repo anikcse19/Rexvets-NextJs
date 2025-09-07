@@ -145,7 +145,7 @@ const createEmailVerificationTemplate = (
             </div>
             
             <div class="footer">
-                <p>© 2024 RexVet. All rights reserved.</p>
+                <p>© 2025 RexVet. All rights reserved.</p>
                 <div style="background-color: #002366; padding: 10px; text-align: center; margin-top: 20px;">
                     <img src="https://res.cloudinary.com/di6zff0rd/image/upload/v1747926532/Logo_debjuj.png" alt="Rex Vet Logo" width="150" style="display: block; margin: 0 auto;" />
                 </div>
@@ -279,7 +279,8 @@ const createPasswordResetTemplate = (name: string, resetUrl: string) => {
 export async function sendEmailVerification(
   email: string,
   token: string,
-  name: string
+  name: string,
+  isDoctor: boolean = false
 ): Promise<void> {
   try {
     // Check if email service is configured
@@ -295,7 +296,8 @@ export async function sendEmailVerification(
 
     const transporter = createTransporter();
     const verificationUrl = `${process.env.NEXTAUTH_URL}/auth/verify-email?token=${token}`;
-    const htmlContent = createEmailVerificationTemplate(name, verificationUrl);
+    const displayName = isDoctor ? `Dr. ${name}` : name;
+    const htmlContent = createEmailVerificationTemplate(displayName, verificationUrl);
 
     const mailOptions = {
       from: `"RexVet" <${process.env.EMAIL_USER}>`,
