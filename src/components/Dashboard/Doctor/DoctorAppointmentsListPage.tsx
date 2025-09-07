@@ -17,8 +17,23 @@ import { useVeterinarian } from "@/hooks/useVeterinarian";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useSession } from "next-auth/react";
 import { getVeterinarianAppointments } from "./Service/get-all-appointments";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type AppointmentCategory = "upcoming" | "past" | "actionNeeded";
+
+function AppointmentCardSkeleton() {
+  return (
+    <Card className="p-4 space-y-4">
+      <Skeleton className="h-4 w-2/3" />
+      <Skeleton className="h-3 w-1/3" />
+      <Skeleton className="h-24 w-full rounded-lg" />
+      <div className="flex justify-between">
+        <Skeleton className="h-8 w-20 rounded-md" />
+        <Skeleton className="h-8 w-20 rounded-md" />
+      </div>
+    </Card>
+  );
+}
 
 export default function AppointmentsPage() {
   const [activeTab, setActiveTab] = useState("upcoming");
@@ -103,18 +118,6 @@ export default function AppointmentsPage() {
       return matchesSearch && matchesDate;
     });
   };
-
-  // Show loading state while fetching veterinarian data or appointments
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-          <p className="text-gray-600">Loading appointments...</p>
-        </div>
-      </div>
-    );
-  }
 
   // Show error state
   if (error) {
@@ -268,7 +271,11 @@ export default function AppointmentsPage() {
             return (
               <TabsContent key={tabKey} value={tabKey} className="mt-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {filtered.length === 0 ? (
+                  {isLoading ? (
+                    Array.from({ length: 3 }).map((_, i) => (
+                      <AppointmentCardSkeleton key={i} />
+                    ))
+                  ) : filtered.length === 0 ? (
                     <div className="col-span-full">
                       <Card className="p-8 text-center">
                         <p className="text-gray-500">

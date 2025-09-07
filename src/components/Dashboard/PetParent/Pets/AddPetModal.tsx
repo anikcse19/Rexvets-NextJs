@@ -545,7 +545,7 @@ export default function AddPetModal({
           </div>
 
           {/* Medical Information */}
-          <div className="space-y-6">
+          <div className="space-y-6 hidden">
             <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
               <Shield className="w-5 h-5 text-purple-600" />
               <h3 className="text-lg font-semibold text-gray-900">
@@ -724,7 +724,7 @@ export default function AddPetModal({
           </div>
 
           {/* Additional Information */}
-          <div className="space-y-6">
+          <div className="space-y-6 hidden">
             <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
               <Phone className="w-5 h-5 text-teal-600" />
               <h3 className="text-lg font-semibold text-gray-900">
@@ -778,12 +778,12 @@ export default function AddPetModal({
               {isSubmitting ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  Registering...
+                  Adding...
                 </>
               ) : (
                 <>
                   <Save className="w-4 h-4 mr-2" />
-                  {editingPet ? "Update Pet" : "Register Pet"}
+                  {editingPet ? "Update Pet" : "Add Pet"}
                 </>
               )}
             </Button>

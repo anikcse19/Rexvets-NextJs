@@ -12,8 +12,23 @@ import AppointmentCard from "./Appointments/AppointmentCard";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 import { getParentAppointments } from "./Service/get-all-appointments";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type AppointmentCategory = "upcoming" | "past";
+
+function AppointmentCardSkeleton() {
+  return (
+    <Card className="p-4 space-y-4">
+      <Skeleton className="h-4 w-2/3" />
+      <Skeleton className="h-3 w-1/3" />
+      <Skeleton className="h-24 w-full rounded-lg" />
+      <div className="flex justify-between">
+        <Skeleton className="h-8 w-20 rounded-md" />
+        <Skeleton className="h-8 w-20 rounded-md" />
+      </div>
+    </Card>
+  );
+}
 
 export default function PetParentAppointmentsListPage() {
   const [activeTab, setActiveTab] = useState("upcoming");
@@ -25,6 +40,8 @@ export default function PetParentAppointmentsListPage() {
     upcoming: [],
     past: [],
   });
+  const [loading, setLoading] = useState(true);
+
   const { data: session } = useSession();
 
   const parentId = session?.user?.refId as string;
@@ -34,6 +51,7 @@ export default function PetParentAppointmentsListPage() {
   const fetchAppointments = async () => {
     if (!parentId) return;
     try {
+      setLoading(true);
       const data = await getParentAppointments(parentId);
 
       console.log("Fetched appointments:", data);
@@ -54,6 +72,8 @@ export default function PetParentAppointmentsListPage() {
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "An error occurred");
       console.error("Error fetching appointments:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -145,7 +165,7 @@ export default function PetParentAppointmentsListPage() {
               variant="secondary"
               className="bg-blue-100 text-blue-700 text-xs"
             >
-              {/* {mockAppointments.upcoming.length} */}
+              {appointmentsData.upcoming.length}
             </Badge>
           </TabsTrigger>
           <TabsTrigger
@@ -157,7 +177,7 @@ export default function PetParentAppointmentsListPage() {
               variant="secondary"
               className="bg-gray-100 text-gray-700 text-xs"
             >
-              {/* {mockAppointments.past.length} */}
+              {appointmentsData.past.length}
             </Badge>
           </TabsTrigger>
         </TabsList>
@@ -169,7 +189,11 @@ export default function PetParentAppointmentsListPage() {
           return (
             <TabsContent key={tabKey} value={tabKey} className="mt-6">
               <div className="grid grid-cols-3 gap-4">
-                {filtered.length === 0 ? (
+                {loading ? (
+                  Array.from({ length: 3 }).map((_, i) => (
+                    <AppointmentCardSkeleton key={i} />
+                  ))
+                ) : filtered.length === 0 ? (
                   <Card className="p-8 text-center">
                     <p className="text-gray-500">
                       No appointments found in this category.

@@ -1200,23 +1200,26 @@ export const mockReviews: { [doctorId: string]: Review[] } = {
 };
 
 export const donationAmounts: DonationAmount[] = [
-  { value: 25, label: "$25", description: "Feeds 2 street dogs for a week" },
+  {
+    value: 35,
+    label: "$35",
+    description: "Funds a full consultation for one pet",
+  },
+  {
+    value: 45,
+    label: "$45",
+    description: "Supports a follow-up consultation",
+  },
   {
     value: 50,
     label: "$50",
-    description: "Provides basic medical care for 1 dog",
+    description: "Helps cover care plans for chronic conditions",
   },
   {
     value: 100,
     label: "$100",
-    description: "Covers vaccination for 5 street dogs",
+    description: "Expands care access for multiple families",
   },
-  {
-    value: 200,
-    label: "$200",
-    description: "Emergency medical treatment for 1 dog",
-  },
-  { value: 500, label: "$500", description: "Sponsors a full health program" },
 ];
 export const faqData = [
   {

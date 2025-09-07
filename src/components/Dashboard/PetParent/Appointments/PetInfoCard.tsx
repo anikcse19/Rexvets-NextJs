@@ -55,7 +55,7 @@ export const PetInfoCard = ({ pet }: PetCardProps) => {
   };
 
   function getInitial(name: string | undefined | null): string {
-    if (!name || typeof name !== 'string' || name.length === 0) {
+    if (!name || typeof name !== "string" || name.length === 0) {
       return "P";
     }
     return name.charAt(0).toUpperCase();
@@ -121,7 +121,9 @@ export const PetInfoCard = ({ pet }: PetCardProps) => {
             <h3 className="text-2xl font-bold text-gray-900 mb-1">
               {pet?.name || "Pet"}
             </h3>
-            <p className="text-gray-600 mb-3">{pet?.breed || "Breed not specified"}</p>
+            <p className="text-gray-600 mb-3">
+              {pet?.breed || "Breed not specified"}
+            </p>
             <Badge className="bg-pink-100 text-pink-700 border-pink-300">
               Patient ID: {pet?._id || "N/A"}
             </Badge>
@@ -137,7 +139,13 @@ export const PetInfoCard = ({ pet }: PetCardProps) => {
             <InfoItem
               icon={<Weight className="w-4 h-4 text-green-600" />}
               label="Weight"
-              value={pet?.weight ? `${Number(pet.weight || 0).toFixed(1)} ${pet.weightUnit || 'kg'}` : "Weight not available"}
+              value={
+                pet?.weight
+                  ? `${Number(pet.weight || 0).toFixed(1)} ${
+                      pet.weightUnit || "kg"
+                    }`
+                  : "Weight not available"
+              }
             />
             <InfoItem
               icon={<Heart className="w-4 h-4 text-pink-600" />}
@@ -168,7 +176,7 @@ export const PetInfoCard = ({ pet }: PetCardProps) => {
 
           {/* Allergies */}
           {pet?.allergies?.length > 0 && (
-            <div>
+            <div className="hidden">
               <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
                 <AlertTriangle className="w-4 h-4 text-red-600" />
                 Allergies
@@ -188,7 +196,7 @@ export const PetInfoCard = ({ pet }: PetCardProps) => {
 
           {/* Current Medications */}
           {pet?.currentMedications?.length > 0 && (
-            <div>
+            <div className="hidden">
               <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
                 <Pill className="w-4 h-4 text-orange-600" />
                 Current Medications
@@ -237,7 +245,7 @@ export const PetInfoCard = ({ pet }: PetCardProps) => {
           </div> */}
 
           {/* Last Visit */}
-          <div className="p-4 bg-gradient-to-r from-gray-50 to-slate-50 rounded-xl border border-gray-200">
+          <div className="p-4 bg-gradient-to-r from-gray-50 to-slate-50 rounded-xl border border-gray-200 hidden">
             <div className="flex items-center gap-3">
               <div className="bg-gray-500 text-white p-2 rounded-lg">
                 <Calendar className="w-4 h-4" />

@@ -32,6 +32,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface AppointmentData {
   _id: string;
@@ -152,17 +153,6 @@ export default function AppointmentDetailsPage() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading appointment details...</p>
-        </div>
-      </div>
-    );
-  }
-
   if (error || !appointment) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -181,179 +171,218 @@ export default function AppointmentDetailsPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+
+      {loading ? (
         <div className="flex items-center gap-4">
-          <Link href="/dashboard/doctor/appointments">
-            <Button
-              variant="outline"
-              size="sm"
-              className="border-gray-300 hover:bg-gray-50 cursor-pointer"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-            </Button>
-          </Link>
+          <Skeleton className="h-10 w-10 rounded-md" />
           <div>
-            <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">
-              Appointment Details
-            </h1>
-            <p className="text-gray-600 mt-1">
-              {formatDate(appointment.appointmentDate)} at{" "}
-              {formatTime(appointment.appointmentDate)}
-            </p>
+            <Skeleton className="h-6 w-40 mb-2" />
+            <Skeleton className="h-4 w-60" />
           </div>
         </div>
-
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2">
-            <label htmlFor="status" className="font-semibold">
-              Update Status:
-            </label>
-
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <div
-                  className={`flex items-center gap-2 px-4 py-2 rounded-md  text-sm font-semibold cursor-pointer ${getStatusColor(
-                    appointment.status
-                  )}`}
-                >
-                  <button className="bg-transparent">
-                    {appointment.status.charAt(0).toUpperCase() +
-                      appointment.status.slice(1)}
-                  </button>
-                  <ChevronDown />
-                </div>
-              </DropdownMenuTrigger>
-
-              <DropdownMenuContent>
-                <DropdownMenuItem onClick={() => updateStatus("upcoming")}>
-                  Upcoming
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => updateStatus("cancelled")}>
-                  Cancelled
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => updateStatus("completed")}>
-                  Completed
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+      ) : (
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <Link href="/dashboard/doctor/appointments">
+              <Button
+                variant="outline"
+                size="sm"
+                className="border-gray-300 hover:bg-gray-50 cursor-pointer"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+              </Button>
+            </Link>
+            <div>
+              <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">
+                Appointment Details
+              </h1>
+              <p className="text-gray-600 mt-1">
+                {formatDate(appointment.appointmentDate)} at{" "}
+                {formatTime(appointment.appointmentDate)}
+              </p>
+            </div>
           </div>
 
-          {/* <Badge
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <label htmlFor="status" className="font-semibold">
+                Update Status:
+              </label>
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <div
+                    className={`flex items-center gap-2 px-4 py-2 rounded-md  text-sm font-semibold cursor-pointer ${getStatusColor(
+                      appointment.status
+                    )}`}
+                  >
+                    <button className="bg-transparent">
+                      {appointment.status.charAt(0).toUpperCase() +
+                        appointment.status.slice(1)}
+                    </button>
+                    <ChevronDown />
+                  </div>
+                </DropdownMenuTrigger>
+
+                <DropdownMenuContent>
+                  <DropdownMenuItem onClick={() => updateStatus("upcoming")}>
+                    Upcoming
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => updateStatus("cancelled")}>
+                    Cancelled
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => updateStatus("completed")}>
+                    Completed
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+
+            {/* <Badge
             className={`${getStatusColor(
               appointment.status
             )} px-4 py-2 text-sm font-semibold`}
           >
             {appointment.status.replace("-", " ").toUpperCase()}
           </Badge> */}
-          {appointment.status === "upcoming" && appointment.meetingLink && (
-            <Button
-              onClick={handleJoinMeeting}
-              className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
-            >
-              <Video className="w-4 h-4 mr-2" />
-              Join Meeting
-            </Button>
-          )}
+            {appointment.status === "upcoming" && appointment.meetingLink && (
+              <Button
+                onClick={handleJoinMeeting}
+                className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
+              >
+                <Video className="w-4 h-4 mr-2" />
+                Join Meeting
+              </Button>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Appointment Overview Card */}
-      <Card className="shadow-lg border-0 bg-gradient-to-br from-blue-50 to-indigo-50 overflow-hidden">
-        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-6 text-white">
-          <div className="flex items-center gap-4">
-            <div className="bg-white/20 p-3 rounded-xl">
-              <Stethoscope className="w-6 h-6" />
-            </div>
-            <div>
-              <h2 className="text-xl font-bold">
-                {appointment.appointmentType}
-              </h2>
-              <p className="text-blue-100">Appointment Overview</p>
-            </div>
-          </div>
-        </div>
 
-        <CardContent className="p-6">
+      {loading ? (
+        <Card className="p-6 space-y-4">
+          <Skeleton className="h-6 w-40" />
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="flex items-center gap-3">
-              <div className="bg-blue-500 text-white p-2 rounded-lg">
-                <Calendar className="w-5 h-5" />
+            <Skeleton className="h-16 w-full" />
+            <Skeleton className="h-16 w-full" />
+            <Skeleton className="h-16 w-full" />
+          </div>
+        </Card>
+      ) : (
+        <Card className="shadow-lg border-0 bg-gradient-to-br from-blue-50 to-indigo-50 overflow-hidden">
+          <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-6 text-white">
+            <div className="flex items-center gap-4">
+              <div className="bg-white/20 p-3 rounded-xl">
+                <Stethoscope className="w-6 h-6" />
               </div>
               <div>
-                <p className="font-semibold text-gray-900">Date</p>
-                <p className="text-gray-600">
-                  {formatDate(appointment.appointmentDate)}
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <div className="bg-purple-500 text-white p-2 rounded-lg">
-                <Clock className="w-5 h-5" />
-              </div>
-              <div>
-                <p className="font-semibold text-gray-900">Time</p>
-                <p className="text-gray-600">
-                  {formatTime(appointment.appointmentDate)} (
-                  {appointment.durationMinutes} min)
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <div className="bg-green-500 text-white p-2 rounded-lg">
-                <FileText className="w-5 h-5" />
-              </div>
-              <div>
-                <p className="font-semibold text-gray-900">Service</p>
-                <p className="text-gray-600">{appointment.appointmentType}</p>
+                <h2 className="text-xl font-bold">
+                  {appointment.appointmentType}
+                </h2>
+                <p className="text-blue-100">Appointment Overview</p>
               </div>
             </div>
           </div>
-        </CardContent>
-      </Card>
+
+          <CardContent className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="flex items-center gap-3">
+                <div className="bg-blue-500 text-white p-2 rounded-lg">
+                  <Calendar className="w-5 h-5" />
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-900">Date</p>
+                  <p className="text-gray-600">
+                    {formatDate(appointment.appointmentDate)}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <div className="bg-purple-500 text-white p-2 rounded-lg">
+                  <Clock className="w-5 h-5" />
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-900">Time</p>
+                  <p className="text-gray-600">
+                    {formatTime(appointment.appointmentDate)} (
+                    {appointment.durationMinutes} min)
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <div className="bg-green-500 text-white p-2 rounded-lg">
+                  <FileText className="w-5 h-5" />
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-900">Service</p>
+                  <p className="text-gray-600">{appointment.appointmentType}</p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        {/* Left Column - Pet & Parent Info */}
-        <div className="xl:col-span-1 space-y-6">
-          {/* <PetInfoCard pet={appointment?.pet} /> */}
-          {appointment?.petParent && (
-            <ParentInfoCard parent={appointment.petParent} />
-          )}
-        </div>
-
-        {/* Middle Column - Data Assessment & Prescription */}
-        <div className="xl:col-span-1 space-y-6">
-          {appointment && (
-            <>
-              <DataAssessmentSection
-                appointmentId={appointment._id}
-                onOpenModal={() => setIsDataModalOpen(true)}
-                setCurrentAssessment={setCurrentAssessment}
-              />
-              <PrescriptionSection
-                appointmentId={appointment?._id}
-                onOpenModal={() => setIsPrescriptionModalOpen(true)}
-              />
-            </>
-          )}
-        </div>
-
-        {/* Right Column - Chat */}
-        <div className="xl:col-span-1">
-          {appointment?._id && appointment?.petParent ? (
-            <ChatBox
-              appointmentId={appointment._id}
-              parentName={appointment.petParent.name || "Pet Parent"}
-              parentImage={appointment.petParent.profileImage || ""}
-            />
-          ) : (
-            <div className="text-center p-4 text-gray-500">
-              Chat not available
+        {loading ? (
+          <>
+            <Card className="p-6 space-y-4">
+              <Skeleton className="h-24 w-full" />
+            </Card>
+            <Card className="p-6 space-y-4">
+              <Skeleton className="h-24 w-full" />
+            </Card>
+            <Card className="p-6 space-y-4">
+              <Skeleton className="h-48 w-full" />
+            </Card>
+          </>
+        ) : (
+          <>
+            {/* Left Column - Pet & Parent Info */}
+            <div className="xl:col-span-1 space-y-6">
+              {/* <PetInfoCard pet={appointment?.pet} /> */}
+              {appointment?.petParent && (
+                <ParentInfoCard parent={appointment.petParent} />
+              )}
             </div>
-          )}
-        </div>
+
+            {/* Middle Column - Data Assessment & Prescription */}
+            <div className="xl:col-span-1 space-y-6">
+              {appointment && (
+                <>
+                  <DataAssessmentSection
+                    appointmentId={appointment._id}
+                    onOpenModal={() => setIsDataModalOpen(true)}
+                    setCurrentAssessment={setCurrentAssessment}
+                  />
+                  <PrescriptionSection
+                    appointmentId={appointment?._id}
+                    onOpenModal={() => setIsPrescriptionModalOpen(true)}
+                  />
+                </>
+              )}
+            </div>
+
+            {/* Right Column - Chat */}
+            <div className="xl:col-span-1">
+              {appointment?._id && appointment?.petParent ? (
+                <ChatBox
+                  appointmentId={appointment._id}
+                  parentName={appointment.petParent.name || "Pet Parent"}
+                  parentImage={appointment.petParent.profileImage || ""}
+                />
+              ) : (
+                <div className="text-center p-4 text-gray-500">
+                  Chat not available
+                </div>
+              )}
+            </div>
+          </>
+        )}
       </div>
 
       {/* Modals */}
