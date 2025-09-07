@@ -34,7 +34,7 @@ export default function LayoutController({
   return (
     <SessionProvider>
       {!hideLayout && <Header />}
-      <main className="overflow-x-hidden">{children}</main>
+      <main className="overflow-x-hidden pt-16 md:pt-20">{children}</main>
       {!hideLayout && <Footer />}
     </SessionProvider>
   );
