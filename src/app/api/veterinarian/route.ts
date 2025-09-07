@@ -1,7 +1,9 @@
 import { connectToDatabase } from "@/lib/mongoose";
 import { VeterinarianModel } from "@/models";
+import User from "@/models/User";
 import moment from "moment-timezone";
 import { NextRequest, NextResponse } from "next/server";
+import { getSlotsByNoticePeriodAndDateRangeByVetId } from "../appointments/booking/slot/slot.util";
 
 /**
  * GET /api/veterinarian
@@ -114,98 +116,125 @@ export async function GET(req: NextRequest) {
     // Build aggregation pipeline to include next two available slots
     // Get user's timezone from query params or default to UTC
     const userTimezone = searchParams.get("timezone") || "UTC";
-    
+
     // Get current time in user's timezone
     const now = moment().tz(userTimezone);
-    const todayStart = now.clone().startOf('day');
-    const currentTime = now.format('HH:mm');
-    
-    const pipeline: any[] = [
-      { $match: filter },
-      {
-        $lookup: {
-          from: "appointmentslots",
-          let: { vetId: "$_id" },
-          pipeline: [
-            {
-              $match: {
-                $expr: { $eq: ["$vetId", "$$vetId"] },
-                status: "available",
-                $or: [
-                  // Future dates
-                  { date: { $gt: todayStart.toDate() } },
-                  // Today but future time slots
-                  {
-                    $and: [
-                      { date: { $eq: todayStart.toDate() } },
-                      { startTime: { $gt: currentTime } }
-                    ]
-                  }
-                ]
-              }
-            },
-            {
-              $sort: {
-                date: 1,
-                startTime: 1
-              }
-            },
-            {
-              $limit: 2 // Get only next 2 available slots
-            },
-            {
-              $project: {
-                _id: 1,
-                date: 1,
-                startTime: 1,
-                endTime: 1,
-                timezone: 1,
-                status: 1,
-                notes: 1
-              }
-            }
-          ],
-          as: "nextAvailableSlots"
-        }
-      },
-      {
-        $addFields: {
-          // Ensure all fields are included except sensitive ones
-          nextAvailableSlots: "$nextAvailableSlots"
-        }
-      },
-      // Filter out veterinarians who have no available slots
-      {
-        $match: {
-          "nextAvailableSlots.0": { $exists: true }
-        }
-      },
-      { $sort: { createdAt: -1 } },
-      { $skip: (page - 1) * limit },
-      { $limit: limit }
-    ];
+    const todayStart = now.clone().startOf("day");
+    const currentTime = now.format("HH:mm");
 
-    // Execute aggregation pipeline
-    const [items, total] = await Promise.all([
-      VeterinarianModel.aggregate(pipeline),
-      VeterinarianModel.countDocuments(filter),
-    ]);
+    // First, get all veterinarians that match the filter
+    const veterinarians = await VeterinarianModel.find(filter)
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .lean();
 
-    // Debug logging
-    console.log("User timezone:", userTimezone);
-    console.log("Current time in user timezone:", currentTime);
-    console.log("Today start in user timezone:", todayStart.format());
-    console.log("Filter applied:", JSON.stringify(filter, null, 2));
-    console.log("Total veterinarians found:", total);
-    console.log("Items returned:", items.length);
+    // Build a map of veterinarianId -> user timezone from User model
+    const veterinarianIds = veterinarians.map((v) => v._id as any);
+    const usersForVets = await User.find(
+      { veterinarianRef: { $in: veterinarianIds } },
+      { timezone: 1, veterinarianRef: 1 }
+    ).lean();
+    const vetIdToUserTimezone = new Map<string, string>();
+    usersForVets.forEach((u: any) => {
+      if (u?.veterinarianRef) {
+        vetIdToUserTimezone.set(
+          (u.veterinarianRef as any).toString(),
+          u.timezone || ""
+        );
+      }
+    });
+    console.log("vetIdToUserTimezone", vetIdToUserTimezone);
+    // For each veterinarian, get their next 2 available slots using the working utility
+    const veterinariansWithSlots = await Promise.all(
+      veterinarians.map(async (vet) => {
+        try {
+          const vetNoticePeriod = vet.noticePeriod || 30; // Default to 30 minutes
+          const perVetTimezone =
+            vetIdToUserTimezone.get((vet._id as any).toString()) ||
+            userTimezone;
+          console.log("perVetTimezone", perVetTimezone);
+          // Get slots for the next 7 days to ensure we have enough slots
+          const startDate = now.clone().startOf("day").toDate();
+          const endDate = now.clone().add(7, "days").endOf("day").toDate();
+
+          const slots = await getSlotsByNoticePeriodAndDateRangeByVetId({
+            vetId: (vet._id as any).toString(),
+            noticePeriod: vetNoticePeriod,
+            startDate,
+            endDate,
+            timezone: perVetTimezone,
+          });
+
+          // Take only the first 2 slots
+          const nextAvailableSlots = slots.slice(0, 2);
+
+          return {
+            ...vet,
+            noticePeriod: vetNoticePeriod,
+            nextAvailableSlots,
+          };
+        } catch (error) {
+          console.error(
+            `Error getting slots for vet ${(vet as any).name}:`,
+            error
+          );
+          return {
+            ...vet,
+            noticePeriod: vet.noticePeriod || 30,
+            nextAvailableSlots: [],
+          };
+        }
+      })
+    );
+
+    // Filter out veterinarians who have no available slots
+    const veterinariansWithAvailableSlots = veterinariansWithSlots.filter(
+      (vet) => vet.nextAvailableSlots.length > 0
+    );
+
+    console.log(
+      `After slot filtering: ${veterinariansWithAvailableSlots.length} veterinarians have available slots`
+    );
+
+    const items = veterinariansWithAvailableSlots;
+
+    // Get total count for pagination
+    const total = await VeterinarianModel.countDocuments(filter);
+
+    // // Debug logging
+    // console.log("User timezone:", userTimezone);
+    // console.log("Current time in user timezone:", currentTime);
+    // console.log("Today start in user timezone:", todayStart.format());
+    // console.log("Filter applied:", JSON.stringify(filter, null, 2));
+    // console.log("Total veterinarians found:", total);
+    // console.log("Items returned:", items.length);
+
+    // Log notice period filtering results
+    // items.forEach((vet: any, index) => {
+    //   console.log(
+    //     `Vet ${index + 1} (${vet.name}): noticePeriod=${
+    //       vet.noticePeriod
+    //     }min, available slots=${vet.nextAvailableSlots?.length || 0}`
+    //   );
+    //   if (vet.nextAvailableSlots?.length > 0) {
+    //     vet.nextAvailableSlots.forEach((slot: any, slotIndex: number) => {
+    //       console.log(
+    //         `  Slot ${slotIndex + 1}: ${slot.date} ${
+    //           slot.startTime
+    //         } (${slot.minutesFromNow?.toFixed(1)}min from now)`
+    //       );
+    //     });
+    //   }
+    // });
 
     // Check total count without filters
     const totalWithoutFilters = await VeterinarianModel.countDocuments({});
-    console.log(
-      "Total veterinarians in database (no filters):",
-      totalWithoutFilters
-    );
-
+    // console.log(
+    //   "Total veterinarians in database (no filters):",
+    //   totalWithoutFilters
+    // );
+    // console.log("items", items);
     // Return veterinarians with their next two available appointment slots
     // Each veterinarian object now includes a 'nextAvailableSlots' array
     // containing up to 2 available slots with date, startTime, endTime, timezone, status, and notes

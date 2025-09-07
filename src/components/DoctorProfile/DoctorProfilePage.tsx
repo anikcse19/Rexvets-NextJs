@@ -3,9 +3,8 @@
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 
-import { IReview } from "@/models";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import DonationFormWrapper from "../Donation/DonationFormWrapper";
@@ -16,14 +15,16 @@ import DoctorHeader from "./DoctorHeader";
 import ReviewsSection from "./ReviewsSection";
 import Specialties from "./Specialties";
 import SpeciesTreated from "./SpeciesTreated";
-import { mockDoctor } from "./data";
 import { Doctor } from "./type";
 
 export default function DoctorProfilePage({
   doctorData,
+  vetTimezone,
 }: {
   doctorData: Doctor;
+  vetTimezone: string;
 }) {
+  console.log("doctorData", doctorData);
   const searchParams = useSearchParams();
   const slotDate = searchParams.get("slotDate");
   const slotId = searchParams.get("slotId");
@@ -96,6 +97,7 @@ export default function DoctorProfilePage({
             {/* Booking */}
             <div className="xl:col-span-1">
               <BookingCard
+                vetTimezone={vetTimezone}
                 selectedSlotDate={slotDate}
                 selectedSlotId={slotId}
                 doctorName={doctorData?.name}

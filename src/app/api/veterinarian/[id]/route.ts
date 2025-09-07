@@ -1,6 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/mongoose";
 import { VeterinarianModel } from "@/models";
+import User from "@/models/User";
+import { NextRequest, NextResponse } from "next/server";
 
 /**
  * GET /api/veterinarian/[id]
@@ -49,12 +50,23 @@ export async function GET(
         { status: 404 }
       );
     }
-
+    const vetTimezone=await User.findOne({
+      veterinarianRef:id
+    }).select("timezone")
+    if(!vetTimezone){
+      return NextResponse.json({
+        success: false,
+        message: "Veterinarian timezone not found",
+        errorCode: "VETERINARIAN_TIMEZONE_NOT_FOUND",
+        errors: null,
+      }, { status: 404 });
+    }
     return NextResponse.json({
       success: true,
       message: "Veterinarian retrieved successfully",
       data: {
         veterinarian,
+        timezone:vetTimezone.timezone
       },
     });
   } catch (error: any) {

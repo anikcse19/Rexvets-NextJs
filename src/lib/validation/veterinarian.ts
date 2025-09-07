@@ -92,17 +92,10 @@ export const basicInfoSchema = z
       .min(2, "State must be at least 2 characters")
       .max(100, "State cannot exceed 100 characters"),
 
-    countryCode: z
-      .string()
-      .min(2, "Country code is required")
-      .max(3, "Country code cannot exceed 3 characters"),
-
     phone: z
       .string()
       .min(10, "Phone number must be at least 10 digits")
-      .max(15, "Phone number cannot exceed 15 digits")
-      .regex(/^[\+]?[1-9][\d]{0,15}$/, "Invalid phone number format"),
-
+      .max(20, "Phone number cannot exceed 15 digits"),
     password: z
       .string()
       .min(8, "Password must be at least 8 characters")
@@ -117,7 +110,6 @@ export const basicInfoSchema = z
     dob: z.coerce.date().optional(),
     address: z.string().min(1).max(200).optional(),
     zipCode: z.number().min(0).optional(),
-    country: z.string().min(2).max(100).optional(),
     yearsOfExperience: z.string().optional(),
     noticePeriod: z.number().min(0).optional(),
     clinic: z
