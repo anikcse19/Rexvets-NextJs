@@ -10,6 +10,7 @@ import { usePathname } from "next/navigation";
 import { X } from "lucide-react";
 import { bottomMenuItems, menuItemsDoctor } from "@/lib";
 import { MenuItems } from "@/lib/types";
+import { signOut } from "next-auth/react";
 
 interface SidebarProps {
   onClose?: () => void;
@@ -17,6 +18,13 @@ interface SidebarProps {
 
 export default function Sidebar({ onClose }: SidebarProps) {
   const pathname = usePathname();
+
+  const handleSignOut = async () => {
+    console.log("clicked on signout");
+
+    await signOut({ callbackUrl: "/" });
+    // onClose && onClose();
+  };
 
   return (
     <aside className="w-64 h-full border-r border-slate-600 flex flex-col bg-[#1C1B36] shadow-xl lg:shadow-none">
@@ -60,12 +68,15 @@ export default function Sidebar({ onClose }: SidebarProps) {
       {/* Bottom Menu Items */}
       <div className="p-4 border-t border-slate-600 space-y-2">
         {bottomMenuItems.map((item) => (
-          <MenuItem
+          <Button
             key={item.id}
-            item={item}
-            isActive={pathname === item.href}
-            onClick={onClose}
-          />
+            variant="ghost"
+            className="w-full justify-start gap-3 text-white cursor-pointer transition-colors duration-200 hover:text-white hover:bg-[#6e6cb1]"
+            onClick={handleSignOut}
+          >
+            <item.icon className="w-10 h-10 flex-shrink-0" />
+            <span className="truncate text-base">{item.label}</span>
+          </Button>
         ))}
       </div>
     </aside>
