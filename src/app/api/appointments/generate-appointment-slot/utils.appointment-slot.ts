@@ -228,7 +228,7 @@ export const updateAppointmentSlots = async (data: IUpdateAppointmentSlots) => {
       slotPeriods,
       dateRange,
       timezone,
-      bufferBetweenSlots = 5,
+      bufferBetweenSlots = 0,
       slotDuration = 30,
     } = data;
 
@@ -272,12 +272,15 @@ export const updateAppointmentSlots = async (data: IUpdateAppointmentSlots) => {
       timezone: timezone,
     });
 
-    // Separate booked and available slots
+    // Separate slots by status for smart handling
     const bookedSlots = existingSlots.filter(
-      (slot) => slot.status !== SlotStatus.AVAILABLE
+      (slot) => slot.status === SlotStatus.BOOKED
     );
     const availableSlots = existingSlots.filter(
       (slot) => slot.status === SlotStatus.AVAILABLE
+    );
+    const disabledSlots = existingSlots.filter(
+      (slot) => slot.status === SlotStatus.DISABLED
     );
 
     // Calculate number of days in the range
@@ -290,6 +293,11 @@ export const updateAppointmentSlots = async (data: IUpdateAppointmentSlots) => {
     for (let day = 0; day < numberOfDays; day++) {
       const currentDate = startDate.clone().add(day, "days");
       const localDate = currentDate.toDate();
+
+      // Get booked slots for this specific day to avoid conflicts
+      const dayBookedSlots = bookedSlots.filter(slot => 
+        moment(slot.date).isSame(currentDate, 'day')
+      );
 
       // Process each slot period for this day
       for (const period of slotPeriods) {
@@ -317,18 +325,29 @@ export const updateAppointmentSlots = async (data: IUpdateAppointmentSlots) => {
             break;
           }
 
-          // Create slot data
-          const slotData = {
-            vetId: new Types.ObjectId(vetId),
-            date: localDate, // Store as local date without timezone
-            startTime: currentSlotStart, // Store as HH:mm in appointment timezone
-            endTime: currentSlotEnd, // Store as HH:mm in appointment timezone
-            timezone: timezone, // Store the timezone identifier
-            status: SlotStatus.AVAILABLE,
-            createdAt: new Date(),
-          };
+          // Check if this slot conflicts with any booked slots
+          const hasConflict = dayBookedSlots.some(bookedSlot => {
+            const bookedStart = moment(`2000-01-01 ${bookedSlot.startTime}`, "YYYY-MM-DD HH:mm");
+            const bookedEnd = moment(`2000-01-01 ${bookedSlot.endTime}`, "YYYY-MM-DD HH:mm");
+            
+            // Check for overlap: new slot overlaps with booked slot
+            return (slotStartMoment.isBefore(bookedEnd) && slotEndMoment.isAfter(bookedStart));
+          });
 
-          newAvailableSlots.push(slotData);
+          // Only create slot if it doesn't conflict with booked slots
+          if (!hasConflict) {
+            const slotData = {
+              vetId: new Types.ObjectId(vetId),
+              date: localDate, // Store as local date without timezone
+              startTime: currentSlotStart, // Store as HH:mm in appointment timezone
+              endTime: currentSlotEnd, // Store as HH:mm in appointment timezone
+              timezone: timezone, // Store the timezone identifier
+              status: SlotStatus.AVAILABLE,
+              createdAt: new Date(),
+            };
+
+            newAvailableSlots.push(slotData);
+          }
 
           // Move to next slot, considering buffer time
           const nextSlotStartMoment = slotEndMoment
@@ -349,11 +368,13 @@ export const updateAppointmentSlots = async (data: IUpdateAppointmentSlots) => {
     session.startTransaction();
 
     try {
-      // Delete only the available slots (keep booked slots)
-      if (availableSlots.length > 0) {
+      // Industry Standard: Only delete available and disabled slots, preserve booked slots
+      const slotsToDelete = [...availableSlots, ...disabledSlots];
+      
+      if (slotsToDelete.length > 0) {
         await AppointmentSlot.deleteMany(
           {
-            _id: { $in: availableSlots.map((slot) => slot._id) },
+            _id: { $in: slotsToDelete.map((slot) => slot._id) },
           },
           { session }
         );
@@ -375,13 +396,30 @@ export const updateAppointmentSlots = async (data: IUpdateAppointmentSlots) => {
 
       return {
         success: true,
-        message: `Updated appointment slots for vet ${vetId} between ${startDate.format(
+        message: `Smart update completed for vet ${vetId} between ${startDate.format(
           "YYYY-MM-DD"
         )} and ${endDate.format("YYYY-MM-DD")} in timezone ${timezone}`,
-        preservedBookedSlots: bookedSlots.length,
-        deletedAvailableSlots: availableSlots.length,
-        createdSlotsCount: createdSlotsCount,
-        totalSlots: bookedSlots.length + createdSlotsCount,
+        summary: {
+          preservedBookedSlots: bookedSlots.length,
+          deletedAvailableSlots: availableSlots.length,
+          deletedDisabledSlots: disabledSlots.length,
+          createdNewSlots: createdSlotsCount,
+          totalSlotsAfterUpdate: bookedSlots.length + createdSlotsCount,
+        },
+        details: {
+          bookedSlotsPreserved: bookedSlots.length > 0 ? 
+            `✅ Preserved ${bookedSlots.length} booked appointment(s) - no disruption to existing bookings` : 
+            "ℹ️ No booked slots to preserve",
+          availableSlotsReplaced: availableSlots.length > 0 ? 
+            `🔄 Replaced ${availableSlots.length} available slot(s) with new schedule` : 
+            "ℹ️ No existing available slots to replace",
+          newSlotsCreated: createdSlotsCount > 0 ? 
+            `✨ Created ${createdSlotsCount} new available slot(s)` : 
+            "ℹ️ No new slots created (may be due to conflicts with booked slots)",
+          conflictAvoidance: bookedSlots.length > 0 ? 
+            "🛡️ Smart conflict detection prevented overlap with booked appointments" : 
+            "ℹ️ No conflicts to avoid",
+        },
         dateRange: {
           start: startDate.toDate(),
           end: endDate.toDate(),

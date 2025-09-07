@@ -32,6 +32,7 @@ const createTransporter = () => {
   return nodemailer.createTransport(emailConfig);
 };
 
+
 // Email templates
 const createEmailVerificationTemplate = (
   name: string,
@@ -139,11 +140,15 @@ const createEmailVerificationTemplate = (
                 
                 <p>If the button above doesn't work, you can copy and paste this link into your browser:</p>
                 <p style="word-break: break-all; color: #666; font-size: 14px;">${verificationUrl}</p>
+                
+                <p>If you didn't create an account with RexVet, you can safely ignore this email.</p>
             </div>
             
             <div class="footer">
-                <p>If you didn't create an account with RexVet, you can safely ignore this email.</p>
                 <p>© 2024 RexVet. All rights reserved.</p>
+                <div style="background-color: #002366; padding: 10px; text-align: center; margin-top: 20px;">
+                    <img src="https://res.cloudinary.com/di6zff0rd/image/upload/v1747926532/Logo_debjuj.png" alt="Rex Vet Logo" width="150" style="display: block; margin: 0 auto;" />
+                </div>
             </div>
         </div>
     </body>
@@ -260,6 +265,9 @@ const createPasswordResetTemplate = (name: string, resetUrl: string) => {
             
             <div class="footer">
                 <p>© 2024 RexVet. All rights reserved.</p>
+                <div style="background-color: #002366; padding: 10px; text-align: center; margin-top: 20px;">
+                    <img src="https://res.cloudinary.com/di6zff0rd/image/upload/v1747926532/Logo_debjuj.png" alt="Rex Vet Logo" width="150" style="display: block; margin: 0 auto;" />
+                </div>
             </div>
         </div>
     </body>
@@ -684,20 +692,31 @@ export async function sendWelcomeEmail(
   name: string
 ): Promise<void> {
   try {
+    console.log("[WELCOME] Attempting to send welcome email to:", email);
+    
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
       console.log("[WELCOME] Dev mode. Would send to:", email);
+      console.log("[WELCOME] EMAIL_USER:", process.env.EMAIL_USER ? "SET" : "NOT SET");
+      console.log("[WELCOME] EMAIL_PASS:", process.env.EMAIL_PASS ? "SET" : "NOT SET");
       return;
     }
+    
     const transporter = createTransporter();
     const html = welcomeEmailTemplate(name);
-    await transporter.sendMail({
+    
+    console.log("[WELCOME] Sending email with template length:", html.length);
+    
+    const mailOptions = {
       from: `"RexVet" <${process.env.EMAIL_USER}>`,
       to: email,
       subject: "Welcome to Rex Vet",
       html,
-    } as any);
+    };
+    
+    const info = await transporter.sendMail(mailOptions);
+    console.log("[WELCOME] Welcome email sent successfully:", info.messageId);
   } catch (err) {
-    console.error("Failed to send welcome email:", err);
+    console.error("[WELCOME] Failed to send welcome email:", err);
     throw err;
   }
 }

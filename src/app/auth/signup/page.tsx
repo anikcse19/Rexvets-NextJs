@@ -9,14 +9,12 @@ import { Button } from "@/components/ui/button";
 import RoleSelector from "@/components/Auth/RoleSelector";
 import VetRegistrationForm from "@/components/Auth/VetRegistrationForm";
 import PetParentForm from "@/components/Auth/PetParentsForm";
-import GoogleSignUp from "@/components/Auth/GoogleSignUp";
 import { useSearchParams } from "next/navigation";
 
 export default function SignUpPage() {
   const searchParams = useSearchParams();
   const role = searchParams.get("role") || null;
   const [selectedRole, setSelectedRole] = useState(role || null);
-  const [showGoogleSignUp, setShowGoogleSignUp] = useState(false);
 
   useEffect(() => {
     if (role) {
@@ -32,11 +30,6 @@ export default function SignUpPage() {
 
   const handleBack = () => {
     setSelectedRole(null);
-    setShowGoogleSignUp(false);
-  };
-
-  const handleGoogleSignUp = () => {
-    setShowGoogleSignUp(true);
   };
 
   return (
@@ -122,9 +115,7 @@ export default function SignUpPage() {
           </motion.div>
 
           {/* Content */}
-          {showGoogleSignUp ? (
-            <GoogleSignUp onBack={handleBack} />
-          ) : !selectedRole ? (
+          {!selectedRole ? (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}

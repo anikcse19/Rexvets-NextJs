@@ -257,7 +257,7 @@ export default function BasicInfoStep({
                   </SelectTrigger>
                   <SelectContent>
                     {COUNTRY_CODES.map((country) => (
-                      <SelectItem key={country.value} value={country.value}>
+                      <SelectItem key={`${country.value}-${country.country}`} value={country.value}>
                         {country.label}
                       </SelectItem>
                     ))}

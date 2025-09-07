@@ -118,6 +118,16 @@ export default function DateRangeCalendar({
             </Button>
           )} */}
         </div>
+        {/* Instructions for non-technical users */}
+        <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
+          <h4 className="text-sm font-semibold text-green-800 mb-2">How to select dates:</h4>
+          <div className="text-xs text-green-700 space-y-1">
+            <p>• <strong>First click:</strong> Choose your starting date (when you want to begin availability)</p>
+            <p>• <strong>Second click:</strong> Choose your ending date (when you want to stop availability)</p>
+            <p>• <strong>Clear button:</strong> Click to start over and select different dates</p>
+          </div>
+        </div>
+
         {selectedRange && (
           <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
             <div className="flex items-center justify-between">

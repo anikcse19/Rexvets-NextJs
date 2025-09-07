@@ -53,12 +53,30 @@ export async function GET(request: NextRequest) {
 
     // Send welcome email (non-blocking for user experience)
     try {
+      console.log('Starting welcome email process...');
+      console.log('User email:', user.email);
+      console.log('User name:', user.name);
+      
       if (user.email && user.name) {
+        console.log('Calling sendWelcomeEmail function...');
         await sendWelcomeEmail(user.email, user.name);
-        console.log('Welcome email dispatched to:', user.email);
+        console.log('Welcome email dispatched successfully to:', user.email);
+      } else {
+        console.log('Cannot send welcome email - missing email or name:', {
+          hasEmail: !!user.email,
+          hasName: !!user.name,
+          email: user.email,
+          name: user.name
+        });
       }
-    } catch (welcomeErr) {
+    } catch (welcomeErr: unknown) {
       console.error('Failed to send welcome email after verification:', welcomeErr);
+      console.error('Welcome email error details:', {
+        message: welcomeErr instanceof Error ? welcomeErr.message : String(welcomeErr),
+        stack: welcomeErr instanceof Error ? welcomeErr.stack : undefined,
+        userEmail: user.email,
+        userName: user.name
+      });
       // Do not fail the verification flow if email sending fails
     }
 
