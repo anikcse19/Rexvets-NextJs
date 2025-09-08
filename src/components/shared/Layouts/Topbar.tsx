@@ -276,7 +276,10 @@ TopbarProps) {
         </div>
       </div>
       <Sheet open={open} onOpenChange={setOpen}>
-        <SheetContent side="right" className="w-[400px] sm:w-[540px] flex flex-col h-full">
+        <SheetContent
+          side="right"
+          className="w-[400px] sm:w-[540px] flex flex-col h-full"
+        >
           <SheetHeader className="flex-shrink-0">
             <SheetTitle>
               {isMessages
@@ -290,11 +293,11 @@ TopbarProps) {
           <div className="mt-4 flex flex-col flex-1 min-h-0">
             {/* Message Notifications */}
             {isMessages && messageNotifications?.length > 0 && (
-              <div className="flex flex-col flex-1 min-h-0">
+              <div className="flex flex-col flex-1 min-h-0 px-3">
                 <h3 className="text-sm font-semibold text-gray-900 mb-3 border-b pb-2 flex-shrink-0">
                   Messages ({messageNotifications?.length})
                 </h3>
-                <div className="space-y-3 overflow-y-auto flex-1 pr-2 pb-8 min-h-0">
+                <div className="space-y-3 overflow-y-auto flex-1 pb-8 min-h-0">
                   {messageNotifications?.map(
                     (notification: INotification, index: number) => (
                       <SystemNotification
@@ -319,7 +322,7 @@ TopbarProps) {
             {/* Other Notifications */}
             {isNotifications && notifications?.length > 0 && (
               <div className="flex flex-col flex-1 min-h-0">
-                <div className="space-y-3 overflow-y-auto flex-1 pr-2 pb-8 min-h-0">
+                <div className="space-y-3 overflow-y-auto flex-1 pr-2 pb-8 min-h-0 p-3">
                   {notifications?.map(
                     (notification: INotification, index: number) => (
                       <SystemNotification
