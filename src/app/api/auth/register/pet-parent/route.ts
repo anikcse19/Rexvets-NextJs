@@ -30,9 +30,9 @@ const petParentRegistrationSchema = z.object({
   city: z.string().optional(),
   address: z.string().optional(),
   zipCode: z.string().optional(),
+  timezone: z.string().optional(),
   preferences: z
     .object({
-      timezone: z.string().optional(),
       language: z.string().optional(),
       notifications: z
         .object({
@@ -69,6 +69,7 @@ export async function POST(request: NextRequest) {
       city,
       address,
       zipCode,
+      timezone,
       preferences: incomingPreferences,
     } = validatedFields.data;
 
@@ -111,7 +112,7 @@ export async function POST(request: NextRequest) {
         ...(incomingPreferences?.notifications ?? {}),
       },
       language: incomingPreferences?.language ?? "en",
-      timezone: incomingPreferences?.timezone ?? "UTC",
+      timezone: timezone ?? "UTC",
     };
 
     // Create new pet parent profile (without authentication fields)
@@ -123,6 +124,7 @@ export async function POST(request: NextRequest) {
       city,
       address,
       zipCode,
+      timezone: timezone ?? "UTC",
       pets: [], // Empty array initially
       preferences: mergedPreferences,
     });
