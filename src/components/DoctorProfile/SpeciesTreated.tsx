@@ -1,5 +1,5 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Heart } from "lucide-react";
 
 export default function SpeciesTreated({ doctor }: { doctor: any }) {
@@ -13,7 +13,7 @@ export default function SpeciesTreated({ doctor }: { doctor: any }) {
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {doctor?.speciesTreated?.map((species: any, i: number) => (
+          {doctor?.treatedSpecies?.map((species: any, i: number) => (
             <div
               key={i}
               className="flex items-center justify-between p-4 bg-gradient-to-r from-pink-50 to-rose-50 rounded-xl border border-pink-200"
@@ -22,7 +22,7 @@ export default function SpeciesTreated({ doctor }: { doctor: any }) {
                 <p className="font-semibold text-pink-900">{species.name}</p>
                 <p className="text-pink-700 text-sm">{species.count} treated</p>
               </div>
-              <Badge
+              {/* <Badge
                 className={`${
                   species.experience === "Expert"
                     ? "bg-green-100 text-green-700 border-green-300"
@@ -32,7 +32,7 @@ export default function SpeciesTreated({ doctor }: { doctor: any }) {
                 }`}
               >
                 {species.experience}
-              </Badge>
+              </Badge> */}
             </div>
           ))}
         </div>

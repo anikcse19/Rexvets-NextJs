@@ -50,7 +50,6 @@ export default function BookingSystem({
   doctorName,
   doctorData,
   onConfirm,
-
   vetTimezone,
 }: BookingSystemProps) {
   const [selectedDate, setSelectedDate] = useState<string>(
@@ -121,14 +120,15 @@ export default function BookingSystem({
     const date = parseISO(selectedSlotDate ?? selectedDate);
     const userTimezone = getUserTimezone();
     const formatted = format(date, "yyyy-MM-dd");
-
+    const payload = {
+      id: doctorData._id,
+      startDate: formatted,
+      endDate: formatted,
+      timezone: vetTimezone || userTimezone,
+    };
+    console.log("payload", payload);
     try {
-      const data = await getVetSlots({
-        id: doctorData._id,
-        startDate: formatted,
-        endDate: formatted,
-        timezone: vetTimezone || userTimezone,
-      });
+      const data = await getVetSlots(payload);
 
       // Sort by startTime (assumes format 'HH:mm')
       const sorted = (data || []).slice().sort((a: any, b: any) => {
@@ -159,6 +159,7 @@ export default function BookingSystem({
       setSelectedDate(formatted);
       if (slots.length > 0) {
         const findSlot = slots.find((slot) => slot._id === selectedSlotId);
+        console.log("findSlot", findSlot);
         if (findSlot) {
           setSelectedTime(findSlot?.formattedStartTime);
           setSelectedSlot(findSlot?._id);
@@ -302,7 +303,7 @@ export default function BookingSystem({
                     <button
                       key={slot._id}
                       onClick={() => {
-                        console.log("SLOT CLICKED", slot);
+                        alert(slot._id);
                         setSelectedSlot(slot._id);
                         // alert(slot.formattedStartTime);
                         setSelectedTime(slot.startTime);

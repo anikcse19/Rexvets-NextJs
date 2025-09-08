@@ -6,8 +6,10 @@ import {
   sendResponse,
   throwAppError,
 } from "@/lib/utils/send.response";
+import PetParent from "@/models/PetParent";
 import User from "@/models/User";
-import { Types } from "mongoose";
+import Veterinarian from "@/models/Veterinarian";
+import mongoose, { Types } from "mongoose";
 import { getServerSession } from "next-auth/next";
 import { NextRequest } from "next/server";
 
@@ -18,9 +20,9 @@ export const PATCH = async (
   try {
     await connectToDatabase();
     const { id } = await params;
-    const session = await getServerSession(authOptions);
+    const authSession = await getServerSession(authOptions);
     // Check authentication
-    if (!session?.user) {
+    if (!authSession?.user) {
       const errResponse: IErrorResponse = {
         success: false,
         message: "Unauthorized access",
@@ -77,9 +79,9 @@ export const PATCH = async (
       return throwAppError(errResponse, 400);
     }
 
-    // Find current user data
+    // Find current user data with role and references
     const currentUser = await User.findById(new Types.ObjectId(id)).select(
-      "timezone"
+      "timezone role petParentRef veterinarianRef"
     );
 
     if (!currentUser) {
@@ -110,22 +112,60 @@ export const PATCH = async (
       return sendResponse(responseFormat);
     }
 
-    // Timezone is different, update the database
-    const updatedUser = await User.findByIdAndUpdate(
-      new Types.ObjectId(id),
-      { $set: { timezone: newTimezone } },
-      {
-        new: true,
-        runValidators: true,
-        select: "timezone",
-      }
-    );
-
-    if (!updatedUser) {
+    // Validate role and reference before attempting transaction
+    if (
+      (currentUser.role === "pet_parent" && !currentUser.petParentRef) ||
+      (currentUser.role === "veterinarian" && !currentUser.veterinarianRef)
+    ) {
       const errResponse: IErrorResponse = {
         success: false,
-        message: "Failed to update timezone",
-        errorCode: "UPDATE_FAILED",
+        message: "User role reference not found",
+        errorCode: "MISSING_ROLE_REFERENCE",
+        errors: null,
+      };
+      return throwAppError(errResponse, 400);
+    }
+
+    // Perform atomic updates using mongoose session
+    const dbSession = await mongoose.startSession();
+    let domainUpdateOk = false;
+    try {
+      await dbSession.withTransaction(async () => {
+        if (currentUser.role === "pet_parent" && currentUser.petParentRef) {
+          const updated = await PetParent.findByIdAndUpdate(
+            currentUser.petParentRef,
+            { $set: { timezone: newTimezone } },
+            { new: true, runValidators: true, select: "_id timezone", session: dbSession }
+          );
+          if (!updated) throw new Error("PET_PARENT_UPDATE_FAILED");
+          domainUpdateOk = true;
+        } else if (currentUser.role === "veterinarian" && currentUser.veterinarianRef) {
+          const updated = await Veterinarian.findByIdAndUpdate(
+            currentUser.veterinarianRef,
+            { $set: { timezone: newTimezone } },
+            { new: true, runValidators: true, select: "_id timezone", session: dbSession }
+          );
+          if (!updated) throw new Error("VETERINARIAN_UPDATE_FAILED");
+          domainUpdateOk = true;
+        }
+
+        // Keep User.timezone in sync
+        const u = await User.findByIdAndUpdate(
+          new Types.ObjectId(id),
+          { $set: { timezone: newTimezone } },
+          { new: false, session: dbSession }
+        );
+        if (!u) throw new Error("USER_UPDATE_FAILED");
+      });
+    } finally {
+      await dbSession.endSession();
+    }
+
+    if (!domainUpdateOk) {
+      const errResponse: IErrorResponse = {
+        success: false,
+        message: "Failed to update timezone for role entity",
+        errorCode: "ROLE_UPDATE_FAILED",
         errors: null,
       };
       return throwAppError(errResponse, 500);
@@ -135,9 +175,10 @@ export const PATCH = async (
       success: true,
       message: "Timezone updated successfully",
       data: {
-        timezone: updatedUser.timezone,
+        timezone: newTimezone,
         updated: true,
         previousTimezone: currentTimezone,
+        role: currentUser.role,
       },
     };
 
