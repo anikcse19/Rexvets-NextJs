@@ -64,57 +64,9 @@ export default function FindVetPage({
   //PUSH NOTIFICATION TESTING_______________
   const { data: session } = useSession();
   const user = session?.user;
-  const {
-    requestPermission,
-    getFcmToken,
-    saveToken,
-    token,
-    error: fcmError,
-    loading: fcmLoading,
-    isSupported,
-  } = useFCM();
+
   const tokenSavedRef = useRef(false);
 
-  useEffect(() => {
-    if (isSupported) {
-      if (process.env.NODE_ENV !== "development") {
-        requestPermission();
-        getFcmToken();
-      }
-    } else {
-      console.log("Push notifications not supported in this browser");
-    }
-  }, [isSupported, requestPermission, getFcmToken]);
-
-  useEffect(() => {
-    if (process.env.NODE_ENV !== "development") {
-      const saveTokenToDatabase = async () => {
-        if (user?.id && token && !tokenSavedRef.current) {
-          console.log("Attempting to save token to database...");
-          tokenSavedRef.current = true;
-          const success = await saveToken(user.id);
-          if (success) {
-            console.log("Token saved successfully to database");
-          } else {
-            console.error("Failed to save token to database");
-          }
-        }
-      };
-      saveTokenToDatabase();
-    }
-  }, [token, user, saveToken]);
-
-  // Debug logging
-  useEffect(() => {
-    console.log("FCM Hook State:", {
-      token: token ? "present" : "missing",
-      error: fcmError,
-      loading: fcmLoading,
-      isSupported,
-      permission:
-        typeof window !== "undefined" ? Notification.permission : "unknown",
-    });
-  }, [token, fcmError, fcmLoading, isSupported]);
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -122,12 +74,10 @@ export default function FindVetPage({
   const selectedState = searchParams.get("state") || "";
 
   // Function to fetch doctors with timezone
-  const fetchDoctorsWithTimezone = async (timezone: string) => {
+  const fetchDoctorsWithTimezone = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch(
-        `/api/veterinarian?timezone=${encodeURIComponent(timezone)}`
-      );
+      const response = await fetch(`/api/veterinarian`);
       if (response.ok) {
         const data = await response.json();
         if (data.success && data.data) {
@@ -146,20 +96,14 @@ export default function FindVetPage({
     try {
       // Try to get timezone from Intl API
       const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-      if (timezone) {
-        setUserTimezone(timezone);
-        console.log("Detected user timezone:", timezone);
-        // Fetch doctors with the detected timezone
-        fetchDoctorsWithTimezone(timezone);
-      } else {
-        // Fallback to UTC
-        setUserTimezone("UTC");
-        fetchDoctorsWithTimezone("UTC");
-      }
+
+      setUserTimezone(timezone);
+      console.log("Detected user timezone:", timezone);
+      // Fetch doctors with the detected timezone
+      fetchDoctorsWithTimezone();
     } catch (error) {
       console.warn("Could not detect timezone, using UTC:", error);
       setUserTimezone("UTC");
-      fetchDoctorsWithTimezone("UTC");
     }
   }, []);
 
@@ -287,109 +231,6 @@ export default function FindVetPage({
     setSortBy(e.target.value);
   };
 
-  const filteredAndSortedDoctors = useMemo(() => {
-    const filtered = (doctors || []).filter((doctor: any) => {
-      const matchesSearch =
-        doctor.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (doctor.specialization &&
-          doctor.specialization
-            .toLowerCase()
-            .includes(searchQuery.toLowerCase()));
-
-      const matchesState =
-        selectedState === "" || doctor.state === selectedState;
-
-      return matchesSearch && matchesState;
-    });
-
-    // Sort the filtered results
-    filtered.sort((a: any, b: any) => {
-      switch (sortBy) {
-        case "rating":
-          return (b.averageRating || 0) - (a.averageRating || 0);
-        case "experience":
-          return (
-            (parseInt(b.yearsOfExperience) || 0) -
-            (parseInt(a.yearsOfExperience) || 0)
-          );
-        case "availability":
-          const aSlots = a.nextAvailableSlots?.length || 0;
-          const bSlots = b.nextAvailableSlots?.length || 0;
-          return bSlots - aSlots;
-        case "reviews":
-          return (b.reviewCount || 0) - (a.reviewCount || 0);
-        case "name":
-          return a.name.localeCompare(b.name);
-        default:
-          return 0;
-      }
-    });
-
-    return filtered;
-  }, [doctors, searchQuery, selectedState, sortBy]);
-
-  const stats = useMemo(() => {
-    const total = filteredAndSortedDoctors.length;
-    const withSlots = filteredAndSortedDoctors.filter(
-      (d: any) => d.nextAvailableSlots && d.nextAvailableSlots.length > 0
-    ).length;
-    const avgRating =
-      filteredAndSortedDoctors.reduce(
-        (sum: number, d: any) => sum + (d.averageRating || 0),
-        0
-      ) / total || 0;
-
-    return { total, withSlots, avgRating: avgRating.toFixed(1) };
-  }, [filteredAndSortedDoctors]);
-  const sendPushNotification = async () => {
-    try {
-      if (!user?.id) {
-        toast.error("User ID not found");
-        return;
-      }
-
-      if (!token) {
-        toast.error(
-          "No push subscription available. Please wait for subscription to be created."
-        );
-        return;
-      }
-
-      console.log("Sending test notification with:", {
-        userId: user.id,
-        token: token ? "present" : "missing",
-        title: "Test Notification",
-        body: "This is a test notification",
-        page: "find-vet",
-      });
-
-      const response = await fetch("/api/notifications/test", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId: user.id,
-          token: token,
-          title: "Test Notification",
-          body: "This is a test notification",
-          page: "find-vet",
-        }),
-      });
-
-      const result = await response.json();
-
-      if (response.ok) {
-        console.log("Push notification sent successfully:", result);
-        toast.success("Test notification sent successfully!");
-      } else {
-        console.error("Failed to send push notification:", result);
-        toast.error(result.message || "Failed to send push notification");
-      }
-    } catch (error: any) {
-      const errorMsg = error?.message || "Error sending push notification";
-      toast.error(errorMsg);
-      console.error("Error sending push notification:", error);
-    }
-  };
   return (
     <main className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 p-4 lg:p-6">
       <div className="max-w-7xl mx-auto space-y-8">
@@ -420,44 +261,6 @@ export default function FindVetPage({
                   <span className="text-sm font-medium">{userLocation}</span>
                 </div>
               )}
-            </div>
-
-            <div className="flex gap-3">
-              {process.env.NODE_ENV !== "development" && (
-                <Button
-                  onClick={() => sendPushNotification()}
-                  disabled={!token || fcmLoading}
-                  className="bg-white/20 hover:bg-white/30 text-white disabled:opacity-50"
-                  aria-label="Send test push notification"
-                >
-                  <Clock className="w-4 h-4 mr-2" aria-hidden="true" />
-                  {fcmLoading
-                    ? "Setting up..."
-                    : token
-                    ? "Send Notification"
-                    : "Setup Required"}
-                </Button>
-              )}
-
-              {/* Push Notification Status */}
-
-              <Button
-                onClick={() => fetchDoctorsWithTimezone(userTimezone)}
-                disabled={isLoading}
-                className="bg-white/20 hover:bg-white/30 text-white"
-                aria-label="Refresh veterinarian data with current timezone"
-              >
-                <Clock className="w-4 h-4 mr-2" aria-hidden="true" />
-                {isLoading ? "Refreshing..." : "Refresh"}
-              </Button>
-              <Button
-                onClick={() => setIsLocationModalOpen(true)}
-                className="bg-white/20 hover:bg-white/30 text-white"
-                aria-label="Set your location to find nearby veterinarians"
-              >
-                <MapPin className="w-4 h-4 mr-2" aria-hidden="true" />
-                Set Location
-              </Button>
             </div>
           </div>
         </header>
@@ -599,18 +402,20 @@ export default function FindVetPage({
                 : "space-y-6"
             }
           >
-            {filteredAndSortedDoctors.map((doc: any) => (
-              <DoctorCard
-                key={doc.id || doc._id}
-                doctor={doc}
-                viewMode={viewMode}
-              />
-            ))}
+            {doctors &&
+              doctors?.length > 0 &&
+              doctors?.map((doc: any) => (
+                <DoctorCard
+                  key={doc.id || doc._id}
+                  doctor={doc}
+                  viewMode={viewMode}
+                />
+              ))}
           </section>
         )}
 
         {/* Empty */}
-        {filteredAndSortedDoctors.length === 0 && (
+        {doctors.length === 0 && (
           <section className="text-center py-16" aria-label="No results found">
             <Stethoscope
               className="w-12 h-12 text-gray-400 mx-auto mb-6"
@@ -726,7 +531,7 @@ export default function FindVetPage({
 
                 <Button
                   onClick={() => {
-                    fetchDoctorsWithTimezone(userTimezone);
+                    fetchDoctorsWithTimezone();
                     setIsLocationModalOpen(false);
                   }}
                   className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white"

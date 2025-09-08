@@ -48,7 +48,6 @@ export default function DoctorProfilePage({
     );
     toast.success("Donation successful! Thank you for your support.");
   };
-  console.log("doctorData", doctorData);
   const isAppointmentSLotAvailable = async (vetId: string) => {
     if (!doctorData._id) {
       return;
