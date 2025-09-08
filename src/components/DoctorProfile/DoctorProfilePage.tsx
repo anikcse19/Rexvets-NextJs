@@ -25,8 +25,6 @@ export default function DoctorProfilePage({
   doctorData: Doctor;
   vetTimezone: string;
 }) {
-  console.log("doctorData", doctorData);
-  const searchParams = useSearchParams();
   const { appState, setAppState } = useAppContext();
   const { slotDate, slotId } = appState;
   const [showAllReviews, setShowAllReviews] = useState(false);
@@ -54,6 +52,7 @@ export default function DoctorProfilePage({
   // console.log("REVIEWS:", reviews);
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 p-4 lg:p-6">
+      <h1 className=" mt-14">SELECTED SLOT ID: {slotId}</h1>
       {/* Donation Modal */}
       {showForm ? (
         <div className="max-w-2xl mx-auto">

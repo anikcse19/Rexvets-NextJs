@@ -50,7 +50,6 @@ export default function BookingSystem({
   doctorName,
   doctorData,
   onConfirm,
-
   vetTimezone,
 }: BookingSystemProps) {
   const [selectedDate, setSelectedDate] = useState<string>(
@@ -158,7 +157,15 @@ export default function BookingSystem({
       const formatted = format(date, "yyyy-MM-dd");
       setSelectedDate(formatted);
       if (slots.length > 0) {
+        slots.forEach((slot) => {
+          if (slot._id === selectedSlotId) {
+            alert("matchet");
+          } else {
+            console.log(`slot id${slot._id}==${selectedSlotId}`);
+          }
+        });
         const findSlot = slots.find((slot) => slot._id === selectedSlotId);
+        console.log("findSlot", findSlot);
         if (findSlot) {
           setSelectedTime(findSlot?.formattedStartTime);
           setSelectedSlot(findSlot?._id);
