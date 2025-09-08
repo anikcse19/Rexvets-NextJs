@@ -6,7 +6,12 @@ import { Badge } from "@/components/ui/badge";
 export default function DoctorHeader({ doctor }: { doctor: any }) {
   return (
     <Card className="shadow-xl border-0 bg-white overflow-hidden">
-      <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-700 p-8 text-white">
+      <div
+        style={{
+          background: "linear-gradient(to right,#002366,#1a8693",
+        }}
+        className=" p-8 text-white"
+      >
         <div className="flex flex-col lg:flex-row items-start lg:items-center gap-6">
           <Avatar className="w-32 h-32 border-4 border-white/20 shadow-xl">
             <AvatarImage src={doctor?.image} alt={doctor?.name} />

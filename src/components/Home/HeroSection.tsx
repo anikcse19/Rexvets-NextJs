@@ -93,7 +93,7 @@ const HeroSection = () => {
                 <HeroContent />
               </div>
 
-              <div className="w-full lg:w-1/2">
+              <div className="w-full lg:w-1/2 p-3">
                 <motion.div
                   initial={{ opacity: 0, x: 150 }}
                   animate={{ opacity: 1, x: 0 }}
