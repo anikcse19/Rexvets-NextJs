@@ -1,20 +1,27 @@
 "use client";
 import { useState, useEffect } from "react";
-import { X, PawPrint, HeartPulse, Stethoscope } from "lucide-react";
+import {
+  X,
+  PawPrint,
+  HeartPulse,
+  Stethoscope,
+  AlertTriangle,
+  Calendar,
+} from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 
-interface TopToolbarPetParentProps {
+interface TopToolbarVetProps {
   visible: boolean;
   setVisible: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-export default function TopToolbarPetParent({
+export default function TopToolbarVet({
   visible,
   setVisible,
-}: TopToolbarPetParentProps) {
+}: TopToolbarVetProps) {
   useEffect(() => {
-    const dismissedAt = localStorage.getItem("topToolbarDismissedAt");
+    const dismissedAt = localStorage.getItem("topToolbarVetDismissedAt");
 
     if (dismissedAt) {
       const now = Date.now();
@@ -24,7 +31,7 @@ export default function TopToolbarPetParent({
       if (diff < 3600000) {
         setVisible(false);
       } else {
-        localStorage.removeItem("topToolbarDismissedAt");
+        localStorage.removeItem("topToolbarVetDismissedAt");
         setVisible(true);
       }
     }
@@ -32,7 +39,7 @@ export default function TopToolbarPetParent({
 
   const handleClose = () => {
     setVisible(false);
-    localStorage.setItem("topToolbarDismissedAt", Date.now().toString());
+    localStorage.setItem("topToolbarVetDismissedAt", Date.now().toString());
   };
 
   return (
@@ -50,23 +57,21 @@ export default function TopToolbarPetParent({
           {/* Appointment Info Text */}
           <div className="flex-1 flex justify-center">
             <Link
-              href="/find-a-vet"
-              className="flex items-center gap-2 text-xs md:text-base font-bold tracking-wide drop-shadow-md"
+              href="/dashboard/doctor/rates-and-availability"
+              className="flex items-center gap-2 text-xs md:text-base font-semibold tracking-wide drop-shadow-md"
             >
-              <PawPrint className="w-5 h-5 text-yellow-400 animate-bounce" />
+              <AlertTriangle className="w-5 h-5 text-yellow-300 animate-bounce" />
               <span>
-                Book your{" "}
-                <span className="text-yellow-300 font-extrabold">
-                  Vet Appointment
+                <span className="text-yellow-300 font-bold">
+                  Action Needed:
                 </span>{" "}
-                today – starting just{" "}
-                <span className="bg-yellow-400 text-black px-2 py-0.5 rounded-md shadow-md inline-block mt-1 sm:mt-0">
-                  $10/month
+                Please set your{" "}
+                <span className="underline text-yellow-200">
+                  Schedule & Notice period
                 </span>{" "}
-                !
+                to start receiving appointments.
               </span>
-              <Stethoscope className="w-5 h-5 text-green-400 animate-pulse" />
-              <HeartPulse className="w-5 h-5 text-pink-400 animate-ping" />
+              <Calendar className="w-5 h-5 text-white animate-pulse" />
             </Link>
           </div>
 

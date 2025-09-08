@@ -10,18 +10,27 @@ import React, { ReactNode, useMemo } from "react";
 type Props = {
   children: ReactNode;
   hideOnRoutes?: string[]; // route names without leading slash, e.g. ["login", "register"]
+  hideToolbarOnRoutes?: string[]; // hide TopToolbar on these routes
 };
 
 export default function LayoutController({
   children,
   hideOnRoutes = [],
+  hideToolbarOnRoutes = [],
 }: Props) {
   const pathname = usePathname() || "/"; // fallback to "/" if null
+
+  const normalizeRoutes = (routes: string[]) =>
+    routes.map((r) => r.toLowerCase().trim());
 
   // Normalize hideOnRoutes to lowercase for case-insensitive comparison
   const hideRoutesLower = useMemo(
     () => hideOnRoutes.map((r) => r.toLowerCase().trim()),
     [hideOnRoutes]
+  );
+  const hideToolbarRoutesLower = useMemo(
+    () => normalizeRoutes(hideToolbarOnRoutes),
+    [hideToolbarOnRoutes]
   );
 
   // Extract the first segment without query or trailing slash
@@ -31,12 +40,13 @@ export default function LayoutController({
   }, [pathname]);
 
   const hideLayout = hideRoutesLower.includes(routeSegment);
+  const hideToolbar = hideToolbarRoutesLower.includes(routeSegment);
 
   return (
     <SessionProvider>
       <div className="flex flex-col">
+        {/* {!hideLayout && <TopToolbar />} */}
         {!hideLayout && <Header />}
-        {!hideLayout && <TopToolbar />}
         <main className="overflow-x-hidden pt-12 md:pt-18">{children}</main>
         {!hideLayout && <Footer />}
       </div>
