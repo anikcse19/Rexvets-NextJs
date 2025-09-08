@@ -4,44 +4,46 @@ import { doubledBrands, features, whyChooseFeaturesData } from "@/lib";
 import dynamic from "next/dynamic";
 import React from "react";
 import ChatIcon from "./ChatIcon";
-import Loader from "../shared/Loader";
+import type { ComponentType } from "react";
+import LazyLoad from '../LazyLoad';
 
-const loadingPlaceholder = () => <Loader size={60} />;
+const Skeleton = () => (
+  <div className="w-full h-56 bg-gray-100 animate-pulse rounded-lg" />
+);
 
-const AboutUsSection = dynamic(() => import("./AboutUsSection"), {
-  loading: loadingPlaceholder,
-});
-const AwardsMarquee = dynamic(() => import("./AwardsMarquee"), {
-  loading: loadingPlaceholder,
-});
-const FeaturesSection = dynamic(() => import("./FeaturesSection"), {
-  loading: loadingPlaceholder,
-});
-const HeroSection = dynamic(() => import("./HeroSection"), {
-  loading: loadingPlaceholder,
-});
-const BlogPostSection = dynamic(
-  () => import("./BlogPostSection").then((mod) => mod.BlogPostSection),
-  { loading: loadingPlaceholder }
+// Helper to lazy-import client-only components
+const lazy = (importer: () => Promise<any>): ComponentType<any> =>
+  dynamic(importer, {
+    ssr: false,
+    loading: () => <Skeleton />,
+  }) as ComponentType<any>;
+
+// HeroSection stays SSR for LCP
+const HeroSection = dynamic(() => import("./HeroSection"));
+
+const AboutUsSection = () => (
+  <LazyLoad importer={() => import('./AboutUsSection')} props={{ features, footer: { title: 'Join thousands of pet parents who trust Rex vet', tabs: ['Trusted','Verified','Available 24/7'] } }} />
 );
-const RexVetPlan = dynamic(
-  () => import("./HomeRexVetPlan").then((mod) => mod.RexVetPlan),
-  { loading: loadingPlaceholder }
+const AwardsMarquee = () => (
+  <LazyLoad importer={() => import('./AwardsMarquee')} props={{ brands: doubledBrands }} />
 );
-const SupportOurMission = dynamic(
-  () => import("./SupportOurMission").then((mod) => mod.SupportOurMission),
-  { loading: loadingPlaceholder }
+const FeaturesSection = () => (
+  <LazyLoad importer={() => import('./FeaturesSection')} props={{ data: whyChooseFeaturesData }} />
 );
-const TestimonialsSection = dynamic(
-  () => import("./TestimonialsSection").then((mod) => mod.TestimonialsSection),
-  { loading: loadingPlaceholder }
+const BlogPostSection = () => (
+  <LazyLoad importer={() => import('./BlogPostSection').then((m)=>({default:m.BlogPostSection}))} />
 );
-const VirtualCareIntroSection = dynamic(
-  () =>
-    import("./VirtualCareIntroSection").then(
-      (mod) => mod.VirtualCareIntroSection
-    ),
-  { loading: loadingPlaceholder }
+const RexVetPlan = () => (
+  <LazyLoad importer={() => import('./HomeRexVetPlan').then((m)=>({default:m.RexVetPlan}))} />
+);
+const SupportOurMission = () => (
+  <LazyLoad importer={() => import('./SupportOurMission').then((m)=>({default:m.SupportOurMission}))} />
+);
+const TestimonialsSection = () => (
+  <LazyLoad importer={() => import('./TestimonialsSection').then((m)=>({default:m.TestimonialsSection}))} />
+);
+const VirtualCareIntroSection = () => (
+  <LazyLoad importer={() => import('./VirtualCareIntroSection').then((m)=>({default:m.VirtualCareIntroSection}))} />
 );
 const Home = () => {
   // Temporarily disabled automatic push notification registration to fix service worker conflicts
@@ -57,15 +59,9 @@ const Home = () => {
   return (
     <div>
       <HeroSection />
-      <AwardsMarquee brands={doubledBrands} />
-      <AboutUsSection
-        features={features}
-        footer={{
-          title: "Join thousands of pet parents who trust Rex vet",
-          tabs: ["Trusted", "Verified", "Available 24/7"],
-        }}
-      />
-      <FeaturesSection data={whyChooseFeaturesData} />
+      <AwardsMarquee />
+      <AboutUsSection />
+      <FeaturesSection />
       <RexVetPlan />
       <SupportOurMission />
       <VirtualCareIntroSection />

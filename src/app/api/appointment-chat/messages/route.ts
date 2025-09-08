@@ -245,7 +245,7 @@ export async function POST(req: NextRequest) {
       if (receiverUser) {
         await NotificationModel.create({
           type: NotificationType.NEW_MESSAGE,
-          title: "New chat message",
+          title: "New chat message--",
           subTitle: `${appointment.pet?.name || "Pet"}: ${content}`,
           recipientId: receiverUser._id,
           actorId: session.user.id,
