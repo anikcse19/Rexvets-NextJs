@@ -35,7 +35,7 @@ export default function DoctorCard({ doctor, viewMode }: DoctorCardProps) {
   const [isPlanOpen, setIsPlanOpen] = useState(false);
   const searchParams = useSearchParams();
   const { setAppState } = useAppContext();
-console.log('doctor',doctor)
+  console.log("doctor LIST", doctor);
   const formatDate = (dateString: string, timezone?: string) => {
     if (timezone) {
       const { formattedDate } = convertTimesToUserTimezone(

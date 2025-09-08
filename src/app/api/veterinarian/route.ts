@@ -132,15 +132,14 @@ export async function GET(req: NextRequest) {
         const tz = vet.timezone || "UTC";
         const notice = vet.noticePeriod ?? 0;
         const nowTz = moment.tz(tz);
-        const todayStart = nowTz.clone().startOf("day").toDate();
-        const todayEnd = nowTz.clone().endOf("day").toDate();
 
         // Fetch today's slots first
         const todaySlots = await getSlotsByNoticePeriodAndDateRangeByVetId({
           vetId: vet._id.toString(),
           noticePeriod: notice,
-          startDate: todayStart,
-          endDate: todayEnd,
+          // Pass the same date for start and end to mirror today's-slot behavior
+          startDate: nowTz.toDate(),
+          endDate: nowTz.toDate(),
           timezone: tz,
         });
 
@@ -153,7 +152,7 @@ export async function GET(req: NextRequest) {
           return;
         }
 
-        // Otherwise fetch future slots (next 30 days window)
+        // Otherwise fetch nearest future date slots (within next 30 days)
         const futureStart = nowTz.clone().add(1, "day").startOf("day").toDate();
         const futureEnd = nowTz.clone().add(30, "day").endOf("day").toDate();
         const futureSlots = await getSlotsByNoticePeriodAndDateRangeByVetId({
@@ -163,8 +162,14 @@ export async function GET(req: NextRequest) {
           endDate: futureEnd,
           timezone: tz,
         });
-
-        const nextTwo = (futureSlots || []).slice(0, 2);
+        // Restrict to the first future date's slots only, then take up to 2
+        let nextTwo: any[] = [];
+        if (futureSlots && futureSlots.length > 0) {
+          const firstDateStr = moment.tz(futureSlots[0].date, tz).format("YYYY-MM-DD");
+          nextTwo = futureSlots
+            .filter((s: any) => moment.tz(s.date, tz).format("YYYY-MM-DD") === firstDateStr)
+            .slice(0, 2);
+        }
         slotByVet.set(vet._id.toString(), {
           todaysCount: 0,
           nextAvailableSlots: nextTwo,

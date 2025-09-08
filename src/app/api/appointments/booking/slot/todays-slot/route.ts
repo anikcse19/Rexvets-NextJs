@@ -15,28 +15,31 @@ export const GET = async (req: NextRequest) => {
     const vetId = searchParams.get("vetId");
     const startDate = searchParams.get("startDate");
     const endDate = searchParams.get("endDate");
-    const timezone = searchParams.get("timezone") || "UTC";
-    if (!vetId || !startDate || !endDate || !timezone) {
+    const timezoneParam = searchParams.get("timezone") || "";
+    if (!vetId || !startDate || !endDate) {
       throw Error(
-        "Missing required query parameters: vetId, startDate, endDate , timezone"
+        "Missing required query parameters: vetId, startDate, endDate"
       );
     }
     const veterinarian = await Veterinarian.findOne(
       { _id: new Types.ObjectId(vetId) },
-      { noticePeriod: 1 }
+      { noticePeriod: 1, timezone: 1 }
     );
     if (!veterinarian) {
       throw Error("Veterinarian not found");
     }
-    console.log(" veterinarian?.noticePeriod", veterinarian?.noticePeriod);
+    const tz = veterinarian.timezone || timezoneParam || "UTC";
+    console.log("todays-slot vet noticePeriod=", veterinarian?.noticePeriod, " tz=", tz);
+    // Ensure same local date is used for both bounds; util will convert using tz
+    const onlyDate = new Date(startDate);
     const payload = {
       vetId,
       noticePeriod: veterinarian?.noticePeriod,
-      timezone: timezone,
-      startDate: new Date(startDate),
-      endDate: new Date(endDate),
+      timezone: tz,
+      startDate: onlyDate,
+      endDate: onlyDate,
     };
-    console.log("payload", payload);
+    console.log("todays slot api payload", payload);
     const response = await getSlotsByNoticePeriodAndDateRangeByVetId(payload);
     const responseFormat: ISendResponse<any> = {
       success: true,
@@ -44,6 +47,7 @@ export const GET = async (req: NextRequest) => {
       data: response,
       statusCode: 200,
     };
+    console.log("todays slot api  response", response);
     return sendResponse(responseFormat);
   } catch (error: any) {
     const errResp: IErrorResponse = {

@@ -124,9 +124,9 @@ export const getSlotsByNoticePeriodAndDateRangeByVetId = async (
     // // Since 14 < 15 (notice period), this slot should be FILTERED OUT
     // console.log(`[SLOT FILTERING] Example: If current time is 8:46 and slot is 9:00, time diff = 14min, notice period = ${noticePeriod}min, so slot should be FILTERED OUT`);
 
-    // Convert input dates to UTC start and end of day for proper range query
-    const startDateUtc = moment.utc(startDate).startOf("day").toDate();
-    const endDateUtc = moment.utc(endDate).endOf("day").toDate();
+    // Convert input dates to start/end of day in the provided timezone, then to UTC
+    const startDateUtc = moment.tz(startDate, timezone).startOf("day").utc().toDate();
+    const endDateUtc = moment.tz(endDate, timezone).endOf("day").utc().toDate();
 
     // Use MongoDB aggregation pipeline like veterinarian API
     const pipeline: any[] = [
@@ -142,8 +142,8 @@ export const getSlotsByNoticePeriodAndDateRangeByVetId = async (
       },
       {
         $addFields: {
-          // Add computed fields for filtering
-          slotDateStr: { $dateToString: { format: "%Y-%m-%d", date: "$date" } },
+          // Add computed fields for filtering using provided timezone to extract local date
+          slotDateStr: { $dateToString: { format: "%Y-%m-%d", date: "$date", timezone: timezone } },
           currentTimeStr: currentTime,
           todayStartDate: todayStart.toDate(),
         },
