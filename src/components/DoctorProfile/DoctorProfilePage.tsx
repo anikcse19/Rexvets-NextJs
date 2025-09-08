@@ -28,8 +28,7 @@ export default function DoctorProfilePage({
   console.log("doctorData", doctorData);
   const searchParams = useSearchParams();
   const { appState, setAppState } = useAppContext();
-  const { slotDate, slotId, selectedFamilyPlan } = appState;
-  const [familyPlan, setFamilyPlan] = useState(selectedFamilyPlan);
+  const { slotDate, slotId } = appState;
   const [showAllReviews, setShowAllReviews] = useState(false);
   const [selectedDate, setSelectedDate] = useState("2025-01-16");
   const [selectedSlot, setSelectedSlot] = useState("");
@@ -40,7 +39,6 @@ export default function DoctorProfilePage({
   const handleDonationComplete = (amount: number) => {
     localStorage.setItem("doctorData", JSON.stringify(doctorData));
     console.log("Donation completed:", amount);
-    setFamilyPlan("");
 
     router.push(
       "/appointment-confirmation?date=" +
@@ -59,10 +57,7 @@ export default function DoctorProfilePage({
       {/* Donation Modal */}
       {showForm ? (
         <div className="max-w-2xl mx-auto">
-          <DonationFormWrapper
-            selectedFamilyPlan={familyPlan?.toString()}
-            onDonationComplete={handleDonationComplete}
-          />
+          <DonationFormWrapper onDonationComplete={handleDonationComplete} />
         </div>
       ) : (
         <div className="max-w-[1366px] mx-auto space-y-8">
@@ -76,7 +71,7 @@ export default function DoctorProfilePage({
               Back to Find Vet
             </Button>
           </Link>
-
+          <h1>SELECTED FAMILY PLAN:{appState.selectedFamilyPlan}</h1>
           {/* Doctor Header */}
           <DoctorHeader doctor={doctorData} />
 

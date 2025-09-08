@@ -33,10 +33,8 @@ interface DoctorCardProps {
 export default function DoctorCard({ doctor, viewMode }: DoctorCardProps) {
   const router = useRouter();
   const [isPlanOpen, setIsPlanOpen] = useState(false);
-  const [selectedFamilyPlanAmount, setSelectedFamilyPlanAmount] = useState(0);
   const searchParams = useSearchParams();
   const { setAppState } = useAppContext();
-  const selectedFamilyPlan = searchParams.get("selected-family-plan");
 
   const formatDate = (dateString: string, timezone?: string) => {
     if (timezone) {
@@ -103,7 +101,12 @@ export default function DoctorCard({ doctor, viewMode }: DoctorCardProps) {
     e.preventDefault();
     e.stopPropagation();
 
-    setAppState((prev) => ({ ...prev, slotId: slot._id, slotDate: slot.date }));
+    setAppState((prev) => ({
+      ...prev,
+      slotId: slot._id,
+      slotDate: slot.date,
+      selectedFamilyPlan: null,
+    }));
     router.push(`/find-a-vet/${doctor.id || doctor._id}`);
   };
 
