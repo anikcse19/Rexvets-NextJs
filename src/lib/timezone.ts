@@ -167,3 +167,31 @@ export const getMonthRange = (timezone?: string) => {
     end: endOfMonth.format("ddd MMM DD YYYY HH:mm:ss [GMT]ZZ"),
   };
 };
+
+export const getWeekRange = (timezone?: string) => {
+  const startOfWeek = moment
+    .tz(timezone || getUserTimezone())
+    .startOf("week");
+  const endOfWeek = moment.tz(timezone || getUserTimezone()).endOf("week");
+
+  return {
+    start: startOfWeek.format("ddd MMM DD YYYY HH:mm:ss [GMT]ZZ"),
+    end: endOfWeek.format("ddd MMM DD YYYY HH:mm:ss [GMT]ZZ"),
+  };
+};
+
+export const getSpecificWeekRange = (weekOffset: number = 0, timezone?: string) => {
+  const startOfWeek = moment
+    .tz(timezone || getUserTimezone())
+    .add(weekOffset, "weeks")
+    .startOf("week");
+  const endOfWeek = moment
+    .tz(timezone || getUserTimezone())
+    .add(weekOffset, "weeks")
+    .endOf("week");
+
+  return {
+    start: startOfWeek.format("ddd MMM DD YYYY HH:mm:ss [GMT]ZZ"),
+    end: endOfWeek.format("ddd MMM DD YYYY HH:mm:ss [GMT]ZZ"),
+  };
+};

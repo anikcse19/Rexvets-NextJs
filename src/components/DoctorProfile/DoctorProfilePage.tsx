@@ -5,6 +5,7 @@ import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import React, { useState } from "react";
 
+import { useAppContext } from "@/hooks/StateContext";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import DonationFormWrapper from "../Donation/DonationFormWrapper";
@@ -26,10 +27,8 @@ export default function DoctorProfilePage({
 }) {
   console.log("doctorData", doctorData);
   const searchParams = useSearchParams();
-  const slotDate = searchParams.get("slotDate");
-  const slotId = searchParams.get("slotId");
-  const selectedFamilyPlan = searchParams.get("selected-family-plan");
-  const [familyPlan, setFamilyPlan] = useState(selectedFamilyPlan);
+  const { appState, setAppState } = useAppContext();
+  const { slotDate, slotId } = appState;
   const [showAllReviews, setShowAllReviews] = useState(false);
   const [selectedDate, setSelectedDate] = useState("2025-01-16");
   const [selectedSlot, setSelectedSlot] = useState("");
@@ -40,7 +39,6 @@ export default function DoctorProfilePage({
   const handleDonationComplete = (amount: number) => {
     localStorage.setItem("doctorData", JSON.stringify(doctorData));
     console.log("Donation completed:", amount);
-    setFamilyPlan("");
 
     router.push(
       "/appointment-confirmation?date=" +
@@ -59,10 +57,7 @@ export default function DoctorProfilePage({
       {/* Donation Modal */}
       {showForm ? (
         <div className="max-w-2xl mx-auto">
-          <DonationFormWrapper
-            selectedFamilyPlan={familyPlan?.toString()}
-            onDonationComplete={handleDonationComplete}
-          />
+          <DonationFormWrapper onDonationComplete={handleDonationComplete} />
         </div>
       ) : (
         <div className="max-w-[1366px] mx-auto space-y-8">
@@ -76,7 +71,7 @@ export default function DoctorProfilePage({
               Back to Find Vet
             </Button>
           </Link>
-
+          <h1>SELECTED FAMILY PLAN:{appState.selectedFamilyPlan}</h1>
           {/* Doctor Header */}
           <DoctorHeader doctor={doctorData} />
 
@@ -98,8 +93,8 @@ export default function DoctorProfilePage({
             <div className="xl:col-span-1">
               <BookingCard
                 vetTimezone={vetTimezone}
-                selectedSlotDate={slotDate}
-                selectedSlotId={slotId}
+                // selectedSlotDate={slotDate}
+                // selectedSlotId={slotId}
                 doctorName={doctorData?.name}
                 doctorData={doctorData}
                 onConfirm={(date: string, time: string, slot: string) => {

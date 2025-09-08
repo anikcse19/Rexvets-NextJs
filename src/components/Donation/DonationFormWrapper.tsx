@@ -6,19 +6,14 @@ import DonationForm from "./DonationForm";
 
 interface DonationFormWrapperProps {
   onDonationComplete: (amount: number) => void;
-  selectedFamilyPlan?: string;
 }
 
 const DonationFormWrapper: React.FC<DonationFormWrapperProps> = ({
   onDonationComplete,
-  selectedFamilyPlan,
 }) => {
   return (
     <StripeContext>
-      <DonationForm
-        onDonationComplete={onDonationComplete}
-        selectedFamilyPlan={selectedFamilyPlan}
-      />
+      <DonationForm onDonationComplete={onDonationComplete} />
     </StripeContext>
   );
 };
