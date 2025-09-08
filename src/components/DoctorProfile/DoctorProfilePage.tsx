@@ -5,6 +5,7 @@ import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import React, { useState } from "react";
 
+import { useAppContext } from "@/hooks/StateContext";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import DonationFormWrapper from "../Donation/DonationFormWrapper";
@@ -26,9 +27,8 @@ export default function DoctorProfilePage({
 }) {
   console.log("doctorData", doctorData);
   const searchParams = useSearchParams();
-  const slotDate = searchParams.get("slotDate");
-  const slotId = searchParams.get("slotId");
-  const selectedFamilyPlan = searchParams.get("selected-family-plan");
+  const { appState, setAppState } = useAppContext();
+  const { slotDate, slotId, selectedFamilyPlan } = appState;
   const [familyPlan, setFamilyPlan] = useState(selectedFamilyPlan);
   const [showAllReviews, setShowAllReviews] = useState(false);
   const [selectedDate, setSelectedDate] = useState("2025-01-16");
@@ -98,8 +98,8 @@ export default function DoctorProfilePage({
             <div className="xl:col-span-1">
               <BookingCard
                 vetTimezone={vetTimezone}
-                selectedSlotDate={slotDate}
-                selectedSlotId={slotId}
+                // selectedSlotDate={slotDate}
+                // selectedSlotId={slotId}
                 doctorName={doctorData?.name}
                 doctorData={doctorData}
                 onConfirm={(date: string, time: string, slot: string) => {

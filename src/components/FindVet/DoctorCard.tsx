@@ -5,6 +5,7 @@ import { convertTimesToUserTimezone } from "@/lib/timezone/index";
 import moment from "moment";
 import React, { useState } from "react";
 
+import { useAppContext } from "@/hooks/StateContext";
 import { ChevronRight, Heart, Shield, Star } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -34,7 +35,7 @@ export default function DoctorCard({ doctor, viewMode }: DoctorCardProps) {
   const [isPlanOpen, setIsPlanOpen] = useState(false);
   const [selectedFamilyPlanAmount, setSelectedFamilyPlanAmount] = useState(0);
   const searchParams = useSearchParams();
-
+  const { setAppState } = useAppContext();
   const selectedFamilyPlan = searchParams.get("selected-family-plan");
 
   const formatDate = (dateString: string, timezone?: string) => {
@@ -54,17 +55,24 @@ export default function DoctorCard({ doctor, viewMode }: DoctorCardProps) {
     return timeString;
   };
   const onSelectFamilyPlan = (plan: number) => {
-    const queryParams = new URLSearchParams();
-
     if (plan > 0) {
-      queryParams.set("selected-family-plan", plan.toString());
+      setAppState((prev) => ({
+        ...prev,
+        selectedFamilyPlan: plan.toString(),
+      }));
     }
+    router.push(`/find-a-vet/${doctor.id || doctor._id}`);
+    // const queryParams = new URLSearchParams();
 
-    const url = `/find-a-vet/${doctor.id || doctor._id}${
-      queryParams.toString() ? `?${queryParams.toString()}` : ""
-    }`;
+    // if (plan > 0) {
+    //   queryParams.set("selected-family-plan", plan.toString());
+    // }
 
-    router.push(url);
+    // const url = `/find-a-vet/${doctor.id || doctor._id}${
+    //   queryParams.toString() ? `?${queryParams.toString()}` : ""
+    // }`;
+
+    // router.push(url);
   };
   const renderStars = (rating: number) => {
     const stars = [];
@@ -95,22 +103,8 @@ export default function DoctorCard({ doctor, viewMode }: DoctorCardProps) {
     e.preventDefault();
     e.stopPropagation();
 
-    const queryParams = new URLSearchParams({
-      slotId: slot._id,
-      slotDate: slot.date,
-      slotStartTime: slot.startTime,
-      slotEndTime: slot.endTime,
-      slotTimezone: slot.timezone,
-      vetId: doctor.id || doctor._id,
-      vetName: doctor.name,
-    });
-    if (selectedFamilyPlan) {
-      queryParams.set("selected-family-plan", selectedFamilyPlan);
-    }
-
-    router.push(
-      `/find-a-vet/${doctor.id || doctor._id}?${queryParams.toString()}`
-    );
+    setAppState((prev) => ({ ...prev, slotId: slot._id, slotDate: slot.date }));
+    router.push(`/find-a-vet/${doctor.id || doctor._id}`);
   };
 
   const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -121,11 +115,7 @@ export default function DoctorCard({ doctor, viewMode }: DoctorCardProps) {
       itemType="https://schema.org/Veterinary"
       className="group"
     >
-      <Link
-        href={`/find-a-vet/${doctor.id || doctor._id}?${
-          selectedFamilyPlan ? "selected-family-plan=" + selectedFamilyPlan : ""
-        }`}
-      >
+      <Link href={`/find-a-vet/${doctor.id || doctor._id}`}>
         <Card className="group cursor-pointer p-0  shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border-0 overflow-hidden bg-white">
           {/* Content */}
           <CardContent className="p-6 space-y-6">

@@ -7,3 +7,4 @@
 # FIND VET PAGE (DYNAMIC)
 
 1. fix controll if user select slot from the doctor list card.
+2. conditionally display vet profile vet details.
