@@ -120,14 +120,15 @@ export default function BookingSystem({
     const date = parseISO(selectedSlotDate ?? selectedDate);
     const userTimezone = getUserTimezone();
     const formatted = format(date, "yyyy-MM-dd");
-
+    const payload = {
+      id: doctorData._id,
+      startDate: formatted,
+      endDate: formatted,
+      timezone: vetTimezone || userTimezone,
+    };
+    console.log("payload", payload);
     try {
-      const data = await getVetSlots({
-        id: doctorData._id,
-        startDate: formatted,
-        endDate: formatted,
-        timezone: vetTimezone || userTimezone,
-      });
+      const data = await getVetSlots(payload);
 
       // Sort by startTime (assumes format 'HH:mm')
       const sorted = (data || []).slice().sort((a: any, b: any) => {
@@ -157,13 +158,6 @@ export default function BookingSystem({
       const formatted = format(date, "yyyy-MM-dd");
       setSelectedDate(formatted);
       if (slots.length > 0) {
-        slots.forEach((slot) => {
-          if (slot._id === selectedSlotId) {
-            alert("matchet");
-          } else {
-            console.log(`slot id${slot._id}==${selectedSlotId}`);
-          }
-        });
         const findSlot = slots.find((slot) => slot._id === selectedSlotId);
         console.log("findSlot", findSlot);
         if (findSlot) {
@@ -309,7 +303,7 @@ export default function BookingSystem({
                     <button
                       key={slot._id}
                       onClick={() => {
-                        console.log("SLOT CLICKED", slot);
+                        alert(slot._id);
                         setSelectedSlot(slot._id);
                         // alert(slot.formattedStartTime);
                         setSelectedTime(slot.startTime);
