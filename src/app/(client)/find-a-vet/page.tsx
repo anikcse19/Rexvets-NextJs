@@ -211,9 +211,9 @@ const page = async () => {
         />
 
         <div>
-          <Suspense fallback={<Loader size={60} />}>
-            <FindVetPage doctors={result?.data} />
-          </Suspense>
+          {/* <Suspense> */}
+          <FindVetPage doctors={result?.data} />
+          {/* </Suspense> */}
         </div>
       </>
     );
@@ -231,19 +231,19 @@ const page = async () => {
         />
 
         <div>
-          <Suspense fallback={<Loader size={60} />}>
-            <FindVetPage
-              doctors={{
-                veterinarians: [],
-                pagination: {
-                  page: 1,
-                  limit: 10,
-                  total: 0,
-                  pages: 0,
-                },
-              }}
-            />
-          </Suspense>
+          {/* <Suspense> */}
+          <FindVetPage
+            doctors={{
+              veterinarians: [],
+              pagination: {
+                page: 1,
+                limit: 10,
+                total: 0,
+                pages: 0,
+              },
+            }}
+          />
+          {/* </Suspense> */}
         </div>
       </>
     );

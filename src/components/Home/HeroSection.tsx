@@ -118,7 +118,7 @@ const HeroSection = () => {
                 <HeroContent />
               </div>
 
-              <div className="w-full lg:w-1/2">
+              <div className="w-full lg:w-1/2 p-3">
                 <motion.div
                   // Keep animation subtle to avoid delaying LCP
                   initial={{ opacity: 1, x: 0 }}
