@@ -32,7 +32,13 @@ import { AlertTriangle, Calendar, Clock, Globe } from "lucide-react";
 import moment from "moment";
 import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
-import React, { useCallback, useDeferredValue, useEffect, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useDeferredValue,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { toast } from "sonner";
 import DateRangeCalendar from "./DateRangeCalender";
 
@@ -42,7 +48,7 @@ const TimeSlotCreator = dynamic(() => import("./TimeSlotCreator"), {
     <div className="flex items-center justify-center h-64">
       <div className="flex flex-col items-center space-y-4">
         <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-        <p className="text-gray-600">Preparing editor...</p>
+        <p className="text-gray-600">Processing....</p>
       </div>
     </div>
   ),
@@ -533,61 +539,16 @@ const AvailabilityManager: React.FC = () => {
                 <SheetTitle className="text-4xl md:text-5xl font-bold text-slate-800 mb-3">
                   Time Slot Creator
                 </SheetTitle>
-                {/* Instructions */}
-                <div className=" w-full md:w-[44%] mx-auto bg-gradient-to-r p-4 from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl">
-                  <div className="flex  gap-4">
-                    <div className="space-y-2">
-                      <h3 className="text-lg font-semibold text-slate-800">
-                        How to Set Up Your Availability
-                      </h3>
-                      <div className="text-sm text-slate-600 space-y-1">
-                        <p>
-                          • <strong>Minimum Duration:</strong> Each time slot
-                          must be at least 1 hour long
-                        </p>
-                        <p>
-                          • <strong>Gap Requirement:</strong> There must be at
-                          least 1 hour gap between the end of one period and the
-                          start of another
-                        </p>
-                        <p>
-                          • <strong>No Overlaps:</strong> Time slots cannot
-                          overlap with each other
-                        </p>
-                        <p>
-                          • <strong>Add Multiple Slots:</strong> Click "Add New
-                          Time Period" to create additional availability windows
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
               </div>
               {/* <SheetTitle>Controlled Right Side Sheet</SheetTitle> */}
             </SheetHeader>
             <div>
-              {!mountCreator ? (
-                <div className="flex items-center justify-center h-64">
-                  <div className="flex flex-col items-center space-y-4">
-                    <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                    <p className="text-gray-600">Opening editor...</p>
-                  </div>
-                </div>
-              ) : (
-                <TimeSlotCreator
-                  selectedRange={selectedRange}
-                  onSaveSlots={handleSaveSlots}
-                  hasExistingSlots={hasExistingSlots}
-                  existingPeriods={deferredExistingPeriods}
-                />
-              )}
-              {/* Close Button inside sheet */}
-              <Button
-                variant="outline"
-                onClick={() => setIsTimePeriodOpen(false)}
-              >
-                Close
-              </Button>
+              <TimeSlotCreator
+                selectedRange={selectedRange}
+                onSaveSlots={handleSaveSlots}
+                hasExistingSlots={hasExistingSlots}
+                existingPeriods={deferredExistingPeriods}
+              />
             </div>
           </ScrollArea>
         </SheetContent>
