@@ -2,6 +2,7 @@
 
 import { Footer } from "@/components/Footer";
 import Header from "@/components/Navbar";
+import TopToolbar from "@/components/Navbar/Toolbar";
 import { SessionProvider } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import React, { ReactNode, useMemo } from "react";
@@ -35,6 +36,7 @@ export default function LayoutController({
     <SessionProvider>
       <div className="flex flex-col">
         {!hideLayout && <Header />}
+        {!hideLayout && <TopToolbar />}
         <main className="overflow-x-hidden pt-12 md:pt-18">{children}</main>
         {!hideLayout && <Footer />}
       </div>
