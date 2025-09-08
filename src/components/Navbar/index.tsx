@@ -56,6 +56,7 @@ const Header: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [badge, setBadge] = useState("");
+  const [scrolled, setScrolled] = useState(false);
   const { data: session } = useSession();
 
   // const session = {
@@ -66,6 +67,15 @@ const Header: React.FC = () => {
   //     email: "anikdebcse@gmail.com",
   //   },
   // };
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 0);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const handleMouseEnter = (key: string) => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -128,7 +138,9 @@ const Header: React.FC = () => {
         background:
           "linear-gradient(135deg, #0f0c29 0%, #24243e 25%, #302b63 50%, #0f3460 75%, #002366 100%)",
       }}
-      className={`fixed bg-red-400 py-2 ${
+      className={`fixed ${
+        scrolled ? "top-0" : "top-12"
+      } transition-all duration-300 ease-in-out py-2 ${
         session?.user.role === "veterinarian" ? "md:py-4" : "md:py-2"
       } w-full backdrop-blur-sm px-3 lg:px-7  border-b border-slate-800/50 z-[9998]`}
     >
