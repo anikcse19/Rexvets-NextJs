@@ -325,6 +325,63 @@ export default function TimeSlotCreator({
     }
     return moment(`2000-01-01 ${timeStr}`).format("h:mm A");
   };
+
+  const formatDateRange = (
+    startDate: Date,
+    endDate: Date,
+    timezone?: string
+  ) => {
+    const userTz = timezone || getUserTimezone();
+
+    if (timezone) {
+      // Convert dates to user's timezone
+      const startMoment = moment.tz(startDate, userTz);
+      const endMoment = moment.tz(endDate, userTz);
+
+      if (startMoment.format("YYYY-MM-DD") === endMoment.format("YYYY-MM-DD")) {
+        // Same date
+        return startMoment.format("dddd, MMMM DD, YYYY");
+      } else {
+        // Different dates
+        return `${startMoment.format("MMM DD")} - ${endMoment.format(
+          "MMM DD, YYYY"
+        )}`;
+      }
+    }
+
+    // Fallback to moment without timezone
+    const startMoment = moment(startDate);
+    const endMoment = moment(endDate);
+
+    if (startMoment.format("YYYY-MM-DD") === endMoment.format("YYYY-MM-DD")) {
+      return startMoment.format("dddd, MMMM DD, YYYY");
+    } else {
+      return `${startMoment.format("MMM DD")} - ${endMoment.format(
+        "MMM DD, YYYY"
+      )}`;
+    }
+  };
+  const displaySaveBtn = (className: string) => {
+    return (
+      <Button
+        onClick={handleSave}
+        disabled={!validateSlots() || isLoading}
+        className={` ${className} cursor-pointer  w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold py-4 rounded-2xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl`}
+      >
+        {isLoading ? (
+          <div className="flex items-center justify-center space-x-3">
+            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+            <span>Saving Schedule...</span>
+          </div>
+        ) : (
+          <div className="flex items-center justify-center space-x-3">
+            <Save className="w-6 h-6" />
+            <span>Save & Launch Schedule</span>
+          </div>
+        )}
+      </Button>
+    );
+  };
   return (
     <div className="w-full min-h-screen  p-6">
       {!selectedRange ? (
@@ -353,8 +410,123 @@ export default function TimeSlotCreator({
       ) : (
         <div className="container mx-auto max-w-7xl px-4">
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+            {/* Overview Section - First on mobile */}
+            <div className="xl:col-span-1 xl:order-2 order-1">
+              <div className="bg-white rounded-3xl p-4 sm:p-6 lg:p-8 border border-gray-200 shadow-lg sticky top-8">
+                {/* Header */}
+                <div className="text-center mb-8">
+                  <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl mx-auto flex items-center justify-center mb-4 shadow-lg">
+                    <Calendar className="w-8 h-8 text-white" />
+                  </div>
+                  <h2 className="text-2xl font-bold text-gray-800">
+                    Schedule Overview
+                  </h2>
+                  <p className="text-gray-600">Your availability summary</p>
+                </div>
+
+                {/* Stats Cards */}
+                <div className="space-y-4 mb-8">
+                  {/* Date Card */}
+                  {selectedRange && (
+                    <div className="bg-gradient-to-r from-indigo-500/20 to-blue-500/20 rounded-2xl p-6 border border-indigo-500/30">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-indigo-600 font-medium">
+                            Selected Date Range
+                          </p>
+                          <p className="text-lg font-bold text-gray-800">
+                            {formatDateRange(
+                              selectedRange.start,
+                              selectedRange.end,
+                              getUserTimezone()
+                            )}
+                          </p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            {selectedRange.start === selectedRange.end
+                              ? "Single day"
+                              : `${Math.ceil(
+                                  (new Date(selectedRange.end).getTime() -
+                                    new Date(selectedRange.start).getTime()) /
+                                    (1000 * 60 * 60 * 24)
+                                )} days`}
+                          </p>
+                        </div>
+                        <div className="w-12 h-12 bg-indigo-500/20 rounded-xl flex items-center justify-center">
+                          <Calendar className="w-6 h-6 text-indigo-400" />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-2xl p-6 border border-blue-500/30">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-blue-600 font-medium">
+                          Active Periods
+                        </p>
+                        <p className="text-3xl font-bold text-gray-800">
+                          {slots.length}
+                        </p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {selectedCount > 0 && `${selectedCount} selected`}
+                        </p>
+                      </div>
+                      <div className="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center">
+                        <div className="w-3 h-3 bg-blue-400 rounded-full animate-pulse"></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-gradient-to-r from-emerald-500/20 to-teal-500/20 rounded-2xl p-6 border border-emerald-500/30">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-emerald-600 font-medium">
+                          Total Duration
+                        </p>
+                        <p className="text-3xl font-bold text-gray-800">
+                          {formatDuration(getTotalHours())}
+                        </p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {isValidSlot(slots[0])
+                            ? "Valid schedule"
+                            : "Check time ranges"}
+                        </p>
+                      </div>
+                      <div className="w-12 h-12 bg-emerald-500/20 rounded-xl flex items-center justify-center">
+                        <Clock className="w-6 h-6 text-emerald-400" />
+                      </div>
+                    </div>
+                  </div>
+
+                  {selectedCount > 0 && (
+                    <div className="bg-gradient-to-r from-orange-500/20 to-red-500/20 rounded-2xl p-6 border border-orange-500/30">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-orange-600 font-medium">
+                            Selected for Action
+                          </p>
+                          <p className="text-3xl font-bold text-gray-800">
+                            {selectedCount}
+                          </p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            Ready to delete
+                          </p>
+                        </div>
+                        <div className="w-12 h-12 bg-orange-500/20 rounded-xl flex items-center justify-center">
+                          <Check className="w-6 h-6 text-orange-400" />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Save Button */}
+                {displaySaveBtn("hidden md:flex")}
+              </div>
+            </div>
+
             {/* Availability Section */}
-            <div className="xl:col-span-2">
+            <div className="xl:col-span-2 xl:order-1 order-2">
               <div className="bg-white rounded-3xl p-4 sm:p-6 lg:p-8 border border-gray-200 shadow-lg">
                 {/* Header */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 sm:mb-8 gap-4">
@@ -371,6 +543,8 @@ export default function TimeSlotCreator({
                       </p>
                     </div>
                   </div>
+
+                  {displaySaveBtn("flex md:hidden")}
                   <div className="flex items-center space-x-3">
                     <Button
                       onClick={addSlot}
@@ -476,15 +650,24 @@ export default function TimeSlotCreator({
                           </div>
                         )}
 
-                         {/* Time Display */}
-                         <div className="space-y-1 mb-3">
-                           <div className="text-center">
-                             <p className="text-xs text-gray-500">Time</p>
-                             <p className="font-medium text-sm text-gray-800">
-                               {formatTime(slot.startTime, slot.date?.toString() || '', getUserTimezone())} -{" "}
-                               {formatTime(slot.endTime, slot.date?.toString() || '', getUserTimezone())}
-                             </p>
-                           </div>
+                        {/* Time Display */}
+                        <div className="space-y-1 mb-3">
+                          <div className="text-center">
+                            <p className="text-xs text-gray-500">Time</p>
+                            <p className="font-medium text-sm text-gray-800">
+                              {formatTime(
+                                slot.startTime,
+                                slot.date?.toString() || "",
+                                getUserTimezone()
+                              )}{" "}
+                              -{" "}
+                              {formatTime(
+                                slot.endTime,
+                                slot.date?.toString() || "",
+                                getUserTimezone()
+                              )}
+                            </p>
+                          </div>
 
                           <div className="text-center">
                             <p className="text-xs text-gray-500">Duration</p>
@@ -524,49 +707,57 @@ export default function TimeSlotCreator({
                         {/* Time Selectors */}
                         <div className="space-y-2 mb-3">
                           <div className="grid grid-cols-2 gap-1">
-                             <Select
-                               value={slot.startTime}
-                               onValueChange={(value) =>
-                                 updateSlot(slot.id, "startTime", value)
-                               }
-                             >
-                               <SelectTrigger className="h-8 bg-white border-gray-300 text-gray-800 placeholder:text-gray-500 focus:border-emerald-500 text-xs">
-                                 <SelectValue />
-                               </SelectTrigger>
-                               <SelectContent className="bg-white border-gray-200">
-                                 {timeOptions.map((time) => (
-                                   <SelectItem
-                                     key={time}
-                                     value={time}
-                                     className="text-gray-800 hover:bg-gray-100 text-xs"
-                                   >
-                                     {formatTime(time, slot.date?.toString() || '', getUserTimezone())}
-                                   </SelectItem>
-                                 ))}
-                               </SelectContent>
-                             </Select>
+                            <Select
+                              value={slot.startTime}
+                              onValueChange={(value) =>
+                                updateSlot(slot.id, "startTime", value)
+                              }
+                            >
+                              <SelectTrigger className="h-8 bg-white border-gray-300 text-gray-800 placeholder:text-gray-500 focus:border-emerald-500 text-xs">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent className="bg-white border-gray-200">
+                                {timeOptions.map((time) => (
+                                  <SelectItem
+                                    key={time}
+                                    value={time}
+                                    className="text-gray-800 hover:bg-gray-100 text-xs"
+                                  >
+                                    {formatTime(
+                                      time,
+                                      slot.date?.toString() || "",
+                                      getUserTimezone()
+                                    )}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
 
-                             <Select
-                               value={slot.endTime}
-                               onValueChange={(value) =>
-                                 updateSlot(slot.id, "endTime", value)
-                               }
-                             >
-                               <SelectTrigger className="h-8 bg-white border-gray-300 text-gray-800 placeholder:text-gray-500 focus:border-emerald-500 text-xs">
-                                 <SelectValue />
-                               </SelectTrigger>
-                               <SelectContent className="bg-white border-gray-200">
-                                 {timeOptions.map((time) => (
-                                   <SelectItem
-                                     key={time}
-                                     value={time}
-                                     className="text-gray-800 hover:bg-gray-100 text-xs"
-                                   >
-                                     {formatTime(time, slot.date?.toString() || '', getUserTimezone())}
-                                   </SelectItem>
-                                 ))}
-                               </SelectContent>
-                             </Select>
+                            <Select
+                              value={slot.endTime}
+                              onValueChange={(value) =>
+                                updateSlot(slot.id, "endTime", value)
+                              }
+                            >
+                              <SelectTrigger className="h-8 bg-white border-gray-300 text-gray-800 placeholder:text-gray-500 focus:border-emerald-500 text-xs">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent className="bg-white border-gray-200">
+                                {timeOptions.map((time) => (
+                                  <SelectItem
+                                    key={time}
+                                    value={time}
+                                    className="text-gray-800 hover:bg-gray-100 text-xs"
+                                  >
+                                    {formatTime(
+                                      time,
+                                      slot.date?.toString() || "",
+                                      getUserTimezone()
+                                    )}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
                           </div>
                         </div>
 
@@ -594,173 +785,6 @@ export default function TimeSlotCreator({
                     );
                   })}
                 </div>
-              </div>
-            </div>
-
-            {/* Overview Section */}
-            <div className="xl:col-span-1">
-              <div className="bg-white rounded-3xl p-4 sm:p-6 lg:p-8 border border-gray-200 shadow-lg sticky top-8">
-                {/* Header */}
-                <div className="text-center mb-8">
-                  <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl mx-auto flex items-center justify-center mb-4 shadow-lg">
-                    <Calendar className="w-8 h-8 text-white" />
-                  </div>
-                  <h2 className="text-2xl font-bold text-gray-800">
-                    Schedule Overview
-                  </h2>
-                  <p className="text-gray-600">Your availability summary</p>
-                </div>
-
-                {/* Stats Cards */}
-                <div className="space-y-4 mb-8">
-                  {/* Date Card */}
-                  {selectedRange && (
-                    <div className="bg-gradient-to-r from-indigo-500/20 to-blue-500/20 rounded-2xl p-6 border border-indigo-500/30">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm text-indigo-600 font-medium">
-                            Selected Date
-                          </p>
-                          <p className="text-lg font-bold text-gray-800">
-                            {new Date(selectedRange.start).toLocaleDateString(
-                              "en-US",
-                              {
-                                weekday: "long",
-                                month: "long",
-                                day: "numeric",
-                                year: "numeric",
-                              }
-                            )}
-                          </p>
-                          <p className="text-xs text-gray-500 mt-1">
-                            {selectedRange.start === selectedRange.end
-                              ? "Single day"
-                              : `${Math.ceil(
-                                  (new Date(selectedRange.end).getTime() -
-                                    new Date(selectedRange.start).getTime()) /
-                                    (1000 * 60 * 60 * 24)
-                                )} days`}
-                          </p>
-                        </div>
-                        <div className="w-12 h-12 bg-indigo-500/20 rounded-xl flex items-center justify-center">
-                          <Calendar className="w-6 h-6 text-indigo-400" />
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-2xl p-6 border border-blue-500/30">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm text-blue-600 font-medium">
-                          Active Periods
-                        </p>
-                        <p className="text-3xl font-bold text-gray-800">
-                          {slots.length}
-                        </p>
-                        <p className="text-xs text-gray-500 mt-1">
-                          {selectedCount > 0 && `${selectedCount} selected`}
-                        </p>
-                      </div>
-                      <div className="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center">
-                        <div className="w-3 h-3 bg-blue-400 rounded-full animate-pulse"></div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="bg-gradient-to-r from-emerald-500/20 to-teal-500/20 rounded-2xl p-6 border border-emerald-500/30">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm text-emerald-600 font-medium">
-                          Total Duration
-                        </p>
-                        <p className="text-3xl font-bold text-gray-800">
-                          {formatDuration(getTotalHours())}
-                        </p>
-                        <p className="text-xs text-gray-500 mt-1">
-                          {isValidSlot(slots[0])
-                            ? "Valid schedule"
-                            : "Check time ranges"}
-                        </p>
-                      </div>
-                      <div className="w-12 h-12 bg-emerald-500/20 rounded-xl flex items-center justify-center">
-                        <Clock className="w-6 h-6 text-emerald-400" />
-                      </div>
-                    </div>
-                  </div>
-
-                  {selectedCount > 0 && (
-                    <div className="bg-gradient-to-r from-orange-500/20 to-red-500/20 rounded-2xl p-6 border border-orange-500/30">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm text-orange-600 font-medium">
-                            Selected for Action
-                          </p>
-                          <p className="text-3xl font-bold text-gray-800">
-                            {selectedCount}
-                          </p>
-                          <p className="text-xs text-gray-500 mt-1">
-                            Ready to delete
-                          </p>
-                        </div>
-                        <div className="w-12 h-12 bg-orange-500/20 rounded-xl flex items-center justify-center">
-                          <Check className="w-6 h-6 text-orange-400" />
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Save Button */}
-                <Button
-                  onClick={handleSave}
-                  disabled={!validateSlots() || isLoading}
-                  className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold py-4 rounded-2xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
-                >
-                  {isLoading ? (
-                    <div className="flex items-center justify-center space-x-3">
-                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      <span>Saving Schedule...</span>
-                    </div>
-                  ) : (
-                    <div className="flex items-center justify-center space-x-3">
-                      <Save className="w-6 h-6" />
-                      <span>Save & Launch Schedule</span>
-                    </div>
-                  )}
-                </Button>
-
-                {/* Quick Actions */}
-                {slots.length > 1 && (
-                  <div className="mt-6 pt-6 border-t border-gray-200">
-                    <p className="text-sm text-gray-600 mb-3">Quick Actions</p>
-                    <div className="flex space-x-2">
-                      <Button
-                        onClick={handleSelectAll}
-                        variant="outline"
-                        size="sm"
-                        className="flex-1 bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
-                      >
-                        {selectAll ? (
-                          <X className="w-4 h-4 mr-2" />
-                        ) : (
-                          <Check className="w-4 h-4 mr-2" />
-                        )}
-                        {selectAll ? "Deselect All" : "Select All"}
-                      </Button>
-                      {selectedCount > 0 && (
-                        <Button
-                          onClick={handleBulkDelete}
-                          variant="outline"
-                          size="sm"
-                          className="bg-red-500 border-red-500 text-white hover:bg-red-600"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
           </div>
