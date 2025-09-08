@@ -310,7 +310,7 @@ const Header: React.FC = () => {
                               badge === "Community Champion" ||
                               badge === "Friend of Rex Vet") && (
                               <div className="absolute -top-1 -right-1 h-5 w-5 rounded-full overflow-hidden border-2 border-white">
-                                <img
+                                <Image
                                   src={`/images/badge/${
                                     badge === "Friend of Rex Vet"
                                       ? "friendBadge3.webp"
@@ -321,7 +321,9 @@ const Header: React.FC = () => {
                                       : ""
                                   }`}
                                   alt="Badge"
-                                  className="h-full w-full object-cover"
+                                  fill
+                                  sizes="24px"
+                                  className="object-cover"
                                 />
                               </div>
                             )}

@@ -11,7 +11,12 @@ import {
 const VIDEO_URL =
   "https://res.cloudinary.com/di6zff0rd/video/upload/v1753102241/RexVetsWeb_tb3zcq.mp4";
 
-const HeroVideo = ({ shouldPause }: { shouldPause?: boolean }) => {
+interface HeroVideoProps {
+  shouldPause?: boolean;
+  onReady?: () => void;
+}
+
+const HeroVideo = ({ shouldPause, onReady }: HeroVideoProps) => {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [isMuted, setIsMuted] = useState(false);
@@ -67,10 +72,10 @@ const HeroVideo = ({ shouldPause }: { shouldPause?: boolean }) => {
       const video = videoRef.current;
       video.src = VIDEO_URL;
 
-      const handleCanPlay = () => {
-        setIsLoading(false);
+      const handleLoadedData = () => {
         setIsVideoLoaded(true);
-        video.removeEventListener("canplay", handleCanPlay);
+        setIsLoading(false);
+        onReady?.();
       };
 
       const handleError = (e: Event) => {
@@ -80,7 +85,7 @@ const HeroVideo = ({ shouldPause }: { shouldPause?: boolean }) => {
         video.removeEventListener("error", handleError);
       };
 
-      video.addEventListener("canplay", handleCanPlay);
+      video.addEventListener("canplay", handleLoadedData);
       video.addEventListener("error", handleError);
 
       video.load();

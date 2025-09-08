@@ -64,7 +64,6 @@ export default function FindVetPage({
   //PUSH NOTIFICATION TESTING_______________
   const { data: session } = useSession();
   const user = session?.user;
-  console.log("USER", user);
   const {
     requestPermission,
     getFcmToken,
@@ -116,7 +115,6 @@ export default function FindVetPage({
         typeof window !== "undefined" ? Notification.permission : "unknown",
     });
   }, [token, fcmError, fcmLoading, isSupported]);
-  console.log("Doctors", doctors);
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -192,8 +190,6 @@ export default function FindVetPage({
       setIsLocationSearching(false);
     }
   }, [debouncedLocationInput]);
-
-  console.log("doctors in find a vet page component", doctors);
 
   const bangladeshStates = [
     "All States",

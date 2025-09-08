@@ -71,8 +71,6 @@ appointmentSlotSchema.index(
   }
 );
 
-// 4. TIMEZONE-AWARE QUERY INDEXES
-// For timezone-specific queries
 appointmentSlotSchema.index(
   { timezone: 1, date: 1, status: 1 },
   {

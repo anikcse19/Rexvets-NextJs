@@ -2,14 +2,30 @@
 import { motion } from "framer-motion";
 import dynamic from "next/dynamic";
 import React, { useCallback, useEffect, useState } from "react";
+import localFont from "next/font/local";
 import CEOSection from "../CEOSection";
 import styles from "./hero.section.module.css";
 import Loader from "../shared/Loader";
 import HeroVideo from "../VideoPlayer";
 const loadingPlaceholder = () => <Loader size={60} />;
 
+// Use local font with next/font to prevent CLS due to late font swap
+const heroFont = localFont({
+  src: [
+    {
+      path: "../../../public/fonts/gothamoffice_regular.otf",
+      weight: "400",
+      style: "normal",
+    },
+  ],
+  variable: "--font-hero-local",
+  display: "swap",
+});
+
+// Defer FloatingElements entirely to the client idle time to avoid main-thread work on LCP
 const FloatingElements = dynamic(() => import("../FloatingParticle"), {
-  loading: loadingPlaceholder,
+  ssr: false,
+  loading: () => null,
 });
 const HeroContent = dynamic(() => import("./HeroContent"), {
   loading: loadingPlaceholder,
@@ -21,15 +37,13 @@ const videoSource =
   "https://res.cloudinary.com/di6zff0rd/video/upload/v1753102241/RexVetsWeb_tb3zcq.mp4";
 const HeroSection = () => {
   const [shouldPauseVideo, setShouldPauseVideo] = useState(false);
+  const [showFloating, setShowFloating] = useState(false);
+  const [videoReady, setVideoReady] = useState(false);
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(false);
 
-  const handlePlayPause = useCallback(() => {
-    setPlaying((prev) => !prev);
-  }, []);
-  const handleMuteToggle = useCallback(() => {
-    setMuted((prev) => !prev);
-  }, []);
+  const handlePlayPause = useCallback(() => setPlaying((p)=>!p),[]);
+  const handleMuteToggle = useCallback(()=>setMuted((m)=>!m),[]);
 
   // Scroll detection for video pause
   useEffect(() => {
@@ -82,10 +96,21 @@ const HeroSection = () => {
     };
   }, []);
 
+  // Defer non-critical visuals to idle
+  useEffect(() => {
+    const schedule = (cb: () => void) => {
+      // @ts-ignore
+      const ric = window.requestIdleCallback || ((fn: any) => setTimeout(fn, 200));
+      ric(cb);
+    };
+    schedule(() => setShowFloating(true));
+    // We keep the video inline (no poster swap) to match the desired layout
+  }, []);
+
   return (
-    <div className={styles.hero_container}>
+    <div className={`${styles.hero_container} ${heroFont.variable}`}>
       <div className="min-h-screen mt-16">
-        <FloatingElements />
+        {showFloating ? <FloatingElements /> : null}
         <main className="">
           <div className="container mx-auto">
             <div className="flex flex-col xl:flex-row gap-12  md:gap-6 items-center">
@@ -95,15 +120,24 @@ const HeroSection = () => {
 
               <div className="w-full lg:w-1/2 p-3">
                 <motion.div
-                  initial={{ opacity: 0, x: 150 }}
+                  // Keep animation subtle to avoid delaying LCP
+                  initial={{ opacity: 1, x: 0 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.8, ease: "easeOut" }}
+                  transition={{ duration: 0.2 }}
                 >
                   <CEOSection
                     heading="Meet Our CEO"
                     name="Dr. Tiffany Delacruz, DVM"
                   />
-                  <HeroVideo shouldPause={shouldPauseVideo} />
+                  <div className="w-full relative" style={{aspectRatio:"16/9"}}>
+                    {!videoReady && (
+                      <div className="absolute inset-0 bg-gray-100 animate-pulse rounded-md" />
+                    )}
+                    <HeroVideo
+                      shouldPause={shouldPauseVideo}
+                      onReady={() => setVideoReady(true)}
+                    />
+                  </div>
                 </motion.div>
               </div>
             </div>

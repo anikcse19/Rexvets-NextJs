@@ -42,6 +42,7 @@ interface BookingSystemProps {
   onConfirm: (date: string, time: string, slot: string) => void;
   selectedSlotDate: string | null;
   selectedSlotId: string | null;
+  vetTimezone: string;
 }
 
 export default function BookingSystem({
@@ -50,6 +51,7 @@ export default function BookingSystem({
   onConfirm,
   selectedSlotDate,
   selectedSlotId,
+  vetTimezone,
 }: BookingSystemProps) {
   const [selectedDate, setSelectedDate] = useState<string>(
     () => new Date().toLocaleDateString("en-CA") // today initially
@@ -108,29 +110,41 @@ export default function BookingSystem({
   console.log("selectedDate", selectedDate, selectedSlot);
 
   const fetchVetSlots = async () => {
+    if (!doctorData?._id) {
+      console.error("Doctor ID is missing");
+      return;
+    }
+    
     const date = parseISO(selectedSlotDate ?? selectedDate);
     const userTimezone = getUserTimezone();
     const formatted = format(date, "yyyy-MM-dd");
-    const data = await getVetSlots({
-      id: doctorData?._id,
-      startDate: formatted,
-      endDate: formatted,
-      timezone: userTimezone,
-    });
-    // Sort by startTime (assumes format 'HH:mm')
-    const sorted = (data || []).slice().sort((a: any, b: any) => {
-      if (!a.startTime || !b.startTime) return 0;
-      return a.startTime.localeCompare(b.startTime);
-    });
-    setSlots(sorted);
-    if (data && data.length > 0) {
-      setVeterinarianTimezone(data[0]?.timezone || "UTC");
+    
+    try {
+      const data = await getVetSlots({
+        id: doctorData._id,
+        startDate: formatted,
+        endDate: formatted,
+        timezone: vetTimezone || userTimezone,
+      });
+      
+      // Sort by startTime (assumes format 'HH:mm')
+      const sorted = (data || []).slice().sort((a: any, b: any) => {
+        if (!a.startTime || !b.startTime) return 0;
+        return a.startTime.localeCompare(b.startTime);
+      });
+      setSlots(sorted);
+      if (data && data.length > 0) {
+        setVeterinarianTimezone(data[0]?.timezone || "UTC");
+      }
+    } catch (error) {
+      console.error("Error fetching vet slots:", error);
+      setSlots([]);
     }
   };
 
   useEffect(() => {
     fetchVetSlots();
-  }, [selectedDate, selectedSlotDate, selectedSlotId]);
+  }, [selectedDate, selectedSlotDate, selectedSlotId, vetTimezone]);
   console.log("slots", slots);
   useEffect(() => {
     if (selectedSlotDate && selectedSlotId) {

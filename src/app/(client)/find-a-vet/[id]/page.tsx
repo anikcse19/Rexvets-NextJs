@@ -15,12 +15,15 @@ const Page = async ({ params }: PageProps) => {
 
   // fetch data using the dynamic id
   const doctorData = await getVetById(doctorId);
-
+  console.log("doctorData", doctorData?.data?.timezone);
   // console.log("doctor get by id", doctorData);
 
   return (
     <div>
-      <DoctorProfilePage doctorData={doctorData?.data?.veterinarian} />
+      <DoctorProfilePage
+        vetTimezone={doctorData?.data?.timezone}
+        doctorData={doctorData?.data?.veterinarian}
+      />
     </div>
   );
 };
