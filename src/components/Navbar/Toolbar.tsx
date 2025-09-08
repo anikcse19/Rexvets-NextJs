@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { X, PawPrint, HeartPulse, Stethoscope } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import Link from "next/link";
 
 export default function TopToolbar() {
   const [visible, setVisible] = useState(true);
@@ -34,9 +35,12 @@ export default function TopToolbar() {
               <PawPrint className="w-5 h-5 text-yellow-400 animate-bounce" />
               <span>
                 Book your{" "}
-                <span className="text-yellow-300 font-extrabold">
+                <Link
+                  href="/find-a-vet"
+                  className="text-yellow-300 font-extrabold"
+                >
                   Vet Appointment
-                </span>{" "}
+                </Link>{" "}
                 today – starting from just{" "}
                 <span className="bg-yellow-400 text-black px-2 py-0.5 rounded-md shadow-md">
                   $35
