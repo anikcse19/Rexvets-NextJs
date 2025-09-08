@@ -29,7 +29,12 @@ export const GET = async (req: NextRequest) => {
       throw Error("Veterinarian not found");
     }
     const tz = veterinarian.timezone || timezoneParam || "UTC";
-    console.log("todays-slot vet noticePeriod=", veterinarian?.noticePeriod, " tz=", tz);
+    console.log(
+      "todays-slot vet noticePeriod=",
+      veterinarian?.noticePeriod,
+      " tz=",
+      tz
+    );
     // Ensure same local date is used for both bounds; util will convert using tz
     const onlyDate = new Date(startDate);
     const payload = {
@@ -39,7 +44,6 @@ export const GET = async (req: NextRequest) => {
       startDate: onlyDate,
       endDate: onlyDate,
     };
-    console.log("todays slot api payload", payload);
     const response = await getSlotsByNoticePeriodAndDateRangeByVetId(payload);
     const responseFormat: ISendResponse<any> = {
       success: true,
@@ -47,7 +51,6 @@ export const GET = async (req: NextRequest) => {
       data: response,
       statusCode: 200,
     };
-    console.log("todays slot api  response", response);
     return sendResponse(responseFormat);
   } catch (error: any) {
     const errResp: IErrorResponse = {
