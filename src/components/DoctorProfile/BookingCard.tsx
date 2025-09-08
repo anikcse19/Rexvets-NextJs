@@ -302,8 +302,10 @@ export default function BookingSystem({
                     <button
                       key={slot._id}
                       onClick={() => {
+                        console.log("SLOT CLICKED", slot);
                         setSelectedSlot(slot._id);
-                        setSelectedTime(slot.formattedStartTime);
+                        // alert(slot.formattedStartTime);
+                        setSelectedTime(slot.startTime);
                       }}
                       className={`
                 relative p-4 rounded-xl items-center  justify-center flex flex-col border-2 text-left transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]
@@ -382,6 +384,9 @@ export default function BookingSystem({
           {/* Confirm Button */}
           <Button
             onClick={() => {
+              console.log("SELECTED DATE:", selectedDate);
+              console.log("SELECTED TIME:", selectedTime);
+              console.log("SELECTED SLOT:", selectedSlot);
               if (selectedSlot && selectedTime) {
                 onConfirm(selectedDate, selectedTime, selectedSlot);
                 window.scrollTo({ top: 0, behavior: "smooth" });
