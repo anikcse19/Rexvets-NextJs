@@ -1,6 +1,6 @@
 import { connectToDatabase } from "@/lib/mongoose";
 import { VeterinarianModel } from "@/models";
-import User from "@/models/User";
+import { AppointmentSlot } from "@/models/AppointmentSlot";
 import moment from "moment-timezone";
 import { NextRequest, NextResponse } from "next/server";
 import { getSlotsByNoticePeriodAndDateRangeByVetId } from "../appointments/booking/slot/slot.util";
@@ -115,89 +115,80 @@ export async function GET(req: NextRequest) {
 
     // Build aggregation pipeline to include next two available slots
     // Get user's timezone from query params or default to UTC
-    const userTimezone = searchParams.get("timezone") || "UTC";
-
-    // Get current time in user's timezone
-    const now = moment().tz(userTimezone);
-    const todayStart = now.clone().startOf("day");
-    const currentTime = now.format("HH:mm");
+    // const userTimezone = searchParams.get("timezone") || "UTC";
 
     // First, get all veterinarians that match the filter
+    // Use lean() and pagination to reduce memory and speed up response
     const veterinarians = await VeterinarianModel.find(filter)
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(limit)
       .lean();
 
-    // Build a map of veterinarianId -> user timezone from User model
-    const veterinarianIds = veterinarians.map((v) => v._id as any);
-    const usersForVets = await User.find(
-      { veterinarianRef: { $in: veterinarianIds } },
-      { timezone: 1, veterinarianRef: 1 }
-    ).lean();
-    const vetIdToUserTimezone = new Map<string, string>();
-    usersForVets.forEach((u: any) => {
-      if (u?.veterinarianRef) {
-        vetIdToUserTimezone.set(
-          (u.veterinarianRef as any).toString(),
-          u.timezone || ""
-        );
-      }
-    });
-    console.log("vetIdToUserTimezone", vetIdToUserTimezone);
-    // For each veterinarian, get their next 2 available slots using the working utility
-    const veterinariansWithSlots = await Promise.all(
-      veterinarians.map(async (vet) => {
-        try {
-          const vetNoticePeriod = vet.noticePeriod || 30; // Default to 30 minutes
-          const perVetTimezone =
-            vetIdToUserTimezone.get((vet._id as any).toString()) ||
-            userTimezone;
-          console.log("perVetTimezone", perVetTimezone);
-          // Get slots for the next 7 days to ensure we have enough slots
-          const startDate = now.clone().startOf("day").toDate();
-          const endDate = now.clone().add(7, "days").endOf("day").toDate();
+    // Build nextAvailableSlots per vet mirroring today's-slot logic
+    const slotByVet = new Map<string, { todaysCount: number; nextAvailableSlots: any[] }>();
+    const vetResults = await Promise.all(
+      veterinarians.map(async (vet: any) => {
+        const tz = vet.timezone || "UTC";
+        const notice = vet.noticePeriod ?? 0;
+        const nowTz = moment.tz(tz);
 
-          const slots = await getSlotsByNoticePeriodAndDateRangeByVetId({
-            vetId: (vet._id as any).toString(),
-            noticePeriod: vetNoticePeriod,
-            startDate,
-            endDate,
-            timezone: perVetTimezone,
+        // Fetch today's slots first
+        const todaySlots = await getSlotsByNoticePeriodAndDateRangeByVetId({
+          vetId: vet._id.toString(),
+          noticePeriod: notice,
+          // Pass the same date for start and end to mirror today's-slot behavior
+          startDate: nowTz.toDate(),
+          endDate: nowTz.toDate(),
+          timezone: tz,
+        });
+
+        if (todaySlots && todaySlots.length > 0) {
+          const nextTwo = todaySlots.slice(0, 2);
+          slotByVet.set(vet._id.toString(), {
+            todaysCount: todaySlots.length,
+            nextAvailableSlots: nextTwo,
           });
-
-          // Take only the first 2 slots
-          const nextAvailableSlots = slots.slice(0, 2);
-
-          return {
-            ...vet,
-            noticePeriod: vetNoticePeriod,
-            nextAvailableSlots,
-          };
-        } catch (error) {
-          console.error(
-            `Error getting slots for vet ${(vet as any).name}:`,
-            error
-          );
-          return {
-            ...vet,
-            noticePeriod: vet.noticePeriod || 30,
-            nextAvailableSlots: [],
-          };
+          return;
         }
+
+        // Otherwise fetch nearest future date slots (within next 30 days)
+        const futureStart = nowTz.clone().add(1, "day").startOf("day").toDate();
+        const futureEnd = nowTz.clone().add(30, "day").endOf("day").toDate();
+        const futureSlots = await getSlotsByNoticePeriodAndDateRangeByVetId({
+          vetId: vet._id.toString(),
+          noticePeriod: notice,
+          startDate: futureStart,
+          endDate: futureEnd,
+          timezone: tz,
+        });
+        // Restrict to the first future date's slots only, then take up to 2
+        let nextTwo: any[] = [];
+        if (futureSlots && futureSlots.length > 0) {
+          const firstDateStr = moment.tz(futureSlots[0].date, tz).format("YYYY-MM-DD");
+          nextTwo = futureSlots
+            .filter((s: any) => moment.tz(s.date, tz).format("YYYY-MM-DD") === firstDateStr)
+            .slice(0, 2);
+        }
+        slotByVet.set(vet._id.toString(), {
+          todaysCount: 0,
+          nextAvailableSlots: nextTwo,
+        });
       })
     );
 
-    // Filter out veterinarians who have no available slots
-    const veterinariansWithAvailableSlots = veterinariansWithSlots.filter(
-      (vet) => vet.nextAvailableSlots.length > 0
-    );
-
-    console.log(
-      `After slot filtering: ${veterinariansWithAvailableSlots.length} veterinarians have available slots`
-    );
-
-    const items = veterinariansWithAvailableSlots;
+    const items = veterinarians
+      .map((vet: any) => {
+        const s = slotByVet.get(vet._id.toString());
+        return {
+          ...vet,
+          todaysCount: s?.todaysCount || 0,
+          nextAvailableSlots: s?.nextAvailableSlots || [],
+        };
+      })
+      .filter(
+        (v: any) => v.todaysCount > 0 || (v.nextAvailableSlots || []).length > 0
+      );
 
     // Get total count for pagination
     const total = await VeterinarianModel.countDocuments(filter);

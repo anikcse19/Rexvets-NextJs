@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
+import { useAppContext } from "@/hooks/StateContext";
 import { getUserTimezone } from "@/lib/timezone";
 import { convertTimesToUserTimezone } from "@/lib/timezone/index";
 import { format, parseISO } from "date-fns";
@@ -11,6 +12,7 @@ import {
   ChevronDown,
   ChevronUp,
   Clock,
+  Loader2,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { DayPicker } from "react-day-picker";
@@ -40,8 +42,7 @@ interface BookingSystemProps {
   doctorName: string;
   doctorData: Doctor;
   onConfirm: (date: string, time: string, slot: string) => void;
-  selectedSlotDate: string | null;
-  selectedSlotId: string | null;
+
   vetTimezone: string;
 }
 
@@ -49,8 +50,6 @@ export default function BookingSystem({
   doctorName,
   doctorData,
   onConfirm,
-  selectedSlotDate,
-  selectedSlotId,
   vetTimezone,
 }: BookingSystemProps) {
   const [selectedDate, setSelectedDate] = useState<string>(
@@ -60,7 +59,10 @@ export default function BookingSystem({
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [showCalendar, setShowCalendar] = useState(false);
   const [slots, setSlots] = useState<Slot[]>([]);
-
+  const [isLoading, setIsLoading] = useState(false);
+  const { appState, setAppState } = useAppContext();
+  const { slotDate: selectedSlotDate, slotId: selectedSlotId } = appState;
+  console.log("selectedSlotId", selectedSlotId);
   const [veterinarianTimezone, setVeterinarianTimezone] = useState("");
   const toLocalDateString = (date: Date) => date.toLocaleDateString("en-CA"); // YYYY-MM-DD
   const currentTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -114,19 +116,20 @@ export default function BookingSystem({
       console.error("Doctor ID is missing");
       return;
     }
-    
+    setIsLoading(true);
     const date = parseISO(selectedSlotDate ?? selectedDate);
     const userTimezone = getUserTimezone();
     const formatted = format(date, "yyyy-MM-dd");
-    
+    const payload = {
+      id: doctorData._id,
+      startDate: formatted,
+      endDate: formatted,
+      timezone: vetTimezone || userTimezone,
+    };
+    console.log("payload", payload);
     try {
-      const data = await getVetSlots({
-        id: doctorData._id,
-        startDate: formatted,
-        endDate: formatted,
-        timezone: vetTimezone || userTimezone,
-      });
-      
+      const data = await getVetSlots(payload);
+
       // Sort by startTime (assumes format 'HH:mm')
       const sorted = (data || []).slice().sort((a: any, b: any) => {
         if (!a.startTime || !b.startTime) return 0;
@@ -136,9 +139,11 @@ export default function BookingSystem({
       if (data && data.length > 0) {
         setVeterinarianTimezone(data[0]?.timezone || "UTC");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching vet slots:", error);
       setSlots([]);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -154,6 +159,7 @@ export default function BookingSystem({
       setSelectedDate(formatted);
       if (slots.length > 0) {
         const findSlot = slots.find((slot) => slot._id === selectedSlotId);
+        console.log("findSlot", findSlot);
         if (findSlot) {
           setSelectedTime(findSlot?.formattedStartTime);
           setSelectedSlot(findSlot?._id);
@@ -187,6 +193,11 @@ export default function BookingSystem({
                   onClick={() => {
                     setSelectedDate(day.date);
                     setSelectedSlot(null);
+                    setAppState((prev) => ({
+                      ...prev,
+                      slotDate: null,
+                      slotId: null,
+                    }));
                   }}
                   className={`p-3 rounded-lg border text-left transition-all cursor-pointer ${
                     selectedDate === day.date
@@ -264,7 +275,14 @@ export default function BookingSystem({
                 )}
               </div> */}
             </div>
-            {slots.length > 0 ? (
+            {isLoading ? (
+              <div className="flex items-center justify-center py-10">
+                <Loader2 className="w-6 h-6 animate-spin text-gray-500" />
+                <span className="ml-2 text-gray-600">
+                  Available Times slots…
+                </span>
+              </div>
+            ) : slots.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 {slots.map((slot) => {
                   const {
@@ -285,8 +303,10 @@ export default function BookingSystem({
                     <button
                       key={slot._id}
                       onClick={() => {
+                        alert(slot._id);
                         setSelectedSlot(slot._id);
-                        setSelectedTime(slot.formattedStartTime);
+                        // alert(slot.formattedStartTime);
+                        setSelectedTime(slot.startTime);
                       }}
                       className={`
                 relative p-4 rounded-xl items-center  justify-center flex flex-col border-2 text-left transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]
@@ -365,6 +385,9 @@ export default function BookingSystem({
           {/* Confirm Button */}
           <Button
             onClick={() => {
+              console.log("SELECTED DATE:", selectedDate);
+              console.log("SELECTED TIME:", selectedTime);
+              console.log("SELECTED SLOT:", selectedSlot);
               if (selectedSlot && selectedTime) {
                 onConfirm(selectedDate, selectedTime, selectedSlot);
                 window.scrollTo({ top: 0, behavior: "smooth" });

@@ -1,5 +1,6 @@
 "use client";
 
+import { useAppContext } from "@/hooks/StateContext";
 import { donationAmounts } from "@/lib";
 import { DonationAmount } from "@/lib/types";
 import { CardElement, useElements, useStripe } from "@stripe/react-stripe-js";
@@ -10,7 +11,6 @@ import React, { useState } from "react";
 
 interface DonationFormProps {
   onDonationComplete: (amount: number) => void;
-  selectedFamilyPlan?: string;
 }
 
 /**
@@ -29,14 +29,12 @@ interface DonationFormProps {
  * - confirmCardPayment: Confirms payment with payment method
  * - Subscriptions: For recurring payments with dynamic pricing
  */
-const DonationForm: React.FC<DonationFormProps> = ({
-  onDonationComplete,
-  selectedFamilyPlan,
-}) => {
+const DonationForm: React.FC<DonationFormProps> = ({ onDonationComplete }) => {
   const stripe = useStripe();
   const elements = useElements();
   const { data: session } = useSession();
-
+  const { setAppState, appState } = useAppContext();
+  const { selectedFamilyPlan } = appState;
   const [selectedAmount, setSelectedAmount] = useState<DonationAmount | null>(
     null
   );
@@ -214,6 +212,7 @@ const DonationForm: React.FC<DonationFormProps> = ({
       setError((err as Error).message);
     } finally {
       setProcessing(false);
+      setAppState((prev) => ({ ...prev, selectedFamilyPlan: null }));
     }
   };
 

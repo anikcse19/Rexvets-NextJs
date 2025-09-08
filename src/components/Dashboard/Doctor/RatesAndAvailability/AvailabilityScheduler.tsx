@@ -281,7 +281,7 @@ const AvailabilityScheduler: React.FC<Props> = ({
   const dateRange = formatDateRange(periods);
 
   return (
-    <div className="max-w-2xl mx-auto p-6 bg-gray-50 min-h-screen">
+    <div className="max-w-2xl mx-auto md:p-6 bg-gray-50 min-h-screen">
       <div className="bg-white rounded-lg shadow-sm">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
@@ -380,9 +380,9 @@ const AvailabilityScheduler: React.FC<Props> = ({
                     {dayData?.periods?.map((period, periodIndex) => (
                       <div
                         key={periodIndex}
-                        className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200"
+                        className="flex flex-col md:flex-row md:items-center justify-between p-3 bg-white rounded-lg border border-gray-200"
                       >
-                        <div className="flex items-center gap-3">
+                        <div className="flex flex-col md:flex-row md:items-center gap-3">
                           <span className="text-sm font-medium text-gray-700">
                             Periods: {periodIndex + 1}
                           </span>

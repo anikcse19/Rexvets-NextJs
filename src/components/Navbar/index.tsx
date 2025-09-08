@@ -47,6 +47,7 @@ import {
 import TopToolbar from "./Toolbar";
 import TopToolbarPetParent from "./Toolbar";
 import TopToolbarVet from "./ToolbarVet";
+import { toast } from "sonner";
 
 const menuItems = {
   "Pet parents": ["Donate", "What we treat"],
@@ -61,6 +62,7 @@ const Header: React.FC = () => {
   const [badge, setBadge] = useState("");
   const [scrolled, setScrolled] = useState(false);
   const [visible, setVisible] = useState(true);
+  const [isSLotAvailable, setIsSLotAvailable] = useState(false);
 
   const { data: session } = useSession();
 
@@ -138,13 +140,43 @@ const Header: React.FC = () => {
   }, []);
   console.log("session emergency", session);
 
-  const checkIsExistsVetSchedule = () => {};
+  const isAppointmentSLotAvailable = async (vetId: string) => {
+    if (session?.user?.role !== "veterinarian") {
+      return;
+    }
+    try {
+      const response = await fetch(
+        `/api/appointments/booking/slot/has-availability?vetId=${vetId}`
+      );
+      if (!response.ok) {
+        throw new Error(
+          `Failed to fetch appointment slot availability: ${response.statusText}`
+        );
+      }
+      const data = await response.json();
+      console.log("isAppointmentSLotAvailable", data?.data?.hasAvailability);
+      setIsSLotAvailable(data?.data?.hasAvailability);
+    } catch (error: any) {
+      toast.error(
+        error.message || "Failed to fetch appointment slot availability"
+      );
+      console.error("Error fetching appointment slot availability:", error);
+    }
+  };
+  useEffect(() => {
+    if (session?.user?.role === "veterinarian" && session?.user?.refId) {
+      isAppointmentSLotAvailable(session?.user?.refId);
+    }
+  }, [session]);
+
   return (
     <>
       {!session || session?.user?.role === "pet_parent" ? (
         <TopToolbarPetParent visible={visible} setVisible={setVisible} />
       ) : (
-        <TopToolbarVet visible={visible} setVisible={setVisible} />
+        !isSLotAvailable && (
+          <TopToolbarVet visible={visible} setVisible={setVisible} />
+        )
       )}
       <header
         style={{
@@ -152,7 +184,9 @@ const Header: React.FC = () => {
             "linear-gradient(135deg, #0f0c29 0%, #24243e 25%, #302b63 50%, #0f3460 75%, #002366 100%)",
         }}
         className={`fixed ${
-          scrolled || !visible ? "top-0" : "top-[60px] md:top-[50px]"
+          scrolled || !visible || isSLotAvailable
+            ? "top-0"
+            : "top-[60px] md:top-[50px]"
         } transition-all duration-300 ease-in-out py-2 ${
           session?.user.role === "veterinarian" ? "md:py-4" : "md:py-2"
         } w-full backdrop-blur-sm px-3 lg:px-7  border-b border-slate-800/50 z-[9998]`}

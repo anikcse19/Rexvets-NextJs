@@ -5,7 +5,7 @@ import dynamic from "next/dynamic";
 import React from "react";
 import ChatIcon from "./ChatIcon";
 import type { ComponentType } from "react";
-import LazyLoad from '../LazyLoad';
+import LazyLoad from "../LazyLoad";
 
 const Skeleton = () => (
   <div className="w-full h-56 bg-gray-100 animate-pulse rounded-lg" />
@@ -22,28 +22,69 @@ const lazy = (importer: () => Promise<any>): ComponentType<any> =>
 const HeroSection = dynamic(() => import("./HeroSection"));
 
 const AboutUsSection = () => (
-  <LazyLoad importer={() => import('./AboutUsSection')} props={{ features, footer: { title: 'Join thousands of pet parents who trust Rex vet', tabs: ['Trusted','Verified','Available 24/7'] } }} />
+  <LazyLoad
+    importer={() => import("./AboutUsSection")}
+    props={{
+      features,
+      footer: {
+        title: "Join thousands of pet parents who trust Rex vet",
+        tabs: ["Trusted", "Verified", "Available 24/7"],
+      },
+    }}
+  />
 );
 const AwardsMarquee = () => (
-  <LazyLoad importer={() => import('./AwardsMarquee')} props={{ brands: doubledBrands }} />
+  <LazyLoad
+    importer={() => import("./AwardsMarquee")}
+    props={{ brands: doubledBrands }}
+  />
 );
 const FeaturesSection = () => (
-  <LazyLoad importer={() => import('./FeaturesSection')} props={{ data: whyChooseFeaturesData }} />
+  <LazyLoad
+    importer={() => import("./FeaturesSection")}
+    props={{ data: whyChooseFeaturesData }}
+  />
 );
 const BlogPostSection = () => (
-  <LazyLoad importer={() => import('./BlogPostSection').then((m)=>({default:m.BlogPostSection}))} />
+  <LazyLoad
+    importer={() =>
+      import("./BlogPostSection").then((m) => ({ default: m.BlogPostSection }))
+    }
+  />
 );
 const RexVetPlan = () => (
-  <LazyLoad importer={() => import('./HomeRexVetPlan').then((m)=>({default:m.RexVetPlan}))} />
+  <LazyLoad
+    importer={() =>
+      import("./HomeRexVetPlan").then((m) => ({ default: m.RexVetPlan }))
+    }
+  />
 );
 const SupportOurMission = () => (
-  <LazyLoad importer={() => import('./SupportOurMission').then((m)=>({default:m.SupportOurMission}))} />
+  <LazyLoad
+    importer={() =>
+      import("./SupportOurMission").then((m) => ({
+        default: m.SupportOurMission,
+      }))
+    }
+  />
 );
 const TestimonialsSection = () => (
-  <LazyLoad importer={() => import('./TestimonialsSection').then((m)=>({default:m.TestimonialsSection}))} />
+  <LazyLoad
+    importer={() =>
+      import("./TestimonialsSection").then((m) => ({
+        default: m.TestimonialsSection,
+      }))
+    }
+  />
 );
 const VirtualCareIntroSection = () => (
-  <LazyLoad importer={() => import('./VirtualCareIntroSection').then((m)=>({default:m.VirtualCareIntroSection}))} />
+  <LazyLoad
+    importer={() =>
+      import("./VirtualCareIntroSection").then((m) => ({
+        default: m.VirtualCareIntroSection,
+      }))
+    }
+  />
 );
 const Home = () => {
   // Temporarily disabled automatic push notification registration to fix service worker conflicts
@@ -61,8 +102,8 @@ const Home = () => {
       <HeroSection />
       <AwardsMarquee />
       <AboutUsSection />
-      <FeaturesSection />
       <RexVetPlan />
+      <FeaturesSection />
       <SupportOurMission />
       <VirtualCareIntroSection />
       <BlogPostSection />
