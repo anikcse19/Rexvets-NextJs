@@ -16,7 +16,7 @@ export default function PerformanceMonitor({
   const [showTimezoneModal, setShowTimezoneModal] = useState(false);
   const [detectedTimezone, setDetectedTimezone] = useState<string>("");
   const [isUpdating, setIsUpdating] = useState(false);
-
+  console.log("SESSEION:", session?.user);
   useEffect(() => {
     // Initialize performance monitoring
     performanceMonitor.init();
@@ -78,6 +78,7 @@ export default function PerformanceMonitor({
           },
           body: JSON.stringify({
             timezone: detectedTimezone,
+            refId: session.user.refId,
           }),
         });
       };
