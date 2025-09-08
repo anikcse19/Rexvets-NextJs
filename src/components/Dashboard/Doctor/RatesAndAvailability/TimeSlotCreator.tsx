@@ -10,6 +10,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { getUserTimezone } from "@/lib/timezone";
+import { convertTimesToUserTimezone } from "@/lib/timezone/index";
 import { DateRange, SlotPeriod } from "@/lib/types";
 import { formatDisplayTime, generateTimeOptions } from "@/lib/utils";
 import {
@@ -17,19 +19,18 @@ import {
   Calendar,
   Check,
   Clock,
-  MoreVertical,
   Plus,
   Save,
-  Timer,
   Trash2,
   X,
 } from "lucide-react";
+import moment from "moment";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 interface TimeSlotCreatorProps {
   selectedRange: DateRange | null;
-  onSaveSlots: (slots: SlotPeriod[]) => void;
+  onSaveSlots: (slots: SlotPeriod[]) => Promise<void>;
   hasExistingSlots?: boolean;
   existingPeriods?: Array<{
     startTime: string;
@@ -46,6 +47,7 @@ interface TimeSlot {
   endTime: string;
   isExisting?: boolean;
   isSelected?: boolean;
+  date?: Date;
 }
 
 export default function TimeSlotCreator({
@@ -61,8 +63,10 @@ export default function TimeSlotCreator({
       endTime: "17:00",
       isExisting: false,
       isSelected: false,
+      date: selectedRange?.start,
     },
   ]);
+  console.log("existingPeriods", existingPeriods);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [openPopover, setOpenPopover] = useState<{
@@ -79,6 +83,7 @@ export default function TimeSlotCreator({
       endTime: period.endTime,
       isExisting: true,
       isSelected: false,
+      date: period?.slots[0]?.formattedDate,
     }));
   }, [hasExistingSlots, existingPeriods]);
 
@@ -94,6 +99,7 @@ export default function TimeSlotCreator({
           endTime: "17:00",
           isExisting: false,
           isSelected: false,
+          date: selectedRange?.start,
         },
       ]);
     }
@@ -108,6 +114,7 @@ export default function TimeSlotCreator({
       endTime: "17:00", // Default end time
       isExisting: false,
       isSelected: false,
+      date: selectedRange?.start,
     };
     setSlots([...slots, newSlot]);
   };
@@ -215,7 +222,7 @@ export default function TimeSlotCreator({
       console.log("Saving slots:", slots);
       console.log("Slot periods:", slotPeriods);
 
-      onSaveSlots(slotPeriods);
+      await onSaveSlots(slotPeriods);
 
       // Reset slots after successful save
       if (hasExistingSlots && processedExistingPeriods.length > 0) {
@@ -232,8 +239,11 @@ export default function TimeSlotCreator({
         ]);
       }
       setSelectAll(false);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error saving slots:", error);
+      toast.error("Failed to save availability slots", {
+        description: error.message || "Please try again.",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -277,7 +287,37 @@ export default function TimeSlotCreator({
     const minutes = Math.round((hours - wholeHours) * 60);
     return `${wholeHours}h ${minutes}m`;
   };
+  const formatDate = (date: Date | string | undefined, timezone?: string) => {
+    if (!date) return "";
 
+    if (timezone && typeof date === "string") {
+      // Convert the date to user's timezone
+      const { formattedDate } = convertTimesToUserTimezone(
+        "00:00", // dummy time for date conversion
+        "00:00", // dummy time for date conversion
+        date,
+        timezone
+      );
+      return moment(formattedDate).format("dddd, MMM DD, YYYY");
+    }
+
+    const dateObj = typeof date === "string" ? new Date(date) : date;
+    return moment(dateObj).format("dddd, MMM DD, YYYY");
+  };
+  const formatTime = (timeStr: string, dateStr: string, timezone?: string) => {
+    if (timezone) {
+      // Use convertTimesToUserTimezone for proper timezone conversion
+      const { formattedStartTime, formattedEndTime } =
+        convertTimesToUserTimezone(
+          timeStr,
+          timeStr, // same time for start and end since we only need start
+          dateStr,
+          timezone
+        );
+      return formattedStartTime;
+    }
+    return moment(`2000-01-01 ${timeStr}`).format("h:mm A");
+  };
   return (
     <div className="w-full min-h-screen  p-6">
       {!selectedRange ? (
@@ -317,7 +357,7 @@ export default function TimeSlotCreator({
                     </div>
                     <div>
                       <h2 className="text-2xl sm:text-3xl font-bold text-gray-800">
-                        Availability Periods
+                        {hasExistingSlots ? "Available" : "New"} Periods
                       </h2>
                       <p className="text-sm sm:text-base text-gray-600">
                         Design your schedule with precision
@@ -377,158 +417,175 @@ export default function TimeSlotCreator({
 
                 {/* Period Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {slots.map((slot, index) => (
-                    <div
-                      key={slot.id}
-                      className={`group relative rounded-2xl p-4 border-2 transition-all duration-300 hover:scale-[1.02] ${
-                        slot.isSelected
-                          ? "border-emerald-400 bg-emerald-50 shadow-lg shadow-emerald-500/20"
-                          : "border-gray-200 bg-white hover:border-gray-300 hover:shadow-md"
-                      } ${
-                        !isValidSlot(slot) ? "border-red-300 bg-red-50" : ""
-                      }`}
-                    >
-                      {/* Selection Checkbox */}
-                      <div className="absolute top-3 right-3">
-                        <Checkbox
-                          checked={slot.isSelected}
-                          onCheckedChange={() => toggleSlotSelection(slot.id)}
-                          className="data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-500 w-4 h-4"
-                        />
-                      </div>
-
-                      {/* Header */}
-                      <div className="flex items-center space-x-2 mb-3">
-                        <div
-                          className={`w-2 h-2 rounded-full ${
-                            slot.isExisting
-                              ? "bg-blue-400"
-                              : isValidSlot(slot)
-                              ? "bg-emerald-400 animate-pulse"
-                              : "bg-red-400"
-                          }`}
-                        ></div>
-                        <h3 className="font-semibold text-sm text-gray-800 truncate">
-                          {slot.isExisting ? "Existing" : "New"} #{index + 1}
-                        </h3>
-                      </div>
-
-                      {/* Time Display */}
-                      <div className="space-y-1 mb-3">
-                        <div className="text-center">
-                          <p className="text-xs text-gray-500">Time</p>
-                          <p className="font-medium text-sm text-gray-800">
-                            {formatDisplayTime(slot.startTime)} -{" "}
-                            {formatDisplayTime(slot.endTime)}
-                          </p>
+                  {slots.map((slot, index) => {
+                    console.log("slot", slot);
+                    const formattedDate = formatDate(
+                      slot.date,
+                      getUserTimezone()
+                    );
+                    return (
+                      <div
+                        key={slot.id}
+                        className={`group relative rounded-2xl p-4 border-2 transition-all duration-300 hover:scale-[1.02] ${
+                          slot.isSelected
+                            ? "border-emerald-400 bg-emerald-50 shadow-lg shadow-emerald-500/20"
+                            : "border-gray-200 bg-white hover:border-gray-300 hover:shadow-md"
+                        } ${
+                          !isValidSlot(slot) ? "border-red-300 bg-red-50" : ""
+                        }`}
+                      >
+                        {/* Selection Checkbox */}
+                        <div className="absolute top-3 right-3">
+                          <Checkbox
+                            checked={slot.isSelected}
+                            onCheckedChange={() => toggleSlotSelection(slot.id)}
+                            className="data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-500 w-4 h-4"
+                          />
                         </div>
 
-                        <div className="text-center">
-                          <p className="text-xs text-gray-500">Duration</p>
-                          <p className="font-medium text-sm text-gray-800">
-                            {isValidSlot(slot)
-                              ? formatDuration(
-                                  (() => {
-                                    const [sh, sm] = slot.startTime
-                                      .split(":")
-                                      .map(Number);
-                                    const [eh, em] = slot.endTime
-                                      .split(":")
-                                      .map(Number);
-                                    const start = new Date(
-                                      `2000-01-01T${String(sh).padStart(
-                                        2,
-                                        "0"
-                                      )}:${String(sm).padStart(2, "0")}:00`
-                                    );
-                                    const end = new Date(
-                                      `2000-01-01T${String(eh).padStart(
-                                        2,
-                                        "0"
-                                      )}:${String(em).padStart(2, "0")}:00`
-                                    );
-                                    return (
-                                      (end.getTime() - start.getTime()) /
-                                      (1000 * 60 * 60)
-                                    );
-                                  })()
-                                )
-                              : "Invalid"}
-                          </p>
+                        {/* Header */}
+                        <div className="flex items-center space-x-2 mb-2">
+                          <div
+                            className={`w-2 h-2 rounded-full ${
+                              slot.isExisting
+                                ? "bg-blue-400"
+                                : isValidSlot(slot)
+                                ? "bg-emerald-400 animate-pulse"
+                                : "bg-red-400"
+                            }`}
+                          ></div>
+                          <h3 className="font-semibold text-sm text-gray-800 truncate">
+                            {slot.isExisting ? "Existing" : "New"} #{index + 1}
+                          </h3>
                         </div>
-                      </div>
 
-                      {/* Time Selectors */}
-                      <div className="space-y-2 mb-3">
-                        <div className="grid grid-cols-2 gap-1">
-                          <Select
-                            value={slot.startTime}
-                            onValueChange={(value) =>
-                              updateSlot(slot.id, "startTime", value)
-                            }
-                          >
-                            <SelectTrigger className="h-8 bg-white border-gray-300 text-gray-800 placeholder:text-gray-500 focus:border-emerald-500 text-xs">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent className="bg-white border-gray-200">
-                              {timeOptions.map((time) => (
-                                <SelectItem
-                                  key={time}
-                                  value={time}
-                                  className="text-gray-800 hover:bg-gray-100 text-xs"
-                                >
-                                  {formatDisplayTime(time)}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-
-                          <Select
-                            value={slot.endTime}
-                            onValueChange={(value) =>
-                              updateSlot(slot.id, "endTime", value)
-                            }
-                          >
-                            <SelectTrigger className="h-8 bg-white border-gray-300 text-gray-800 placeholder:text-gray-500 focus:border-emerald-500 text-xs">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent className="bg-white border-gray-200">
-                              {timeOptions.map((time) => (
-                                <SelectItem
-                                  key={time}
-                                  value={time}
-                                  className="text-gray-800 hover:bg-gray-100 text-xs"
-                                >
-                                  {formatDisplayTime(time)}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-
-                      {/* Action Buttons */}
-                      <div className="flex items-center justify-between">
-                        {!isValidSlot(slot) && (
-                          <div className="flex items-center space-x-1 text-red-600">
-                            <AlertTriangle className="w-3 h-3" />
-                            <span className="text-xs">Invalid</span>
+                        {/* Date Display */}
+                        {formattedDate && (
+                          <div className="text-center mb-3">
+                            <p className="text-xs text-gray-500">Date</p>
+                            <p className="font-medium text-sm text-gray-700">
+                              {formattedDate}
+                            </p>
                           </div>
                         )}
 
-                        {slots.length > 1 && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => removeSlot(slot.id)}
-                            className="ml-auto h-6 w-6 p-0 text-red-400 hover:text-red-300 hover:bg-red-500/20 rounded-md transition-all duration-200"
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
-                        )}
+                         {/* Time Display */}
+                         <div className="space-y-1 mb-3">
+                           <div className="text-center">
+                             <p className="text-xs text-gray-500">Time</p>
+                             <p className="font-medium text-sm text-gray-800">
+                               {formatTime(slot.startTime, slot.date?.toString() || '', getUserTimezone())} -{" "}
+                               {formatTime(slot.endTime, slot.date?.toString() || '', getUserTimezone())}
+                             </p>
+                           </div>
+
+                          <div className="text-center">
+                            <p className="text-xs text-gray-500">Duration</p>
+                            <p className="font-medium text-sm text-gray-800">
+                              {isValidSlot(slot)
+                                ? formatDuration(
+                                    (() => {
+                                      const [sh, sm] = slot.startTime
+                                        .split(":")
+                                        .map(Number);
+                                      const [eh, em] = slot.endTime
+                                        .split(":")
+                                        .map(Number);
+                                      const start = new Date(
+                                        `2000-01-01T${String(sh).padStart(
+                                          2,
+                                          "0"
+                                        )}:${String(sm).padStart(2, "0")}:00`
+                                      );
+                                      const end = new Date(
+                                        `2000-01-01T${String(eh).padStart(
+                                          2,
+                                          "0"
+                                        )}:${String(em).padStart(2, "0")}:00`
+                                      );
+                                      return (
+                                        (end.getTime() - start.getTime()) /
+                                        (1000 * 60 * 60)
+                                      );
+                                    })()
+                                  )
+                                : "Invalid"}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Time Selectors */}
+                        <div className="space-y-2 mb-3">
+                          <div className="grid grid-cols-2 gap-1">
+                             <Select
+                               value={slot.startTime}
+                               onValueChange={(value) =>
+                                 updateSlot(slot.id, "startTime", value)
+                               }
+                             >
+                               <SelectTrigger className="h-8 bg-white border-gray-300 text-gray-800 placeholder:text-gray-500 focus:border-emerald-500 text-xs">
+                                 <SelectValue />
+                               </SelectTrigger>
+                               <SelectContent className="bg-white border-gray-200">
+                                 {timeOptions.map((time) => (
+                                   <SelectItem
+                                     key={time}
+                                     value={time}
+                                     className="text-gray-800 hover:bg-gray-100 text-xs"
+                                   >
+                                     {formatTime(time, slot.date?.toString() || '', getUserTimezone())}
+                                   </SelectItem>
+                                 ))}
+                               </SelectContent>
+                             </Select>
+
+                             <Select
+                               value={slot.endTime}
+                               onValueChange={(value) =>
+                                 updateSlot(slot.id, "endTime", value)
+                               }
+                             >
+                               <SelectTrigger className="h-8 bg-white border-gray-300 text-gray-800 placeholder:text-gray-500 focus:border-emerald-500 text-xs">
+                                 <SelectValue />
+                               </SelectTrigger>
+                               <SelectContent className="bg-white border-gray-200">
+                                 {timeOptions.map((time) => (
+                                   <SelectItem
+                                     key={time}
+                                     value={time}
+                                     className="text-gray-800 hover:bg-gray-100 text-xs"
+                                   >
+                                     {formatTime(time, slot.date?.toString() || '', getUserTimezone())}
+                                   </SelectItem>
+                                 ))}
+                               </SelectContent>
+                             </Select>
+                          </div>
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="flex items-center justify-between">
+                          {!isValidSlot(slot) && (
+                            <div className="flex items-center space-x-1 text-red-600">
+                              <AlertTriangle className="w-3 h-3" />
+                              <span className="text-xs">Invalid</span>
+                            </div>
+                          )}
+
+                          {slots.length > 1 && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => removeSlot(slot.id)}
+                              className="ml-auto h-6 w-6 p-0 text-red-400 hover:text-red-300 hover:bg-red-500/20 rounded-md transition-all duration-200"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             </div>
@@ -549,6 +606,42 @@ export default function TimeSlotCreator({
 
                 {/* Stats Cards */}
                 <div className="space-y-4 mb-8">
+                  {/* Date Card */}
+                  {selectedRange && (
+                    <div className="bg-gradient-to-r from-indigo-500/20 to-blue-500/20 rounded-2xl p-6 border border-indigo-500/30">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-indigo-600 font-medium">
+                            Selected Date
+                          </p>
+                          <p className="text-lg font-bold text-gray-800">
+                            {new Date(selectedRange.start).toLocaleDateString(
+                              "en-US",
+                              {
+                                weekday: "long",
+                                month: "long",
+                                day: "numeric",
+                                year: "numeric",
+                              }
+                            )}
+                          </p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            {selectedRange.start === selectedRange.end
+                              ? "Single day"
+                              : `${Math.ceil(
+                                  (new Date(selectedRange.end).getTime() -
+                                    new Date(selectedRange.start).getTime()) /
+                                    (1000 * 60 * 60 * 24)
+                                )} days`}
+                          </p>
+                        </div>
+                        <div className="w-12 h-12 bg-indigo-500/20 rounded-xl flex items-center justify-center">
+                          <Calendar className="w-6 h-6 text-indigo-400" />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-2xl p-6 border border-blue-500/30">
                     <div className="flex items-center justify-between">
                       <div>

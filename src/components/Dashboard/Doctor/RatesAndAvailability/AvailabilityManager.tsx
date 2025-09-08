@@ -100,10 +100,10 @@ const AvailabilityManager: React.FC = () => {
   //   setUserTimezone(timezone);
   // }, []);
 
-  const handleSaveSlots = async (slotPeriods: SlotPeriod[]) => {
+  const handleSaveSlots = async (slotPeriods: SlotPeriod[]): Promise<void> => {
     if (!selectedRange || !user?.refId) {
       toast.error("Please select a date range and ensure you are logged in");
-      return;
+      throw new Error("Missing required data");
     }
 
     // Check if timezones are different
@@ -115,17 +115,21 @@ const AvailabilityManager: React.FC = () => {
         currentTimezone: currentTimeZone,
         slotPeriods,
         onConfirm: async (selectedTimezone: string) => {
-          if (hasExistingSlots) {
-            await updateSlotPeriod(
-              slotPeriods,
-              selectedTimezone,
-              user.refId,
-              selectedRange
-            );
-          } else {
-            await createSlots(slotPeriods, selectedTimezone);
+          try {
+            if (hasExistingSlots) {
+              await updateSlotPeriod(
+                slotPeriods,
+                selectedTimezone,
+                user.refId,
+                selectedRange
+              );
+            } else {
+              await createSlots(slotPeriods, selectedTimezone);
+            }
+            setTimezoneModal(null);
+          } catch (error) {
+            throw error;
           }
-          setTimezoneModal(null);
         },
       });
     } else {
@@ -309,12 +313,9 @@ const AvailabilityManager: React.FC = () => {
   // Defer large arrays to avoid blocking rendering
   const deferredExistingPeriods = useDeferredValue(existingPeriods);
 
-  console.log(
-    "availableSlotsApiResponse",
-    availableSlotsApiResponse.data?.periods
-  );
+  // console.log("deferredExistingPeriods", deferredExistingPeriods);
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="container mx-auto p-2 md:p-6 space-y-6">
       <BookingNoticePeriod vetId={user?.refId} />
       {/* Debug Information */}
       {process.env.NODE_ENV === "development" && (
@@ -515,19 +516,7 @@ const AvailabilityManager: React.FC = () => {
           </DialogContent>
         </Dialog>
       )}
-      <Sheet
-        open={isTimePeriodsOpen}
-        onOpenChange={(open) => {
-          setIsTimePeriodOpen(open);
-          if (open) {
-            setMountCreator(false);
-            // Mount TimeSlotCreator on next frame so the sheet opens instantly
-            requestAnimationFrame(() => setMountCreator(true));
-          } else {
-            setMountCreator(false);
-          }
-        }}
-      >
+      <Sheet open={isTimePeriodsOpen} onOpenChange={setIsTimePeriodOpen}>
         <SheetContent side="right">
           <ScrollArea className="h-[96vh]">
             <SheetHeader>
