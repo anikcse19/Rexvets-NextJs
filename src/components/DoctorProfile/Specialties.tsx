@@ -1,5 +1,5 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Stethoscope } from "lucide-react";
 
 export default function Specialties({ doctor }: { doctor: any }) {
@@ -13,7 +13,7 @@ export default function Specialties({ doctor }: { doctor: any }) {
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-          {doctor?.specialties?.map((specialty: string, i: number) => (
+          {doctor?.specialities?.map((specialty: string, i: number) => (
             <Badge
               key={i}
               className="bg-purple-100 text-purple-700 border-purple-300 justify-center py-2"

@@ -50,7 +50,7 @@ export default function DoctorProfilePage({
     );
     toast.success("Donation successful! Thank you for your support.");
   };
-
+  console.log("doctorData", doctorData);
   // console.log("REVIEWS:", reviews);
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 p-4 lg:p-6">
@@ -71,7 +71,6 @@ export default function DoctorProfilePage({
               Back to Find Vet
             </Button>
           </Link>
-          <h1>SELECTED FAMILY PLAN:{appState.selectedFamilyPlan}</h1>
           {/* Doctor Header */}
           <DoctorHeader doctor={doctorData} />
 
@@ -82,10 +81,14 @@ export default function DoctorProfilePage({
               {(doctorData as any)?.clinicName && (
                 <ClinicAddress doctor={doctorData} />
               )}
-              {doctorData?.specialization?.length > 0 && (
-                <Specialties doctor={doctorData} />
-              )}
-              <SpeciesTreated doctor={doctorData} />
+              {doctorData?.specialities &&
+                doctorData.specialities?.length > 0 && (
+                  <Specialties doctor={doctorData} />
+                )}
+              {(doctorData as any)?.treatedSpecies &&
+                (doctorData as any)?.treatedSpecies?.length > 0 && (
+                  <SpeciesTreated doctor={doctorData} />
+                )}
               <ReviewsSection doctorId={doctorData._id} />
             </div>
 
