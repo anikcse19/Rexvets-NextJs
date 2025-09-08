@@ -19,6 +19,12 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { BsChatLeftTextFill } from "react-icons/bs";
 import { FaFacebookF, FaInstagram, FaTiktok } from "react-icons/fa";
 
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { toSlug } from "@/lib/utils";
 import { DialogTitle } from "@radix-ui/react-dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
@@ -38,12 +44,6 @@ import React, { useEffect, useRef, useState } from "react";
 import TalkToVetButton from "../TalkToVet";
 import { ScrollArea } from "../ui/scroll-area";
 import IconWrapper from "./IconWrapper";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 
 const menuItems = {
   "Pet parents": ["Donate", "What we treat"],
@@ -543,14 +543,14 @@ const Header: React.FC = () => {
                               </div>
                               <CollapsibleContent className="pl-4">
                                 {items.map((item) => (
-                                  <a
+                                  <Link
                                     key={item}
-                                    href="#"
+                                    href={`/${toSlug(item)}`}
                                     className="block px-4 py-4 border-b border-[#3D456B] text-white hover:text-emerald-400 hover:bg-[#002a66] text-sm transition-all duration-200"
                                     onClick={() => setMobileMenuOpen(false)}
                                   >
                                     {item}
-                                  </a>
+                                  </Link>
                                 ))}
                               </CollapsibleContent>
                             </Collapsible>
@@ -579,14 +579,14 @@ const Header: React.FC = () => {
                                 </div>
                                 <CollapsibleContent className="pl-4">
                                   {items.map((item) => (
-                                    <a
+                                    <Link
                                       key={item}
-                                      href="#"
+                                      href={`/${toSlug(item)}`}
                                       className="block px-4 py-4 border-b text-start border-[#3D456B] text-white hover:text-emerald-400 hover:bg-[#002a66] text-sm transition-all duration-200"
                                       onClick={() => setMobileMenuOpen(false)}
                                     >
                                       {item}
-                                    </a>
+                                    </Link>
                                   ))}
                                 </CollapsibleContent>
                               </Collapsible>
