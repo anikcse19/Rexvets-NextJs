@@ -121,7 +121,7 @@ const RexVetFamilyPlanInfo: React.FC<IProps> = ({
 
           <motion.div variants={buttonVariants} whileHover="hover">
             <Button
-              className="w-full py-7 bg-gradient-to-br from-indigo-600 to-purple-600 font-medium text-white text-base rounded-lg shadow-[0_8px_20px_rgba(99,102,241,0.25)] hover:shadow-[0_12px_30px_rgba(99,102,241,0.3)] relative overflow-hidden"
+              className="w-full py-7 cursor-pointer bg-gradient-to-br from-indigo-600 to-purple-600 font-medium text-white text-base rounded-lg shadow-[0_8px_20px_rgba(99,102,241,0.25)] hover:shadow-[0_12px_30px_rgba(99,102,241,0.3)] relative overflow-hidden"
               onClick={() => onClick?.(120)}
             >
               Select Family Plan
