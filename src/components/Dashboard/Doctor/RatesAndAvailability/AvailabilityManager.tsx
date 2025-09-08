@@ -25,6 +25,7 @@ import {
   getTimezones,
   getTodayUTC,
   getUserTimezone,
+  getWeekRange,
 } from "@/lib/timezone";
 import { CreateAvailabilityRequest, DateRange, SlotPeriod } from "@/lib/types";
 import { format } from "date-fns";
@@ -295,10 +296,10 @@ const AvailabilityManager: React.FC = () => {
     if (user?.refId && !selectedRange) {
       // Use timezone-agnostic date to ensure slots are always visible
       // regardless of the user's current timezone
-      const monthsDateUTC = getMonthRange();
+      const weekDateRange = getWeekRange();
       setSelectedRange({
-        start: new Date(monthsDateUTC.start),
-        end: new Date(monthsDateUTC.end),
+        start: new Date(weekDateRange.start),
+        end: new Date(weekDateRange.end),
       });
     }
   }, [user?.refId, selectedRange, setSelectedRange]);
@@ -517,7 +518,7 @@ const AvailabilityManager: React.FC = () => {
         </Dialog>
       )}
       <Sheet open={isTimePeriodsOpen} onOpenChange={setIsTimePeriodOpen}>
-        <SheetContent side="right">
+        <SheetContent side="right" className="w-full ">
           <ScrollArea className="h-[96vh]">
             <SheetHeader>
               {/* Header */}
@@ -529,7 +530,6 @@ const AvailabilityManager: React.FC = () => {
                   Time Slot Creator
                 </SheetTitle>
               </div>
-              {/* <SheetTitle>Controlled Right Side Sheet</SheetTitle> */}
             </SheetHeader>
             <div>
               <TimeSlotCreator
@@ -537,6 +537,7 @@ const AvailabilityManager: React.FC = () => {
                 onSaveSlots={handleSaveSlots}
                 hasExistingSlots={hasExistingSlots}
                 existingPeriods={deferredExistingPeriods}
+                onClose={() => setIsTimePeriodOpen(false)}
               />
             </div>
           </ScrollArea>

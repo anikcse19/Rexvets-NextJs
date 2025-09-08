@@ -39,6 +39,7 @@ interface TimeSlotCreatorProps {
     slots: any[];
     timezone?: string;
   }>;
+  onClose?: () => void;
 }
 
 interface TimeSlot {
@@ -55,6 +56,7 @@ export default function TimeSlotCreator({
   onSaveSlots,
   hasExistingSlots = false,
   existingPeriods = [],
+  onClose,
 }: TimeSlotCreatorProps) {
   const [slots, setSlots] = useState<TimeSlot[]>([
     {
@@ -239,6 +241,11 @@ export default function TimeSlotCreator({
         ]);
       }
       setSelectAll(false);
+
+      // Close the sheet after successful save
+      if (onClose) {
+        onClose();
+      }
     } catch (error: any) {
       console.error("Error saving slots:", error);
       toast.error("Failed to save availability slots", {
