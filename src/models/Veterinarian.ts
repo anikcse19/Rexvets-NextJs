@@ -12,17 +12,18 @@ export interface IVeterinarian extends Document {
   signatureImage?: string;
   signature?: string;
   licenses?: Array<{
-    licenseNumber: string;
+    licenseNumber?: string;
     deaNumber?: string;
-    state: string;
+    state?: string;
     licenseFile?: string;
   }>;
   bio?: string;
-  education: Array<{
-    degree: string;
-    institution: string;
-    year: number;
-  }>;
+  // education: Array<{
+  //   degree: string;
+  //   institution: string;
+  //   year: number;
+  // }>;
+  education: string;
   experience: Array<{
     position: string;
     institution: string;
@@ -64,7 +65,7 @@ export interface IVeterinarian extends Document {
   address?: string;
   city?: string;
   state?: string;
-  zipCode?: number;
+  zipCode?: string;
   country?: string;
   yearsOfExperience?: string;
   clinic?: {
@@ -186,10 +187,7 @@ const veterinarianSchema = new Schema<IVeterinarian>(
           required: true,
           trim: true,
         },
-        licenseFile: {
-          type: String,
-          trim: true,
-        },
+        licenseFile: { type: mongoose.Schema.Types.Mixed, default: null },
       },
     ],
     bio: {
@@ -197,26 +195,29 @@ const veterinarianSchema = new Schema<IVeterinarian>(
       trim: true,
       maxlength: [1000, "Bio cannot exceed 1000 characters"],
     },
-    education: [
-      {
-        degree: {
-          type: String,
-          required: true,
-          trim: true,
-        },
-        institution: {
-          type: String,
-          required: true,
-          trim: true,
-        },
-        year: {
-          type: Number,
-          required: true,
-          min: 1900,
-          max: new Date().getFullYear(),
-        },
-      },
-    ],
+    // education: [
+    //   {
+    //     degree: {
+    //       type: String,
+    //       required: true,
+    //       trim: true,
+    //     },
+    //     institution: {
+    //       type: String,
+    //       required: true,
+    //       trim: true,
+    //     },
+    //     year: {
+    //       type: Number,
+    //       required: true,
+    //       min: 1900,
+    //       max: new Date().getFullYear(),
+    //     },
+    //   },
+    // ],
+    education: {
+      type: String,
+    },
     experience: [
       {
         position: {
@@ -394,12 +395,12 @@ const veterinarianSchema = new Schema<IVeterinarian>(
       trim: true,
     },
     zipCode: {
-      type: Number,
-      min: [0, "Zip code cannot be negative"],
+      type: String,
     },
     country: {
       type: String,
       trim: true,
+      required: false,
     },
     yearsOfExperience: {
       type: String,

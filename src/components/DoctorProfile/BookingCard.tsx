@@ -19,6 +19,8 @@ import { DayPicker } from "react-day-picker";
 import "react-day-picker/dist/style.css";
 import { getVetSlots } from "./service/get-vet-slots";
 import { Doctor } from "./type";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 interface Slot {
   _id: string;
@@ -52,14 +54,25 @@ export default function BookingSystem({
   onConfirm,
   vetTimezone,
 }: BookingSystemProps) {
-  const [selectedDate, setSelectedDate] = useState<string>(
-    () => new Date().toLocaleDateString("en-CA") // today initially
-  );
+  const [selectedDate, setSelectedDate] = useState<string>(() => {
+    if (typeof window !== "undefined") {
+      return (
+        localStorage.getItem("selectedDate") ||
+        new Date().toLocaleDateString("en-CA")
+      );
+    }
+    return new Date().toLocaleDateString("en-CA"); // fallback for SSR
+  });
+
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [showCalendar, setShowCalendar] = useState(false);
   const [slots, setSlots] = useState<Slot[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+
+  const { data: session } = useSession();
+  const router = useRouter();
+
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 6;
   const { appState, setAppState } = useAppContext();
@@ -68,6 +81,7 @@ export default function BookingSystem({
   const [veterinarianTimezone, setVeterinarianTimezone] = useState("");
   const toLocalDateString = (date: Date) => date.toLocaleDateString("en-CA"); // YYYY-MM-DD
   const currentTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString("en-US", {
@@ -149,7 +163,19 @@ export default function BookingSystem({
   useEffect(() => {
     fetchVetSlots();
   }, [selectedDate, selectedSlotDate, selectedSlotId, vetTimezone]);
+
   console.log("slots", slots);
+
+  useEffect(() => {
+    const date = localStorage.getItem("selectedDate");
+    const time = localStorage.getItem("selectedTime");
+    const slot = localStorage.getItem("selectedSlot");
+
+    if (date) setSelectedDate(date);
+    if (time) setSelectedTime(time);
+    if (slot) setSelectedSlot(slot);
+  }, []);
+
   useEffect(() => {
     setCurrentPage(1);
   }, [selectedDate, selectedSlotDate, slots.length]);
@@ -291,19 +317,19 @@ export default function BookingSystem({
                   {slots
                     .slice((currentPage - 1) * pageSize, currentPage * pageSize)
                     .map((slot) => {
-                  const {
-                    formattedEndTime,
-                    formattedStartTime,
-                    formattedDate,
-                  } = convertTimesToUserTimezone(
-                    slot.startTime,
-                    slot.endTime,
-                    slot.date,
-                    slot.timezone || "UTC"
-                  );
+                      const {
+                        formattedEndTime,
+                        formattedStartTime,
+                        formattedDate,
+                      } = convertTimesToUserTimezone(
+                        slot.startTime,
+                        slot.endTime,
+                        slot.date,
+                        slot.timezone || "UTC"
+                      );
 
-                  const isSelected =
-                    (selectedSlot || selectedSlotId) === slot._id;
+                      const isSelected =
+                        (selectedSlot || selectedSlotId) === slot._id;
 
                       return (
                         <button
@@ -359,25 +385,34 @@ export default function BookingSystem({
                     >
                       Prev
                     </Button>
-                    {Array.from({ length: Math.ceil(slots.length / pageSize) }, (_, index) => {
-                      const pageNumber = index + 1;
-                      const isActive = pageNumber === currentPage;
-                      return (
-                        <Button
-                          key={pageNumber}
-                          variant={isActive ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => setCurrentPage(pageNumber)}
-                          className={isActive ? "bg-emerald-600 hover:bg-emerald-700" : "cursor-pointer"}
-                        >
-                          {pageNumber}
-                        </Button>
-                      );
-                    })}
+                    {Array.from(
+                      { length: Math.ceil(slots.length / pageSize) },
+                      (_, index) => {
+                        const pageNumber = index + 1;
+                        const isActive = pageNumber === currentPage;
+                        return (
+                          <Button
+                            key={pageNumber}
+                            variant={isActive ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => setCurrentPage(pageNumber)}
+                            className={
+                              isActive
+                                ? "bg-emerald-600 hover:bg-emerald-700"
+                                : "cursor-pointer"
+                            }
+                          >
+                            {pageNumber}
+                          </Button>
+                        );
+                      }
+                    )}
                     <Button
                       variant="outline"
                       size="sm"
-                      disabled={currentPage === Math.ceil(slots.length / pageSize)}
+                      disabled={
+                        currentPage === Math.ceil(slots.length / pageSize)
+                      }
                       onClick={() =>
                         setCurrentPage((p) =>
                           Math.min(Math.ceil(slots.length / pageSize), p + 1)
@@ -430,9 +465,23 @@ export default function BookingSystem({
               console.log("SELECTED DATE:", selectedDate);
               console.log("SELECTED TIME:", selectedTime);
               console.log("SELECTED SLOT:", selectedSlot);
+              localStorage.setItem("selectedDate", selectedDate);
+              localStorage.setItem("selectedTime", selectedTime as string);
+              localStorage.setItem("selectedSlot", selectedSlot as string);
+              localStorage.setItem("showForm", JSON.stringify(true));
+
               if (selectedSlot && selectedTime) {
-                onConfirm(selectedDate, selectedTime, selectedSlot);
-                window.scrollTo({ top: 0, behavior: "smooth" });
+                if (session?.user) {
+                  onConfirm(selectedDate, selectedTime, selectedSlot);
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                } else {
+                  const redirectedLink = `/find-a-vet/${doctorData?._id}`;
+                  router.push(
+                    `/auth/signin?redirect=${encodeURIComponent(
+                      redirectedLink
+                    )}`
+                  );
+                }
               }
             }}
             disabled={!selectedSlot}

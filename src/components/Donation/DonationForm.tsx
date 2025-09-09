@@ -7,7 +7,7 @@ import { CardElement, useElements, useStripe } from "@stripe/react-stripe-js";
 import { Heart, Shield } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 interface DonationFormProps {
   onDonationComplete: (amount: number) => void;
@@ -50,11 +50,22 @@ const DonationForm: React.FC<DonationFormProps> = ({ onDonationComplete }) => {
 
   const router = useRouter();
 
+  console.log("session from donation form", session, donorData);
+
   const handleAmountSelect = (amount: DonationAmount) => {
     setSelectedAmount(amount);
     setCustomAmount("");
     setError(null);
   };
+
+  useEffect(() => {
+    if (session?.user) {
+      setDonorData({
+        name: session?.user?.name || "",
+        email: session?.user?.email || "",
+      });
+    }
+  }, [session]);
 
   const handleCustomAmountChange = (value: string) => {
     setCustomAmount(value);

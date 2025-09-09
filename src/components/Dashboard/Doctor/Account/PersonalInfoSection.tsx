@@ -37,6 +37,7 @@ import { mockDoctorData } from "@/lib";
 import { Doctor } from "@/lib/types";
 import { updateVet } from "../Service/update-vet";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 export default function PersonalInfoSection({
   doctorData,
@@ -46,13 +47,17 @@ export default function PersonalInfoSection({
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
+  const router = useRouter();
+
   function extractPersonalInfo(doctorData: any) {
     return {
       firstName: doctorData?.firstName || "",
       lastName: doctorData?.lastName || "",
       email: doctorData?.email || "",
-      phone: doctorData?.phoneNumber || "",
-      dob: doctorData?.dob || doctorData.dob || "",
+      phoneNumber: doctorData?.phoneNumber || "",
+      dob: doctorData.dob
+        ? new Date(doctorData.dob).toISOString().split("T")[0]
+        : "",
       gender: doctorData?.gender || "",
       address: doctorData?.address || "",
       city: doctorData?.city || "",
@@ -61,6 +66,7 @@ export default function PersonalInfoSection({
       country: doctorData?.country || "",
       profileImage: doctorData?.profileImage || "",
       name: doctorData?.name || "",
+      bio: doctorData?.bio,
     };
   }
 
@@ -81,12 +87,15 @@ export default function PersonalInfoSection({
   const bioValue = watch("bio") || "";
   const bioCharCount = bioValue.length;
 
+  console.log(errors);
+
   const onSubmit = async (data: PersonalInfoFormData) => {
     setIsLoading(true);
     try {
       await updateVet(data);
       setIsEditing(false);
       toast.success("Personal information updated successfully!");
+      router.refresh();
     } catch (error) {
       console.error("Error updating personal info:", error);
     } finally {
@@ -314,11 +323,13 @@ export default function PersonalInfoSection({
               <Label htmlFor="phone">Phone Number</Label>
               <Input
                 id="phone"
-                {...register("phone")}
+                {...register("phoneNumber")}
                 className="border-gray-300 focus:border-emerald-500 focus:ring-emerald-500"
               />
-              {errors.phone && (
-                <p className="text-sm text-red-600">{errors.phone.message}</p>
+              {errors.phoneNumber && (
+                <p className="text-sm text-red-600">
+                  {errors.phoneNumber.message}
+                </p>
               )}
             </div>
 
@@ -338,6 +349,7 @@ export default function PersonalInfoSection({
             <div className="space-y-2">
               <Label htmlFor="gender">Gender</Label>
               <Select
+                value={watch("gender")}
                 onValueChange={(value) =>
                   setValue("gender", value as "male" | "female" | "other")
                 }
@@ -405,6 +417,7 @@ export default function PersonalInfoSection({
                 <Label htmlFor="zipCode">ZIP/Postal Code</Label>
                 <Input
                   id="zipCode"
+                  type="number"
                   {...register("zipCode")}
                   className="border-gray-300 focus:border-emerald-500 focus:ring-emerald-500"
                 />
@@ -438,7 +451,7 @@ export default function PersonalInfoSection({
             </h3>
             <div className="space-y-2">
               <Label htmlFor="bio">Bio</Label>
-              <Label htmlFor="bio">Bio</Label>
+
               <Textarea
                 id="bio"
                 {...register("bio")}

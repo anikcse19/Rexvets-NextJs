@@ -1,7 +1,8 @@
-import { connectToDatabase } from "@/lib/mongoose";
-import { VeterinarianModel } from "@/models";
-import User from "@/models/User";
 import { NextRequest, NextResponse } from "next/server";
+import { connectToDatabase } from "@/lib/mongoose";
+import { PetParentModel, VeterinarianModel } from "@/models";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 /**
  * GET /api/veterinarian/[id]
@@ -50,23 +51,12 @@ export async function GET(
         { status: 404 }
       );
     }
-    const vetTimezone=await User.findOne({
-      veterinarianRef:id
-    }).select("timezone")
-    if(!vetTimezone){
-      return NextResponse.json({
-        success: false,
-        message: "Veterinarian timezone not found",
-        errorCode: "VETERINARIAN_TIMEZONE_NOT_FOUND",
-        errors: null,
-      }, { status: 404 });
-    }
+
     return NextResponse.json({
       success: true,
       message: "Veterinarian retrieved successfully",
       data: {
         veterinarian,
-        timezone:vetTimezone.timezone
       },
     });
   } catch (error: any) {
@@ -77,6 +67,76 @@ export async function GET(
         message: "Failed to fetch veterinarian",
         errorCode: "FETCH_ERROR",
         errors: null,
+      },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    // Connect to database
+    await connectToDatabase();
+
+    // Get the pet parent ID from params
+    const { id } = await params;
+
+    if (!id) {
+      return NextResponse.json(
+        { success: false, message: "Pet parent ID is required" },
+        { status: 400 }
+      );
+    }
+
+    // Get session for authentication
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user) {
+      return NextResponse.json(
+        { success: false, message: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    // Get request body
+    const body = await request.json();
+
+    console.log("body", body);
+
+    // Find the pet parent by ID
+    const petParent = await VeterinarianModel.findById(id);
+
+    if (!petParent) {
+      return NextResponse.json(
+        { success: false, message: "Pet parent not found" },
+        { status: 404 }
+      );
+    }
+
+    // Check if the user is authorized to update this pet parent data
+
+    // Update the pet parent
+    const updatedPetParent = await VeterinarianModel.findByIdAndUpdate(
+      id,
+      { $set: body },
+      { new: true, runValidators: true }
+    ).select("-__v");
+
+    return NextResponse.json({
+      success: true,
+      message: "Pet parent updated successfully",
+      data: updatedPetParent,
+    });
+  } catch (error: any) {
+    console.error("Error updating pet parent:", error);
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Failed to update pet parent",
+        error: error.message,
       },
       { status: 500 }
     );

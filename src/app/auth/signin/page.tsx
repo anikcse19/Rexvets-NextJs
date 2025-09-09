@@ -18,6 +18,7 @@ import {
   Stethoscope,
 } from "lucide-react";
 import LoadingSpinner from "@/components/ui/loading-spinner";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export default function SignInPage() {
   const [email, setEmail] = useState("");
@@ -26,6 +27,12 @@ export default function SignInPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState("");
+
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirect = searchParams.get("redirect") || "/";
+
+  console.log("redirect to", redirect);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,7 +47,7 @@ export default function SignInPage() {
       });
 
       if (result?.ok) {
-        window.location.href = "/";
+        router.push(redirect);
       } else {
         // Handle different error cases
         if (result?.error === "CredentialsSignin") {
