@@ -392,7 +392,7 @@ textarea:-webkit-autofill,
 select:-webkit-autofill {
   -webkit-box-shadow: 0 0 0px 1000px rgba(255, 255, 255, 0.1) inset !important;
   box-shadow: 0 0 0px 1000px rgba(255, 255, 255, 0.1) inset !important;
-  -webkit-text-fill-color: #fff !important; /* your text color */
+  -webkit-text-fill-color: black !important; /* your text color */
   caret-color: #434173 !important; /* ensure cursor is visible */
   transition: background-color 9999s ease-in-out 0s;
 }

@@ -47,7 +47,7 @@ export default function LayoutController({
       <div className="flex flex-col gap-y-5">
         {/* {!hideLayout && <TopToolbar />} */}
         {!hideLayout && <Header />}
-        <main className="overflow-x-hidden pt-12">{children}</main>
+        <main className="overflow-x-hidden">{children}</main>
         {!hideLayout && <Footer />}
       </div>
     </SessionProvider>
