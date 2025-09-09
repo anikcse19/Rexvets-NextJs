@@ -18,6 +18,8 @@ export const GET = async (req: NextRequest) => {
     const vetId = searchParams.get("vetId");
     const startDate = searchParams.get("startDate");
     const endDate = searchParams.get("endDate");
+    console.log("START DATE", startDate);
+    console.log("END DATE", endDate);
     if (!vetId || !startDate || !endDate) {
       throw Error(
         "Missing required query parameters: vetId, startDate, endDate"
@@ -38,15 +40,14 @@ export const GET = async (req: NextRequest) => {
       tz
     );
     const notice = veterinarian?.noticePeriod ?? 0;
-    const nowTz = moment.tz(tz);
-
-    // Ensure same local date is used for both bounds; util will convert using tz
+    const startDateUtc = moment.tz(startDate, tz).startOf("day").utc().toDate();
+    const endDateUtc = moment.tz(endDate, tz).endOf("day").utc().toDate();
     const payload = {
       vetId: veterinarian._id.toString(),
       noticePeriod: notice,
-      startDate: nowTz.toDate(),
-      endDate: nowTz.toDate(),
       timezone: tz,
+      startDate: startDateUtc,
+      endDate: endDateUtc,
     };
     console.log("payload", payload);
     const response = await getSlotsByNoticePeriodAndDateRangeByVetId(payload);
