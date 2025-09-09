@@ -81,7 +81,6 @@ export default function DoctorProfilePage({
   // console.log("REVIEWS:", reviews);
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 p-4 lg:p-6">
-      <h1 className=" mt-14">SELECTED SLOT ID: {slotId}</h1>
       {/* Donation Modal */}
       {showForm ? (
         <div className="max-w-2xl mx-auto">
@@ -131,7 +130,6 @@ export default function DoctorProfilePage({
                 onConfirm={(date: string, time: string, slot: string) => {
                   console.log(`Booking appointment for ${date} at ${time}`);
                   setShowForm(true);
-
                   setSelectedDate(date);
                   setSelectedSlot(slot);
                   setSelectedTime(time);

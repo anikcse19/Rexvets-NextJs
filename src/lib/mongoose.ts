@@ -1,9 +1,8 @@
 import config from "@/config/env.config";
 import mongoose from "mongoose";
 
-
 const MONGODB_URI = config.MONGO_URI;
-
+console.log("MONGODB_URI", MONGODB_URI);
 if (!MONGODB_URI) {
   throw new Error("Please define the MONGODB_URI environment variable");
 }
@@ -28,17 +27,22 @@ if (config.NODE_ENVIRONMENT === "development") {
  *
  */
 export async function connectToDatabase() {
-  if (cached.conn) {
+  try {
+    if (cached.conn) {
+      return cached.conn;
+    }
+
+    if (!cached.promise) {
+      cached.promise = mongoose.connect(config.MONGO_URI!, {
+        bufferCommands: false,
+      });
+    }
+
+    cached.conn = await cached.promise;
+
     return cached.conn;
+  } catch (error:any) {
+    console.error("Error connecting to database", error.message);
+    throw error;
   }
-
-  if (!cached.promise) {
-    cached.promise = mongoose.connect(config.MONGO_URI!, {
-      bufferCommands: false,
-    });
-  }
-
-  cached.conn = await cached.promise;
-
-  return cached.conn;
 }

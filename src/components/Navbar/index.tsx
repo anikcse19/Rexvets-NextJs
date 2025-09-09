@@ -35,19 +35,21 @@ import { signOut, useSession } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
 import React, { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 import TalkToVetButton from "../TalkToVet";
 import { ScrollArea } from "../ui/scroll-area";
-import IconWrapper from "./IconWrapper";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
-import TopToolbar from "./Toolbar";
-import TopToolbarPetParent from "./Toolbar";
+} from "../ui/tooltip";
+import IconWrapper from "./IconWrapper";
+import {
+  default as TopToolbar,
+  default as TopToolbarPetParent,
+} from "./Toolbar";
 import TopToolbarVet from "./ToolbarVet";
-import { toast } from "sonner";
 
 const menuItems = {
   "Pet parents": ["Donate", "What we treat"],

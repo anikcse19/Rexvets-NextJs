@@ -4,27 +4,71 @@ export const getAllVets = async (
   queryParams?: Record<string, string | number>,
   timezone?: string
 ) => {
-  // Add timezone to query params if provided
-  const params = { ...queryParams };
+  // Build query params, ensuring all values are strings
+  const params: Record<string, string> = {};
+  if (queryParams) {
+    for (const [key, value] of Object.entries(queryParams)) {
+      params[key] = String(value);
+    }
+  }
   if (timezone) {
     params.timezone = timezone;
   }
 
-  const query = Object.keys(params).length > 0
-    ? "?" + new URLSearchParams(params as Record<string, string>).toString()
-    : "";
+  const query =
+    Object.keys(params).length > 0
+      ? "?" + new URLSearchParams(params).toString()
+      : "";
 
-  console.log("config.BASE_URL", config.BASE_URL);
-  console.log("Fetching vets with timezone:", timezone);
-  
-  const res = await fetch(`${config.BASE_URL}/api/veterinarian${query}`, {
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-  });
+  try {
+    const res = await fetch(`${config.BASE_URL}/api/veterinarian${query}`, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+    });
 
-  if (!res.ok) {
-    throw new Error(`Failed to fetch vets: ${res.statusText}`);
+    if (!res.ok) {
+      // Try to parse error body as JSON, otherwise fall back to text
+      let errorBody: unknown = null;
+      try {
+        errorBody = await res.json();
+      } catch {
+        try {
+          errorBody = await res.text();
+        } catch {
+          errorBody = null;
+        }
+      }
+
+      const messageFromBody =
+        (typeof errorBody === "object" && errorBody && (errorBody as any).message)
+          || (typeof errorBody === "string" && errorBody)
+          || undefined;
+
+      const message =
+        messageFromBody || `Request failed with status ${res.status}`;
+
+      const error: any = new Error(message);
+      error.status = res.status;
+      error.statusText = res.statusText;
+      error.data = errorBody;
+      throw error;
+    }
+
+    return res.json();
+  } catch (err: any) {
+    // Network errors or unexpected failures
+    if (err?.name === "AbortError") {
+      const abortError: any = new Error("Request was aborted");
+      abortError.code = "ABORT_ERR";
+      throw abortError;
+    }
+
+    if (err instanceof TypeError && /fetch/i.test(err.message)) {
+      const networkError: any = new Error("Network error while fetching veterinarians");
+      networkError.code = "NETWORK_ERR";
+      throw networkError;
+    }
+
+    throw err;
   }
-
-  return res.json();
 };

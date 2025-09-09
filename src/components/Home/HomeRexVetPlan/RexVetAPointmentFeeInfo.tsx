@@ -109,7 +109,7 @@ const RexVetAPointmentFeeInfo: React.FC<IProps> = ({
 
         <motion.div variants={buttonVariants} whileHover="hover">
           <Button
-            className="w-full py-7 bg-gradient-to-br from-amber-500 to-amber-700 font-bold text-white rounded-lg shadow-[0_4px_12px_rgba(255,193,7,0.25)] hover:shadow-[0_8px_20px_rgba(255,193,7,0.3)]"
+            className="w-full cursor-pointer py-7 bg-gradient-to-br from-amber-500 to-amber-700 font-bold text-white rounded-lg shadow-[0_4px_12px_rgba(255,193,7,0.25)] hover:shadow-[0_8px_20px_rgba(255,193,7,0.3)]"
             onClick={onClick}
           >
             Get Started
