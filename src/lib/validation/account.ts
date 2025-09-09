@@ -13,7 +13,7 @@ export const personalInfoSchema = z.object({
   state: z.string().optional(),
   zipCode: z.string().optional(),
   country: z.string().optional(),
-  bio: z.string().min(150, "Bio must be at most 1000 characters").optional(),
+  bio: z.string().max(1000, "Bio must be at most 1000 characters").optional(),
   profileImage: z.string().url("Please provide a valid URL").optional(),
 });
 

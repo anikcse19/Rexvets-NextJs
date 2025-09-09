@@ -19,6 +19,7 @@ export interface PetParent extends User {
   city?: string;
   address: string;
   zipCode: string;
+  country?: string;
   profileImage: string;
   gender: string;
   isDeleted: boolean;

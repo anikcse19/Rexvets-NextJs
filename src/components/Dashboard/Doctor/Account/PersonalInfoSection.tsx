@@ -28,6 +28,9 @@ import {
   Calendar,
   BookImageIcon,
   Phone,
+  FileText,
+  Plus,
+  Trash2,
 } from "lucide-react";
 import {
   PersonalInfoFormData,
@@ -38,6 +41,16 @@ import { Doctor } from "@/lib/types";
 import { updateVet } from "../Service/update-vet";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import FileUpload from "@/components/shared/FileUpload";
+import { US_STATES } from "@/lib";
+
+interface LicenseData {
+  licenseNumber: string;
+  deaNumber?: string;
+  state: string;
+  licenseFile: File | null;
+  licenseFileUrl?: string; // For existing license files
+}
 
 export default function PersonalInfoSection({
   doctorData,
@@ -46,6 +59,22 @@ export default function PersonalInfoSection({
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [profileImageFile, setProfileImageFile] = useState<File | null>(null);
+  const [licenses, setLicenses] = useState<LicenseData[]>([]);
+
+  // Initialize licenses from doctorData
+  React.useEffect(() => {
+    if (doctorData?.licenses && doctorData.licenses.length > 0) {
+      const existingLicenses = doctorData.licenses.map((license: any) => ({
+        licenseNumber: license.licenseNumber || "",
+        deaNumber: license.deaNumber || "",
+        state: license.state || "",
+        licenseFile: null, // We don't store File objects, only URLs
+        licenseFileUrl: license.licenseFile || null, // Store existing file URL
+      }));
+      setLicenses(existingLicenses);
+    }
+  }, [doctorData]);
 
   const router = useRouter();
 
@@ -89,15 +118,100 @@ export default function PersonalInfoSection({
 
   console.log(errors);
 
+  // File upload handlers
+  const handleProfileImageChange = (files: File[]) => {
+    setProfileImageFile(files[0] || null);
+  };
+
+  const addLicense = () => {
+    setLicenses((prev) => [
+      ...prev,
+      {
+        licenseNumber: "",
+        deaNumber: "",
+        state: "",
+        licenseFile: null,
+      },
+    ]);
+  };
+
+  const removeLicense = (index: number) => {
+    setLicenses((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const updateLicense = (
+    index: number,
+    field: keyof LicenseData,
+    value: string | File | null
+  ) => {
+    setLicenses((prev) =>
+      prev.map((license, i) =>
+        i === index ? { ...license, [field]: value } : license
+      )
+    );
+  };
+
+  const handleLicenseFileChange = (files: File[], licenseIndex: number) => {
+    updateLicense(licenseIndex, "licenseFile", files[0] || null);
+  };
+
   const onSubmit = async (data: PersonalInfoFormData) => {
     setIsLoading(true);
     try {
-      await updateVet(data);
+      // Create FormData for file uploads
+      const formData = new FormData();
+
+      // Add basic form data (excluding profileImage to avoid conflicts)
+      Object.entries(data).forEach(([key, value]) => {
+        if (key !== "profileImage" && value !== undefined && value !== null) {
+          formData.append(key, String(value));
+        }
+      });
+
+      // Add profile image file
+      if (profileImageFile) {
+        formData.append("profileImage", profileImageFile);
+      }
+
+      // Add licenses data
+      if (licenses.length > 0) {
+        // Prepare license data for submission (exclude File objects)
+        const licenseDataForSubmission = licenses.map(license => ({
+          licenseNumber: license.licenseNumber,
+          deaNumber: license.deaNumber,
+          state: license.state,
+          licenseFile: license.licenseFileUrl || null, // Use existing URL if no new file
+          hasNewFile: !!license.licenseFile, // Track if this license has a new file
+        }));
+        
+        formData.append("licenses", JSON.stringify(licenseDataForSubmission));
+        
+        // Add new license files with proper indexing
+        licenses.forEach((license, index) => {
+          if (license.licenseFile) {
+            formData.append(`licenseFile_${index}`, license.licenseFile);
+          }
+        });
+      }
+
+      // Call the new file upload API
+      const response = await fetch("/api/veterinarian/update-with-files", {
+        method: "PUT",
+        body: formData,
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to update profile");
+      }
+
       setIsEditing(false);
       toast.success("Personal information updated successfully!");
       router.refresh();
     } catch (error) {
       console.error("Error updating personal info:", error);
+      toast.error(error instanceof Error ? error.message : "Failed to update profile");
     } finally {
       setIsLoading(false);
     }
@@ -211,6 +325,64 @@ export default function PersonalInfoSection({
                   fullWidth
                 />
               </div>
+
+              {/* License Information */}
+              <div className="mt-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 border-b border-gray-200 pb-2">
+                  License Information
+                </h3>
+                {doctorData?.licenses && doctorData.licenses.length > 0 ? (
+                  <div className="space-y-4">
+                    {doctorData.licenses.map((license: any, index: number) => (
+                      <div key={index} className="p-4 bg-gray-50 rounded-xl border border-gray-200">
+                        <div className="flex items-center gap-2 mb-3">
+                          <FileText className="w-5 h-5 text-blue-600" />
+                          <h4 className="text-md font-medium text-gray-900">
+                            License #{index + 1}
+                          </h4>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <p className="text-sm font-medium text-gray-600">License Number</p>
+                            <p className="text-gray-900 font-semibold">{license.licenseNumber}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-gray-600">State</p>
+                            <p className="text-gray-900 font-semibold">{license.state}</p>
+                          </div>
+                          {license.deaNumber && (
+                            <div>
+                              <p className="text-sm font-medium text-gray-600">DEA Number</p>
+                              <p className="text-gray-900 font-semibold">{license.deaNumber}</p>
+                            </div>
+                          )}
+                          {license.licenseFile && (
+                            <div>
+                              <p className="text-sm font-medium text-gray-600">License File</p>
+                              <a 
+                                href={license.licenseFile} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="text-blue-600 hover:text-blue-800 underline"
+                              >
+                                View License Document
+                              </a>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="p-4 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 text-center">
+                    <FileText className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                    <p className="text-sm text-gray-600 mb-1">No licenses added yet</p>
+                    <p className="text-xs text-gray-500">
+                      Click "Edit" to add your veterinary license information
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </CardContent>
@@ -259,21 +431,30 @@ export default function PersonalInfoSection({
       <CardContent className="p-8">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
           {/* Profile Image Section */}
-          <div className="flex flex-col items-center gap-4">
-            <Avatar className="w-32 h-32 border-4 border-emerald-100 shadow-lg">
-              <AvatarImage src={doctorData?.profileImage} alt="Profile" />
-              <AvatarFallback className="text-2xl font-bold text-gray-800 bg-gradient-to-br from-emerald-100 to-teal-100">
-                {doctorData?.name.charAt(0)}
-              </AvatarFallback>
-            </Avatar>
-            <Button
-              type="button"
-              variant="outline"
-              className="border-emerald-300 text-emerald-600 hover:bg-emerald-50"
-            >
-              <Camera className="w-4 h-4 mr-2" />
-              Change Photo
-            </Button>
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2">
+              Profile Image
+            </h3>
+            <div className="flex flex-col items-center gap-4">
+              <Avatar className="w-32 h-32 border-4 border-emerald-100 shadow-lg">
+                <AvatarImage 
+                  src={profileImageFile ? URL.createObjectURL(profileImageFile) : doctorData?.profileImage} 
+                  alt="Profile" 
+                />
+                <AvatarFallback className="text-2xl font-bold text-gray-800 bg-gradient-to-br from-emerald-100 to-teal-100">
+                  {doctorData?.name.charAt(0)}
+                </AvatarFallback>
+              </Avatar>
+              <FileUpload
+                label="Upload Profile Image"
+                name="profileImage"
+                accept="image/*"
+                maxSize={5 * 1024 * 1024} // 5MB
+                onFileChange={handleProfileImageChange}
+                onError={(error) => console.error("Profile image error:", error)}
+                className="w-full max-w-md"
+              />
+            </div>
           </div>
 
           {/* Basic Information */}
@@ -450,21 +631,159 @@ export default function PersonalInfoSection({
               About Me
             </h3>
             <div className="space-y-2">
-              <Label htmlFor="bio">Bio</Label>
+              <Label htmlFor="bio">Bio (Optional)</Label>
 
               <Textarea
                 id="bio"
                 {...register("bio")}
                 className="border-gray-300 focus:border-emerald-500 focus:ring-emerald-500"
                 rows={4}
+                placeholder="Tell us about yourself, your experience, and what makes you passionate about veterinary care..."
               />
               <div className="text-right text-xs text-gray-500">
-                {bioCharCount} character{bioCharCount !== 1 ? "s" : ""}
+                {bioCharCount}/1000 characters
               </div>
               {errors.bio && (
                 <p className="text-sm text-red-600">{errors.bio.message}</p>
               )}
             </div>
+          </div>
+
+          {/* License Information */}
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2">
+                License Information
+              </h3>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={addLicense}
+                className="flex items-center gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                Add License
+              </Button>
+            </div>
+
+            {licenses.length === 0 ? (
+              <div className="p-4 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 text-center">
+                <p className="text-sm text-gray-600 mb-2">
+                  No licenses added yet
+                </p>
+                <p className="text-xs text-gray-500">
+                  Click "Add License" to add your veterinary license information
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {licenses.map((license, index) => (
+                  <Card key={index} className="border border-gray-200">
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <h4 className="text-lg font-medium text-gray-900">
+                          License #{index + 1}
+                        </h4>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeLicense(index)}
+                          className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div className="space-y-2">
+                          <Label htmlFor={`licenseNumber-${index}`}>
+                            License Number *
+                          </Label>
+                          <Input
+                            id={`licenseNumber-${index}`}
+                            value={license.licenseNumber}
+                            onChange={(e) =>
+                              updateLicense(index, "licenseNumber", e.target.value)
+                            }
+                            placeholder="Enter license number"
+                            className="border-gray-300 focus:border-emerald-500 focus:ring-emerald-500"
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor={`state-${index}`}>State *</Label>
+                          <Select
+                            value={license.state}
+                            onValueChange={(value) =>
+                              updateLicense(index, "state", value)
+                            }
+                          >
+                            <SelectTrigger className="border-gray-300 focus:border-emerald-500 focus:ring-emerald-500">
+                              <SelectValue placeholder="Select state" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {US_STATES.map((state) => (
+                                <SelectItem key={state.value} value={state.value}>
+                                  {state.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2 mb-4">
+                        <Label htmlFor={`deaNumber-${index}`}>
+                          DEA Number (Optional)
+                        </Label>
+                        <Input
+                          id={`deaNumber-${index}`}
+                          value={license.deaNumber || ""}
+                          onChange={(e) =>
+                            updateLicense(index, "deaNumber", e.target.value)
+                          }
+                          placeholder="Enter DEA number if applicable"
+                          className="border-gray-300 focus:border-emerald-500 focus:ring-emerald-500"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>License File *</Label>
+                        {license.licenseFileUrl && !license.licenseFile && (
+                          <div className="mb-2 p-2 bg-blue-50 border border-blue-200 rounded">
+                            <p className="text-sm text-blue-700">Current file:</p>
+                            <a 
+                              href={license.licenseFileUrl} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:text-blue-800 underline text-sm"
+                            >
+                              View Current License Document
+                            </a>
+                          </div>
+                        )}
+                        <FileUpload
+                          label=""
+                          name={`licenseFile-${index}`}
+                          accept=".pdf,.jpg,.jpeg,.png"
+                          maxSize={5 * 1024 * 1024} // 5MB
+                          onFileChange={(files) =>
+                            handleLicenseFileChange(files, index)
+                          }
+                          onError={(error) =>
+                            console.error(`License ${index + 1} file error:`, error)
+                          }
+                          preview={true}
+                          className="w-full"
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
           </div>
         </form>
       </CardContent>

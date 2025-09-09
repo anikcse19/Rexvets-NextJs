@@ -26,6 +26,7 @@ import {
   Mail,
   Calendar,
   MapPin,
+  Phone,
 } from "lucide-react";
 import {
   PersonalInfoFormData,
@@ -35,6 +36,8 @@ import { mockDoctorData } from "@/lib";
 import { PetParent } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
 import { useRouter } from "next/navigation";
+import FileUpload from "@/components/shared/FileUpload";
+import { toast } from "sonner";
 
 export default function PersonalInfoSection({
   petParentData,
@@ -43,6 +46,8 @@ export default function PersonalInfoSection({
 }) {
   const [isLoading, setIsLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [profileImageFile, setProfileImageFile] = useState<File | null>(null);
+  const [localPetParentData, setLocalPetParentData] = useState(petParentData);
 
   const router = useRouter();
   console.log(petParentData, "pet parent in professional component");
@@ -60,24 +65,26 @@ export default function PersonalInfoSection({
       firstName: petParentData?.firstName || "",
       lastName: petParentData?.lastName || "",
       email: petParentData?.email || "",
-      phone: petParentData?.phoneNumber || "",
+      phoneNumber: petParentData?.phoneNumber || "",
       dob: petParentData?.dob || "",
       gender: petParentData?.gender || "",
       address: petParentData?.address || "",
       city: petParentData?.city || "",
       state: petParentData?.state || "",
       zipCode: petParentData?.zipCode || "",
+      country: petParentData?.country || "",
     },
   });
 
   // inside your component
   React.useEffect(() => {
     if (petParentData) {
+      setLocalPetParentData(petParentData);
       reset({
         firstName: petParentData.firstName || "",
         lastName: petParentData.lastName || "",
         email: petParentData.email || "",
-        phone: petParentData.phoneNumber || "",
+        phoneNumber: petParentData.phoneNumber || "",
         dob: petParentData.dob
           ? new Date(petParentData.dob).toISOString().split("T")[0]
           : "",
@@ -86,27 +93,84 @@ export default function PersonalInfoSection({
         city: petParentData.city || "",
         state: petParentData.state || "",
         zipCode: petParentData.zipCode || "",
+        country: petParentData.country || "",
       });
     }
   }, [petParentData, reset, isEditing]);
 
+  // Force re-render when localPetParentData changes
+  React.useEffect(() => {
+    console.log("Local pet parent data updated:", localPetParentData);
+  }, [localPetParentData]);
+
+  // File upload handler
+  const handleProfileImageChange = (files: File[]) => {
+    setProfileImageFile(files[0] || null);
+  };
+
   const onSubmit = async (data: PersonalInfoFormData) => {
     setIsLoading(true);
     try {
-      // API call would go here
-      console.log("Updating personal info:", data);
-      const res = await fetch(`/api/pet-parent/${petParentData?._id}`, {
-        method: "PUT",
-        body: JSON.stringify(data),
+      // Create FormData for file uploads
+      const formData = new FormData();
+
+      // Add basic form data (excluding profileImage to avoid conflicts)
+      Object.entries(data).forEach(([key, value]) => {
+        if (key !== "profileImage" && value !== undefined && value !== null) {
+          formData.append(key, String(value));
+        }
       });
 
-      if (!res.ok) {
-        throw new Error();
+      // Add profile image file
+      if (profileImageFile) {
+        formData.append("profileImage", profileImageFile);
       }
-      router.refresh();
+
+      // Call the file upload API
+      const response = await fetch(`/api/pet-parent/${petParentData?._id}/update-with-files`, {
+        method: "PUT",
+        body: formData,
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to update profile");
+      }
+
+      const result = await response.json();
+      
+      // Update local state immediately if the update was successful
+      if (result.data?.petParent) {
+        setLocalPetParentData(result.data.petParent);
+        // Also update the form with the new data
+        reset({
+          firstName: result.data.petParent.firstName || "",
+          lastName: result.data.petParent.lastName || "",
+          email: result.data.petParent.email || "",
+          phoneNumber: result.data.petParent.phoneNumber || "",
+          dob: result.data.petParent.dob
+            ? new Date(result.data.petParent.dob).toISOString().split("T")[0]
+            : "",
+          gender: result.data.petParent.gender || "",
+          address: result.data.petParent.address || "",
+          city: result.data.petParent.city || "",
+          state: result.data.petParent.state || "",
+          zipCode: result.data.petParent.zipCode || "",
+          country: result.data.petParent.country || "",
+        });
+        // Reset the profile image file state
+        setProfileImageFile(null);
+      }
+      
       setIsEditing(false);
+      toast.success("Personal information updated successfully!");
+      
+      // Optional: Only refresh if needed for server-side data consistency
+      // router.refresh();
     } catch (error) {
       console.error("Error updating personal info:", error);
+      toast.error(error instanceof Error ? error.message : "Failed to update profile");
     } finally {
       setIsLoading(false);
     }
@@ -119,7 +183,7 @@ export default function PersonalInfoSection({
 
   if (!isEditing) {
     return (
-      <Card className="shadow-lg border-0 bg-white overflow-hidden">
+      <Card key={`view-${localPetParentData?._id}-${localPetParentData?.updatedAt}`} className="shadow-lg border-0 bg-white overflow-hidden">
         <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6 text-white">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -153,15 +217,15 @@ export default function PersonalInfoSection({
               <div className="text-center">
                 <Avatar className="w-32 h-32 mx-auto mb-4 border-4 border-blue-100 shadow-lg">
                   <AvatarImage
-                    src={petParentData?.profileImage}
-                    alt={`${petParentData?.name}`}
+                    src={localPetParentData?.profileImage}
+                    alt={`${localPetParentData?.name}`}
                   />
                   <AvatarFallback className="text-2xl font-bold text-gray-800 bg-gradient-to-br from-blue-100 to-purple-100">
-                    {petParentData?.name?.charAt(0)}
+                    {localPetParentData?.name?.charAt(0)}
                   </AvatarFallback>
                 </Avatar>
                 <h3 className="text-xl font-bold text-gray-900 mb-1">
-                  {petParentData?.name}
+                  {localPetParentData?.name}
                 </h3>
                 <Badge className="bg-blue-100 text-blue-700 border-blue-300">
                   Verified Profile
@@ -175,27 +239,35 @@ export default function PersonalInfoSection({
                 <InfoItem
                   icon={<Mail className="w-5 h-5 text-blue-600" />}
                   label="Email Address"
-                  value={petParentData?.email}
+                  value={localPetParentData?.email || "Not provided"}
                 />
                 <InfoItem
                   icon={<Calendar className="w-5 h-5 text-purple-600" />}
                   label="Date of Birth"
-                  value={new Date(petParentData?.dob || "").toLocaleDateString(
-                    "en-US",
-                    {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    }
-                  )}
+                  value={localPetParentData?.dob ? 
+                    new Date(localPetParentData.dob).toLocaleDateString(
+                      "en-US",
+                      {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      }
+                    ) : "Not provided"
+                  }
                 />
                 <InfoItem
                   icon={<User className="w-5 h-5 text-pink-600" />}
                   label="Gender"
                   value={
-                    petParentData?.gender?.charAt(0)?.toUpperCase() +
-                    petParentData?.gender?.slice(1)
+                    localPetParentData?.gender ? 
+                      localPetParentData.gender.charAt(0).toUpperCase() + localPetParentData.gender.slice(1) :
+                      "Not provided"
                   }
+                />
+                <InfoItem
+                  icon={<Phone className="w-5 h-5 text-green-600" />}
+                  label="Phone Number"
+                  value={localPetParentData?.phoneNumber || "Not provided"}
                 />
               </div>
 
@@ -203,7 +275,10 @@ export default function PersonalInfoSection({
                 <InfoItem
                   icon={<MapPin className="w-5 h-5 text-red-600" />}
                   label="Address"
-                  value={`${petParentData?.address}, ${petParentData?.state} `}
+                  value={localPetParentData?.address ? 
+                    `${localPetParentData.address}, ${localPetParentData.city || ""}, ${localPetParentData.state || ""} ${localPetParentData.zipCode || ""}${localPetParentData.country ? `, ${localPetParentData.country}` : ""}`.replace(/,\s*,/g, ',').replace(/,\s*$/, '') :
+                    "Not provided"
+                  }
                   fullWidth
                 />
               </div>
@@ -215,7 +290,7 @@ export default function PersonalInfoSection({
   }
 
   return (
-    <Card className="shadow-lg border-0 bg-white overflow-hidden">
+    <Card key={`edit-${localPetParentData?._id}-${localPetParentData?.updatedAt}`} className="shadow-lg border-0 bg-white overflow-hidden">
       <div className="bg-gradient-to-r from-emerald-600 to-teal-600 p-6 text-white">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -255,21 +330,30 @@ export default function PersonalInfoSection({
       <CardContent className="p-8">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
           {/* Profile Image Section */}
-          <div className="flex flex-col items-center gap-4">
-            <Avatar className="w-32 h-32 border-4 border-emerald-100 shadow-lg">
-              <AvatarImage src={petParentData?.profileImage} alt="Profile" />
-              <AvatarFallback className="text-2xl font-bold text-gray-800 bg-gradient-to-br from-emerald-100 to-teal-100">
-                {petParentData?.name?.charAt(1)}
-              </AvatarFallback>
-            </Avatar>
-            <Button
-              type="button"
-              variant="outline"
-              className="border-emerald-300 text-emerald-600 hover:bg-emerald-50"
-            >
-              <Camera className="w-4 h-4 mr-2" />
-              Change Photo
-            </Button>
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2">
+              Profile Image
+            </h3>
+            <div className="flex flex-col items-center gap-4">
+              <Avatar className="w-32 h-32 border-4 border-emerald-100 shadow-lg">
+                <AvatarImage 
+                  src={profileImageFile ? URL.createObjectURL(profileImageFile) : localPetParentData?.profileImage} 
+                  alt="Profile" 
+                />
+                <AvatarFallback className="text-2xl font-bold text-gray-800 bg-gradient-to-br from-emerald-100 to-teal-100">
+                  {localPetParentData?.name?.charAt(0)}
+                </AvatarFallback>
+              </Avatar>
+              <FileUpload
+                label="Upload Profile Image"
+                name="profileImage"
+                accept="image/*"
+                maxSize={5 * 1024 * 1024} // 5MB
+                onFileChange={handleProfileImageChange}
+                onError={(error) => console.error("Profile image error:", error)}
+                className="w-full max-w-md"
+              />
+            </div>
           </div>
 
           {/* Basic Information */}
@@ -318,11 +402,11 @@ export default function PersonalInfoSection({
               <Label htmlFor="phone">Phone Number</Label>
               <Input
                 id="phone"
-                {...register("phone")}
+                {...register("phoneNumber")}
                 className="border-gray-300 focus:border-emerald-500 focus:ring-emerald-500"
               />
-              {errors.phone && (
-                <p className="text-sm text-red-600">{errors.phone.message}</p>
+              {errors.phoneNumber && (
+                <p className="text-sm text-red-600">{errors.phoneNumber.message}</p>
               )}
             </div>
 
@@ -382,7 +466,7 @@ export default function PersonalInfoSection({
               )}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="city">City</Label>
                 <Input
@@ -417,6 +501,20 @@ export default function PersonalInfoSection({
                 {errors.zipCode && (
                   <p className="text-sm text-red-600">
                     {errors.zipCode.message}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="country">Country</Label>
+                <Input
+                  id="country"
+                  {...register("country")}
+                  className="border-gray-300 focus:border-emerald-500 focus:ring-emerald-500"
+                />
+                {errors.country && (
+                  <p className="text-sm text-red-600">
+                    {errors.country.message}
                   </p>
                 )}
               </div>
