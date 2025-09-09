@@ -79,7 +79,7 @@ const AvailabilityScheduler: React.FC<Props> = ({
     slotStatus,
     open,
     setOpen,
-    getAvailableSlots,
+    getSlots: getAvailableSlots,
     selectedRange,
   } = useDashboardContext();
 

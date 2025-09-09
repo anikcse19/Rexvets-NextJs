@@ -73,7 +73,7 @@ type DashboardContextType = {
   setAvailableSlotsApiResponse: React.Dispatch<
     React.SetStateAction<IAvailableApiResponseState>
   >;
-  getAvailableSlots: (
+  getSlots: (
     startDate: string,
     endDate: string,
     refId: string,
@@ -111,7 +111,7 @@ export const DashboardProvider: React.FC<DashboardProviderProps> = ({
   const [selectedRange, setSelectedRange] = useState<DateRange | null>(null);
   const [disabledSlotIds, setDisabledSlotIds] = useState<string[]>([]);
 
-  const getAvailableSlots = useCallback(
+  const getSlots = useCallback(
     async (
       startDate: string,
       endDate: string,
@@ -220,16 +220,12 @@ export const DashboardProvider: React.FC<DashboardProviderProps> = ({
 
       // Re-fetch available slots after successful update
       if (startDate && endDate) {
-        await getAvailableSlots(startDate, endDate, refId);
+        await getSlots(startDate, endDate, refId);
       } else {
         // Fallback to current date if no date range provided
         const currentDate = new Date();
         const formattedCurrentDate = currentDate.toISOString().split("T")[0];
-        await getAvailableSlots(
-          formattedCurrentDate,
-          formattedCurrentDate,
-          refId
-        );
+        await getSlots(formattedCurrentDate, formattedCurrentDate, refId);
       }
     } catch (error: any) {
       console.error("Error updating slot status:", error);
@@ -257,7 +253,7 @@ export const DashboardProvider: React.FC<DashboardProviderProps> = ({
         setOpen,
         availableSlotsApiResponse,
         setAvailableSlotsApiResponse,
-        getAvailableSlots,
+        getSlots,
         selectedRange,
         setSelectedRange,
         disabledSlotIds,

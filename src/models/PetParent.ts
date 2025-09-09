@@ -1,4 +1,4 @@
-import mongoose, { Document, Model, Schema } from "mongoose";
+import mongoose, { Document, Model, Schema, Types } from "mongoose";
 
 export interface IPetParent extends Document {
   name: string;
@@ -45,7 +45,7 @@ export interface IPetParent extends Document {
   };
   createdAt: Date;
   updatedAt: Date;
-
+  subscriptionId: Types.ObjectId;
   // Authentication methods removed - now handled by User model
   // comparePassword(candidatePassword: string): Promise<boolean>;
   // generateEmailVerificationToken(): string;
@@ -231,6 +231,10 @@ const petParentSchema = new Schema<IPetParent>(
     fcmTokens: {
       web: String,
       mobile: String,
+    },
+    subscriptionId: {
+      type: Schema.Types.ObjectId,
+      ref: "Subscription",
     },
   },
   {

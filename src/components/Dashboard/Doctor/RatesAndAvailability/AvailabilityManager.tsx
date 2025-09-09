@@ -71,7 +71,7 @@ interface TimezoneModalState {
 
 const AvailabilityManager: React.FC = () => {
   const {
-    getAvailableSlots,
+    getSlots,
     availableSlotsApiResponse,
     selectedRange,
     setSelectedRange,
@@ -91,7 +91,7 @@ const AvailabilityManager: React.FC = () => {
     null
   );
 
-  const fetchAvailableSlots = useCallback(async () => {
+  const fetchSlots = useCallback(async () => {
     if (!selectedRange || !user?.refId) {
       throw new Error("Missing required data");
     }
@@ -100,7 +100,7 @@ const AvailabilityManager: React.FC = () => {
       const startDate = format(selectedRange.start, "yyyy-MM-dd");
       const endDate = format(selectedRange.end, "yyyy-MM-dd");
 
-      await getAvailableSlots(startDate, endDate, user.refId, userTimezone);
+      await getSlots(startDate, endDate, user.refId, userTimezone);
 
       const diff = getDaysBetween(selectedRange);
       console.log("Days between selected range:", diff);
@@ -110,20 +110,14 @@ const AvailabilityManager: React.FC = () => {
         description: "Please try refreshing the page or contact support.",
       });
     }
-  }, [selectedRange, user?.refId, userTimezone, getAvailableSlots]);
+  }, [selectedRange, user?.refId, userTimezone, getSlots]);
 
   useEffect(() => {
     // Only fetch if we have both selectedRange and user refId
     if (selectedRange && user?.refId) {
-      fetchAvailableSlots();
+      fetchSlots();
     }
-  }, [
-    selectedRange,
-    user?.refId,
-    slotStatus,
-    userTimezone,
-    fetchAvailableSlots,
-  ]);
+  }, [selectedRange, user?.refId, slotStatus, userTimezone, fetchSlots]);
   useEffect(() => {
     if (availableSlotsApiResponse.data) {
       setHasExistingSlots(availableSlotsApiResponse.data.periods.length > 0);
@@ -328,7 +322,7 @@ const AvailabilityManager: React.FC = () => {
               <TimeSlotCreator
                 refetch={async () => {
                   if (selectedRange) {
-                    await fetchAvailableSlots();
+                    await fetchSlots();
                   }
                 }}
                 selectedRange={selectedRange}
