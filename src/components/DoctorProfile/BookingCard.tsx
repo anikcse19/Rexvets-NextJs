@@ -118,13 +118,11 @@ export default function BookingSystem({
     }
     setIsLoading(true);
     const date = parseISO(selectedSlotDate ?? selectedDate);
-    const userTimezone = getUserTimezone();
     const formatted = format(date, "yyyy-MM-dd");
     const payload = {
       id: doctorData._id,
       startDate: formatted,
       endDate: formatted,
-      timezone: vetTimezone || userTimezone,
     };
     try {
       const data = await getVetSlots(payload);
