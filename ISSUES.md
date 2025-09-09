@@ -16,7 +16,7 @@
 
 ## TIME SLOT CREATOR
 
-1. apply blue border new period
+1. apply blue border new period **DONE**
 2. show a dropdown for select date/range
 3. show error message
 4. slot get all status
