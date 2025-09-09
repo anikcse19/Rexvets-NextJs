@@ -49,6 +49,11 @@ const VideoCallContent: React.FC<VideoCallContentProps> = ({ onEndCall }) => {
   } = useVideoCall();
   const { data: session } = useSession();
   const userRole = session?.user?.role;
+
+  console.log("isOpen---", isOpen);
+  console.log("userRole---***", userRole === "pet_parent"),
+
+
   console.log("remoteUsersState", remoteUsersState);
   // Log when component mounts (only once)
   useEffect(() => {
@@ -141,18 +146,28 @@ const VideoCallContent: React.FC<VideoCallContentProps> = ({ onEndCall }) => {
           />
         )}
       </div>
-
-      <PostCallModal
+      {/* <PostCallModal
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
         doctorId="123"
         docType="Parent"
         appointmentDetails={appointmentDetails}
-      />
+      /> */}
+   
+      {userRole === "pet_parent" && (
+        console.log("isOpen---==============", isOpen),
+        <PostCallModal
+          isOpen={isOpen}
+          onClose={() => setIsOpen(false)}
+          doctorId="123"
+          docType="PetParent"
+          appointmentDetails={appointmentDetails}
+        />
+      )}
     </div>
   ) : (
     <LoadingScreen />
-  );
+  );  
 };
 
 export default VideoCallContent;

@@ -29,6 +29,7 @@ import {
 import { signIn } from "next-auth/react";
 import LoadingSpinner from "@/components/ui/loading-spinner";
 import { US_STATES } from "@/lib";
+import { getUserTimezone } from "@/lib/timezone";
 
 const petParentSchema = z
   .object({
@@ -68,8 +69,7 @@ export default function PetParentForm() {
   const [timezone, setTimezone] = useState<string>("");
 
   useEffect(() => {
-    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    console.log("tzzz", tz);
+    const tz = getUserTimezone();
     setTimezone(tz);
   }, []);
 
@@ -92,9 +92,7 @@ export default function PetParentForm() {
         password: data.password,
         phoneNumber: data.phone,
         state: data.state,
-        preferences: {
-          timezone: timezone,
-        },
+        timezone,
       };
 
       console.log("createParentData", createParentData);
@@ -241,7 +239,7 @@ export default function PetParentForm() {
                   />
                 </svg>
               )}
-              Sign in with Google
+              Sign in with Google for Existing User
             </Button>
           </motion.div>
 

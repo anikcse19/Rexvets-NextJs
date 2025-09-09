@@ -62,6 +62,9 @@ export async function POST(request: NextRequest) {
     const clinicData = formData.get("clinic") as string;
     const clinic = clinicData ? JSON.parse(clinicData) : null;
 
+    // Extract timezone (from client)
+    const timezone = (formData.get("timezone") as string) || "UTC";
+
     // Convert schedule payload into model schedule
     const convertToSchedule = (scheduleData: any) => {
       const scheduleObj: any = {};
@@ -375,7 +378,7 @@ export async function POST(request: NextRequest) {
       experience: [],
       certifications: [],
       languages: ["English"],
-      timezone: "UTC",
+      timezone,
       schedule: convertToSchedule(schedule),
       // New optional fields with default values
       treatedSpecies: [],
