@@ -170,6 +170,7 @@ const DonationForm: React.FC<DonationFormProps> = ({ onDonationComplete }) => {
             paymentIntentId: data.paymentIntentId,
             donationId: data.donationId,
             isRecurring,
+            isSelectFamilyPlan: !!selectedFamilyPlan,
           }),
         });
       } catch (emailError) {

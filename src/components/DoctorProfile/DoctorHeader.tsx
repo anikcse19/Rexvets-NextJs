@@ -29,7 +29,7 @@ export default function DoctorHeader({ doctor }: { doctor: any }) {
             </h1>
             <p className="text-blue-100 text-lg mb-4">{doctor?.degree}</p>
 
-            <div className="flex flex-wrap items-center gap-4 mb-4">
+            {/* <div className="flex flex-wrap items-center gap-4 mb-4">
               <div className="flex items-center gap-2">
                 <div className="flex">
                   <Star
@@ -40,29 +40,29 @@ export default function DoctorHeader({ doctor }: { doctor: any }) {
                   {doctor.rating} ({doctor.totalReviews} reviews)
                 </span>
               </div>
-
-              <Badge className="bg-white/20 text-white border-white/30">
-                <Award className="w-4 h-4 mr-1" />
-                {doctor?.experience} Experience
-              </Badge>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-              <div className="flex items-center gap-2">
-                <Phone className="w-4 h-4 text-blue-200" />
-                <span className="text-blue-100">{doctor?.phone}</span>
+            </div> */}
+            <div className="flex items-center gap-2 mb-3">
+              <div className="flex items-center gap-1">
+                <Star className={`w-5 h-5  "fill-yellow-400 text-yellow-400`} />
               </div>
+              <span className="text-sm font-semibold text-white">
+                {doctor.averageRating?.toFixed(1) || "0"}
+              </span>
+              <span className="text-sm text-gray-100">
+                {doctor.reviewCount || 0}{" "}
+                {doctor.reviewCount > 1 ? "reviews" : "review"}
+              </span>
+            </div>
+            <div className="">
               <div className="flex items-center gap-2">
                 <Mail className="w-4 h-4 text-blue-200" />
                 <span className="text-blue-100">{doctor?.email}</span>
               </div>
-              <div className="flex items-center gap-2">
-                <Building className="w-4 h-4 text-blue-200" />
-                <span className="text-blue-100">{doctor?.clinicName}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-blue-200" />
-                <span className="text-blue-100">Dhaka, Bangladesh</span>
+              <div className="">
+                <div className=" flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-blue-200" />
+                  <span className="text-blue-100">Dhaka, Bangladesh</span>
+                </div>
               </div>
             </div>
           </div>
