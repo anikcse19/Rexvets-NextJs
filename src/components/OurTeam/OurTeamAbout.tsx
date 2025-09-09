@@ -116,6 +116,15 @@ const OurTeamAbout: React.FC = () => {
         icon: "Psychology",
         gradient: gradients.secondary,
       },
+      {
+        name: "Erick Martinez",
+        title: "Director",
+        description:
+          "Born in France, Erick Martinez brings over 30 years of experience in logistics, manufacturing, and operations.He has held leadership roles across factory management and the pet supplement industry, with a strong focus on efficiency and quality.His deep expertise in supply chain and production helps ensure our services and products reach pet owners reliably and at scale.Erick is passionate about innovation in animal health and expanding access to trusted pet care solutions.",
+        image: "/images/our-team/director.webp",
+        icon: "School",
+        gradient: gradients.primary,
+      },
     ],
     gradients,
   };
@@ -137,9 +146,9 @@ const OurTeamAbout: React.FC = () => {
         />
       </motion.div>
 
+      <OurTeamLeadershipSection {...leadershipData} />
       <OurTeamHeroSection {...heroData} />
       <OurTeamStorySection {...storyData} />
-      <OurTeamLeadershipSection {...leadershipData} />
     </div>
   );
 };

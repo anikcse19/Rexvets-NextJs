@@ -1,5 +1,5 @@
 import { formatRelativeTime } from "@/lib/utils";
-import { RefreshCw, Trash2 } from "lucide-react";
+import { RefreshCw, Trash2, X } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
@@ -62,6 +62,8 @@ const SystemNotification: React.FC<NotificationProps> = ({
   const { data: session } = useSession();
 
   const [isPrescriptionModalOpen, setIsPrescriptionModalOpen] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+
   const handleClick = () => {
     if (
       notification.type === NotificationType.NEW_MESSAGE &&
@@ -107,38 +109,53 @@ const SystemNotification: React.FC<NotificationProps> = ({
       case NotificationType.RECURRING_DONATION:
       case NotificationType.NEW_DONATION:
         return {
-          icon: <RefreshCw className="text-white" size={22} />,
-          bgColor: "bg-[#0066D5]",
-          titleColor: "text-blue-800",
-          borderColor: "border-l-green-500",
+          icon: <RefreshCw className="text-white" size={20} />,
+          iconBg: "bg-gradient-to-br from-emerald-500 to-emerald-600",
+          gradientFrom: "from-emerald-50",
+          gradientTo: "to-emerald-100/50",
+          borderColor: "border-emerald-200",
+          accentColor: "text-emerald-700",
+          hoverShadow: "hover:shadow-emerald-100",
         };
       case NotificationType.NEW_APPOINTMENT:
         return {
-          icon: <FaCalendarCheck className="text-[#27A744]" size={22} />,
-          bgColor: "",
-          titleColor: "text-blue-800",
-          borderColor: "border-l-blue-500",
+          icon: <FaCalendarCheck className="text-white" size={18} />,
+          iconBg: "bg-gradient-to-br from-blue-500 to-blue-600",
+          gradientFrom: "from-blue-50",
+          gradientTo: "to-blue-100/50",
+          borderColor: "border-blue-200",
+          accentColor: "text-blue-700",
+          hoverShadow: "hover:shadow-blue-100",
         };
       case NotificationType.PRESCRIPTION_REQUEST:
         return {
-          icon: <FaPrescriptionBottle className="text-purple-600" size={22} />,
-          bgColor: "bg-purple-100",
-          titleColor: "text-purple-800",
-          borderColor: "border-l-purple-500",
+          icon: <FaPrescriptionBottle className="text-white" size={18} />,
+          iconBg: "bg-gradient-to-br from-purple-500 to-purple-600",
+          gradientFrom: "from-purple-50",
+          gradientTo: "to-purple-100/50",
+          borderColor: "border-purple-200",
+          accentColor: "text-purple-700",
+          hoverShadow: "hover:shadow-purple-100",
         };
       case NotificationType.NEW_MESSAGE:
         return {
-          icon: <FaComment className="text-orange-600" size={22} />,
-          bgColor: "bg-orange-100",
-          titleColor: "text-orange-800",
-          borderColor: "border-l-orange-500",
+          icon: <FaComment className="text-white" size={18} />,
+          iconBg: "bg-gradient-to-br from-orange-500 to-orange-600",
+          gradientFrom: "from-orange-50",
+          gradientTo: "to-orange-100/50",
+          borderColor: "border-orange-200",
+          accentColor: "text-orange-700",
+          hoverShadow: "hover:shadow-orange-100",
         };
       default:
         return {
-          icon: <FaComment className="text-gray-600" size={22} />,
-          bgColor: "bg-gray-100",
-          titleColor: "text-gray-800",
-          borderColor: "border-l-gray-500",
+          icon: <FaComment className="text-white" size={18} />,
+          iconBg: "bg-gradient-to-br from-gray-500 to-gray-600",
+          gradientFrom: "from-gray-50",
+          gradientTo: "to-gray-100/50",
+          borderColor: "border-gray-200",
+          accentColor: "text-gray-700",
+          hoverShadow: "hover:shadow-gray-100",
         };
     }
   };
@@ -146,113 +163,128 @@ const SystemNotification: React.FC<NotificationProps> = ({
   const config = getNotificationConfig();
   const handleWritePrescription = () => {
     setIsPrescriptionModalOpen(true);
-    // onClose && onClose();
   };
+
   return (
     <div
-      className={`relative w-full max-w-md p-4 mx-4 mb-3 bg-white rounded-lg shadow-sm border-l-4 ${config.borderColor} cursor-pointer transition-all hover:shadow-md ${className}`}
+      className={`group relative overflow-hidden bg-gradient-to-br ${config.gradientFrom} ${config.gradientTo} backdrop-blur-sm border ${config.borderColor} rounded-2xl cursor-pointer transition-all duration-300 ease-out transform hover:scale-[1.02] hover:shadow-xl ${config.hoverShadow} ${className}`}
       onClick={handleClick}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Close button */}
+      {/* Subtle background pattern */}
+      <div className="absolute inset-0 bg-white/60 backdrop-blur-sm"></div>
 
-      {/* Notification header with icon */}
-      <div className="flex justify-between items-center">
-        <div className="flex items-start mb-0">
-          <div
-            className={`flex items-center justify-center w-9 h-9 rounded-md ${config.bgColor} mr-3`}
-          >
-            {config.icon}
+      {/* Content */}
+      <div className="relative p-5">
+        {/* Header */}
+        <div className="flex items-start justify-between mb-3">
+          <div className="flex items-start space-x-4 flex-1">
+            {/* Icon */}
+            <div
+              className={`flex-shrink-0 w-11 h-11 rounded-xl ${
+                config.iconBg
+              } shadow-lg flex items-center justify-center transform transition-transform duration-300 ${
+                isHovered ? "scale-110 rotate-3" : ""
+              }`}
+            >
+              {config.icon}
+            </div>
+
+            {/* Content */}
+            <div className="flex-1 min-w-0">
+              <h3
+                className={`font-semibold text-lg leading-tight ${config.accentColor} transition-colors duration-200`}
+              >
+                {notification.title}
+              </h3>
+              {notification.subTitle && (
+                <p className="text-gray-600 font-medium mt-1 text-sm">
+                  {notification.subTitle}
+                </p>
+              )}
+            </div>
           </div>
-          <div className="flex-1">
-            <h3 className={` text-base font-medium ${config.titleColor}`}>
-              {notification.title}
-            </h3>
-            {notification.subTitle && (
-              <p className="text-base font-medium text-gray-500">
-                {notification.subTitle}
-              </p>
+
+          {/* Actions */}
+          <div className="flex flex-col items-end space-y-2 ml-4">
+            <button
+              onClick={handleDelete}
+              className="group/btn flex items-center justify-center w-8 h-8 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all duration-200 transform hover:scale-110"
+            >
+              <Trash2
+                size={16}
+                className="transition-transform duration-200 group-hover/btn:scale-110"
+              />
+            </button>
+            <div className="text-xs text-gray-500 font-medium bg-white/70 px-2 py-1 rounded-full">
+              {formatRelativeTime(notification.createdAt?.toString() ?? "")}
+            </div>
+          </div>
+        </div>
+
+        {/* Body */}
+        {notification.body && (
+          <div className="ml-15 mb-4">
+            <p className="text-gray-700 leading-relaxed font-medium">
+              {notification.body}
+            </p>
+          </div>
+        )}
+
+        {/* Additional data */}
+        {notification.data && (
+          <div className="ml-15 mb-4">
+            {notification.type === NotificationType.RECURRING_DONATION && (
+              <div className="bg-white/80 rounded-lg p-3 border border-emerald-100">
+                <p className="text-emerald-700 font-semibold">
+                  Amount: ${String(notification.data?.donationAmount || 0)}
+                </p>
+              </div>
             )}
           </div>
-        </div>
-        <div className=" flex flex-col items-center gap-2">
-          <button
-            onClick={handleDelete}
-            className="flex  justify-end w-full items-center text-gray-400 hover:text-gray-600 transition-colors"
-          >
-            <Trash2 size={19} />
-          </button>
-          <p className="text-xs -mt-2 text-gray-500">
-            {formatRelativeTime(notification.createdAt?.toString() ?? "")}
-          </p>
-        </div>
+        )}
+
+        {/* Prescription actions */}
+        {notification.type === NotificationType.PRESCRIPTION_REQUEST && (
+          <div className="flex justify-end gap-3 mt-6">
+            <Button
+              onClick={() => {
+                router.push(
+                  `/dashboard/doctor/appointments/${
+                    (notification.appointmentId as any)?._id
+                  }`
+                );
+                onClose && onClose();
+              }}
+              className="px-6 py-2 bg-white/80 text-gray-700 border border-gray-200 hover:bg-white hover:shadow-md transition-all duration-200 rounded-xl font-semibold"
+              variant="ghost"
+              size="lg"
+            >
+              View Details
+            </Button>
+            <Button
+              onClick={handleWritePrescription}
+              className="px-6 py-2 bg-gradient-to-r from-purple-500 to-purple-600 text-white hover:from-purple-600 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-200 rounded-xl font-semibold transform hover:scale-105"
+              variant="ghost"
+              size="lg"
+            >
+              Start Prescription
+            </Button>
+          </div>
+        )}
       </div>
 
-      {/* Notification body */}
-      {notification.body && (
-        <div className="pl-11 mt-1">
-          <p className="text-base text-gray-700">{notification.body}</p>
-        </div>
-      )}
-
-      {/* Additional data based on type */}
-      {notification.data && (
-        <div className="pl-11 mt-2">
-          {/* Render specific data based on notification type */}
-          {notification.type === NotificationType.RECURRING_DONATION && (
-            <div className="text-sm text-gray-600">
-              <p>Amount: ${String(notification.data?.donationAmount || 0)}</p>
-            </div>
-          )}
-
-          {/* {notification.type === NotificationType.NEW_APPOINTMENT && (
-            <div className="text-sm text-gray-600">
-              {!!notification.data?.vetName && (
-                <p> {String(notification.data.vetName)}</p>
-              )}
-              {!!notification.data?.petName && (
-                <p>For: {String(notification.data.petName)}</p>
-              )}
-              {!!notification.data?.date && (
-                <p>When: {String(notification.data.date)}</p>
-              )}
-            </div>
-          )} */}
-        </div>
-      )}
-      {notification.type === NotificationType.PRESCRIPTION_REQUEST && (
-        <div className="flex justify-end gap-x-4 mt-5">
-          <Button
-            onClick={() => {
-              router.push(
-                `/dashboard/doctor/appointments/${
-                  (notification.appointmentId as any)?._id
-                }`
-              );
-              onClose && onClose();
-            }}
-            className="cursor-pointer"
-            variant="ghost"
-            size={"lg"}
-          >
-            View
-          </Button>
-          <Button
-            onClick={handleWritePrescription}
-            className="cursor-pointer bg-blue-400 text-white hover:bg-blue-400 hover:text-white"
-            variant="ghost"
-            size={"lg"}
-          >
-            Start Prescription
-          </Button>
-        </div>
-      )}
+      {/* Prescription Modal */}
       <Dialog
         open={isPrescriptionModalOpen}
         onOpenChange={(open) => setIsPrescriptionModalOpen(open)}
       >
-        <DialogContent>
+        <DialogContent className="rounded-2xl border-0 shadow-2xl">
           <DialogHeader>
-            <DialogTitle>My Dialog</DialogTitle>
+            <DialogTitle className="text-xl font-semibold text-gray-800">
+              Prescription Details
+            </DialogTitle>
           </DialogHeader>
 
           <PrescriptionModal
@@ -264,11 +296,6 @@ const SystemNotification: React.FC<NotificationProps> = ({
             petParent={notification.petParentId as any}
             veterinarian={notification.vetId as any}
           />
-
-          {/* Close button */}
-          {/* <DialogClose asChild>
-            <Button>Close</Button>
-          </DialogClose> */}
         </DialogContent>
       </Dialog>
     </div>

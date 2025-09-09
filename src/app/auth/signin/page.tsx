@@ -252,7 +252,7 @@ export default function SignInPage() {
                     <div className="w-full border-t border-white/20"></div>
                   </div>
                   <div className="relative flex justify-center">
-                    <span className="px-4 backdrop-blur-xl bg-white/70 border-white/20 shadow-2xl text-sm text-black">
+                    <span className="px-4 backdrop-blur-xl bg-white/70 border-white/20 shadow-2xl text-sm text-black rounded-3xl">
                       or continue with email
                     </span>
                   </div>
