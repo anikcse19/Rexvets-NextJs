@@ -8,6 +8,7 @@ export interface IPetParent extends Document {
   city?: string;
   address?: string;
   zipCode?: string;
+  country?: string;
   dob?: Date;
   profileImage?: string;
   gender?: string;
@@ -115,6 +116,10 @@ const petParentSchema = new Schema<IPetParent>(
       trim: true,
     },
     zipCode: {
+      type: String,
+      trim: true,
+    },
+    country: {
       type: String,
       trim: true,
     },
