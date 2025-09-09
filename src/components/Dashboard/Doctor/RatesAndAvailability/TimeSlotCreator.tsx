@@ -13,7 +13,7 @@ import {
 import { getUserTimezone } from "@/lib/timezone";
 import { convertTimesToUserTimezone } from "@/lib/timezone/index";
 import { DateRange, SlotPeriod } from "@/lib/types";
-import { formatDisplayTime, generateTimeOptions } from "@/lib/utils";
+import { generateTimeOptions } from "@/lib/utils";
 import {
   AlertTriangle,
   Calendar,
@@ -22,15 +22,14 @@ import {
   Plus,
   Save,
   Trash2,
-  X,
 } from "lucide-react";
 import moment from "moment";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { addNewPeriod, deleteSlotsByIds } from "./services/delete-periods";
 
 interface TimeSlotCreatorProps {
   selectedRange: DateRange | null;
-  onSaveSlots: (slots: SlotPeriod[]) => Promise<void>;
   hasExistingSlots?: boolean;
   existingPeriods?: Array<{
     startTime: string;
@@ -39,7 +38,9 @@ interface TimeSlotCreatorProps {
     slots: any[];
     timezone?: string;
   }>;
+  refetch: () => void;
   onClose?: () => void;
+  vetId?: string; // Add vetId prop for delete operations
 }
 
 interface TimeSlot {
@@ -49,15 +50,18 @@ interface TimeSlot {
   isExisting?: boolean;
   isSelected?: boolean;
   date?: Date;
+  slotIDs?: string[]; // Array of actual slot IDs from database
 }
 
 export default function TimeSlotCreator({
   selectedRange,
-  onSaveSlots,
   hasExistingSlots = false,
   existingPeriods = [],
   onClose,
+  vetId,
+  refetch,
 }: TimeSlotCreatorProps) {
+  console.log("existingPeriods", existingPeriods);
   const [slots, setSlots] = useState<TimeSlot[]>([
     {
       id: "1",
@@ -68,7 +72,6 @@ export default function TimeSlotCreator({
       date: selectedRange?.start,
     },
   ]);
-  console.log("existingPeriods", existingPeriods);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [openPopover, setOpenPopover] = useState<{
@@ -86,6 +89,7 @@ export default function TimeSlotCreator({
       isExisting: true,
       isSelected: false,
       date: period?.slots[0]?.formattedDate,
+      slotIDs: period.slots.map((slot) => slot._id),
     }));
   }, [hasExistingSlots, existingPeriods]);
 
@@ -121,9 +125,34 @@ export default function TimeSlotCreator({
     setSlots([...slots, newSlot]);
   };
 
-  const removeSlot = (id: string) => {
+  const removeSlot = async (id: string) => {
     // Don't allow removing the last slot
     if (slots.length > 1) {
+      const slotToRemove = slots.find((slot) => slot.id === id);
+
+      // If it's an existing slot and we have slotIDs, delete from database
+      if (
+        slotToRemove?.isExisting &&
+        slotToRemove.slotIDs &&
+        slotToRemove.slotIDs.length > 0
+      ) {
+        try {
+          await deleteSlotsByIds({
+            slotIds: slotToRemove.slotIDs,
+          });
+
+          toast.success(
+            `Period deleted successfully (${slotToRemove.slotIDs.length} slots removed)`
+          );
+        } catch (error: any) {
+          console.error("Error deleting period:", error);
+          toast.error("Failed to delete period", {
+            description: error.message || "Please try again.",
+          });
+          return; // Don't remove from UI if database deletion failed
+        }
+      }
+
       setSlots(slots.filter((slot) => slot.id !== id));
     }
   };
@@ -142,8 +171,9 @@ export default function TimeSlotCreator({
     setSlots(slots.map((slot) => ({ ...slot, isSelected: newSelectAll })));
   };
 
-  const handleBulkDelete = () => {
+  const handleBulkDelete = async () => {
     const selectedSlots = slots.filter((slot) => slot.isSelected);
+    console.log("selectedSlots", selectedSlots);
     if (selectedSlots.length === 0) {
       toast.error("No slots selected for deletion");
       return;
@@ -152,6 +182,34 @@ export default function TimeSlotCreator({
     if (selectedSlots.length === slots.length) {
       toast.error("Cannot delete all slots. At least one slot must remain.");
       return;
+    }
+
+    // If we have existing slots with slotIDs, delete from database
+    const existingSelectedSlots = selectedSlots.filter(
+      (slot) => slot.isExisting && slot.slotIDs && slot.slotIDs.length > 0
+    );
+
+    if (existingSelectedSlots.length > 0) {
+      try {
+        // Collect all slot IDs from selected periods
+        const allSlotIds = existingSelectedSlots.flatMap(
+          (slot) => slot.slotIDs || []
+        );
+
+        const result = await deleteSlotsByIds({
+          slotIds: allSlotIds,
+        });
+
+        toast.success(
+          `Successfully deleted ${result.deletedCount} slots from ${existingSelectedSlots.length} periods`
+        );
+      } catch (error: any) {
+        console.error("Error deleting periods in bulk:", error);
+        toast.error("Failed to delete periods", {
+          description: error.message || "Please try again.",
+        });
+        return; // Don't remove from UI if database deletion failed
+      }
     }
 
     setSlots(slots.filter((slot) => !slot.isSelected));
@@ -205,6 +263,11 @@ export default function TimeSlotCreator({
       return;
     }
 
+    if (!vetId) {
+      toast.error("Veterinarian ID is required");
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -221,10 +284,23 @@ export default function TimeSlotCreator({
         return { start, end };
       });
 
-      console.log("Saving slots:", slots);
+      console.log("Saving new period slots:", slots);
       console.log("Slot periods:", slotPeriods);
 
-      await onSaveSlots(slotPeriods);
+      // Use the new addNewPeriod API
+      const result = await addNewPeriod({
+        vetId,
+        slotPeriods,
+        dateRange: selectedRange,
+        slotDuration: 30, // Default slot duration
+        bufferBetweenSlots: 0, // Default buffer
+      });
+
+      console.log("New period added successfully:", result);
+
+      toast.success(
+        `Successfully added new period with ${result.data.createdSlotsCount} slots`
+      );
 
       // Reset slots after successful save
       if (hasExistingSlots && processedExistingPeriods.length > 0) {
@@ -241,6 +317,9 @@ export default function TimeSlotCreator({
         ]);
       }
       setSelectAll(false);
+
+      // Call the original onSaveSlots callback to refresh the parent component
+      // await onSaveSlots(slotPeriods);
 
       // Close the sheet after successful save
       if (onClose) {
@@ -366,7 +445,7 @@ export default function TimeSlotCreator({
       <Button
         onClick={handleSave}
         disabled={!validateSlots() || isLoading}
-        className={` ${className} cursor-pointer  w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold py-4 rounded-2xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl`}
+        className={` ${className} cursor-pointer  w-[200px] bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold py-4 rounded-2xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl`}
       >
         {isLoading ? (
           <div className="flex items-center justify-center space-x-3">
@@ -375,7 +454,7 @@ export default function TimeSlotCreator({
           </div>
         ) : (
           <div className="flex items-center justify-center space-x-3">
-            <Save className="w-6 h-6" />
+            {/* <Save className="w-6 h-6" /> */}
             <span>Save & Launch Schedule</span>
           </div>
         )}
@@ -519,9 +598,6 @@ export default function TimeSlotCreator({
                     </div>
                   )}
                 </div>
-
-                {/* Save Button */}
-                {displaySaveBtn("hidden md:flex")}
               </div>
             </div>
 
@@ -544,15 +620,17 @@ export default function TimeSlotCreator({
                     </div>
                   </div>
 
-                  {displaySaveBtn("flex md:hidden")}
-                  <div className="flex items-center space-x-3">
-                    <Button
-                      onClick={addSlot}
-                      className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold px-4 sm:px-6 py-2 sm:py-3 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl text-sm sm:text-base"
-                    >
-                      <Plus className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-                      Add Period
-                    </Button>
+                  <div className="flex gap-x-3 items-center">
+                    {displaySaveBtn("flex")}
+                    <div className="flex items-center space-x-3">
+                      <Button
+                        onClick={addSlot}
+                        className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold px-4 sm:px-6 py-2 sm:py-3 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl text-sm sm:text-base"
+                      >
+                        <Plus className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                        Add Period
+                      </Button>
+                    </div>
                   </div>
                 </div>
 
@@ -599,7 +677,6 @@ export default function TimeSlotCreator({
                 {/* Period Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {slots.map((slot, index) => {
-                    console.log("slot", slot);
                     const formattedDate = formatDate(
                       slot.date,
                       getUserTimezone()
@@ -636,14 +713,13 @@ export default function TimeSlotCreator({
                             }`}
                           ></div>
                           <h3 className="font-semibold text-sm text-gray-800 truncate">
-                            {slot.isExisting ? "Existing" : "New"} #{index + 1}
+                            Period #{index + 1}
                           </h3>
                         </div>
 
                         {/* Date Display */}
                         {formattedDate && (
                           <div className="text-center mb-3">
-                            <p className="text-xs text-gray-500">Date</p>
                             <p className="font-medium text-sm text-gray-700">
                               {formattedDate}
                             </p>
@@ -653,7 +729,6 @@ export default function TimeSlotCreator({
                         {/* Time Display */}
                         <div className="space-y-1 mb-3">
                           <div className="text-center">
-                            <p className="text-xs text-gray-500">Time</p>
                             <p className="font-medium text-sm text-gray-800">
                               {formatTime(
                                 slot.startTime,
@@ -670,7 +745,6 @@ export default function TimeSlotCreator({
                           </div>
 
                           <div className="text-center">
-                            <p className="text-xs text-gray-500">Duration</p>
                             <p className="font-medium text-sm text-gray-800">
                               {isValidSlot(slot)
                                 ? formatDuration(
@@ -774,7 +848,10 @@ export default function TimeSlotCreator({
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => removeSlot(slot.id)}
+                              onClick={() => {
+                                console.log("SLOT PERIOD:", slot);
+                                removeSlot(slot.id);
+                              }}
                               className="ml-auto h-6 w-6 p-0 text-red-400 hover:text-red-300 hover:bg-red-500/20 rounded-md transition-all duration-200"
                             >
                               <Trash2 className="h-3 w-3" />

@@ -1,17 +1,17 @@
 import { connectToDatabase } from "@/lib/mongoose";
 import { getUserTimezone } from "@/lib/timezone";
 import {
-    IErrorResponse,
-    sendResponse,
-    throwAppError,
+  IErrorResponse,
+  sendResponse,
+  throwAppError,
 } from "@/lib/utils/send.response";
 import Veterinarian from "@/models/Veterinarian";
 import { NextRequest } from "next/server";
 import {
-    generateAppointmentSlots,
-    IGenerateAppointmentSlots,
-    IUpdateAppointmentSlots,
-    updateAppointmentSlots,
+  generateAppointmentSlots,
+  IGenerateAppointmentSlots,
+  IUpdateAppointmentSlots,
+  updateAppointmentSlots,
 } from "../utils.appointment-slot";
 
 export const POST = async (
@@ -36,11 +36,9 @@ export const POST = async (
       slotDuration = 30,
       bufferBetweenSlots = 0,
       dateRange,
-      timezone, // New timezone parameter
     } = await req.json();
 
     // Validate timezone - use provided timezone or default to user's timezone
-    const appointmentTimezone = timezone || getUserTimezone();
 
     const existingVet = await Veterinarian.findOne({ _id: vetId });
     if (!existingVet) {
@@ -57,7 +55,7 @@ export const POST = async (
       vetId: existingVet._id,
       slotPeriods: slotPeriods,
       dateRange: dateRange,
-      timezone: appointmentTimezone, // Include timezone in the data
+      timezone: existingVet?.timezone || "UTC", // Include timezone in the data
       bufferBetweenSlots: bufferBetweenSlots,
       slotDuration: slotDuration,
     };
@@ -104,7 +102,6 @@ export const PATCH = async (
       slotDuration = 30,
       bufferBetweenSlots = 0,
       dateRange,
-      timezone, // New timezone parameter
     } = await req.json();
 
     // Validate timezone - use provided timezone or default to user's timezone
@@ -125,7 +122,7 @@ export const PATCH = async (
       vetId: existingVet._id,
       slotPeriods: slotPeriods,
       dateRange: dateRange,
-      timezone: timezone || "UTC", // Include timezone in the data
+      timezone: existingVet?.timezone || "UTC", // Include timezone in the data
       bufferBetweenSlots: bufferBetweenSlots,
       slotDuration: slotDuration,
     };
@@ -139,18 +136,19 @@ export const PATCH = async (
     });
   } catch (error: any) {
     console.log("ERROR updating appointment slots:", error.message);
-    
+
     // Handle specific MongoDB duplicate key errors
-    if (error.message?.includes('E11000 duplicate key error')) {
+    if (error.message?.includes("E11000 duplicate key error")) {
       const errResp: IErrorResponse = {
         success: false,
-        message: "Some appointment slots already exist for this time period. Please try again or contact support if the issue persists.",
+        message:
+          "Some appointment slots already exist for this time period. Please try again or contact support if the issue persists.",
         errorCode: "DUPLICATE_SLOTS_ERROR",
         errors: null,
       };
       return throwAppError(errResp, 409); // 409 Conflict
     }
-    
+
     const errResp: IErrorResponse = {
       success: false,
       message: error?.message || "Internal server error",

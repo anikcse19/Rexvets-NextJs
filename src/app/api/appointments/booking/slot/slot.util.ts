@@ -42,8 +42,10 @@ export async function getVeterinarianSlots(
     const validatedLimit = Math.max(1, Math.min(limit, 100));
     const skip = (validatedPage - 1) * validatedLimit;
 
-    // Convert date to UTC range
-    const targetDate = moment.tz(date as any, "YYYY-MM-DD", timezone);
+    // Convert date to UTC range. Support Date or YYYY-MM-DD string
+    const targetDate = moment.isDate(date)
+      ? moment.tz(date as any, timezone)
+      : moment.tz((date as any) || undefined, timezone);
     const startOfDay = targetDate.clone().startOf("day").utc().toDate();
     const endOfDay = targetDate.clone().endOf("day").utc().toDate();
 
@@ -105,9 +107,9 @@ export const getSlotsByNoticePeriodAndDateRangeByVetId = async (
   const { vetId, noticePeriod, startDate, endDate, timezone } = params;
 
   try {
-    // Get current time in the user's timezone (following veterinarian API pattern)
+    // Get current time in the provided timezone and compute helpers
     const now = moment().tz(timezone);
-    const todayStart = now.clone().startOf("day");
+    const todayStartUtc = now.clone().startOf("day").utc().toDate();
     const currentTime = now.format("HH:mm");
 
     // console.log(
@@ -125,7 +127,11 @@ export const getSlotsByNoticePeriodAndDateRangeByVetId = async (
     // console.log(`[SLOT FILTERING] Example: If current time is 8:46 and slot is 9:00, time diff = 14min, notice period = ${noticePeriod}min, so slot should be FILTERED OUT`);
 
     // Convert input dates to start/end of day in the provided timezone, then to UTC
-    const startDateUtc = moment.tz(startDate, timezone).startOf("day").utc().toDate();
+    const startDateUtc = moment
+      .tz(startDate, timezone)
+      .startOf("day")
+      .utc()
+      .toDate();
     const endDateUtc = moment.tz(endDate, timezone).endOf("day").utc().toDate();
 
     // Use MongoDB aggregation pipeline like veterinarian API
@@ -142,33 +148,15 @@ export const getSlotsByNoticePeriodAndDateRangeByVetId = async (
       },
       {
         $addFields: {
-          // Add computed fields for filtering using provided timezone to extract local date
-          slotDateStr: { $dateToString: { format: "%Y-%m-%d", date: "$date", timezone: timezone } },
-          currentTimeStr: currentTime,
-          todayStartDate: todayStart.toDate(),
-        },
-      },
-      {
-        $addFields: {
-          // Check if slot is in the future (not past)
-          isFutureSlot: {
-            $or: [
-              // Future dates
-              { $gt: ["$date", "$todayStartDate"] },
-              // Today but future time slots
-              {
-                $and: [
-                  { $eq: ["$date", "$todayStartDate"] },
-                  { $gt: ["$startTime", "$currentTimeStr"] },
-                ],
-              },
-            ],
+          // Local date string for the slot, and current time for comparisons
+          slotDateStr: {
+            $dateToString: {
+              format: "%Y-%m-%d",
+              date: "$date",
+              timezone: timezone,
+            },
           },
-        },
-      },
-      {
-        $match: {
-          isFutureSlot: true, // Only keep future slots
+          currentTimeStr: currentTime,
         },
       },
       {
@@ -186,7 +174,7 @@ export const getSlotsByNoticePeriodAndDateRangeByVetId = async (
       },
       {
         $addFields: {
-          // Calculate minutes from now
+          // Calculate minutes from now based on local slot datetime in timezone
           minutesFromNow: {
             $divide: [
               {
@@ -199,7 +187,7 @@ export const getSlotsByNoticePeriodAndDateRangeByVetId = async (
       },
       {
         $match: {
-          // Filter out slots within notice period
+          // Keep only future slots that also respect the notice period
           minutesFromNow: { $gte: noticePeriod },
         },
       },
@@ -236,46 +224,8 @@ export const getSlotsByNoticePeriodAndDateRangeByVetId = async (
       },
     }).sort({ date: 1, startTime: 1 });
 
-    console.log(
-      `[SLOT FILTERING] Total slots before any filtering: ${allSlotsBeforeFiltering.length}`
-    );
-
-    // Log all slots with their time calculations
-    allSlotsBeforeFiltering.forEach((slot) => {
-      const slotDate = moment(slot.date).format("YYYY-MM-DD");
-      const slotDateTime = moment.tz(`${slotDate} ${slot.startTime}`, timezone);
-      const timeDifference = slotDateTime.diff(now, "minutes");
-      const isPast = timeDifference <= 0;
-      const isWithinNoticePeriod = timeDifference < noticePeriod;
-      const shouldKeep = timeDifference > 0 && timeDifference >= noticePeriod;
-
-      let reason = "";
-      if (isPast) reason = "FILTERED OUT (past slot)";
-      else if (isWithinNoticePeriod)
-        reason = "FILTERED OUT (within notice period)";
-      else reason = "KEPT (valid slot)";
-
-      console.log(
-        `[SLOT ANALYSIS] ${slotDate} ${slot.startTime} - Time diff: ${timeDifference}min - ${reason}`
-      );
-    });
-
     // Execute aggregation pipeline
     const filteredSlots = await AppointmentSlot.aggregate(pipeline);
-
-    console.log(
-      `[SLOT FILTERING] Slots after MongoDB filtering: ${filteredSlots.length}`
-    );
-
-    // Log details for each remaining slot
-    filteredSlots.forEach((slot) => {
-      const minutesFromNow = Math.round(slot.minutesFromNow);
-      console.log(
-        `[SLOT KEPT] ${moment(slot.date).format("YYYY-MM-DD")} ${
-          slot.startTime
-        } - Minutes from now: ${minutesFromNow}`
-      );
-    });
 
     return filteredSlots as IAvailabilitySlot[];
   } catch (error) {

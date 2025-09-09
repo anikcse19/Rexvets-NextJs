@@ -350,20 +350,7 @@ const DonationForm: React.FC<DonationFormProps> = ({ onDonationComplete }) => {
             </div>
           </div>
         </div>
-        {selectedFamilyPlan && selectedFamilyPlan.length > 0 && (
-          <div className="flex items-center space-x-3">
-            <input
-              type="checkbox"
-              id="recurring"
-              checked={isRecurring}
-              onChange={(e) => setIsRecurring(e.target.checked)}
-              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-            />
-            <label htmlFor="recurring" className="text-sm text-gray-700">
-              Make this a monthly recurring donation
-            </label>
-          </div>
-        )}
+
         {/* Security Notice */}
         <div className="flex items-start space-x-3 p-4 bg-blue-50 rounded-lg">
           <Shield className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />

@@ -60,6 +60,8 @@ export default function BookingSystem({
   const [showCalendar, setShowCalendar] = useState(false);
   const [slots, setSlots] = useState<Slot[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 6;
   const { appState, setAppState } = useAppContext();
   const { slotDate: selectedSlotDate, slotId: selectedSlotId } = appState;
   console.log("selectedSlotId", selectedSlotId);
@@ -118,13 +120,11 @@ export default function BookingSystem({
     }
     setIsLoading(true);
     const date = parseISO(selectedSlotDate ?? selectedDate);
-    const userTimezone = getUserTimezone();
     const formatted = format(date, "yyyy-MM-dd");
     const payload = {
       id: doctorData._id,
       startDate: formatted,
       endDate: formatted,
-      timezone: vetTimezone || userTimezone,
     };
     try {
       const data = await getVetSlots(payload);
@@ -151,6 +151,9 @@ export default function BookingSystem({
   }, [selectedDate, selectedSlotDate, selectedSlotId, vetTimezone]);
   console.log("slots", slots);
   useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedDate, selectedSlotDate, slots.length]);
+  useEffect(() => {
     if (selectedSlotDate && selectedSlotId) {
       const date = parseISO(selectedSlotDate);
 
@@ -168,7 +171,7 @@ export default function BookingSystem({
     }
   }, [selectedSlotDate, selectedSlotId, slots]);
   return (
-    <Card className="shadow-xl border-0 bg-white sticky top-6">
+    <Card className="shadow-xl rounded-md p-0 border-0 bg-white sticky top-6">
       <div className="bg-gradient-to-r from-green-600 to-emerald-600 p-6 text-white">
         <CardTitle className="text-xl font-bold text-white flex items-center gap-2">
           <CalendarIcon className="w-6 h-6" />
@@ -283,8 +286,11 @@ export default function BookingSystem({
                 </span>
               </div>
             ) : slots.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                {slots.map((slot) => {
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {slots
+                    .slice((currentPage - 1) * pageSize, currentPage * pageSize)
+                    .map((slot) => {
                   const {
                     formattedEndTime,
                     formattedStartTime,
@@ -299,15 +305,14 @@ export default function BookingSystem({
                   const isSelected =
                     (selectedSlot || selectedSlotId) === slot._id;
 
-                  return (
-                    <button
-                      key={slot._id}
-                      onClick={() => {
-                        setSelectedSlot(slot._id);
-                        // alert(slot.formattedStartTime);
-                        setSelectedTime(slot.startTime);
-                      }}
-                      className={`
+                      return (
+                        <button
+                          key={slot._id}
+                          onClick={() => {
+                            setSelectedSlot(slot._id);
+                            setSelectedTime(slot.startTime);
+                          }}
+                          className={`
                 relative p-4 rounded-xl items-center  justify-center flex flex-col border-2 text-left transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]
                 ${
                   isSelected
@@ -315,38 +320,76 @@ export default function BookingSystem({
                     : "border-gray-200 hover:border-blue-300 hover:bg-blue-50 hover:shadow-md"
                 }
               `}
+                        >
+                          {/* Selection indicator */}
+                          {isSelected && (
+                            <div className="absolute -top-2 -right-2 bg-blue-500 rounded-full p-1">
+                              <CheckCircle className="w-4 h-4 text-white" />
+                            </div>
+                          )}
+
+                          {/* Time display */}
+                          <div className="flex items-center justify-center w-full mb-2">
+                            {/* Intentionally empty for clean layout */}
+                          </div>
+
+                          {/* Duration */}
+                          <div
+                            className={`text-sm flex flex-col items-center justify-center w-full ${
+                              isSelected ? "text-blue-600" : "text-gray-600"
+                            }`}
+                          >
+                            <p className="text-sm font-medium">
+                              {formattedStartTime}
+                            </p>
+                            <p className="text-xs">to {formattedEndTime}</p>
+                          </div>
+                        </button>
+                      );
+                    })}
+                </div>
+                {slots.length > pageSize && (
+                  <div className="mt-4 flex items-center justify-center gap-2 flex-wrap">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={currentPage === 1}
+                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                      className="cursor-pointer"
                     >
-                      {/* Selection indicator */}
-                      {isSelected && (
-                        <div className="absolute -top-2 -right-2 bg-blue-500 rounded-full p-1">
-                          <CheckCircle className="w-4 h-4 text-white" />
-                        </div>
-                      )}
-
-                      {/* Time display */}
-                      <div className="flex items-center justify-center w-full mb-2">
-                        {/* <Clock
-                          className={`w-4 h-4 mr-2 ${
-                            isSelected ? "text-blue-600" : "text-gray-500"
-                          }`}
-                        /> */}
-                      </div>
-
-                      {/* Duration */}
-                      <div
-                        className={`text-sm flex flex-col items-center justify-center w-full ${
-                          isSelected ? "text-blue-600" : "text-gray-600"
-                        }`}
-                      >
-                        <p className="text-sm font-medium">
-                          {formattedStartTime}
-                        </p>
-                        <p className="text-xs">to {formattedEndTime}</p>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
+                      Prev
+                    </Button>
+                    {Array.from({ length: Math.ceil(slots.length / pageSize) }, (_, index) => {
+                      const pageNumber = index + 1;
+                      const isActive = pageNumber === currentPage;
+                      return (
+                        <Button
+                          key={pageNumber}
+                          variant={isActive ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => setCurrentPage(pageNumber)}
+                          className={isActive ? "bg-emerald-600 hover:bg-emerald-700" : "cursor-pointer"}
+                        >
+                          {pageNumber}
+                        </Button>
+                      );
+                    })}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={currentPage === Math.ceil(slots.length / pageSize)}
+                      onClick={() =>
+                        setCurrentPage((p) =>
+                          Math.min(Math.ceil(slots.length / pageSize), p + 1)
+                        )
+                      }
+                      className="cursor-pointer"
+                    >
+                      Next
+                    </Button>
+                  </div>
+                )}
+              </>
             ) : (
               selectedDate && (
                 <div className="text-center py-8">

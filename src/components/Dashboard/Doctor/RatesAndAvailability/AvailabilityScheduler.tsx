@@ -418,7 +418,7 @@ const AvailabilityScheduler: React.FC<Props> = ({
                           <div className="flex items-center gap-0 ml-1 gap-x-3">
                             <Switch
                               id="notifications"
-                              checked={isLoading}
+                              checked={slotStatus === SlotStatus.AVAILABLE}
                               disabled={isLoading}
                               onCheckedChange={() => {
                                 const slotIds =

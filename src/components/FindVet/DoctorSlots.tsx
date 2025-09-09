@@ -16,15 +16,14 @@ export default function DoctorSlots({ doctor }: { doctor: Veterinarian }) {
     }
 
     const userTimezone = getUserTimezone();
-    
+
     try {
       const data = await getVetSlots({
         id: doctor._id,
         startDate: today,
         endDate: today,
-        timezone: doctor?.timezone || userTimezone,
       });
-      
+
       // Sort by startTime (assumes format 'HH:mm')
       const sorted = (data || []).slice().sort((a: any, b: any) => {
         if (!a.startTime || !b.startTime) return 0;

@@ -32,7 +32,6 @@ export const GET = async (
     const { searchParams } = new URL(req.url);
     const startDate = searchParams.get("startDate");
     const endDate = searchParams.get("endDate");
-    const timezone = searchParams.get("timezone"); // Timezone for display conversion
     const page = parseInt(searchParams.get("page") as string) || 1;
     const limit = parseInt(searchParams.get("limit") as string) || 1000;
     const slotStatus =
@@ -60,17 +59,6 @@ export const GET = async (
       return throwAppError(errResp, 400);
     }
 
-    // Validate timezone if provided
-    if (timezone && !isValidTimezone(timezone)) {
-      const errResp: IErrorResponse = {
-        success: false,
-        message: `Invalid timezone: ${timezone}`,
-        errorCode: "INVALID_TIMEZONE",
-        errors: null,
-      };
-      return throwAppError(errResp, 400);
-    }
-
     // Check if veterinarian exists and is active
     const isVetExist = await Veterinarian.findOne({
       _id: vetId,
@@ -87,7 +75,7 @@ export const GET = async (
       };
       return throwAppError(errResp, 404);
     }
-
+    console.log("isVetExist.timezone", isVetExist.timezone);
     // Prepare parameters for slot retrieval
     const paramsFn: IGetSlotsParams = {
       vetId,
@@ -95,20 +83,12 @@ export const GET = async (
         start: new Date(startDate),
         end: new Date(endDate),
       },
-      timezone: isVetExist.timezone || "UTC", // Pass timezone for display conversion
+      timezone: isVetExist?.timezone || "UTC", // Pass timezone for display conversion
       status: slotStatus,
       limit,
       page,
     };
-
-    console.log("Fetching slots with params:", {
-      vetId,
-      startDate,
-      endDate,
-      timezone,
-      status: slotStatus,
-    });
-
+    console.log("paramsFn", paramsFn);
     const response = await getSlotsByVetId(paramsFn);
     console.log("Raw slots response:", response);
 
@@ -124,7 +104,7 @@ export const GET = async (
         meta: response.meta,
         filters: {
           ...response.filters,
-          timezone: timezone || "server_default",
+          timezone: isVetExist.timezone || "server_default",
         },
       },
     };
