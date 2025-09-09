@@ -318,41 +318,6 @@ const AvailabilityManager: React.FC = () => {
   return (
     <div className="container mx-auto p-2 md:p-6 space-y-6">
       <BookingNoticePeriod vetId={user?.refId} />
-      {/* Debug Information */}
-      {process.env.NODE_ENV === "development" && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
-          <h3 className="text-sm font-medium text-yellow-800 mb-2">
-            Debug Info:
-          </h3>
-          <div className="text-xs text-yellow-700 space-y-1">
-            <p>User refId: {user?.refId || "Not available"}</p>
-            <p>User timezone: {userTimezone || "Not available"}</p>
-            <p>Current timezone: {currentTimeZone}</p>
-            <p>User ID: {(user as any)?.id || "Not available"}</p>
-            <p>
-              Selected Range:{" "}
-              {selectedRange
-                ? `${format(selectedRange.start, "yyyy-MM-dd")} to ${format(
-                    selectedRange.end,
-                    "yyyy-MM-dd"
-                  )}`
-                : "None"}
-            </p>
-            <p>
-              API Loading: {availableSlotsApiResponse.loading ? "Yes" : "No"}
-            </p>
-            <p>API Error: {availableSlotsApiResponse.error || "None"}</p>
-            <p>
-              API Data:{" "}
-              {availableSlotsApiResponse.data
-                ? `${
-                    availableSlotsApiResponse.data.periods?.length || 0
-                  } periods`
-                : "None"}
-            </p>
-          </div>
-        </div>
-      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="space-y-6">

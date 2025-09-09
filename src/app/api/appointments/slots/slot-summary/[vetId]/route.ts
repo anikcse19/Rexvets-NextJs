@@ -95,7 +95,7 @@ export const GET = async (
         start: new Date(startDate),
         end: new Date(endDate),
       },
-      timezone: timezone || undefined, // Pass timezone for display conversion
+      timezone: isVetExist.timezone || "UTC", // Pass timezone for display conversion
       status: slotStatus,
       limit,
       page,
@@ -111,7 +111,7 @@ export const GET = async (
 
     const response = await getSlotsByVetId(paramsFn);
     console.log("Raw slots response:", response);
-    
+
     const slotPeriods = groupSlotsIntoPeriods(response.data);
     console.log("Grouped slot periods:", slotPeriods);
 

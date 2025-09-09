@@ -1,5 +1,4 @@
 import { IAvailabilitySlot } from "@/models/AppointmentSlot";
-import moment from "moment-timezone";
 import { getSlotsByNoticePeriodAndDateRangeByVetId } from "../slot.util";
 
 interface IGetTodaysSlots {
