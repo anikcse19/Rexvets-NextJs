@@ -68,7 +68,6 @@ export default function TimeSlotCreator({
       date: selectedRange?.start,
     },
   ]);
-  console.log("existingPeriods", existingPeriods);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [openPopover, setOpenPopover] = useState<{
@@ -144,6 +143,7 @@ export default function TimeSlotCreator({
 
   const handleBulkDelete = () => {
     const selectedSlots = slots.filter((slot) => slot.isSelected);
+    console.log("selectedSlots", selectedSlots);
     if (selectedSlots.length === 0) {
       toast.error("No slots selected for deletion");
       return;
@@ -243,9 +243,9 @@ export default function TimeSlotCreator({
       setSelectAll(false);
 
       // Close the sheet after successful save
-      if (onClose) {
-        onClose();
-      }
+      // if (onClose) {
+      //   onClose();
+      // }
     } catch (error: any) {
       console.error("Error saving slots:", error);
       toast.error("Failed to save availability slots", {
@@ -599,7 +599,6 @@ export default function TimeSlotCreator({
                 {/* Period Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {slots.map((slot, index) => {
-                    console.log("slot", slot);
                     const formattedDate = formatDate(
                       slot.date,
                       getUserTimezone()
@@ -636,14 +635,13 @@ export default function TimeSlotCreator({
                             }`}
                           ></div>
                           <h3 className="font-semibold text-sm text-gray-800 truncate">
-                            {slot.isExisting ? "Existing" : "New"} #{index + 1}
+                            Period #{index + 1}
                           </h3>
                         </div>
 
                         {/* Date Display */}
                         {formattedDate && (
                           <div className="text-center mb-3">
-                            <p className="text-xs text-gray-500">Date</p>
                             <p className="font-medium text-sm text-gray-700">
                               {formattedDate}
                             </p>
@@ -653,7 +651,6 @@ export default function TimeSlotCreator({
                         {/* Time Display */}
                         <div className="space-y-1 mb-3">
                           <div className="text-center">
-                            <p className="text-xs text-gray-500">Time</p>
                             <p className="font-medium text-sm text-gray-800">
                               {formatTime(
                                 slot.startTime,
@@ -670,7 +667,6 @@ export default function TimeSlotCreator({
                           </div>
 
                           <div className="text-center">
-                            <p className="text-xs text-gray-500">Duration</p>
                             <p className="font-medium text-sm text-gray-800">
                               {isValidSlot(slot)
                                 ? formatDuration(

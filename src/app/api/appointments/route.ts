@@ -380,7 +380,7 @@ export async function POST(req: NextRequest) {
       type: NotificationType.NEW_APPOINTMENT,
       title: "NEW BOOKING",
       subTitle: "Appointment Confirmation",
-      body: `Your Appointment with Dr. ${
+      body: `Your Appointment with  ${
         existingPetOwner?.name || "Pet Parent"
       } has been confirmed`,
       recipientId: new Types.ObjectId(vetUser?._id),

@@ -115,17 +115,12 @@ const AvailabilityManager: React.FC = () => {
         userTimezone,
         currentTimezone: currentTimeZone,
         slotPeriods,
-        onConfirm: async (selectedTimezone: string) => {
+        onConfirm: async (selectedTimezone?: string) => {
           try {
             if (hasExistingSlots) {
-              await updateSlotPeriod(
-                slotPeriods,
-                selectedTimezone,
-                user.refId,
-                selectedRange
-              );
+              await updateSlotPeriod(slotPeriods, user.refId, selectedRange);
             } else {
-              await createSlots(slotPeriods, selectedTimezone);
+              await createSlots(slotPeriods, selectedTimezone as any);
             }
             setTimezoneModal(null);
           } catch (error) {
@@ -136,12 +131,7 @@ const AvailabilityManager: React.FC = () => {
     } else {
       // If timezones are the same or user has no timezone, proceed normally
       if (hasExistingSlots) {
-        await updateSlotPeriod(
-          slotPeriods,
-          userTimezone || currentTimeZone,
-          user.refId,
-          selectedRange
-        );
+        await updateSlotPeriod(slotPeriods, user.refId, selectedRange);
       } else {
         await createSlots(slotPeriods, userTimezone || currentTimeZone);
       }
@@ -149,7 +139,6 @@ const AvailabilityManager: React.FC = () => {
   };
   const updateSlotPeriod = async (
     slotPeriods: SlotPeriod[],
-    timezone: string,
     userRefId: string,
     selectedRange: { start: Date; end: Date }
   ) => {
@@ -163,7 +152,6 @@ const AvailabilityManager: React.FC = () => {
           start: format(slot.start, "HH:mm"),
           end: format(slot.end, "HH:mm"),
         })),
-        timezone,
       };
 
       console.log("request PATCH DATA", requestData);
