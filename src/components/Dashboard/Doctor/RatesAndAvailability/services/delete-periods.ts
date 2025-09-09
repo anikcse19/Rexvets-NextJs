@@ -65,6 +65,34 @@ interface DeleteSlotsByIdsResponse {
   foundCount: number;
 }
 
+interface AddPeriodRequest {
+  vetId: string;
+  slotPeriods: Array<{
+    start: Date;
+    end: Date;
+  }>;
+  dateRange: {
+    start: Date;
+    end: Date;
+  };
+  slotDuration?: number;
+  bufferBetweenSlots?: number;
+}
+
+interface AddPeriodResponse {
+  success: boolean;
+  message: string;
+  data: {
+    createdSlotsCount: number;
+    totalSlots: number;
+    dateRange: {
+      start: string;
+      end: string;
+    };
+    timezone: string;
+  };
+}
+
 /**
  * Delete a single period (all slots within a specific time range on a specific date)
  */
@@ -149,7 +177,35 @@ export const deleteSlotsByIds = async (
   }
 };
 
+/**
+ * Add new period and generate slots for it
+ */
+export const addNewPeriod = async (
+  request: AddPeriodRequest
+): Promise<AddPeriodResponse> => {
+  try {
+    const response = await fetch("/api/appointments/add-period", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(request),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Failed to add new period");
+    }
+
+    return data;
+  } catch (error: any) {
+    console.error("Error adding new period:", error);
+    throw new Error(error.message || "Failed to add new period");
+  }
+};
+
 export type {
-    DeletePeriodRequest, DeletePeriodResponse, DeletePeriodsBulkRequest, DeletePeriodsBulkResponse, DeleteSlotsByIdsRequest, DeleteSlotsByIdsResponse, PeriodToDelete
+  AddPeriodRequest, AddPeriodResponse, DeletePeriodRequest, DeletePeriodResponse, DeletePeriodsBulkRequest, DeletePeriodsBulkResponse, DeleteSlotsByIdsRequest, DeleteSlotsByIdsResponse, PeriodToDelete
 };
 

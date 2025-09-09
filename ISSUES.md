@@ -6,8 +6,8 @@
 
 # Time Slot Creator
 
-1. remove , date, time text
-2. remove existing text from slot period card .
-3. fixed update slot period issues.
-4. Replace "Existing" with "Period/Slot" .
-5. fixed switched toggle color.
+1. remove , date, time text **DONE**
+2. remove existing text from slot period card . **DONE**
+3. fixed update slot period issues. **DONE**
+4. Replace "Existing" with "Period/Slot" . **DONE**
+5. fixed switched toggle color. **DONE**

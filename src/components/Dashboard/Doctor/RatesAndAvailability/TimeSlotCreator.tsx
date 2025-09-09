@@ -28,6 +28,7 @@ import moment from "moment";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
+  addNewPeriod,
   deletePeriodsBulk,
   deleteSinglePeriod,
   deleteSlotsByIds,
@@ -136,13 +137,19 @@ export default function TimeSlotCreator({
       const slotToRemove = slots.find((slot) => slot.id === id);
 
       // If it's an existing slot and we have slotIDs, delete from database
-      if (slotToRemove?.isExisting && slotToRemove.slotIDs && slotToRemove.slotIDs.length > 0) {
+      if (
+        slotToRemove?.isExisting &&
+        slotToRemove.slotIDs &&
+        slotToRemove.slotIDs.length > 0
+      ) {
         try {
           await deleteSlotsByIds({
             slotIds: slotToRemove.slotIDs,
           });
 
-          toast.success(`Period deleted successfully (${slotToRemove.slotIDs.length} slots removed)`);
+          toast.success(
+            `Period deleted successfully (${slotToRemove.slotIDs.length} slots removed)`
+          );
         } catch (error: any) {
           console.error("Error deleting period:", error);
           toast.error("Failed to delete period", {
@@ -187,12 +194,14 @@ export default function TimeSlotCreator({
     const existingSelectedSlots = selectedSlots.filter(
       (slot) => slot.isExisting && slot.slotIDs && slot.slotIDs.length > 0
     );
-    
+
     if (existingSelectedSlots.length > 0) {
       try {
         // Collect all slot IDs from selected periods
-        const allSlotIds = existingSelectedSlots.flatMap(slot => slot.slotIDs || []);
-        
+        const allSlotIds = existingSelectedSlots.flatMap(
+          (slot) => slot.slotIDs || []
+        );
+
         const result = await deleteSlotsByIds({
           slotIds: allSlotIds,
         });
@@ -260,6 +269,11 @@ export default function TimeSlotCreator({
       return;
     }
 
+    if (!vetId) {
+      toast.error("Veterinarian ID is required");
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -276,10 +290,23 @@ export default function TimeSlotCreator({
         return { start, end };
       });
 
-      console.log("Saving slots:", slots);
+      console.log("Saving new period slots:", slots);
       console.log("Slot periods:", slotPeriods);
 
-      await onSaveSlots(slotPeriods);
+      // Use the new addNewPeriod API
+      const result = await addNewPeriod({
+        vetId,
+        slotPeriods,
+        dateRange: selectedRange,
+        slotDuration: 30, // Default slot duration
+        bufferBetweenSlots: 0, // Default buffer
+      });
+
+      console.log("New period added successfully:", result);
+
+      toast.success(
+        `Successfully added new period with ${result.data.createdSlotsCount} slots`
+      );
 
       // Reset slots after successful save
       if (hasExistingSlots && processedExistingPeriods.length > 0) {
@@ -297,10 +324,13 @@ export default function TimeSlotCreator({
       }
       setSelectAll(false);
 
+      // Call the original onSaveSlots callback to refresh the parent component
+      // await onSaveSlots(slotPeriods);
+
       // Close the sheet after successful save
-      // if (onClose) {
-      //   onClose();
-      // }
+      if (onClose) {
+        onClose();
+      }
     } catch (error: any) {
       console.error("Error saving slots:", error);
       toast.error("Failed to save availability slots", {
