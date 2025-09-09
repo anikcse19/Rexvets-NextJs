@@ -295,8 +295,8 @@ export const updateAppointmentSlots = async (data: IUpdateAppointmentSlots) => {
       const localDate = currentDate.toDate();
 
       // Get booked slots for this specific day to avoid conflicts
-      const dayBookedSlots = bookedSlots.filter(slot => 
-        moment(slot.date).isSame(currentDate, 'day')
+      const dayBookedSlots = bookedSlots.filter((slot) =>
+        moment(slot.date).isSame(currentDate, "day")
       );
 
       // Process each slot period for this day
@@ -326,12 +326,21 @@ export const updateAppointmentSlots = async (data: IUpdateAppointmentSlots) => {
           }
 
           // Check if this slot conflicts with any booked slots
-          const hasConflict = dayBookedSlots.some(bookedSlot => {
-            const bookedStart = moment(`2000-01-01 ${bookedSlot.startTime}`, "YYYY-MM-DD HH:mm");
-            const bookedEnd = moment(`2000-01-01 ${bookedSlot.endTime}`, "YYYY-MM-DD HH:mm");
-            
+          const hasConflict = dayBookedSlots.some((bookedSlot) => {
+            const bookedStart = moment(
+              `2000-01-01 ${bookedSlot.startTime}`,
+              "YYYY-MM-DD HH:mm"
+            );
+            const bookedEnd = moment(
+              `2000-01-01 ${bookedSlot.endTime}`,
+              "YYYY-MM-DD HH:mm"
+            );
+
             // Check for overlap: new slot overlaps with booked slot
-            return (slotStartMoment.isBefore(bookedEnd) && slotEndMoment.isAfter(bookedStart));
+            return (
+              slotStartMoment.isBefore(bookedEnd) &&
+              slotEndMoment.isAfter(bookedStart)
+            );
           });
 
           // Only create slot if it doesn't conflict with booked slots
@@ -370,7 +379,7 @@ export const updateAppointmentSlots = async (data: IUpdateAppointmentSlots) => {
     try {
       // Industry Standard: Only delete available and disabled slots, preserve booked slots
       const slotsToDelete = [...availableSlots, ...disabledSlots];
-      
+
       if (slotsToDelete.length > 0) {
         await AppointmentSlot.deleteMany(
           {
@@ -407,18 +416,22 @@ export const updateAppointmentSlots = async (data: IUpdateAppointmentSlots) => {
           totalSlotsAfterUpdate: bookedSlots.length + createdSlotsCount,
         },
         details: {
-          bookedSlotsPreserved: bookedSlots.length > 0 ? 
-            `✅ Preserved ${bookedSlots.length} booked appointment(s) - no disruption to existing bookings` : 
-            "ℹ️ No booked slots to preserve",
-          availableSlotsReplaced: availableSlots.length > 0 ? 
-            `🔄 Replaced ${availableSlots.length} available slot(s) with new schedule` : 
-            "ℹ️ No existing available slots to replace",
-          newSlotsCreated: createdSlotsCount > 0 ? 
-            `✨ Created ${createdSlotsCount} new available slot(s)` : 
-            "ℹ️ No new slots created (may be due to conflicts with booked slots)",
-          conflictAvoidance: bookedSlots.length > 0 ? 
-            "🛡️ Smart conflict detection prevented overlap with booked appointments" : 
-            "ℹ️ No conflicts to avoid",
+          bookedSlotsPreserved:
+            bookedSlots.length > 0
+              ? `✅ Preserved ${bookedSlots.length} booked appointment(s) - no disruption to existing bookings`
+              : "ℹ️ No booked slots to preserve",
+          availableSlotsReplaced:
+            availableSlots.length > 0
+              ? `🔄 Replaced ${availableSlots.length} available slot(s) with new schedule`
+              : "ℹ️ No existing available slots to replace",
+          newSlotsCreated:
+            createdSlotsCount > 0
+              ? `✨ Created ${createdSlotsCount} new available slot(s)`
+              : "ℹ️ No new slots created (may be due to conflicts with booked slots)",
+          conflictAvoidance:
+            bookedSlots.length > 0
+              ? "🛡️ Smart conflict detection prevented overlap with booked appointments"
+              : "ℹ️ No conflicts to avoid",
         },
         dateRange: {
           start: startDate.toDate(),

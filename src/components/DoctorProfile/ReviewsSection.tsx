@@ -20,7 +20,7 @@ export default function ReviewsSection({ doctorId }: { doctorId: string }) {
   const [total, setTotal] = useState<number>(0);
   const [pages, setPages] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(false);
-
+  console.log("reviews", reviews);
   const getVetReviews = async (pageNum: number, pageLimit: number) => {
     if (!doctorId) {
       toast.error("Doctor data not found.");
@@ -58,7 +58,7 @@ export default function ReviewsSection({ doctorId }: { doctorId: string }) {
     return nums;
   }, [pages]);
 
-  return (
+  return reviews.length > 0 ? (
     <Card className="shadow-lg border-0 bg-white">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
@@ -166,5 +166,13 @@ export default function ReviewsSection({ doctorId }: { doctorId: string }) {
         </div>
       </CardContent>
     </Card>
+  ) : loading ? (
+    <>
+      {loading && (
+        <div className="text-sm text-gray-500">Loading reviews...</div>
+      )}
+    </>
+  ) : (
+    <div className="text-sm text-gray-500">No reviews yet.</div>
   );
 }

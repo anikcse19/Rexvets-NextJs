@@ -29,12 +29,12 @@ export default function DateRangeCalendar({
 }: DateRangeCalendarProps) {
   const [selectingStart, setSelectingStart] = useState(true);
   const [mounted, setMounted] = useState(false);
-  
+
   // Prevent hydration mismatch by only rendering after mount
   useEffect(() => {
     setMounted(true);
   }, []);
-  
+
   const today = startOfToday();
   const nextMonth = endOfMonth(addMonths(today, 2));
 
@@ -119,14 +119,6 @@ export default function DateRangeCalendar({
           )} */}
         </div>
         {/* Instructions for non-technical users */}
-        <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
-          <h4 className="text-sm font-semibold text-green-800 mb-2">How to select dates:</h4>
-          <div className="text-xs text-green-700 space-y-1">
-            <p>• <strong>First click:</strong> Choose your starting date (when you want to begin availability)</p>
-            <p>• <strong>Second click:</strong> Choose your ending date (when you want to stop availability)</p>
-            <p>• <strong>Clear button:</strong> Click to start over and select different dates</p>
-          </div>
-        </div>
 
         {selectedRange && (
           <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
@@ -153,6 +145,7 @@ export default function DateRangeCalendar({
       </CardHeader>
       <CardContent className="pt-0">
         <div className="bg-white rounded-xl border shadow-sm p-6">
+          <p>Please select a date or date range to set your availability.</p>
           {selectedRange && (
             <Button
               variant="outline"
@@ -222,8 +215,8 @@ export default function DateRangeCalendar({
               row: "flex w-full mt-2",
               cell: "h-9 w-9 text-center text-sm p-0 relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected].day-outside)]:bg-accent/50 [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
               day: "h-9 w-9 p-0 font-normal aria-selected:opacity-100",
-                             day_selected:
-                 "bg-[#2B7FFF] text-white hover:bg-[#2B7FFF] focus:bg-[#2B7FFF]",
+              day_selected:
+                "bg-[#2B7FFF] text-white hover:bg-[#2B7FFF] focus:bg-[#2B7FFF]",
               day_today: "bg-accent text-accent-foreground",
               day_outside:
                 "day-outside text-muted-foreground opacity-50 aria-selected:bg-accent/50 aria-selected:text-muted-foreground aria-selected:opacity-30",
