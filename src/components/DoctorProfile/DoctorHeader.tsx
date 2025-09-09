@@ -1,7 +1,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Card } from "@/components/ui/card";
-import { Star, Award, Phone, Mail, Building, MapPin } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
+import { Award, Building, Mail, MapPin, Phone, Star } from "lucide-react";
 
 export default function DoctorHeader({ doctor }: { doctor: any }) {
   return (
@@ -32,16 +32,9 @@ export default function DoctorHeader({ doctor }: { doctor: any }) {
             <div className="flex flex-wrap items-center gap-4 mb-4">
               <div className="flex items-center gap-2">
                 <div className="flex">
-                  {[...Array(5)].map((_, i) => (
-                    <Star
-                      key={i}
-                      className={`w-5 h-5 ${
-                        i < Math.floor(doctor?.rating)
-                          ? "fill-yellow-400 text-yellow-400"
-                          : "text-white/30"
-                      }`}
-                    />
-                  ))}
+                  <Star
+                    className={`w-5 h-5  "fill-yellow-400 text-yellow-400`}
+                  />
                 </div>
                 <span className="text-white font-medium">
                   {doctor.rating} ({doctor.totalReviews} reviews)
