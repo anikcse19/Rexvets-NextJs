@@ -126,7 +126,6 @@ export default function BookingSystem({
       endDate: formatted,
       timezone: vetTimezone || userTimezone,
     };
-    console.log("payload", payload);
     try {
       const data = await getVetSlots(payload);
 
@@ -161,7 +160,8 @@ export default function BookingSystem({
         const findSlot = slots.find((slot) => slot._id === selectedSlotId);
         console.log("findSlot", findSlot);
         if (findSlot) {
-          setSelectedTime(findSlot?.formattedStartTime);
+          console.log("FIND SLOT TIME:", findSlot.startTime);
+          setSelectedTime(findSlot?.startTime);
           setSelectedSlot(findSlot?._id);
         }
       }
@@ -303,7 +303,6 @@ export default function BookingSystem({
                     <button
                       key={slot._id}
                       onClick={() => {
-                        alert(slot._id);
                         setSelectedSlot(slot._id);
                         // alert(slot.formattedStartTime);
                         setSelectedTime(slot.startTime);
