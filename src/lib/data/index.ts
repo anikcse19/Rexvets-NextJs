@@ -515,7 +515,9 @@ export const treatmentServices: ITreatmentCategory[] = [
     title: "Allergies",
     description:
       "Comprehensive allergy treatment with immediate relief and long-term skin repair solutions.",
-    image: "/images/homePage/twoPuppy.webp",
+    detailedDescription:
+      "Pet allergies can stem from food, pollen, dust mites, or even fleas. Left untreated, they may cause chronic discomfort, excessive scratching, and secondary infections. Our approach combines short-term relief with long-term prevention, including testing, medication, and customized diet plans.",
+    image: "/images/Homepage/twoPuppy.webp",
     color: "bg-blue-500",
     symptoms: [
       "Excessive itching",
@@ -523,12 +525,32 @@ export const treatmentServices: ITreatmentCategory[] = [
       "Ear problems",
       "Digestive issues",
     ],
+    treatmentOptions: [
+      "Allergy testing and immunotherapy",
+      "Antihistamines and anti-itch medication",
+      "Hypoallergenic diet plans",
+      "Topical soothing treatments",
+    ],
+    faq: [
+      {
+        question: "Can allergies be cured permanently?",
+        answer:
+          "Most allergies cannot be permanently cured, but they can be managed effectively with treatment and lifestyle adjustments.",
+      },
+      {
+        question: "Do seasonal allergies affect pets like humans?",
+        answer:
+          "Yes, many pets show allergy symptoms during spring and fall due to pollen and environmental changes.",
+      },
+    ],
   },
   {
     id: 2,
     title: "Anxiety",
     description:
       "Holistic anxiety treatment combining medication and behavior modification techniques.",
+    detailedDescription:
+      "Anxiety in pets can stem from separation, loud noises, past trauma, or changes in routine. Prolonged anxiety can affect their overall health and behavior. Our treatment focuses on creating a calm environment, using behavioral therapy, supplements, and in some cases, safe medications.",
     image: "/images/what-we-treat/anxiety.webp",
     color: "bg-purple-500",
     symptoms: [
@@ -537,12 +559,32 @@ export const treatmentServices: ITreatmentCategory[] = [
       "Destructive behavior",
       "Hiding",
     ],
+    treatmentOptions: [
+      "Behavioral training and modification",
+      "Anxiety-relieving medications",
+      "Calming supplements and pheromone therapy",
+      "Safe spaces and environmental enrichment",
+    ],
+    faq: [
+      {
+        question: "Can anxiety be fully treated?",
+        answer:
+          "While anxiety may not always disappear completely, consistent treatment and training can reduce symptoms significantly.",
+      },
+      {
+        question: "Do pets need lifelong anxiety medication?",
+        answer:
+          "Not always. Some pets benefit from short-term medication during stressful periods, while others may need longer-term support.",
+      },
+    ],
   },
   {
     id: 3,
     title: "Arthritis & Joint Pain",
     description:
       "Advanced joint pain management to improve mobility and quality of life.",
+    detailedDescription:
+      "Arthritis is common in older pets but can also occur in younger ones due to genetics, injury, or obesity. It causes stiffness, pain, and difficulty moving. Our comprehensive care includes pain management, mobility exercises, and dietary adjustments to keep your pet active and comfortable.",
     image: "/images/what-we-treat/joint.webp",
     color: "bg-[#27C08D]",
     symptoms: [
@@ -551,12 +593,32 @@ export const treatmentServices: ITreatmentCategory[] = [
       "Reluctance to move",
       "Swollen joints",
     ],
+    treatmentOptions: [
+      "Pain relief and anti-inflammatory medications",
+      "Joint supplements (glucosamine, chondroitin)",
+      "Weight management and exercise plans",
+      "Physical therapy and hydrotherapy",
+    ],
+    faq: [
+      {
+        question: "Is arthritis curable?",
+        answer:
+          "Arthritis cannot be cured, but its symptoms can be managed to improve your pet’s quality of life.",
+      },
+      {
+        question: "Can younger pets get arthritis?",
+        answer:
+          "Yes, arthritis can occur in younger pets due to injuries or genetic conditions.",
+      },
+    ],
   },
   {
     id: 4,
     title: "Coughing",
     description:
       "Expert diagnosis and treatment for persistent coughs and respiratory issues.",
+    detailedDescription:
+      "A persistent cough may be a sign of respiratory infections, allergies, heart disease, or other underlying conditions. Our team diagnoses the root cause with advanced testing and provides targeted treatments for quick relief and long-term health.",
     image: "/images/what-we-treat/cough.webp",
     color: "bg-yellow-500",
     symptoms: [
@@ -565,12 +627,32 @@ export const treatmentServices: ITreatmentCategory[] = [
       "Night coughing",
       "Wheezing",
     ],
+    treatmentOptions: [
+      "Respiratory infection treatment",
+      "Allergy medications",
+      "Nebulization therapy",
+      "Heart health assessment and treatment",
+    ],
+    faq: [
+      {
+        question: "Is coughing always serious?",
+        answer:
+          "Not always, but persistent coughing should be checked by a vet to rule out serious conditions like infections or heart issues.",
+      },
+      {
+        question: "Can kennel cough go away on its own?",
+        answer:
+          "Mild cases may resolve, but professional care ensures faster recovery and prevents complications.",
+      },
+    ],
   },
   {
     id: 5,
     title: "Diarrhea",
     description:
       "Comprehensive digestive health care addressing various causes of diarrhea.",
+    detailedDescription:
+      "Diarrhea in pets can result from dietary changes, infections, parasites, or chronic conditions. It can lead to dehydration and weakness if untreated. We focus on identifying the root cause and providing tailored treatments to restore digestive health quickly.",
     image: "/images/what-we-treat/dai.webp",
     color: "bg-red-500",
     symptoms: [
@@ -579,12 +661,32 @@ export const treatmentServices: ITreatmentCategory[] = [
       "Loss of appetite",
       "Abdominal pain",
     ],
+    treatmentOptions: [
+      "Fluid therapy to prevent dehydration",
+      "Dietary adjustments with bland diets",
+      "Parasite treatment if necessary",
+      "Probiotics and gut health supplements",
+    ],
+    faq: [
+      {
+        question: "When should I worry about diarrhea?",
+        answer:
+          "If diarrhea lasts more than 24 hours, contains blood, or is accompanied by vomiting, immediate vet care is required.",
+      },
+      {
+        question: "Can I give my pet human diarrhea medicine?",
+        answer:
+          "No, some human medications are toxic to pets. Always consult your vet first.",
+      },
+    ],
   },
   {
     id: 6,
     title: "Diet & Nutrition",
     description:
       "Personalized nutrition plans to maintain optimal health and prevent obesity.",
+    detailedDescription:
+      "Proper nutrition is the foundation of good health. Many common issues like obesity, poor coat quality, or digestive problems can be prevented with the right diet. We create personalized nutrition plans tailored to your pet’s age, breed, and health needs.",
     image: "/images/what-we-treat/diet.webp",
     color: "bg-cyan-500",
     symptoms: [
@@ -593,12 +695,32 @@ export const treatmentServices: ITreatmentCategory[] = [
       "Poor coat quality",
       "Digestive issues",
     ],
+    treatmentOptions: [
+      "Customized diet plans",
+      "Weight management programs",
+      "Nutritional supplements",
+      "Obesity prevention strategies",
+    ],
+    faq: [
+      {
+        question: "Can I feed my pet homemade food?",
+        answer:
+          "Yes, but it must be nutritionally balanced. We can help design safe and healthy homemade diets.",
+      },
+      {
+        question: "How often should I change my pet’s diet?",
+        answer:
+          "Changes should only be made when recommended by a vet to avoid digestive upset.",
+      },
+    ],
   },
   {
     id: 7,
     title: "Preventative Care",
     description:
       "Comprehensive wellness exams and preventive care for long-term health.",
+    detailedDescription:
+      "Preventative care ensures your pet stays healthy and avoids future complications. Routine checkups, vaccinations, and screenings help detect early signs of illness and improve long-term wellbeing. Prevention is the best medicine.",
     image: "/images/what-we-treat/mission.webp",
     color: "bg-lime-500",
     symptoms: [
@@ -607,12 +729,32 @@ export const treatmentServices: ITreatmentCategory[] = [
       "Health monitoring",
       "Early detection",
     ],
+    treatmentOptions: [
+      "Annual wellness exams",
+      "Vaccination schedules",
+      "Routine blood tests",
+      "Parasite prevention programs",
+    ],
+    faq: [
+      {
+        question: "How often should my pet see a vet?",
+        answer:
+          "Most pets should have at least one wellness exam per year, while senior pets may need more frequent visits.",
+      },
+      {
+        question: "Why is preventative care important?",
+        answer:
+          "It helps detect problems early, reduces treatment costs, and keeps your pet healthier for longer.",
+      },
+    ],
   },
   {
     id: 8,
     title: "Urinary Health",
     description:
       "Expert care for urinary tract health and related complications.",
+    detailedDescription:
+      "Urinary issues in pets can be caused by infections, stones, or chronic conditions. If untreated, they may lead to pain, blockages, or kidney damage. We provide expert diagnosis and treatment to restore urinary health and prevent recurrence.",
     image: "/images/what-we-treat/health.webp",
     color: "bg-pink-500",
     symptoms: [
@@ -620,6 +762,24 @@ export const treatmentServices: ITreatmentCategory[] = [
       "Blood in urine",
       "Straining",
       "Accidents",
+    ],
+    treatmentOptions: [
+      "Antibiotics for infections",
+      "Special urinary diets",
+      "Ultrasound and diagnostic imaging",
+      "Surgical options for severe cases",
+    ],
+    faq: [
+      {
+        question: "Is blood in urine always serious?",
+        answer:
+          "Yes, blood in urine can signal infections, stones, or more serious conditions and should be checked immediately.",
+      },
+      {
+        question: "Can urinary stones come back after treatment?",
+        answer:
+          "Yes, but recurrence can be reduced with a controlled diet and regular monitoring.",
+      },
     ],
   },
 ];
