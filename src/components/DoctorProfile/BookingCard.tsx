@@ -166,7 +166,7 @@ export default function BookingSystem({
     }
   }, [selectedSlotDate, selectedSlotId, slots]);
   return (
-    <Card className="shadow-xl border-0 bg-white sticky top-6">
+    <Card className="shadow-xl rounded-md p-0 border-0 bg-white sticky top-6">
       <div className="bg-gradient-to-r from-green-600 to-emerald-600 p-6 text-white">
         <CardTitle className="text-xl font-bold text-white flex items-center gap-2">
           <CalendarIcon className="w-6 h-6" />

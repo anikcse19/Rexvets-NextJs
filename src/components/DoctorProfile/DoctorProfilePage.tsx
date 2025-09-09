@@ -51,7 +51,7 @@ export default function DoctorProfilePage({
   console.log("doctorData", doctorData);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 p-4 lg:p-6">
+    <div className="min-h-screen mt-14 bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 p-4 lg:p-6">
       {/* Donation Modal */}
       {showForm ? (
         <div className="max-w-2xl mx-auto">
@@ -63,7 +63,7 @@ export default function DoctorProfilePage({
           <Link href="/find-a-vet">
             <Button
               variant="outline"
-              className="border-gray-300 hover:bg-gray-50"
+              className="border-gray-300 my-3 hover:bg-gray-50"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Find Vet
