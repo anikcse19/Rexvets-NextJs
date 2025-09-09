@@ -1,6 +1,6 @@
 import FindVetPage from "@/components/FindVet/FindVetPage";
 import { getAllVets } from "@/components/FindVet/Service/get-all-vets";
-import Loader from "@/components/shared/Loader";
+
 import { Metadata } from "next";
 import React, { Suspense } from "react";
 

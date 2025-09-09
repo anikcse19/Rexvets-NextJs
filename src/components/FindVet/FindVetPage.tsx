@@ -2,7 +2,7 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+// import { Card, CardContent } from "@/components/ui/card";
 import { useDebounce } from "@/hooks/useDebounce";
 import useFCM from "@/hooks/useFCM";
 import {
@@ -22,6 +22,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import DoctorCard from "./DoctorCard";
 import { GetAllVetsResponse } from "./type";
+import Loader from "../shared/Loader";
 
 // Google Places API types
 interface GooglePlace {
@@ -381,18 +382,19 @@ export default function FindVetPage({
 
         {/* Grid/List View */}
         {isLoading ? (
-          <section
-            className="text-center py-16"
-            aria-label="Loading veterinarians"
-          >
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-6"></div>
-            <h2 className="text-xl font-semibold mb-2">
-              Loading veterinarians...
-            </h2>
-            <p className="text-gray-600">
-              Fetching data for timezone: {userTimezone}
-            </p>
-          </section>
+          <Loader size={60} height="300px" />
+          // <section
+          //   className="text-center py-16"
+          //   aria-label="Loading veterinarians"
+          // >
+          //   <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-6"></div>
+          //   <h2 className="text-xl font-semibold mb-2">
+          //     Loading veterinarians...
+          //   </h2>
+          //   <p className="text-gray-600">
+          //     Fetching data for timezone: {userTimezone}
+          //   </p>
+          // </section>
         ) : (
           <section
             aria-label="Veterinarian listings"
