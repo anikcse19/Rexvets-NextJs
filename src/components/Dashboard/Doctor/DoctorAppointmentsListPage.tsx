@@ -273,7 +273,7 @@ export default function AppointmentsPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {isLoading ? (
                     Array.from({ length: 3 }).map((_, i) => (
-                      <AppointmentCardSkeleton key={i} />
+                      <AppointmentCardSkeleton key={`skeleton-${i}`} />
                     ))
                   ) : filtered.length === 0 ? (
                     <div className="col-span-full">
@@ -286,7 +286,7 @@ export default function AppointmentsPage() {
                   ) : (
                     filtered.map((appointment) => (
                       <AppointmentCard
-                        key={appointment.id}
+                        key={appointment.id || `appointment-${Math.random()}`}
                         appointment={appointment as unknown as Appointment}
                       />
                     ))
