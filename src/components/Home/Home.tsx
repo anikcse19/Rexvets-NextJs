@@ -122,7 +122,7 @@ const Home = () => {
       }
       const data = await response.json();
       console.log("isAppointmentSLotAvailable", data?.data?.hasAvailability);
-      setOpen(data?.data?.hasAvailability);
+      setOpen(!data?.data?.hasAvailability);
     } catch (error: any) {
       toast.error(
         error.message || "Failed to fetch appointment slot availability"
@@ -136,6 +136,7 @@ const Home = () => {
     }
   }, [session]);
 
+  console.log("open from home page", open);
   return (
     <div>
       <HeroSection />

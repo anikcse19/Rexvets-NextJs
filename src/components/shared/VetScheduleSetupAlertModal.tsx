@@ -39,8 +39,10 @@ export default function VetScheduleSetupAlertModal({
 
         <div className="mt-6 flex justify-center">
           <Button
-            onClick={() => router.push("/vet/setup-schedule")}
-            className="px-6 py-2 text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow"
+            onClick={() =>
+              router.push("/dashboard/doctor/rates-and-availability")
+            }
+            className="px-6 py-2 text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow cursor-pointer"
           >
             Go to Setup Schedule
           </Button>
