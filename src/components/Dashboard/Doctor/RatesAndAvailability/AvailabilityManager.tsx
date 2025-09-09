@@ -492,6 +492,7 @@ const AvailabilityManager: React.FC = () => {
                 hasExistingSlots={hasExistingSlots}
                 existingPeriods={deferredExistingPeriods}
                 onClose={() => setIsTimePeriodOpen(false)}
+                vetId={user?.refId}
               />
             </div>
           </ScrollArea>

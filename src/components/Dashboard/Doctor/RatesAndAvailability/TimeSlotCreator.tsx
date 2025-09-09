@@ -27,6 +27,11 @@ import {
 import moment from "moment";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import {
+  deletePeriodsBulk,
+  deleteSinglePeriod,
+  deleteSlotsByIds,
+} from "./services/delete-periods";
 
 interface TimeSlotCreatorProps {
   selectedRange: DateRange | null;
@@ -40,6 +45,7 @@ interface TimeSlotCreatorProps {
     timezone?: string;
   }>;
   onClose?: () => void;
+  vetId?: string; // Add vetId prop for delete operations
 }
 
 interface TimeSlot {
@@ -49,6 +55,7 @@ interface TimeSlot {
   isExisting?: boolean;
   isSelected?: boolean;
   date?: Date;
+  slotIDs?: string[]; // Array of actual slot IDs from database
 }
 
 export default function TimeSlotCreator({
@@ -57,7 +64,9 @@ export default function TimeSlotCreator({
   hasExistingSlots = false,
   existingPeriods = [],
   onClose,
+  vetId,
 }: TimeSlotCreatorProps) {
+  console.log("existingPeriods", existingPeriods);
   const [slots, setSlots] = useState<TimeSlot[]>([
     {
       id: "1",
@@ -85,6 +94,7 @@ export default function TimeSlotCreator({
       isExisting: true,
       isSelected: false,
       date: period?.slots[0]?.formattedDate,
+      slotIDs: period.slots.map((slot) => slot._id),
     }));
   }, [hasExistingSlots, existingPeriods]);
 
@@ -120,9 +130,28 @@ export default function TimeSlotCreator({
     setSlots([...slots, newSlot]);
   };
 
-  const removeSlot = (id: string) => {
+  const removeSlot = async (id: string) => {
     // Don't allow removing the last slot
     if (slots.length > 1) {
+      const slotToRemove = slots.find((slot) => slot.id === id);
+
+      // If it's an existing slot and we have slotIDs, delete from database
+      if (slotToRemove?.isExisting && slotToRemove.slotIDs && slotToRemove.slotIDs.length > 0) {
+        try {
+          await deleteSlotsByIds({
+            slotIds: slotToRemove.slotIDs,
+          });
+
+          toast.success(`Period deleted successfully (${slotToRemove.slotIDs.length} slots removed)`);
+        } catch (error: any) {
+          console.error("Error deleting period:", error);
+          toast.error("Failed to delete period", {
+            description: error.message || "Please try again.",
+          });
+          return; // Don't remove from UI if database deletion failed
+        }
+      }
+
       setSlots(slots.filter((slot) => slot.id !== id));
     }
   };
@@ -141,7 +170,7 @@ export default function TimeSlotCreator({
     setSlots(slots.map((slot) => ({ ...slot, isSelected: newSelectAll })));
   };
 
-  const handleBulkDelete = () => {
+  const handleBulkDelete = async () => {
     const selectedSlots = slots.filter((slot) => slot.isSelected);
     console.log("selectedSlots", selectedSlots);
     if (selectedSlots.length === 0) {
@@ -152,6 +181,32 @@ export default function TimeSlotCreator({
     if (selectedSlots.length === slots.length) {
       toast.error("Cannot delete all slots. At least one slot must remain.");
       return;
+    }
+
+    // If we have existing slots with slotIDs, delete from database
+    const existingSelectedSlots = selectedSlots.filter(
+      (slot) => slot.isExisting && slot.slotIDs && slot.slotIDs.length > 0
+    );
+    
+    if (existingSelectedSlots.length > 0) {
+      try {
+        // Collect all slot IDs from selected periods
+        const allSlotIds = existingSelectedSlots.flatMap(slot => slot.slotIDs || []);
+        
+        const result = await deleteSlotsByIds({
+          slotIds: allSlotIds,
+        });
+
+        toast.success(
+          `Successfully deleted ${result.deletedCount} slots from ${existingSelectedSlots.length} periods`
+        );
+      } catch (error: any) {
+        console.error("Error deleting periods in bulk:", error);
+        toast.error("Failed to delete periods", {
+          description: error.message || "Please try again.",
+        });
+        return; // Don't remove from UI if database deletion failed
+      }
     }
 
     setSlots(slots.filter((slot) => !slot.isSelected));
@@ -770,7 +825,10 @@ export default function TimeSlotCreator({
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => removeSlot(slot.id)}
+                              onClick={() => {
+                                console.log("SLOT PERIOD:", slot);
+                                removeSlot(slot.id);
+                              }}
                               className="ml-auto h-6 w-6 p-0 text-red-400 hover:text-red-300 hover:bg-red-500/20 rounded-md transition-all duration-200"
                             >
                               <Trash2 className="h-3 w-3" />
