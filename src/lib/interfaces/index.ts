@@ -136,13 +136,17 @@ export interface SignUpData {
 }
 
 export interface ITreatmentCategory {
+  id: number;
   title: string;
   description: string;
+  detailedDescription: string;
   image: string;
   color: string;
   symptoms: string[];
-  id: number;
+  treatmentOptions: string[];
+  faq: { question: string; answer: string }[];
 }
+
 export enum MessageSenderType {
   Admin = "ADMIN",
   VetParent = "VET_PARENT",
