@@ -321,6 +321,16 @@ export default function SignInPage() {
                     </div>
                   </motion.div>
 
+                  {/* Forgot password */}
+                  <div className="flex justify-end -mt-2">
+                    <Link
+                      href="/auth/forgot-password"
+                      className="text-sm text-cyan-300 hover:text-cyan-200 underline"
+                    >
+                      Forgot your password?
+                    </Link>
+                  </div>
+
                   {/* Error Message */}
                   {error && (
                     <motion.div
