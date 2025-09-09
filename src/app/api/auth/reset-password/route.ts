@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
     }
 
     const { token, password } = parsed.data;
-    const user = await User.findByPasswordResetToken(token);
+    const user = await (User as any).findByPasswordResetToken(token);
     if (!user) {
       return NextResponse.json(
         { success: false, error: "Invalid or expired token" },
