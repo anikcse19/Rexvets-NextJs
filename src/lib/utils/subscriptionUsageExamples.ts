@@ -278,7 +278,8 @@ export async function exampleErrorHandling() {
         stripeCustomerId: 'cus_stripe_test2'
       });
     } catch (error) {
-      console.log('✅ Properly caught duplicate subscription error:', error.message);
+      const message = error instanceof Error ? error.message : String(error);
+      console.log('✅ Properly caught duplicate subscription error:', message);
     }
     
   } catch (error) {

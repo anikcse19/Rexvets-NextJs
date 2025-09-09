@@ -15,10 +15,10 @@ import { NextRequest, NextResponse } from 'next/server';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { subscriptionId: string } }
+  context: any
 ) {
   try {
-    const { subscriptionId } = params;
+    const { subscriptionId } = context.params;
     
     const subscription = await getSubscriptionById(subscriptionId);
     
@@ -62,10 +62,10 @@ export async function GET(
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { subscriptionId: string } }
+  context: any
 ) {
   try {
-    const { subscriptionId } = params;
+    const { subscriptionId } = context.params;
     const body = await request.json();
     
     // Optional: validate appointment data
@@ -145,10 +145,10 @@ export async function POST(
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { subscriptionId: string } }
+  context: any
 ) {
   try {
-    const { subscriptionId } = params;
+    const { subscriptionId } = context.params;
     const body = await request.json();
     const { newYear } = body;
     
