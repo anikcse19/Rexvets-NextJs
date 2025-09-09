@@ -233,7 +233,7 @@ export default function FindVetPage({
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 p-4 lg:p-6">
+    <main className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 p-4 lg:p-6 mt-12">
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Header */}
         <header
@@ -383,6 +383,7 @@ export default function FindVetPage({
         {/* Grid/List View */}
         {isLoading ? (
           <Loader size={60} height="300px" />
+        ) : (
           // <section
           //   className="text-center py-16"
           //   aria-label="Loading veterinarians"
@@ -395,7 +396,6 @@ export default function FindVetPage({
           //     Fetching data for timezone: {userTimezone}
           //   </p>
           // </section>
-        ) : (
           <section
             aria-label="Veterinarian listings"
             className={

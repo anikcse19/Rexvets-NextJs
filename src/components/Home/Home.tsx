@@ -2,10 +2,11 @@
 
 import { doubledBrands, features, whyChooseFeaturesData } from "@/lib";
 import dynamic from "next/dynamic";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import ChatIcon from "./ChatIcon";
 import type { ComponentType } from "react";
 import LazyLoad from "../LazyLoad";
+import { useSession } from "next-auth/react";
 
 const Skeleton = () => (
   <div className="w-full h-56 bg-gray-100 animate-pulse rounded-lg" />
@@ -97,6 +98,30 @@ const Home = () => {
   //     subscribeToPush(publicVapidKey, backendSaveUrl);
   //   }
   // }, [permission, subscription, subscribeToPush]);
+
+  const [open, setOpen] = useState(false);
+  const { data: session } = useSession();
+  const userRole = session?.user?.role;
+
+  useEffect(() => {
+    const checkSchedule = async () => {
+      if (userRole === "veterinarian") {
+        try {
+          const res = await fetch("/api/vet/check-schedule"); // 🔹 replace with your API
+          const data = await res.json();
+
+          if (!data.hasSchedule) {
+            setOpen(true); // Show modal only if no schedule exists
+          }
+        } catch (error) {
+          console.error("Error checking schedule:", error);
+        }
+      }
+    };
+
+    checkSchedule();
+  }, [userRole]);
+
   return (
     <div>
       <HeroSection />
