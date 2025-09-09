@@ -105,7 +105,6 @@ export default function DoctorCard({ doctor, viewMode }: DoctorCardProps) {
       ...prev,
       slotId: slot._id,
       slotDate: slot.date,
-      selectedFamilyPlan: null,
     }));
     router.push(`/find-a-vet/${doctor.id || doctor._id}`);
   };

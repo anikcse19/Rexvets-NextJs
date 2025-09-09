@@ -48,35 +48,7 @@ export default function DoctorProfilePage({
     );
     toast.success("Donation successful! Thank you for your support.");
   };
-  const isAppointmentSLotAvailable = async (vetId: string) => {
-    if (!doctorData._id) {
-      return;
-    }
-    try {
-      const response = await fetch(
-        `/api/appointments/booking/slot/has-availability?vetId=${vetId}`
-      );
-      if (!response.ok) {
-        throw new Error(
-          `Failed to fetch appointment slot availability: ${response.statusText}`
-        );
-      }
-      const data = await response.json();
-      console.log("isAppointmentSLotAvailable", data?.data?.hasAvailability);
-      return data?.data?.hasAvailability;
-    } catch (error: any) {
-      toast.error(
-        error.message || "Failed to fetch appointment slot availability"
-      );
-      console.error("Error fetching appointment slot availability:", error);
-    }
-  };
-  useEffect(() => {
-    if (doctorData._id) {
-      isAppointmentSLotAvailable(doctorData._id);
-    }
-  }, [doctorData]);
-  // console.log("REVIEWS:", reviews);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 p-4 lg:p-6">
       <h1 className=" mt-14">SELECTED SLOT ID: {slotId}</h1>
@@ -129,7 +101,6 @@ export default function DoctorProfilePage({
                 onConfirm={(date: string, time: string, slot: string) => {
                   console.log(`Booking appointment for ${date} at ${time}`);
                   setShowForm(true);
-
                   setSelectedDate(date);
                   setSelectedSlot(slot);
                   setSelectedTime(time);
