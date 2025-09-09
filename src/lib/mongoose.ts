@@ -2,7 +2,6 @@ import config from "@/config/env.config";
 import mongoose from "mongoose";
 
 const MONGODB_URI = config.MONGO_URI;
-console.log("MONGODB_URI", MONGODB_URI);
 if (!MONGODB_URI) {
   throw new Error("Please define the MONGODB_URI environment variable");
 }
@@ -41,7 +40,7 @@ export async function connectToDatabase() {
     cached.conn = await cached.promise;
 
     return cached.conn;
-  } catch (error:any) {
+  } catch (error: any) {
     console.error("Error connecting to database", error.message);
     throw error;
   }

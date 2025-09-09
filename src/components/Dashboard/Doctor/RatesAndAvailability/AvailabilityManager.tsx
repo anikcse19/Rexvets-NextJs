@@ -254,6 +254,7 @@ const AvailabilityManager: React.FC = () => {
 
   const fetchAvailableSlots = useCallback(async () => {
     if (!selectedRange || !user?.refId) {
+      throw new Error("Missing required data");
       return;
     }
 
@@ -267,7 +268,7 @@ const AvailabilityManager: React.FC = () => {
       console.log("Days between selected range:", diff);
     } catch (error: any) {
       console.error("Error fetching available slots:", error);
-      toast.error("Failed to fetch availability data", {
+      toast.error(error?.message || "Failed to fetch availability data", {
         description: "Please try refreshing the page or contact support.",
       });
     }
@@ -276,7 +277,7 @@ const AvailabilityManager: React.FC = () => {
   // console.log("selectedRange", selectedRange);
   useEffect(() => {
     // Only fetch if we have both selectedRange and user refId
-    if (selectedRange && user?.refId && userTimezone) {
+    if (selectedRange && user?.refId) {
       fetchAvailableSlots();
     }
   }, [

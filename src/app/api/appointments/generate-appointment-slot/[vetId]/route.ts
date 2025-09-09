@@ -1,17 +1,17 @@
 import { connectToDatabase } from "@/lib/mongoose";
 import { getUserTimezone } from "@/lib/timezone";
 import {
-    IErrorResponse,
-    sendResponse,
-    throwAppError,
+  IErrorResponse,
+  sendResponse,
+  throwAppError,
 } from "@/lib/utils/send.response";
 import Veterinarian from "@/models/Veterinarian";
 import { NextRequest } from "next/server";
 import {
-    generateAppointmentSlots,
-    IGenerateAppointmentSlots,
-    IUpdateAppointmentSlots,
-    updateAppointmentSlots,
+  generateAppointmentSlots,
+  IGenerateAppointmentSlots,
+  IUpdateAppointmentSlots,
+  updateAppointmentSlots,
 } from "../utils.appointment-slot";
 
 export const POST = async (
@@ -31,16 +31,15 @@ export const POST = async (
       return throwAppError(errResp, 400);
     }
 
+  
     const {
       slotPeriods,
       slotDuration = 30,
       bufferBetweenSlots = 0,
       dateRange,
-      timezone, // New timezone parameter
     } = await req.json();
 
     // Validate timezone - use provided timezone or default to user's timezone
-    const appointmentTimezone = timezone || getUserTimezone();
 
     const existingVet = await Veterinarian.findOne({ _id: vetId });
     if (!existingVet) {
@@ -57,7 +56,7 @@ export const POST = async (
       vetId: existingVet._id,
       slotPeriods: slotPeriods,
       dateRange: dateRange,
-      timezone: appointmentTimezone, // Include timezone in the data
+      timezone: existingVet?.timezone || "UTC", // Include timezone in the data
       bufferBetweenSlots: bufferBetweenSlots,
       slotDuration: slotDuration,
     };
