@@ -31,7 +31,12 @@ export default function DoctorProfilePage({
   const [selectedDate, setSelectedDate] = useState("2025-01-16");
   const [selectedSlot, setSelectedSlot] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
-  const [showForm, setShowForm] = useState(false);
+  const [showForm, setShowForm] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false; // SSR safe
+    const stored = localStorage.getItem("showForm");
+    return stored ? JSON.parse(stored) : false;
+  });
+
   const router = useRouter();
 
   const handleDonationComplete = (amount: number) => {
@@ -47,6 +52,11 @@ export default function DoctorProfilePage({
         selectedSlot
     );
     toast.success("Donation successful! Thank you for your support.");
+
+    localStorage.removeItem("showForm");
+    localStorage.removeItem("selectedDate");
+    localStorage.removeItem("selectedTime");
+    localStorage.removeItem("selectedSlot");
   };
   console.log("doctorData", doctorData);
 
@@ -54,7 +64,7 @@ export default function DoctorProfilePage({
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 p-4 lg:p-6">
       {/* Donation Modal */}
       {showForm ? (
-        <div className="max-w-2xl mx-auto">
+        <div className="max-w-2xl mx-auto mt-12">
           <DonationFormWrapper onDonationComplete={handleDonationComplete} />
         </div>
       ) : (

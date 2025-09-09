@@ -22,7 +22,7 @@ const DoctorProfileOverview = ({ vet }: { vet: Doctor }) => {
               {vet?.name.charAt(0)}
             </AvatarFallback>
           </Avatar>
-          <h3 className="font-bold text-gray-900">Dr. Anik Rahman</h3>
+          <h3 className="font-bold text-gray-900">{`Dr. ${vet?.firstName} ${vet?.lastName}`}</h3>
           <p className="text-sm text-gray-600">{vet?.degree}</p>
         </div>
 
@@ -43,13 +43,13 @@ const DoctorProfileOverview = ({ vet }: { vet: Doctor }) => {
               </span>
             </div>
           </div>
-          <div>
+          {/* <div>
             <div className="flex justify-between items-center mb-1">
               <span className="text-sm text-gray-600">Monthly Goal</span>
               <span className="text-sm font-semibold text-gray-900">85%</span>
             </div>
             <Progress value={85} className="h-2" />
-          </div>
+          </div> */}
         </div>
       </CardContent>
     </Card>

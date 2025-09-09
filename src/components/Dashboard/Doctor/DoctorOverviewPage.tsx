@@ -33,7 +33,7 @@ const DoctorOverviewPage = ({ veterinarian }: DoctorOverviewPageProps) => {
     return veterinarian?.specialities?.length;
   };
   const getSpeciesCount = () => {
-    return veterinarian?.specialities?.length;
+    return veterinarian?.treatedSpecies?.length;
   };
 
   const fetchAppointments = async () => {

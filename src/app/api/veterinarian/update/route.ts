@@ -14,8 +14,7 @@ const basicInfoSchema = z.object({
   gender: z.enum(["male", "female"]).optional(),
   city: z.string().min(2).max(100).optional(),
   state: z.string().min(2).max(100).optional(),
-  countryCode: z.string().min(2).max(3).optional(),
-  phone: z.string().optional(),
+  phoneNumber: z.string(),
   bio: z.string().max(1000).optional(),
   specialization: z.string().min(2).optional(),
   consultationFee: z.number().min(0).optional(),
@@ -32,9 +31,9 @@ const basicInfoSchema = z.object({
   // Additional new fields
   dob: z.coerce.date().optional(),
   address: z.string().min(1).max(200).optional(),
-  zipCode: z.number().min(0).optional(),
+  zipCode: z.string().optional(),
   country: z.string().min(2).max(100).optional(),
-  yearsOfExperience: z.string().optional(),
+  yearsOfExperience: z.number().optional(),
   noticePeriod: z.number().min(0).optional(),
   clinic: z
     .object({
@@ -65,7 +64,7 @@ const licenseSchema = z.object({
   licenseNumber: z.string().min(1),
   deaNumber: z.string().optional(),
   state: z.string().min(1),
-  licenseFile: z.string().url().optional(),
+  licenseFile: z.string().optional(),
 });
 
 const workingHoursSchema = z.object({

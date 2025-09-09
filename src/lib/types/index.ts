@@ -144,6 +144,8 @@ export interface Doctor {
   loginAttempts: number;
   _id: string;
   name: string;
+  firstName: string;
+  lastName: string;
   email: string;
   phoneNumber: string;
   specialization: string;
@@ -167,6 +169,7 @@ export interface Doctor {
   bio: string;
   degree: string;
   specialities: string[];
+  treatedSpecies: string[];
   interests: string[];
   researchAreas: string[];
   education: any[]; // if you know structure, replace `any[]` with proper type
