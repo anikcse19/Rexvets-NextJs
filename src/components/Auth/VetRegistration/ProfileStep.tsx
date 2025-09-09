@@ -160,11 +160,11 @@ export default function ProfileStep({
                     }))
                   }
                   placeholder="Type your signature or upload an image"
-                  className="text-white"
+                  className="text-white placeholder:text-gray-400"
                   rows={3}
                 />
                 {errors.signature && (
-                  <p className="text-sm text-red-500">{errors.signature}</p>
+                  <p className="text-sm text-red-300">{errors.signature}</p>
                 )}
               </div>
 
@@ -205,7 +205,7 @@ export default function ProfileStep({
                     variant="outline"
                     size="sm"
                     onClick={addLicense}
-                    className="flex items-center gap-2"
+                    className="flex items-center gap-2 cursor-pointer"
                   >
                     <Plus className="w-4 h-4" />
                     Add License
@@ -239,7 +239,7 @@ export default function ProfileStep({
                               variant="ghost"
                               size="sm"
                               onClick={() => removeLicense(index)}
-                              className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                              className="text-red-500 hover:text-red-700 bg-red-200 cursor-pointer hover:bg-red-50"
                             >
                               <Trash2 className="w-4 h-4" />
                             </Button>
@@ -268,12 +268,12 @@ export default function ProfileStep({
                                 placeholder="Enter license number"
                                 className={
                                   errors[`licenses.${index}.licenseNumber`]
-                                    ? "border-red-500 text-white"
-                                    : "text-white"
+                                    ? "border-red-500 text-white placeholder:text-gray-300"
+                                    : "text-white placeholder:text-gray-300"
                                 }
                               />
                               {errors[`licenses.${index}.licenseNumber`] && (
-                                <p className="text-sm text-red-500">
+                                <p className="text-sm text-red-300">
                                   {errors[`licenses.${index}.licenseNumber`]}
                                 </p>
                               )}
@@ -296,11 +296,14 @@ export default function ProfileStep({
                                 <SelectTrigger
                                   className={
                                     errors[`licenses.${index}.state`]
-                                      ? "border-red-500 text-white"
-                                      : "text-white"
+                                      ? "border-red-500 text-white data-[placeholder]:text-gray-300"
+                                      : "text-white data-[placeholder]:text-gray-300"
                                   }
                                 >
-                                  <SelectValue placeholder="Select state" />
+                                  <SelectValue
+                                    placeholder="Select state"
+                                    className="data-[placeholder]:text-gray-300 text-white"
+                                  />
                                 </SelectTrigger>
                                 <SelectContent>
                                   {US_STATES.map((state) => (
@@ -314,7 +317,7 @@ export default function ProfileStep({
                                 </SelectContent>
                               </Select>
                               {errors[`licenses.${index}.state`] && (
-                                <p className="text-sm text-red-500">
+                                <p className="text-sm text-red-300">
                                   {errors[`licenses.${index}.state`]}
                                 </p>
                               )}
@@ -340,7 +343,7 @@ export default function ProfileStep({
                                 )
                               }
                               placeholder="Enter DEA number if applicable"
-                              className="text-white"
+                              className="text-white placeholder:text-gray-300"
                             />
                           </div>
 
@@ -365,7 +368,7 @@ export default function ProfileStep({
                               vetName={getVetName()}
                             />
                             {errors[`licenses.${index}.licenseFile`] && (
-                              <p className="text-sm text-red-500">
+                              <p className="text-sm text-red-300">
                                 {errors[`licenses.${index}.licenseFile`]}
                               </p>
                             )}

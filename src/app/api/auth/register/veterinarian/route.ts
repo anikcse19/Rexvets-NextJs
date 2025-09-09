@@ -41,17 +41,17 @@ export async function POST(request: NextRequest) {
       email: formData.get("email") as string,
       city: formData.get("city") as string,
       state: formData.get("state") as string,
-      countryCode: formData.get("countryCode") as string,
       phone: formData.get("phone") as string,
       password: formData.get("password") as string,
       confirmPassword: formData.get("confirmPassword") as string,
       // New fields (convert null to undefined for optional validation)
-      dob: formData.get("dob") as string || undefined,
-      address: formData.get("address") as string || undefined,
-      zipCode: formData.get("zipCode") as string || undefined,
-      country: formData.get("country") as string || undefined,
-      yearsOfExperience: formData.get("yearsOfExperience") as string || undefined,
-      noticePeriod: formData.get("noticePeriod") as string || undefined,
+      dob: (formData.get("dob") as string) || undefined,
+      address: (formData.get("address") as string) || undefined,
+      zipCode: (formData.get("zipCode") as string) || undefined,
+      // country: (formData.get("country") as string) || undefined,
+      yearsOfExperience:
+        (formData.get("yearsOfExperience") as string) || undefined,
+      noticePeriod: (formData.get("noticePeriod") as string) || undefined,
     };
 
     // Extract schedule
@@ -61,9 +61,6 @@ export async function POST(request: NextRequest) {
     // Extract clinic data
     const clinicData = formData.get("clinic") as string;
     const clinic = clinicData ? JSON.parse(clinicData) : null;
-
-    // Extract timezone (from client)
-    const timezone = (formData.get("timezone") as string) || "UTC";
 
     // Convert schedule payload into model schedule
     const convertToSchedule = (scheduleData: any) => {
@@ -123,14 +120,13 @@ export async function POST(request: NextRequest) {
         email: true,
         city: true,
         state: true,
-        countryCode: true,
         phone: true,
         password: true,
         confirmPassword: true,
         dob: true,
         address: true,
         zipCode: true,
-        country: true,
+        // country: true,
         yearsOfExperience: true,
         noticePeriod: true,
       })
@@ -378,7 +374,7 @@ export async function POST(request: NextRequest) {
       experience: [],
       certifications: [],
       languages: ["English"],
-      timezone,
+      timezone: "UTC",
       schedule: convertToSchedule(schedule),
       // New optional fields with default values
       treatedSpecies: [],
@@ -396,7 +392,7 @@ export async function POST(request: NextRequest) {
       city: basicInfo.city,
       state: basicInfo.state,
       zipCode: basicInfo.zipCode ? parseInt(basicInfo.zipCode) : undefined,
-      country: basicInfo.country,
+      // country: basicInfo.country,
       yearsOfExperience: basicInfo.yearsOfExperience,
       noticePeriod: basicInfo.noticePeriod,
       clinic: clinic,
@@ -447,8 +443,7 @@ export async function POST(request: NextRequest) {
         await sendEmailVerification(
           basicInfo.email,
           verificationToken,
-          veterinarian.name,
-          true
+          veterinarian.name
         );
         console.log(
           "Email verification sent successfully to:",

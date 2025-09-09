@@ -11,7 +11,6 @@ import {
   profileSchema,
 } from "@/lib/validation/veterinarian";
 import StepIndicator from "./VetRegistration/StepIndicator";
-import { getUserTimezone } from "@/lib/timezone";
 import BasicInfoStep from "./VetRegistration/BasicInfoStep";
 import ScheduleStep from "./VetRegistration/ScheduleStep";
 import ProfileStep from "./VetRegistration/ProfileStep";
@@ -209,9 +208,6 @@ export default function VetRegistrationForm() {
             formDataToSend.append(key, String(value));
           }
         });
-
-        // Attach timezone
-        formDataToSend.append("timezone", getUserTimezone());
 
         // Debug: Log FormData contents
         console.log("FormData entries:");

@@ -2,10 +2,13 @@
 
 import { doubledBrands, features, whyChooseFeaturesData } from "@/lib";
 import dynamic from "next/dynamic";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import ChatIcon from "./ChatIcon";
 import type { ComponentType } from "react";
 import LazyLoad from "../LazyLoad";
+import { useSession } from "next-auth/react";
+import VetScheduleSetupAlertModal from "../shared/VetScheduleSetupAlertModal";
+import { toast } from "sonner";
 
 const Skeleton = () => (
   <div className="w-full h-56 bg-gray-100 animate-pulse rounded-lg" />
@@ -97,6 +100,42 @@ const Home = () => {
   //     subscribeToPush(publicVapidKey, backendSaveUrl);
   //   }
   // }, [permission, subscription, subscribeToPush]);
+
+  const [open, setOpen] = useState(false);
+  const { data: session } = useSession();
+  const userRole = session?.user?.role;
+
+  console.log("userrole from home page", userRole);
+
+  const isAppointmentSLotAvailable = async (vetId: string) => {
+    if (session?.user?.role !== "veterinarian") {
+      return;
+    }
+    try {
+      const response = await fetch(
+        `/api/appointments/booking/slot/has-availability?vetId=${vetId}`
+      );
+      if (!response.ok) {
+        throw new Error(
+          `Failed to fetch appointment slot availability: ${response.statusText}`
+        );
+      }
+      const data = await response.json();
+      console.log("isAppointmentSLotAvailable", data?.data?.hasAvailability);
+      setOpen(data?.data?.hasAvailability);
+    } catch (error: any) {
+      toast.error(
+        error.message || "Failed to fetch appointment slot availability"
+      );
+      console.error("Error fetching appointment slot availability:", error);
+    }
+  };
+  useEffect(() => {
+    if (session?.user?.role === "veterinarian" && session?.user?.refId) {
+      isAppointmentSLotAvailable(session?.user?.refId);
+    }
+  }, [session]);
+
   return (
     <div>
       <HeroSection />
@@ -108,6 +147,7 @@ const Home = () => {
       <VirtualCareIntroSection />
       <BlogPostSection />
       <TestimonialsSection />
+      <VetScheduleSetupAlertModal open={open} />
 
       {/* Chat Icon */}
     </div>
