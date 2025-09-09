@@ -112,12 +112,7 @@ export const DashboardProvider: React.FC<DashboardProviderProps> = ({
   const [disabledSlotIds, setDisabledSlotIds] = useState<string[]>([]);
 
   const getSlots = useCallback(
-    async (
-      startDate: string,
-      endDate: string,
-      refId: string,
-      timezone?: string
-    ) => {
+    async (startDate: string, endDate: string, refId: string) => {
       setAvailableSlotsApiResponse((prev) => ({
         ...prev,
         loading: true,
@@ -134,7 +129,7 @@ export const DashboardProvider: React.FC<DashboardProviderProps> = ({
       }
       try {
         // const timezoneParam = timezone ? `&timezone=${encodeURIComponent(timezone)}` : '';
-        const apiUrl = `/api/appointments/slots/slot-summary/${refId}?startDate=${startDate}&endDate=${endDate}&status=${slotStatus}`;
+        const apiUrl = `/api/appointments/slots/slot-summary/${refId}?startDate=${startDate}&endDate=${endDate}&status=${SlotStatus.ALL}`;
         console.log("Fetching from API:", apiUrl);
 
         const res = await fetch(apiUrl);

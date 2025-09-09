@@ -308,7 +308,7 @@ const AvailabilityScheduler: React.FC<Props> = ({
         </div>
 
         {/* Filter Buttons */}
-        {filterButtons()}
+        {/* {filterButtons()} */}
 
         {/* Availability Group */}
         <div className="p-4">
