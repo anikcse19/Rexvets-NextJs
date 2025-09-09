@@ -82,11 +82,7 @@ const AvailabilityManager: React.FC = () => {
   const { data: session } = useSession();
   const user = session?.user as SessionUserWithRefId | undefined;
   const [hasExistingSlots, setHasExistingSlots] = useState(false);
-  // const { requestPermission, getFcmToken } = useFCM();
-  // useEffect(() => {
-  //   getFcmToken();
-  //   requestPermission();
-  // }, []);
+
   const userTimezone = user?.timezone || "";
   const currentTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
@@ -95,155 +91,9 @@ const AvailabilityManager: React.FC = () => {
     null
   );
 
-  // Get user's timezone on component mount
-  // useEffect(() => {
-  //   const timezone = getUserTimezone();
-  //   setUserTimezone(timezone);
-  // }, []);
-
-  const handleSaveSlots = async (slotPeriods: SlotPeriod[]): Promise<void> => {
-    if (!selectedRange || !user?.refId) {
-      toast.error("Please select a date range and ensure you are logged in");
-      throw new Error("Missing required data");
-    }
-
-    // Check if timezones are different
-    if (userTimezone && currentTimeZone && userTimezone !== currentTimeZone) {
-      // Show timezone selection modal
-      setTimezoneModal({
-        isOpen: true,
-        userTimezone,
-        currentTimezone: currentTimeZone,
-        slotPeriods,
-        onConfirm: async (selectedTimezone?: string) => {
-          try {
-            if (hasExistingSlots) {
-              await updateSlotPeriod(slotPeriods, user.refId, selectedRange);
-            } else {
-              await createSlots(slotPeriods, selectedTimezone as any);
-            }
-            setTimezoneModal(null);
-          } catch (error) {
-            throw error;
-          }
-        },
-      });
-    } else {
-      // If timezones are the same or user has no timezone, proceed normally
-      if (hasExistingSlots) {
-        await updateSlotPeriod(slotPeriods, user.refId, selectedRange);
-      } else {
-        await createSlots(slotPeriods, userTimezone || currentTimeZone);
-      }
-    }
-  };
-  const updateSlotPeriod = async (
-    slotPeriods: SlotPeriod[],
-    userRefId: string,
-    selectedRange: { start: Date; end: Date }
-  ) => {
-    try {
-      const requestData: CreateAvailabilityRequest = {
-        dateRange: {
-          start: format(selectedRange.start, "yyyy-MM-dd"),
-          end: format(selectedRange.end, "yyyy-MM-dd"),
-        },
-        slotPeriods: slotPeriods.map((slot) => ({
-          start: format(slot.start, "HH:mm"),
-          end: format(slot.end, "HH:mm"),
-        })),
-      };
-
-      console.log("request PATCH DATA", requestData);
-
-      const response = await fetch(
-        `/api/appointments/generate-appointment-slot/${userRefId}`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(requestData),
-        }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(
-          errorData.message || `Failed to update slots: ${response.statusText}`
-        );
-      }
-
-      const result = await response.json();
-      toast.success("Availability slots updated successfully!");
-
-      // Refresh the available slots after updating
-      if (selectedRange) {
-        await fetchAvailableSlots();
-      }
-
-      return result;
-    } catch (error: any) {
-      console.error("Error updating availability slots:", error);
-      toast.error("Failed to update availability slots", {
-        description: error.message || "Please try again.",
-      });
-      throw error;
-    }
-  };
-
-  const createSlots = async (slotPeriods: SlotPeriod[], timezone: string) => {
-    try {
-      // Convert SlotPeriod[] to CreateAvailabilityRequest
-      const requestData: CreateAvailabilityRequest = {
-        dateRange: {
-          start: format(selectedRange!.start, "yyyy-MM-dd"),
-          end: format(selectedRange!.end, "yyyy-MM-dd"),
-        },
-        slotPeriods: slotPeriods.map((slot) => ({
-          start: slot.start.toTimeString().slice(0, 5), // Format as "HH:mm"
-          end: slot.end.toTimeString().slice(0, 5), // Format as "HH:mm"
-        })),
-        timezone: timezone, // Use selected timezone
-      };
-      console.log("requestData", requestData);
-      const response = await fetch(
-        `/api/appointments/generate-appointment-slot/${user?.refId}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(requestData),
-        }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(
-          errorData.message || "Failed to create availability slots"
-        );
-      }
-
-      const result = await response.json();
-      toast.success("Availability slots created successfully!");
-
-      // Refresh the available slots after creating new ones
-      if (selectedRange) {
-        await fetchAvailableSlots();
-      }
-    } catch (error: any) {
-      console.error("Error creating availability slots:", error);
-      toast.error("Failed to create availability slots", {
-        description: error.message || "Please try again.",
-      });
-    }
-  };
-
   const fetchAvailableSlots = useCallback(async () => {
     if (!selectedRange || !user?.refId) {
       throw new Error("Missing required data");
-      return;
     }
 
     try {
@@ -262,7 +112,6 @@ const AvailabilityManager: React.FC = () => {
     }
   }, [selectedRange, user?.refId, userTimezone, getAvailableSlots]);
 
-  // console.log("selectedRange", selectedRange);
   useEffect(() => {
     // Only fetch if we have both selectedRange and user refId
     if (selectedRange && user?.refId) {
@@ -326,11 +175,6 @@ const AvailabilityManager: React.FC = () => {
                 : "Create Availability Slots"}
             </Button>
           </div>
-
-          {/* <TimeSlotCreator
-          // selectedRange={selectedRange}
-          // onSaveSlots={handleSaveSlots}
-          /> */}
         </div>
 
         <div>
@@ -339,11 +183,6 @@ const AvailabilityManager: React.FC = () => {
             error={availableSlotsApiResponse.error}
             loading={availableSlotsApiResponse.loading}
           />
-          {/* <ExistingAvailability
-            availabilities={existingAvailabilities}
-            onEdit={handleEditAvailability}
-            onDelete={handleDeleteAvailability}
-          /> */}
         </div>
       </div>
 
@@ -487,8 +326,12 @@ const AvailabilityManager: React.FC = () => {
             </SheetHeader>
             <div>
               <TimeSlotCreator
+                refetch={async () => {
+                  if (selectedRange) {
+                    await fetchAvailableSlots();
+                  }
+                }}
                 selectedRange={selectedRange}
-                onSaveSlots={handleSaveSlots}
                 hasExistingSlots={hasExistingSlots}
                 existingPeriods={deferredExistingPeriods}
                 onClose={() => setIsTimePeriodOpen(false)}

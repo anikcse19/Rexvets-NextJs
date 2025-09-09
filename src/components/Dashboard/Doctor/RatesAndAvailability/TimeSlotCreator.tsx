@@ -13,7 +13,7 @@ import {
 import { getUserTimezone } from "@/lib/timezone";
 import { convertTimesToUserTimezone } from "@/lib/timezone/index";
 import { DateRange, SlotPeriod } from "@/lib/types";
-import { formatDisplayTime, generateTimeOptions } from "@/lib/utils";
+import { generateTimeOptions } from "@/lib/utils";
 import {
   AlertTriangle,
   Calendar,
@@ -22,21 +22,14 @@ import {
   Plus,
   Save,
   Trash2,
-  X,
 } from "lucide-react";
 import moment from "moment";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import {
-  addNewPeriod,
-  deletePeriodsBulk,
-  deleteSinglePeriod,
-  deleteSlotsByIds,
-} from "./services/delete-periods";
+import { addNewPeriod, deleteSlotsByIds } from "./services/delete-periods";
 
 interface TimeSlotCreatorProps {
   selectedRange: DateRange | null;
-  onSaveSlots: (slots: SlotPeriod[]) => Promise<void>;
   hasExistingSlots?: boolean;
   existingPeriods?: Array<{
     startTime: string;
@@ -45,6 +38,7 @@ interface TimeSlotCreatorProps {
     slots: any[];
     timezone?: string;
   }>;
+  refetch: () => void;
   onClose?: () => void;
   vetId?: string; // Add vetId prop for delete operations
 }
@@ -61,11 +55,11 @@ interface TimeSlot {
 
 export default function TimeSlotCreator({
   selectedRange,
-  onSaveSlots,
   hasExistingSlots = false,
   existingPeriods = [],
   onClose,
   vetId,
+  refetch,
 }: TimeSlotCreatorProps) {
   console.log("existingPeriods", existingPeriods);
   const [slots, setSlots] = useState<TimeSlot[]>([
@@ -451,7 +445,7 @@ export default function TimeSlotCreator({
       <Button
         onClick={handleSave}
         disabled={!validateSlots() || isLoading}
-        className={` ${className} cursor-pointer  w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold py-4 rounded-2xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl`}
+        className={` ${className} cursor-pointer  w-[200px] bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold py-4 rounded-2xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl`}
       >
         {isLoading ? (
           <div className="flex items-center justify-center space-x-3">
@@ -460,7 +454,7 @@ export default function TimeSlotCreator({
           </div>
         ) : (
           <div className="flex items-center justify-center space-x-3">
-            <Save className="w-6 h-6" />
+            {/* <Save className="w-6 h-6" /> */}
             <span>Save & Launch Schedule</span>
           </div>
         )}
@@ -604,9 +598,6 @@ export default function TimeSlotCreator({
                     </div>
                   )}
                 </div>
-
-                {/* Save Button */}
-                {displaySaveBtn("hidden md:flex")}
               </div>
             </div>
 
@@ -629,15 +620,17 @@ export default function TimeSlotCreator({
                     </div>
                   </div>
 
-                  {displaySaveBtn("flex md:hidden")}
-                  <div className="flex items-center space-x-3">
-                    <Button
-                      onClick={addSlot}
-                      className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold px-4 sm:px-6 py-2 sm:py-3 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl text-sm sm:text-base"
-                    >
-                      <Plus className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-                      Add Period
-                    </Button>
+                  <div className="flex gap-x-3 items-center">
+                    {displaySaveBtn("flex")}
+                    <div className="flex items-center space-x-3">
+                      <Button
+                        onClick={addSlot}
+                        className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold px-4 sm:px-6 py-2 sm:py-3 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl text-sm sm:text-base"
+                      >
+                        <Plus className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                        Add Period
+                      </Button>
+                    </div>
                   </div>
                 </div>
 
