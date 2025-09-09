@@ -1,4 +1,6 @@
 "use client";
+import { useAppContext } from "@/hooks/StateContext";
+import { getUserTimezone } from "@/lib/timezone";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import RexVetAPointmentFeeInfo from "./RexVetAPointmentFeeInfo";
@@ -32,7 +34,7 @@ const familyPlanFeatures = [
 const RexVetPlan: React.FC = () => {
   const [hoveredCard, setHoveredCard] = useState<"per" | "family" | null>(null);
   const [isSmallDevice, setIsSmallDevice] = useState(false);
-
+  const { setAppState } = useAppContext();
   const navigate = useRouter();
 
   // Framer Motion variants for pulse effect
@@ -74,15 +76,15 @@ const RexVetPlan: React.FC = () => {
             <RexVetFamilyPlanInfo
               familyPlanFeatures={familyPlanFeatures}
               onClick={(state: number) => {
-                const queryParams = new URLSearchParams();
                 if (state > 0) {
-                  queryParams.set("selected-family-plan", state.toString());
+                  setAppState((prev) => ({
+                    ...prev,
+                    selectedFamilyPlan: state.toString(),
+                  }));
+                  // queryParams.set("selected-family-plan", state.toString());
                 }
-                const url = `/find-a-vet${
-                  queryParams.toString() ? `?${queryParams.toString()}` : ""
-                }`;
 
-                navigate.push(url);
+                navigate.push("/find-a-vet");
                 // navigate.push("/find-a-vet", { state } as any);
               }}
               isSmallDevice={isSmallDevice}
