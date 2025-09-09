@@ -43,6 +43,7 @@ export default function FindVetPage({
   const [userTimezone, setUserTimezone] = useState<string>("UTC");
   const [doctors, setDoctors] = useState<any>(initialDoctors || []);
   const [isLoading, setIsLoading] = useState(false);
+  const [apiLoadingTime, setApiLoadingTime] = useState<number | null>(null);
 
   // Google Places API states
   const [locationInput, setLocationInput] = useState<string>("");
@@ -75,7 +76,14 @@ export default function FindVetPage({
   const fetchDoctorsWithTimezone = async () => {
     try {
       setIsLoading(true);
+      const startTime = Date.now(); // Record start time
+      
       const response = await fetch(`/api/veterinarian`);
+      
+      const endTime = Date.now(); // Record end time
+      const duration = endTime - startTime; // Calculate duration in milliseconds
+      setApiLoadingTime(duration); // Store the loading time
+      
       if (response.ok) {
         const data = await response.json();
         if (data.success && data.data) {
@@ -249,16 +257,37 @@ export default function FindVetPage({
                 pet care services
               </p>
 
-              {userLocation && (
-                <div
-                  className="flex items-center gap-2 bg-white/20 rounded-full px-4 py-2 w-fit"
-                  role="status"
-                  aria-label="Current location"
-                >
-                  <MapPin className="w-4 h-4" aria-hidden="true" />
-                  <span className="text-sm font-medium">{userLocation}</span>
-                </div>
-              )}
+              <div className="flex flex-wrap gap-3">
+                {userLocation && (
+                  <div
+                    className="flex items-center gap-2 bg-white/20 rounded-full px-4 py-2 w-fit"
+                    role="status"
+                    aria-label="Current location"
+                  >
+                    <MapPin className="w-4 h-4" aria-hidden="true" />
+                    <span className="text-sm font-medium">{userLocation}</span>
+                  </div>
+                )}
+                
+                {/* API Loading Time */}
+                {process.env.NODE_ENV !== 'production' && apiLoadingTime !== null && (
+                  <div
+                    className="flex items-center gap-2 bg-white/20 rounded-full px-4 py-2 w-fit"
+                    role="status"
+                    aria-label="API loading time"
+                  >
+                    <Clock className="w-4 h-4" aria-hidden="true" />
+                    <span className="text-sm font-medium">
+                      Load Time: {apiLoadingTime < 1000 
+                        ? `${apiLoadingTime}ms` 
+                        : `${(apiLoadingTime / 1000).toFixed(1)}s`
+                      }
+                    </span>
+                  </div>
+                )}
+               
+               
+              </div>
             </div>
           </div>
         </header>
