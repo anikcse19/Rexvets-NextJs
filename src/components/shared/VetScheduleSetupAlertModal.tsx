@@ -11,33 +11,13 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 
 interface VetScheduleModalProps {
-  userRole: string | undefined;
+  open: boolean;
 }
 
 export default function VetScheduleSetupAlertModal({
-  userRole,
+  open,
 }: VetScheduleModalProps) {
-  const [open, setOpen] = useState(false);
   const router = useRouter();
-
-  useEffect(() => {
-    const checkSchedule = async () => {
-      if (userRole === "veterinarian") {
-        try {
-          const res = await fetch("/api/vet/check-schedule"); // 🔹 replace with your API
-          const data = await res.json();
-
-          if (!data.hasSchedule) {
-            setOpen(true); // Show modal only if no schedule exists
-          }
-        } catch (error) {
-          console.error("Error checking schedule:", error);
-        }
-      }
-    };
-
-    checkSchedule();
-  }, [userRole]);
 
   return (
     <Dialog open={open} onOpenChange={() => {}}>

@@ -7,6 +7,8 @@ import ChatIcon from "./ChatIcon";
 import type { ComponentType } from "react";
 import LazyLoad from "../LazyLoad";
 import { useSession } from "next-auth/react";
+import VetScheduleSetupAlertModal from "../shared/VetScheduleSetupAlertModal";
+import { toast } from "sonner";
 
 const Skeleton = () => (
   <div className="w-full h-56 bg-gray-100 animate-pulse rounded-lg" />
@@ -103,24 +105,36 @@ const Home = () => {
   const { data: session } = useSession();
   const userRole = session?.user?.role;
 
-  useEffect(() => {
-    const checkSchedule = async () => {
-      if (userRole === "veterinarian") {
-        try {
-          const res = await fetch("/api/vet/check-schedule"); // 🔹 replace with your API
-          const data = await res.json();
+  console.log("userrole from home page", userRole);
 
-          if (!data.hasSchedule) {
-            setOpen(true); // Show modal only if no schedule exists
-          }
-        } catch (error) {
-          console.error("Error checking schedule:", error);
-        }
+  const isAppointmentSLotAvailable = async (vetId: string) => {
+    if (session?.user?.role !== "veterinarian") {
+      return;
+    }
+    try {
+      const response = await fetch(
+        `/api/appointments/booking/slot/has-availability?vetId=${vetId}`
+      );
+      if (!response.ok) {
+        throw new Error(
+          `Failed to fetch appointment slot availability: ${response.statusText}`
+        );
       }
-    };
-
-    checkSchedule();
-  }, [userRole]);
+      const data = await response.json();
+      console.log("isAppointmentSLotAvailable", data?.data?.hasAvailability);
+      setOpen(data?.data?.hasAvailability);
+    } catch (error: any) {
+      toast.error(
+        error.message || "Failed to fetch appointment slot availability"
+      );
+      console.error("Error fetching appointment slot availability:", error);
+    }
+  };
+  useEffect(() => {
+    if (session?.user?.role === "veterinarian" && session?.user?.refId) {
+      isAppointmentSLotAvailable(session?.user?.refId);
+    }
+  }, [session]);
 
   return (
     <div>
@@ -133,6 +147,7 @@ const Home = () => {
       <VirtualCareIntroSection />
       <BlogPostSection />
       <TestimonialsSection />
+      <VetScheduleSetupAlertModal open={open} />
 
       {/* Chat Icon */}
     </div>
