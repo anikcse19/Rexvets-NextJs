@@ -9,7 +9,6 @@ import {
 } from "@/lib/utils/send.response";
 import { SlotStatus } from "@/models/AppointmentSlot";
 import Veterinarian from "@/models/Veterinarian";
-import moment from "moment-timezone";
 import { Types } from "mongoose";
 import { getServerSession } from "next-auth/next";
 import { NextRequest } from "next/server";
@@ -33,6 +32,7 @@ export const GET = async (
     const { searchParams } = new URL(req.url);
     const startDate = searchParams.get("startDate");
     const endDate = searchParams.get("endDate");
+    const timezone = searchParams.get("timezone"); // Timezone for display conversion
     const page = parseInt(searchParams.get("page") as string) || 1;
     const limit = parseInt(searchParams.get("limit") as string) || 1000;
     const slotStatus =
@@ -60,6 +60,17 @@ export const GET = async (
       return throwAppError(errResp, 400);
     }
 
+    // Validate timezone if provided
+    if (timezone && !isValidTimezone(timezone)) {
+      const errResp: IErrorResponse = {
+        success: false,
+        message: `Invalid timezone: ${timezone}`,
+        errorCode: "INVALID_TIMEZONE",
+        errors: null,
+      };
+      return throwAppError(errResp, 400);
+    }
+
     // Check if veterinarian exists and is active
     const isVetExist = await Veterinarian.findOne({
       _id: vetId,
@@ -77,33 +88,32 @@ export const GET = async (
       return throwAppError(errResp, 404);
     }
 
-    // Determine effective timezone: always use vet timezone (fallback to UTC)
-    const effectiveTz =
-      (isVetExist?.timezone && isValidTimezone(isVetExist.timezone)
-        ? isVetExist.timezone
-        : undefined) || "UTC";
-
-    // Build half-open window [startOfDay, nextDayStart) in the effective timezone
-    const startTz = moment.tz(startDate, effectiveTz).startOf("day");
-    const endTz = moment.tz(endDate, effectiveTz).add(1, "day").startOf("day");
-
     // Prepare parameters for slot retrieval
     const paramsFn: IGetSlotsParams = {
       vetId,
       dateRange: {
-        start: new Date(startTz.toISOString()),
-        end: new Date(endTz.toISOString()),
+        start: new Date(startDate),
+        end: new Date(endDate),
       },
-      timezone: effectiveTz, // Pass effective timezone for display conversion
+      timezone: isVetExist.timezone || "UTC", // Pass timezone for display conversion
       status: slotStatus,
       limit,
       page,
     };
 
-    console.log("Fetching slots with params:", paramsFn);
+    console.log("Fetching slots with params:", {
+      vetId,
+      startDate,
+      endDate,
+      timezone,
+      status: slotStatus,
+    });
+
     const response = await getSlotsByVetId(paramsFn);
-console.log("response", response);
+    console.log("Raw slots response:", response);
+
     const slotPeriods = groupSlotsIntoPeriods(response.data);
+    console.log("Grouped slot periods:", slotPeriods);
 
     const responseFormat: ISendResponse<any> = {
       statusCode: 200,
@@ -114,7 +124,7 @@ console.log("response", response);
         meta: response.meta,
         filters: {
           ...response.filters,
-          timezone: effectiveTz,
+          timezone: timezone || "server_default",
         },
       },
     };
