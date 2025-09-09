@@ -58,7 +58,7 @@ export default function ReviewsSection({ doctorId }: { doctorId: string }) {
     return nums;
   }, [pages]);
 
-  reviews.length > 0 ? (
+  return reviews.length > 0 ? (
     <Card className="shadow-lg border-0 bg-white">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
