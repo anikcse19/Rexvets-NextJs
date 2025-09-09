@@ -126,7 +126,10 @@ export async function GET(req: NextRequest) {
       .lean();
 
     // Build nextAvailableSlots per vet mirroring today's-slot logic
-    const slotByVet = new Map<string, { todaysCount: number; nextAvailableSlots: any[] }>();
+    const slotByVet = new Map<
+      string,
+      { todaysCount: number; nextAvailableSlots: any[] }
+    >();
     const vetResults = await Promise.all(
       veterinarians.map(async (vet: any) => {
         const tz = vet.timezone || "UTC";
@@ -165,9 +168,14 @@ export async function GET(req: NextRequest) {
         // Restrict to the first future date's slots only, then take up to 2
         let nextTwo: any[] = [];
         if (futureSlots && futureSlots.length > 0) {
-          const firstDateStr = moment.tz(futureSlots[0].date, tz).format("YYYY-MM-DD");
+          const firstDateStr = moment
+            .tz(futureSlots[0].date, tz)
+            .format("YYYY-MM-DD");
           nextTwo = futureSlots
-            .filter((s: any) => moment.tz(s.date, tz).format("YYYY-MM-DD") === firstDateStr)
+            .filter(
+              (s: any) =>
+                moment.tz(s.date, tz).format("YYYY-MM-DD") === firstDateStr
+            )
             .slice(0, 2);
         }
         slotByVet.set(vet._id.toString(), {

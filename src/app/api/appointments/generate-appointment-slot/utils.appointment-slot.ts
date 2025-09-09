@@ -495,7 +495,7 @@ export const getAppointmentSlots = async (
 
     // Validate date range - use local dates without timezone conversion
     const startDate = moment(dateRange.start).startOf("day");
-    const endDate = moment(dateRange.end).endOf("day");
+    const endDate = moment(dateRange.end).startOf("day");
 
     if (endDate.isBefore(startDate)) {
       throw new Error("Invalid date range: end date must be after start date");
@@ -506,7 +506,7 @@ export const getAppointmentSlots = async (
       vetId: new Types.ObjectId(vetId),
       date: {
         $gte: startDate.toDate(),
-        $lte: endDate.toDate(),
+        $lt: endDate.clone().add(1, "day").toDate(),
       },
     };
 
