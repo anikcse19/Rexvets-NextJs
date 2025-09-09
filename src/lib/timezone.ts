@@ -169,18 +169,20 @@ export const getMonthRange = (timezone?: string) => {
 };
 
 export const getWeekRange = (timezone?: string) => {
-  const startOfWeek = moment
-    .tz(timezone || getUserTimezone())
-    .startOf("week");
-  const endOfWeek = moment.tz(timezone || getUserTimezone()).endOf("week");
+  const tz = timezone || moment.tz.guess();
+
+  const startOfRange = moment.tz(tz).startOf("day"); // today start
+  const endOfRange = moment.tz(tz).add(6, "days").endOf("day"); // +6 days = total 7 days
 
   return {
-    start: startOfWeek.format("ddd MMM DD YYYY HH:mm:ss [GMT]ZZ"),
-    end: endOfWeek.format("ddd MMM DD YYYY HH:mm:ss [GMT]ZZ"),
+    start: startOfRange.format("ddd MMM DD YYYY HH:mm:ss [GMT]ZZ"),
+    end: endOfRange.format("ddd MMM DD YYYY HH:mm:ss [GMT]ZZ"),
   };
 };
-
-export const getSpecificWeekRange = (weekOffset: number = 0, timezone?: string) => {
+export const getSpecificWeekRange = (
+  weekOffset: number = 0,
+  timezone?: string
+) => {
   const startOfWeek = moment
     .tz(timezone || getUserTimezone())
     .add(weekOffset, "weeks")

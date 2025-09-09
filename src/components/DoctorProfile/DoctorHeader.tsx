@@ -5,7 +5,7 @@ import { Award, Building, Mail, MapPin, Phone, Star } from "lucide-react";
 
 export default function DoctorHeader({ doctor }: { doctor: any }) {
   return (
-    <Card className="shadow-xl border-0 bg-white overflow-hidden">
+    <Card className="shadow-xl border-0 p-0 bg-white overflow-hidden">
       <div
         style={{
           background: "linear-gradient(to right,#002366,#1a8693",
