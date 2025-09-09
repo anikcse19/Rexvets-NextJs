@@ -19,16 +19,6 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { BsChatLeftTextFill } from "react-icons/bs";
 import { FaFacebookF, FaInstagram, FaTiktok } from "react-icons/fa";
 
-import {
-  Tooltip,
-  Tooltip,
-  TooltipContent,
-  TooltipContent,
-  TooltipProvider,
-  TooltipProvider,
-  TooltipTrigger,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { toSlug } from "@/lib/utils";
 import { DialogTitle } from "@radix-ui/react-dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
@@ -48,6 +38,12 @@ import React, { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import TalkToVetButton from "../TalkToVet";
 import { ScrollArea } from "../ui/scroll-area";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "../ui/tooltip";
 import IconWrapper from "./IconWrapper";
 import {
   default as TopToolbar,
