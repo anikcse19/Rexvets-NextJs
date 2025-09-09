@@ -152,41 +152,56 @@ export async function POST(request: NextRequest) {
       // Commit the transaction - if this fails, everything is rolled back
       await sessionDb.commitTransaction();
 
-      // After successful commit, proceed with external operations
-      // Determine badge name based on donation amount
-      const badgeName = getBadgeNameFromAmount(donation.donationAmount);
+      // Check donation type to determine if we should send email
+      if (donation.donationType === 'donation') {
+        // This is a standalone donation - send thank you email with receipt
+        console.log("Standalone donation confirmed - sending thank you email with receipt");
+        
+        // Determine badge name based on donation amount
+        const getBadgeNameFromAmount = (amount: number) => {
+          if (amount > 500) return "Pet Care Hero";
+          if (amount > 50 && amount <= 500) return "Community Champion";
+          if (amount > 5 && amount <= 50) return "Friend of Rex Vet";
+          return "Supporter";
+        };
 
-      // Format donation date
-      const donationDate = donation.timestamp.toISOString().split("T")[0];
+        // Format donation date
+        const donationDate = donation.timestamp.toISOString().split("T")[0];
+        const badgeName = getBadgeNameFromAmount(donation.donationAmount);
 
-      // Generate PDF receipt
-      const pdfBuffer = await generateDonationReceiptPdf({
-        donorName: donation.donorName,
-        amount: donation.donationAmount,
-        receiptNumber: donation.transactionID || `REX_${Date.now()}`,
-        isRecurring: donation.isRecurring,
-        badgeName,
-        date: donationDate,
-        paymentMethod: paymentMethod,
-      });
+        // Generate PDF receipt
+        const pdfBuffer = await generateDonationReceiptPdf({
+          donorName: donation.donorName,
+          amount: donation.donationAmount,
+          receiptNumber: donation.transactionID || `REX_${Date.now()}`,
+          isRecurring: donation.isRecurring,
+          badgeName,
+          date: donationDate,
+          paymentMethod: paymentMethod,
+        });
 
-      // Send thank you email
-      await sendDonationThankYouEmail({
-        email: donation.donorEmail,
-        name: donation.donorName,
-        donationAmount: donation.donationAmount,
-        isRecurring: donation.isRecurring,
-        badgeName,
-        donationDate,
-        paymentMethod,
-        transactionID:
-          donation.transactionID || paymentIntentId || `REX_${Date.now()}`,
-        pdfBuffer,
-      });
+        // Send thank you email
+        await sendDonationThankYouEmail({
+          email: donation.donorEmail,
+          name: donation.donorName,
+          donationAmount: donation.donationAmount,
+          isRecurring: donation.isRecurring,
+          badgeName,
+          donationDate,
+          paymentMethod,
+          transactionID: donation.transactionID || paymentIntentId || `REX_${Date.now()}`,
+          pdfBuffer,
+        });
+      } else {
+        // This is a booking donation - no email sent here, will be sent with appointment confirmation
+        console.log("Booking donation confirmed - email will be sent with appointment confirmation");
+      }
 
       return NextResponse.json({
         success: true,
-        message: "Payment confirmed and thank you email sent",
+        message: donation.donationType === 'donation' 
+          ? "Payment confirmed and thank you email sent" 
+          : "Payment confirmed successfully",
         donationId: donation._id,
       });
     } catch (transactionError: any) {
@@ -246,12 +261,4 @@ export async function POST(request: NextRequest) {
   }
 }
 
-/**
- * Get badge name based on donation amount
- */
-function getBadgeNameFromAmount(amount: number) {
-  if (amount > 500) return "Pet Care Hero";
-  if (amount > 50 && amount <= 500) return "Community Champion";
-  if (amount > 5 && amount <= 50) return "Friend of Rex Vet";
-  return "";
-}
+// Badge name generation moved to appointment confirmation flow

@@ -326,13 +326,21 @@ export async function POST(req: NextRequest) {
                 isRecurringDonation
               );
 
+              // Determine badge name based on donation amount
+              const getBadgeNameFromAmount = (amount: number) => {
+                if (amount > 500) return "Pet Care Hero";
+                if (amount > 50 && amount <= 500) return "Community Champion";
+                if (amount > 5 && amount <= 50) return "Friend of Rex Vet";
+                return "Supporter";
+              };
+
               donationPdfBuffer = await generateDonationReceiptPdf({
                 donorName: donation.donorName,
                 amount: donation.donationAmount,
                 receiptNumber:
                   donation.transactionID || donation._id.toString(),
                 isRecurring: isRecurringDonation,
-                badgeName: "Supporter",
+                badgeName: getBadgeNameFromAmount(donation.donationAmount),
                 date: moment(donation.timestamp).format("YYYY-MM-DD"),
                 paymentMethod,
               });
