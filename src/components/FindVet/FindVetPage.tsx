@@ -4,11 +4,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 // import { Card, CardContent } from "@/components/ui/card";
 import { useDebounce } from "@/hooks/useDebounce";
+
 import {
   Award,
-  Calendar,
   Clock,
-  Filter,
   MapPin,
   Search,
   Star,
@@ -17,11 +16,10 @@ import {
 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import DoctorCard from "./DoctorCard";
-import { GetAllVetsResponse } from "./type";
 import Loader from "../shared/Loader";
+import DoctorCard from "./DoctorCard";
 
 // Google Places API types
 interface GooglePlace {

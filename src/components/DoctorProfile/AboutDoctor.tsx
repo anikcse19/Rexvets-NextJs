@@ -22,7 +22,7 @@ export default function AboutDoctor({ doctor }: { doctor: any }) {
                 Licensed & Verified
               </p>
               <p className="text-green-700 text-sm">
-                License: {doctor?.licenses[0].licenseNumber}
+                License: {doctor?.licenses[0]?.licenseNumber}
               </p>
             </div>
           </div>

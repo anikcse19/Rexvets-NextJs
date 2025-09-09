@@ -1,14 +1,14 @@
 "use client";
 
 import { doubledBrands, features, whyChooseFeaturesData } from "@/lib";
-import dynamic from "next/dynamic";
-import React, { useEffect, useState } from "react";
-import ChatIcon from "./ChatIcon";
-import type { ComponentType } from "react";
-import LazyLoad from "../LazyLoad";
 import { useSession } from "next-auth/react";
-import VetScheduleSetupAlertModal from "../shared/VetScheduleSetupAlertModal";
+import dynamic from "next/dynamic";
+import type { ComponentType } from "react";
+import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
+import LazyLoad from "../LazyLoad";
+import VetScheduleSetupAlertModal from "../shared/VetScheduleSetupAlertModal";
+import ChatIcon from "./ChatIcon";
 
 const Skeleton = () => (
   <div className="w-full h-56 bg-gray-100 animate-pulse rounded-lg" />
@@ -148,7 +148,7 @@ const Home = () => {
       <VirtualCareIntroSection />
       <BlogPostSection />
       <TestimonialsSection />
-      <VetScheduleSetupAlertModal open={open} />
+      {/* <VetScheduleSetupAlertModal open={open}  /> */}
 
       {/* Chat Icon */}
     </div>

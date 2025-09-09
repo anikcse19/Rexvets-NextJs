@@ -72,20 +72,6 @@ const BookingSlotsPeriods: React.FC<BookingSlotsProps> = ({
     }
   };
 
-  const getStatusDisplayName = (status: SlotStatus) => {
-    switch (status) {
-      case SlotStatus.AVAILABLE:
-        return "Available";
-      case SlotStatus.BOOKED:
-        return "Booked";
-      case SlotStatus.DISABLED:
-        return "Disabled";
-
-      default:
-        return status;
-    }
-  };
-
   const filteredSlots =
     slotStatus === SlotStatus.ALL
       ? selectedSlot
@@ -269,7 +255,7 @@ const BookingSlotsPeriods: React.FC<BookingSlotsProps> = ({
 
         {/* Legend */}
         <div className="flex flex-wrap gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
-          <div className="flex items-center gap-2">
+          {/* <div className="flex items-center gap-2">
             <div className="w-3 h-3 bg-green-200 border border-green-300 rounded"></div>
             <span className="text-sm text-gray-600">Available</span>
           </div>
@@ -280,11 +266,8 @@ const BookingSlotsPeriods: React.FC<BookingSlotsProps> = ({
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 bg-gray-200 border border-gray-300 rounded"></div>
             <span className="text-sm text-gray-600">Disabled</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-yellow-200 border border-yellow-300 rounded"></div>
-            <span className="text-sm text-gray-600">Pending</span>
-          </div>
+          </div> */}
+
           {selectedSlot &&
             selectedSlot.some(
               (slot) =>
