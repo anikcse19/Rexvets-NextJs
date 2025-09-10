@@ -99,15 +99,6 @@ const OurTeamAbout: React.FC = () => {
       "Meet the visionary leaders driving innovation in veterinary care",
     leaders: [
       {
-        name: "Tiffany Delacruz",
-        title: "Chief Executive Officer",
-        description:
-          "Tiffany Delacruz, the CEO of Rex Vet, is a licensed veterinarian with a profound dedication to preventive medicine, striving to enhance the well-being of pets. With extensive experience in veterinary practice, Tiffany possesses a comprehensive understanding of the concerns of pet owners and their beloved companions. Under her astute leadership, Rex Vet has emerged as a renowned entity in the veterinary realm.",
-        image: "/images/our-team/CEO.webp",
-        icon: "School",
-        gradient: gradients.accent,
-      },
-      {
         name: "Johnny Dominguez",
         title: "Founder",
         description:
@@ -115,6 +106,15 @@ const OurTeamAbout: React.FC = () => {
         image: "/images/our-team/Founder.webp",
         icon: "Psychology",
         gradient: gradients.secondary,
+      },
+      {
+        name: "Tiffany Delacruz",
+        title: "Chief Executive Officer",
+        description:
+          "Tiffany Delacruz, the CEO of Rex Vet, is a licensed veterinarian with a profound dedication to preventive medicine, striving to enhance the well-being of pets. With extensive experience in veterinary practice, Tiffany possesses a comprehensive understanding of the concerns of pet owners and their beloved companions. Under her astute leadership, Rex Vet has emerged as a renowned entity in the veterinary realm.",
+        image: "/images/our-team/CEO.webp",
+        icon: "School",
+        gradient: gradients.accent,
       },
       {
         name: "Erick Martinez",
@@ -130,7 +130,7 @@ const OurTeamAbout: React.FC = () => {
   };
 
   return (
-    <div className="overflow-hidden">
+    <div className="overflow-hidden mt-12">
       {/* Floating Paw Heart with Framer Motion */}
       <motion.div
         variants={bounceAnimation}
