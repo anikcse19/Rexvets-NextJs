@@ -44,10 +44,10 @@ export default function LayoutController({
 
   return (
     <SessionProvider>
-      <div className="flex flex-col gap-y-5">
+      <div className="flex flex-col">
         {/* {!hideLayout && <TopToolbar />} */}
         {!hideLayout && <Header />}
-        <main className="overflow-x-hidden">{children}</main>
+        <main className="overflow-x-hidden mt-12">{children}</main>
         {!hideLayout && <Footer />}
       </div>
     </SessionProvider>
