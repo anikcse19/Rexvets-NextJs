@@ -1,6 +1,5 @@
 import { authOptions } from "@/lib/auth";
 import { connectToDatabase } from "@/lib/mongoose";
-import { isValidTimezone } from "@/lib/timezone";
 import {
   IErrorResponse,
   ISendResponse,
@@ -241,13 +240,4 @@ export const PUT = async (
     };
     return throwAppError(errResp, 500);
   }
-};
-export const convertDateRange = (
-  dateRange: DateRange,
-  timezone: string = "Asia/Dhaka"
-): ConvertedDateRange => {
-  return {
-    start: moment.tz(dateRange.start, timezone).format("YYYY-MM-DD"),
-    end: moment.tz(dateRange.end, timezone).format("YYYY-MM-DD"),
-  };
 };
