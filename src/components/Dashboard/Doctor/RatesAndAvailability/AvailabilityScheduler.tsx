@@ -115,7 +115,10 @@ const AvailabilityScheduler: React.FC<Props> = ({
     }
     return moment(`2000-01-01 ${timeStr}`).format("h:mm A");
   };
-  const updateSlotPeriod = async (slotIds: string[]) => {
+  const updateSlotPeriod = async (
+    slotIds: string[],
+    status = SlotStatus.DISABLED
+  ) => {
     try {
       setIsLoading(true);
       console.log("slotIDS", slotIds);
@@ -124,7 +127,7 @@ const AvailabilityScheduler: React.FC<Props> = ({
       }
       const payload = {
         slotIds,
-        status: SlotStatus.DISABLED,
+        status,
       };
 
       const response = await fetch(
@@ -420,7 +423,8 @@ const AvailabilityScheduler: React.FC<Props> = ({
                         period?.slots?.filter(
                           (slot) => slot.status === SlotStatus.DISABLED
                         ).length || 0;
-                      const isAllDisabled = totalSlots > 0 && disabledSlots === totalSlots;
+                      const isAllDisabled =
+                        totalSlots > 0 && disabledSlots === totalSlots;
                       console.log("disabledSlots", disabledSlots);
                       // Determine the main status badge
                       const getStatusBadge = () => {
@@ -533,13 +537,10 @@ const AvailabilityScheduler: React.FC<Props> = ({
                                     period?.slots
                                       ?.map((slot) => slot?._id)
                                       ?.filter(Boolean) || [];
-                                  updateSlotPeriod(slotIds);
-                                  // console.log("slotIds:", slotIds);
-                                  // setDisabledSlotIds((prev) => [
-                                  //   ...prev,
-                                  //   ...slotIds,
-                                  // ]);
-                                  // setEnabled(!enabled);
+                                  const status = isAllDisabled
+                                    ? SlotStatus.AVAILABLE
+                                    : SlotStatus.DISABLED;
+                                  updateSlotPeriod(slotIds, status);
                                 }}
                                 className={cn(
                                   "peer rounded-full border-2 transition-colors duration-300 cursor-pointer",
