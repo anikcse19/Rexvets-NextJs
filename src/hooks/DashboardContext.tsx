@@ -129,7 +129,7 @@ export const DashboardProvider: React.FC<DashboardProviderProps> = ({
       }
       try {
         // const timezoneParam = timezone ? `&timezone=${encodeURIComponent(timezone)}` : '';
-        const apiUrl = `/api/appointments/slots/slot-summary/${refId}?startDate=${startDate}&endDate=${endDate}&status=${SlotStatus.DISABLED}`;
+        const apiUrl = `/api/appointments/slots/slot-summary/${refId}?startDate=${startDate}&endDate=${endDate}&status=${SlotStatus.ALL}`;
         console.log("Fetching from API:", apiUrl);
 
         const res = await fetch(apiUrl);

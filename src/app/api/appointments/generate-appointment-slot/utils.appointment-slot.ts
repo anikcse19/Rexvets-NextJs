@@ -523,13 +523,11 @@ export const getAppointmentSlots = async (
       },
     };
 
-    // Add status filter - only show available slots (not booked, blocked, or pending)
-    if (status !== SlotStatus.ALL) {
+    // Add status filter
+    if (status !== SlotStatus.ALL && status !== "ALL" && status !== undefined) {
       baseQuery.status = status;
-    } else {
-      // If status is ALL, still exclude booked and blocked slots for booking purposes
-      baseQuery.status = { $in: [SlotStatus.AVAILABLE] };
     }
+    // If status is ALL, undefined, or "ALL", don't add any status filter to return all slots
 
     // REMOVED: Server timezone-based date filtering
     // This was causing slots to disappear when users changed their timezone
