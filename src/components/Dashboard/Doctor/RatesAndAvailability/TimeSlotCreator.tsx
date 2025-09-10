@@ -35,7 +35,11 @@ import {
 import moment from "moment";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { addNewPeriod, addSinglePeriod, deleteSlotsByIds } from "./services/delete-periods";
+import {
+  addNewPeriod,
+  addSinglePeriod,
+  deleteSlotsByIds,
+} from "./services/delete-periods";
 
 interface TimeSlotCreatorProps {
   selectedRange: DateRange | null;
@@ -499,7 +503,9 @@ export default function TimeSlotCreator({
       );
 
       // Mark this slot as existing
-      setSlots(slots.map((s) => (s.id === slotId ? { ...s, isExisting: true } : s)));
+      setSlots(
+        slots.map((s) => (s.id === slotId ? { ...s, isExisting: true } : s))
+      );
     } catch (error: any) {
       console.error("Error saving individual period:", error);
       setErrorMessage(error.message || "Please try again.");
@@ -1099,8 +1105,10 @@ export default function TimeSlotCreator({
                             }`}
                           ></div>
                           <h3 className="font-semibold text-sm text-gray-800 truncate">
-                            {slot.isExisting ? "Existing" : "New"} Period #
-                            {index + 1}
+                            {slot.isExisting
+                              ? "Period/Slot"
+                              : "New-Period/Slot"}{" "}
+                            #{index + 1}
                           </h3>
                         </div>
 
