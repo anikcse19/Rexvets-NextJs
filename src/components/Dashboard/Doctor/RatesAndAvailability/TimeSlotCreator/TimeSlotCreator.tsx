@@ -109,7 +109,9 @@ const TimeSlotCreator = ({
       endTime: period.endTime,
       isExisting: true,
       isSelected: false,
-      date: period?.slots[0]?.formattedDate ? new Date(period.slots[0].formattedDate) : undefined,
+      date: period?.slots[0]?.formattedDate
+        ? new Date(period.slots[0].formattedDate)
+        : undefined,
       slotIDs: period.slots.map((slot) => slot._id),
     }));
   }, [hasExistingSlots, existingPeriods]);
@@ -150,7 +152,9 @@ const TimeSlotCreator = ({
           endTime: initialTime.endTime,
           isExisting: false,
           isSelected: false,
-          date: selectedRange?.start ? new Date(selectedRange.start) : undefined,
+          date: selectedRange?.start
+            ? new Date(selectedRange.start)
+            : undefined,
         },
       ]);
     }
@@ -640,7 +644,7 @@ const TimeSlotCreator = ({
         slotPeriods,
         dateRange: {
           start: new Date(selectedRange.start),
-          end: new Date(selectedRange.end)
+          end: new Date(selectedRange.end),
         },
         slotDuration: 30, // Default slot duration
         bufferBetweenSlots: 0, // Default buffer
@@ -664,7 +668,9 @@ const TimeSlotCreator = ({
             endTime: "09:00",
             isExisting: false,
             isSelected: false,
-            date: selectedRange?.start ? new Date(selectedRange.start) : undefined,
+            date: selectedRange?.start
+              ? new Date(selectedRange.start)
+              : undefined,
           },
         ]);
       }
@@ -1004,35 +1010,31 @@ const TimeSlotCreator = ({
                 </div>
 
                 {/* Professional Scheduling Info */}
-                <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-xl shadow-sm">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                      <Clock className="w-4 h-4 text-blue-600" />
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-semibold text-blue-800">
-                        Professional Time Block Scheduling
-                      </h3>
-                      <p className="text-sm text-blue-700 mt-1">
-                        🕐 3-hour minimum periods • ⏰ 1-hour buffer between
-                        blocks • 🚫 No conflicts possible •
-                      </p>
-                      <div className="mt-2 text-xs text-blue-600">
-                        <p>
-                          📊 Current Status:{" "}
-                          {slots.filter((s) => s.isExisting).length} existing
-                          periods, {slots.filter((s) => !s.isExisting).length}{" "}
-                          new periods
+                {process.env.NODE_ENV !== "production" && (
+                  <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-xl shadow-sm">
+                    <div className="flex items-center space-x-3">
+                      <div>
+                        <p className="text-sm text-blue-700 mt-1">
+                          🕐 3-hour minimum periods • ⏰ 1-hour buffer between
+                          blocks • 🚫 No conflicts possible •
                         </p>
+                        <div className="mt-2 text-xs text-blue-600">
+                          <p>
+                            📊 Current Status:{" "}
+                            {slots.filter((s) => s.isExisting).length} existing
+                            periods, {slots.filter((s) => !s.isExisting).length}{" "}
+                            new periods
+                          </p>
 
-                        <p>
-                          🚫 All periods cannot overlap with each other (1hr
-                          buffer enforced)
-                        </p>
+                          <p>
+                            🚫 All periods cannot overlap with each other (1hr
+                            buffer enforced)
+                          </p>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
+                )}
 
                 {/* Error Message Display */}
                 {errorMessage && (
@@ -1084,7 +1086,7 @@ const TimeSlotCreator = ({
                       <Button
                         onClick={handleBulkDelete}
                         variant="destructive"
-                        className="bg-red-500 hover:bg-red-600 text-white border border-red-500 px-4 py-2 rounded-lg transition-all duration-200"
+                        className="bg-red-500 cursor-pointer hover:bg-red-600 text-white border border-red-500 px-4 py-2 rounded-lg transition-all duration-200"
                       >
                         <Trash2 className="w-4 h-4 mr-2" />
                         Delete Selected
@@ -1419,42 +1421,28 @@ const TimeSlotCreator = ({
                               </div>
                             )}
 
-                            {/* Individual Save/Update Button */}
-                            {isValidSlot(slot) && (
+                            {/* Individual Save Button - Only for new slots */}
+                            {isValidSlot(slot) && !slot.isExisting && (
                               <Button
                                 variant="ghost"
                                 size="sm"
                                 disabled={savingSlotId === slot.id}
                                 onClick={() => {
-                                  if (slot.isExisting) {
-                                    updateIndividualPeriod(
-                                      slot.slotIDs || [],
-                                      slot.startTime,
-                                      slot.endTime
-                                    );
-                                  } else {
-                                    saveIndividualPeriod(slot.id);
-                                  }
+                                  saveIndividualPeriod(slot.id);
                                 }}
                                 className={`h-6 w-6 p-0 rounded-md transition-all duration-200 ${
                                   savingSlotId === slot.id
                                     ? "text-gray-400 cursor-not-allowed"
-                                    : slot.isExisting
-                                    ? "text-blue-600 hover:text-blue-700 hover:bg-blue-100"
                                     : "text-emerald-600 hover:text-emerald-700 hover:bg-emerald-100"
                                 }`}
                                 title={
                                   savingSlotId === slot.id
                                     ? "Saving..."
-                                    : slot.isExisting
-                                    ? "Update existing period"
                                     : "Save new period"
                                 }
                               >
                                 {savingSlotId === slot.id ? (
                                   <Loader2 className="h-4 w-4 animate-spin" />
-                                ) : slot.isExisting ? (
-                                  <Edit3 className="h-4 w-4" />
                                 ) : (
                                   <Save className="h-4 w-4" />
                                 )}
