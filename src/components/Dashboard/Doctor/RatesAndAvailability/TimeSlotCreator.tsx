@@ -21,7 +21,6 @@ import { getUserTimezone } from "@/lib/timezone";
 import { convertTimesToUserTimezone } from "@/lib/timezone/index";
 import { DateRange, SlotPeriod } from "@/lib/types";
 import { generateTimeOptions } from "@/lib/utils";
-import { Slot } from "@radix-ui/react-slot";
 import {
   AlertTriangle,
   Calendar,
@@ -537,7 +536,9 @@ export default function TimeSlotCreator({
         endTime,
         slotDuration: 30,
         bufferBetweenSlots: 0,
+        selectedRange,
       };
+      console.log("payload", payload);
       const res = await fetch(`/api/appointments/slots/update-period`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },

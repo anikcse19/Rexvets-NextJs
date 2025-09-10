@@ -11,6 +11,10 @@ interface IUpdateExistingPeriodRequest {
   endTime: string; // HH:mm (can be 24:00)
   slotDuration?: number; // minutes
   bufferBetweenSlots?: number; // minutes
+  selectedRange: {
+    start: Date;
+    end: Date;
+  };
 }
 
 export const PUT = async (req: NextRequest) => {
@@ -25,6 +29,7 @@ export const PUT = async (req: NextRequest) => {
       endTime,
       slotDuration = 30,
       bufferBetweenSlots = 0,
+      selectedRange,
     } = body || {};
 
     if (!vetId || !Array.isArray(slotIds) || slotIds.length === 0) {
@@ -32,6 +37,16 @@ export const PUT = async (req: NextRequest) => {
         JSON.stringify({
           success: false,
           message: "vetId and slotIds are required",
+        }),
+        { status: 400 }
+      );
+    }
+
+    if (!selectedRange || !selectedRange.start || !selectedRange.end) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          message: "selectedRange with start and end dates is required",
         }),
         { status: 400 }
       );
@@ -70,6 +85,56 @@ export const PUT = async (req: NextRequest) => {
       return new Response(
         JSON.stringify({ success: false, message: "No matching slots found" }),
         { status: 404 }
+      );
+    }
+
+    // Check for existing slots in the new date range and time window
+    const rangeStart = moment(selectedRange.start).startOf("day");
+    const rangeEnd = moment(selectedRange.end).endOf("day");
+    
+    // Get timezone from existing slots (assuming all slots have same timezone)
+    const timezone = targetSlots[0]?.timezone;
+    if (!timezone) {
+      return new Response(
+        JSON.stringify({ success: false, message: "Unable to determine timezone from existing slots" }),
+        { status: 400 }
+      );
+    }
+
+    // Check for existing slots in the new date range and time window
+    const existingSlotsInRange = await AppointmentSlot.find({
+      vetId: new Types.ObjectId(vetId),
+      date: {
+        $gte: rangeStart.toDate(),
+        $lte: rangeEnd.toDate(),
+      },
+      timezone: timezone,
+      // Exclude the slots we're updating
+      _id: { $nin: objectIds },
+    }).lean();
+
+    // Check if any existing slots overlap with the new time window
+    const hasOverlap = existingSlotsInRange.some((slot: any) => {
+      const slotStart = moment(`2000-01-01 ${slot.startTime}`, "YYYY-MM-DD HH:mm");
+      const slotEnd = moment(`2000-01-01 ${slot.endTime}`, "YYYY-MM-DD HH:mm");
+      
+      const newStart = moment(`2000-01-01 ${startTime}`, "YYYY-MM-DD HH:mm");
+      let newEnd = moment(`2000-01-01 ${endTime}`, "YYYY-MM-DD HH:mm");
+      if (endTime === "24:00") {
+        newEnd = moment("2000-01-02 00:00", "YYYY-MM-DD HH:mm");
+      }
+
+      // Check for overlap
+      return newStart.isBefore(slotEnd) && newEnd.isAfter(slotStart);
+    });
+
+    if (hasOverlap) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          message: `Cannot update period: The new time window (${startTime}-${endTime}) conflicts with existing slots in the date range ${rangeStart.format("YYYY-MM-DD")} to ${rangeEnd.format("YYYY-MM-DD")}. Please choose a different time or date range.`,
+        }),
+        { status: 409 }
       );
     }
 
