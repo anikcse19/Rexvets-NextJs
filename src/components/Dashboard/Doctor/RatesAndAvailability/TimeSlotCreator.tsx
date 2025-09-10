@@ -35,7 +35,7 @@ import {
 import moment from "moment";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { addNewPeriod, deleteSlotsByIds } from "./services/delete-periods";
+import { addNewPeriod, addSinglePeriod, deleteSlotsByIds } from "./services/delete-periods";
 
 interface TimeSlotCreatorProps {
   selectedRange: DateRange | null;
@@ -470,6 +470,7 @@ export default function TimeSlotCreator({
 
   // Save individual new period
   const saveIndividualPeriod = async (slotId: string) => {
+    setErrorMessage("");
     const slot = slots.find((s) => s.id === slotId);
     if (!slot || slot.isExisting) return;
 
@@ -484,24 +485,11 @@ export default function TimeSlotCreator({
     }
 
     try {
-      const slotPeriods: SlotPeriod[] = [
-        {
-          start: new Date(selectedRange.start),
-          end: new Date(selectedRange.start),
-        },
-      ];
-
-      // Set the time for the slot
-      const [startH, startM] = slot.startTime.split(":").map(Number);
-      const [endH, endM] = slot.endTime.split(":").map(Number);
-
-      slotPeriods[0].start.setHours(startH, startM, 0, 0);
-      slotPeriods[0].end.setHours(endH, endM, 0, 0);
-
-      const result = await addNewPeriod({
+      // Use granular single-period creation to avoid date-range conflict errors
+      const result = await addSinglePeriod({
         vetId,
-        slotPeriods,
-        dateRange: selectedRange,
+        date: new Date(selectedRange.start),
+        period: { start: slot.startTime, end: slot.endTime },
         slotDuration: 30,
         bufferBetweenSlots: 0,
       });
@@ -511,11 +499,10 @@ export default function TimeSlotCreator({
       );
 
       // Mark this slot as existing
-      setSlots(
-        slots.map((s) => (s.id === slotId ? { ...s, isExisting: true } : s))
-      );
+      setSlots(slots.map((s) => (s.id === slotId ? { ...s, isExisting: true } : s)));
     } catch (error: any) {
       console.error("Error saving individual period:", error);
+      setErrorMessage(error.message || "Please try again.");
       toast.error("Failed to save period", {
         description: error.message || "Please try again.",
       });

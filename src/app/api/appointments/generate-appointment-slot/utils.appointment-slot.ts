@@ -221,6 +221,113 @@ export interface IUpdateAppointmentSlots {
   slotDuration?: number;
 }
 
+// Create slots for a single day and a single period without blocking entire date-range
+export interface IGenerateSinglePeriod {
+  vetId: string;
+  date: Date;
+  timezone: string;
+  period: { start: string; end: string }; // HH:mm
+  slotDuration?: number; // minutes
+  bufferBetweenSlots?: number; // minutes
+}
+
+export const generateAppointmentSlotsForPeriod = async (
+  data: IGenerateSinglePeriod
+) => {
+  const {
+    vetId,
+    date,
+    timezone,
+    period,
+    bufferBetweenSlots = 5,
+    slotDuration = 30,
+  } = data;
+
+  try {
+    if (!isValidTimezone(timezone)) {
+      throw new Error(`Invalid timezone: ${timezone}`);
+    }
+
+    const targetDate = moment(date).startOf("day");
+    const currentDateInTimezone = moment.tz(timezone).startOf("day");
+
+    if (targetDate.isBefore(currentDateInTimezone)) {
+      throw new Error("Cannot create slots for past dates");
+    }
+
+    // Validate time format
+    const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
+    if (!timeRegex.test(period.start) || !timeRegex.test(period.end)) {
+      throw new Error(
+        `Invalid time format. Expected HH:mm, got start: ${period.start}, end: ${period.end}`
+      );
+    }
+
+    // Build candidate slots for this single period
+    const periodStart = moment(`2000-01-01 ${period.start}`, "YYYY-MM-DD HH:mm");
+    let periodEnd = period.end;
+    let periodEndMoment = moment(`2000-01-01 ${periodEnd}`, "YYYY-MM-DD HH:mm");
+    if (period.end === "24:00") {
+      periodEnd = "00:00";
+      periodEndMoment = moment("2000-01-02 00:00", "YYYY-MM-DD HH:mm");
+    }
+    if (periodEndMoment.isSameOrBefore(periodStart)) {
+      throw new Error(
+        `Invalid time period: end time ${period.end} must be after start time ${period.start}`
+      );
+    }
+
+    // Fetch existing slots only for this vet, date, and timezone
+    const existingForDay = await AppointmentSlot.find({
+      vetId: new Types.ObjectId(vetId),
+      date: targetDate.toDate(),
+      timezone,
+    });
+
+    // Generate slot start times within the window
+    const slotsToCreate: any[] = [];
+    let cursor = periodStart.clone();
+    const endBoundary = periodEndMoment.clone();
+    while (cursor.clone().add(slotDuration, "minutes").isSameOrBefore(endBoundary)) {
+      const slotStartStr = cursor.format("HH:mm");
+      const slotEndStr = cursor.clone().add(slotDuration, "minutes").format("HH:mm");
+
+      // Check overlap with existing slots for the same day (strict per-vet overlap prevention)
+      const overlaps = existingForDay.some((s) => {
+        const sStart = moment(`2000-01-01 ${s.startTime}`, "YYYY-MM-DD HH:mm");
+        const sEnd = moment(`2000-01-01 ${s.endTime}`, "YYYY-MM-DD HH:mm");
+        const cStart = moment(`2000-01-01 ${slotStartStr}`, "YYYY-MM-DD HH:mm");
+        const cEnd = moment(`2000-01-01 ${slotEndStr}`, "YYYY-MM-DD HH:mm");
+        return cStart.isBefore(sEnd) && cEnd.isAfter(sStart);
+      });
+
+      if (!overlaps) {
+        slotsToCreate.push({
+          vetId: new Types.ObjectId(vetId),
+          date: targetDate.toDate(),
+          startTime: slotStartStr,
+          endTime: slotEndStr,
+          timezone,
+          status: SlotStatus.AVAILABLE,
+          createdAt: new Date(),
+        });
+      }
+
+      // Advance by slotDuration + buffer
+      cursor = cursor.add(slotDuration + bufferBetweenSlots, "minutes");
+    }
+
+    if (slotsToCreate.length === 0) {
+      return { createdSlotsCount: 0, message: "No new slots created (all overlapped)" };
+    }
+
+    await AppointmentSlot.insertMany(slotsToCreate, { ordered: false });
+    return { createdSlotsCount: slotsToCreate.length };
+  } catch (error) {
+    throw error;
+  }
+};
+
 export const updateAppointmentSlots = async (data: IUpdateAppointmentSlots) => {
   try {
     const {
