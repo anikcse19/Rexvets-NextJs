@@ -93,12 +93,12 @@ export const GET = async (
       .toDate();
     const endDateObj = moment.tz(endDate, vetTimezone).endOf("day").toDate();
 
-    console.log("Date range conversion:");
-    console.log("Vet timezone:", vetTimezone);
-    console.log("Input startDate:", startDate);
-    console.log("Input endDate:", endDate);
-    console.log("Converted startDateObj:", startDateObj);
-    console.log("Converted endDateObj:", endDateObj);
+    // console.log("Date range conversion:");
+    // console.log("Vet timezone:", vetTimezone);
+    // console.log("Input startDate:", startDate);
+    // console.log("Input endDate:", endDate);
+    // console.log("Converted startDateObj:", startDateObj);
+    // console.log("Converted endDateObj:", endDateObj);
 
     const paramsFn: IGetSlotsParams = {
       vetId,
@@ -113,11 +113,16 @@ export const GET = async (
     };
     console.log("paramsFn", paramsFn);
     const response = await getSlotsByVetId(paramsFn);
-    console.log("Raw slots response:", response.data);
+    // console.log("Raw slots response:", response.data);
+    // const targetDate = "2025-09-10";
 
+    // const filteredSlots = response.data.filter(
+    //   (slot) =>
+    //     moment(slot.date).tz(vetTimezone).format("YYYY-MM-DD") === targetDate
+    // );
+    // console.log("filteredSlots", filteredSlots);
     const slotPeriods = groupSlotsIntoPeriods(response.data);
     // console.log("Grouped slot periods:", slotPeriods);
-
     const responseFormat: ISendResponse<any> = {
       statusCode: 200,
       success: true,

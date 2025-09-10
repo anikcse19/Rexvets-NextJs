@@ -1,7 +1,7 @@
 import { isTimeInPast, isValidTimezone } from "@/lib/timezone";
 import { DateRange } from "@/lib/types";
 import { AppointmentSlot, SlotStatus } from "@/models/AppointmentSlot";
-import moment from "moment";
+import moment from "moment-timezone";
 import { Types } from "mongoose";
 
 export interface IGenerateAppointmentSlots {
@@ -37,9 +37,9 @@ export const generateAppointmentSlots = async (
       throw new Error(`Invalid timezone: ${timezone}`);
     }
 
-    // Parse dates as local dates without timezone conversion
-    const startDate = moment(dateRange.start).startOf("day");
-    const endDate = moment(dateRange.end).endOf("day");
+    // Parse dates with timezone-aware conversion for consistency
+    const startDate = moment.tz(dateRange.start, timezone).startOf("day");
+    const endDate = moment.tz(dateRange.end, timezone).endOf("day");
     console.log("start date:", startDate.format("YYYY-MM-DD"));
     console.log("end date:", endDate.format("YYYY-MM-DD"));
 
@@ -167,6 +167,12 @@ export const generateAppointmentSlots = async (
             createdAt: new Date(),
           };
 
+          console.log("=== SLOT GENERATION DEBUG ===");
+          console.log("Creating slot for date:", localDate);
+          console.log("Slot timezone:", timezone);
+          console.log("Slot startTime:", currentSlotStart);
+          console.log("Slot endTime:", currentSlotEnd);
+
           slotsToCreate.push(slotData);
 
           // Move to next slot start time (no buffer gap)
@@ -225,9 +231,15 @@ export interface IUpdateAppointmentSlots {
 // Create slots for a single day and a single period without blocking entire date-range
 export interface IGenerateSinglePeriod {
   vetId: string;
-  // New payload supports dateRange; keep "date" for backward compatibility
-  dateRange?: DateRange;
-  date?: DateRange;
+  // Use Date objects for consistency with other interfaces
+  dateRange?: {
+    start: Date;
+    end: Date;
+  };
+  date?: {
+    start: Date;
+    end: Date;
+  };
   timezone: string;
   period: { start: string; end: string }; // HH:mm
   slotDuration?: number; // minutes
@@ -253,27 +265,23 @@ export const generateAppointmentSlotsForPeriod = async (
     }
 
     // Normalize the input to a date range (inclusive)
-    const inputRange: DateRange | undefined = dateRange || date;
+    const inputRange = dateRange || date;
     if (!inputRange?.start || !inputRange?.end) {
       throw new Error("dateRange is required");
     }
-    
-    // Parse the date part from UTC timestamps and apply timezone
-    console.log("Input start date (UTC):", inputRange.start);
-    console.log("Input end date (UTC):", inputRange.end);
-    console.log("Timezone:", timezone);
-    
-    // Extract the date part from UTC timestamps and create dates in the target timezone
-    const startDateUTC = moment.utc(inputRange.start);
-    const endDateUTC = moment.utc(inputRange.end);
-    
-    // Create dates in the target timezone using the date part from UTC
-    const startDate = moment.tz(`${startDateUTC.format('YYYY-MM-DD')} 00:00:00`, timezone);
-    const endDate = moment.tz(`${endDateUTC.format('YYYY-MM-DD')} 23:59:59`, timezone);
+
+    // Use the same date management pattern as slot-summary route
+    // Convert date range to proper Date objects with full day range in vet's timezone
+    const startDate = moment.tz(inputRange.start, timezone).startOf("day");
+    const endDate = moment.tz(inputRange.end, timezone).endOf("day");
     const currentDateInTimezone = moment.tz(timezone).startOf("day");
-    
-    console.log("Converted start date:", startDate.format("YYYY-MM-DD HH:mm:ss Z"));
-    console.log("Converted end date:", endDate.format("YYYY-MM-DD HH:mm:ss Z"));
+
+    console.log("Date range conversion:");
+    console.log("Timezone:", timezone);
+    console.log("Input start date:", inputRange.start);
+    console.log("Input end date:", inputRange.end);
+    console.log("Converted start date:", startDate.format("YYYY-MM-DD"));
+    console.log("Converted end date:", endDate.format("YYYY-MM-DD"));
 
     if (endDate.isBefore(startDate)) {
       throw new Error("Invalid date range: end date must be after start date");
@@ -341,40 +349,81 @@ export const generateAppointmentSlotsForPeriod = async (
 
     // Create slots for the given period across the date range, skipping overlaps per day
     const slotsToCreate: any[] = [];
-    const totalDays = endDate.clone().startOf("day").diff(startDate.clone().startOf("day"), "days") + 1;
+    const totalDays =
+      endDate
+        .clone()
+        .startOf("day")
+        .diff(startDate.clone().startOf("day"), "days") + 1;
+    
+    console.log("=== SLOT CREATION DEBUG ===");
+    console.log("Total days to process:", totalDays);
+    console.log("Start date:", startDate.format("YYYY-MM-DD"));
+    console.log("End date:", endDate.format("YYYY-MM-DD"));
+    console.log("Current date in timezone:", currentDateInTimezone.format("YYYY-MM-DD"));
+    
     for (let day = 0; day < totalDays; day++) {
       const currentDate = startDate.clone().startOf("day").add(day, "days");
-      if (currentDate.isBefore(currentDateInTimezone)) continue; // safety
+      console.log(`Processing day ${day}:`, currentDate.format("YYYY-MM-DD"));
+      
+      if (currentDate.isBefore(currentDateInTimezone)) {
+        console.log("Skipping day (in past):", currentDate.format("YYYY-MM-DD"));
+        continue; // safety
+      }
 
       const localDate = currentDate.toDate();
       const existingForDay = existingInRange.filter((s) =>
         moment(s.date).isSame(currentDate, "day")
       );
 
+      console.log(`Day ${day} - Existing slots for this day:`, existingForDay.length);
+      console.log(`Day ${day} - Period: ${period.start} to ${period.end}`);
+      console.log(`Day ${day} - Slot duration: ${slotDuration} minutes`);
+
       let cursor = periodStart.clone();
       const endBoundary = periodEndMoment.clone();
-      while (cursor.clone().add(slotDuration, "minutes").isSameOrBefore(endBoundary)) {
+      let slotCountForDay = 0;
+      
+      while (
+        cursor.clone().add(slotDuration, "minutes").isSameOrBefore(endBoundary)
+      ) {
         const slotStartStr = cursor.format("HH:mm");
-        const slotEndStr = cursor.clone().add(slotDuration, "minutes").format("HH:mm");
+        const slotEndStr = cursor
+          .clone()
+          .add(slotDuration, "minutes")
+          .format("HH:mm");
 
         // Skip if time already passed for today in appointment timezone
-        if (
-          currentDate.isSame(currentDateInTimezone, "day") &&
-          isTimeInPast(slotEndStr, currentDate.toDate(), timezone)
-        ) {
-          cursor = cursor.add(slotDuration + bufferBetweenSlots, "minutes");
-          continue;
-        }
+        // Only skip if it's actually today AND the slot end time has passed
+        const isToday = currentDate.isSame(currentDateInTimezone, "day");
+        const timeHasPassed = isToday && isTimeInPast(slotEndStr, currentDate.toDate(), timezone);
+        
+        console.log(`Day ${day} - Slot ${slotStartStr}-${slotEndStr}: isToday=${isToday}, timeHasPassed=${timeHasPassed}`);
+        console.log(`Day ${day} - Current time in timezone: ${moment.tz(timezone).format("YYYY-MM-DD HH:mm:ss")}`);
+        console.log(`Day ${day} - Slot end time: ${slotEndStr}`);
+        
+        // TEMPORARILY DISABLE TIME CHECK FOR DEBUGGING
+        // if (timeHasPassed) {
+        //   console.log(`Day ${day} - Skipping slot ${slotStartStr}-${slotEndStr} (time passed for today)`);
+        //   cursor = cursor.add(slotDuration + bufferBetweenSlots, "minutes");
+        //   continue;
+        // }
 
         const overlaps = existingForDay.some((s) => {
-          const sStart = moment(`2000-01-01 ${s.startTime}`, "YYYY-MM-DD HH:mm");
+          const sStart = moment(
+            `2000-01-01 ${s.startTime}`,
+            "YYYY-MM-DD HH:mm"
+          );
           const sEnd = moment(`2000-01-01 ${s.endTime}`, "YYYY-MM-DD HH:mm");
-          const cStart = moment(`2000-01-01 ${slotStartStr}`, "YYYY-MM-DD HH:mm");
+          const cStart = moment(
+            `2000-01-01 ${slotStartStr}`,
+            "YYYY-MM-DD HH:mm"
+          );
           const cEnd = moment(`2000-01-01 ${slotEndStr}`, "YYYY-MM-DD HH:mm");
           return cStart.isBefore(sEnd) && cEnd.isAfter(sStart);
         });
 
         if (!overlaps) {
+          console.log(`Day ${day} - Creating slot: ${slotStartStr}-${slotEndStr}`);
           slotsToCreate.push({
             vetId: new Types.ObjectId(vetId),
             date: localDate,
@@ -384,14 +433,22 @@ export const generateAppointmentSlotsForPeriod = async (
             status: SlotStatus.AVAILABLE,
             createdAt: new Date(),
           });
+          slotCountForDay++;
+        } else {
+          console.log(`Day ${day} - Skipping slot ${slotStartStr}-${slotEndStr} (overlaps with existing)`);
         }
 
         cursor = cursor.add(slotDuration + bufferBetweenSlots, "minutes");
       }
+      
+      console.log(`Day ${day} - Total slots created for this day: ${slotCountForDay}`);
     }
 
     if (slotsToCreate.length === 0) {
-      return { createdSlotsCount: 0, message: "No new slots created (all overlapped)" };
+      return {
+        createdSlotsCount: 0,
+        message: "No new slots created (all overlapped)",
+      };
     }
 
     await AppointmentSlot.insertMany(slotsToCreate, { ordered: false });
@@ -417,9 +474,9 @@ export const updateAppointmentSlots = async (data: IUpdateAppointmentSlots) => {
       throw new Error(`Invalid timezone: ${timezone}`);
     }
 
-    // Convert date range to local dates without timezone conversion
-    const startDate = moment(dateRange.start).startOf("day");
-    const endDate = moment(dateRange.end).startOf("day");
+    // Convert date range with timezone-aware conversion for consistency
+    const startDate = moment.tz(dateRange.start, timezone).startOf("day");
+    const endDate = moment.tz(dateRange.end, timezone).endOf("day");
 
     // Validate date range
     if (endDate.isBefore(startDate)) {
@@ -686,9 +743,19 @@ export const getAppointmentSlots = async (
       sortOrder = "asc",
     } = params;
 
-    // Validate date range - use local dates without timezone conversion
-    const startDate = moment(dateRange.start).startOf("day");
-    const endDate = moment(dateRange.end).endOf("day");
+    // Validate date range - use timezone-aware conversion for consistency with slot generation
+    const startDate = moment
+      .tz(dateRange.start, timezone || "UTC")
+      .startOf("day");
+    const endDate = moment.tz(dateRange.end, timezone || "UTC").endOf("day");
+
+    console.log("=== getAppointmentSlots DEBUG ===");
+    console.log("Input dateRange:", dateRange);
+    console.log("Timezone:", timezone);
+    console.log("Converted startDate:", startDate.format("YYYY-MM-DD HH:mm:ss Z"));
+    console.log("Converted endDate:", endDate.format("YYYY-MM-DD HH:mm:ss Z"));
+    console.log("startDate.toDate():", startDate.toDate());
+    console.log("endDate.toDate():", endDate.toDate());
 
     if (endDate.isBefore(startDate)) {
       throw new Error("Invalid date range: end date must be after start date");
@@ -702,6 +769,13 @@ export const getAppointmentSlots = async (
         $lte: endDate.toDate(),
       },
     };
+
+    // Add timezone filter if provided
+    if (timezone) {
+      baseQuery.timezone = timezone;
+    }
+
+    console.log("MongoDB Query:", JSON.stringify(baseQuery, null, 2));
 
     // Add status filter
     if (status !== SlotStatus.ALL && status !== "ALL" && status !== undefined) {
