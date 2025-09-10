@@ -297,50 +297,49 @@ export function useTimeSlotCreator({
     }
   };
 
-  const updateIndividualPeriod = async (slotId: string) => {
-    const slot = slots.find((s) => s.id === slotId);
-    if (!slot || !slot.isExisting) return;
-    if (!selectedRange || !vetId) {
-      toast.error("Missing required information");
-      return;
-    }
-    if (!isValidSlot(slot)) {
-      toast.error("Invalid time slot configuration");
-      return;
-    }
+  const updateIndividualPeriod = async (
+    slotIds: string[] | undefined,
+    startTime: string,
+    endTime: string
+  ) => {
+    console.log("SLOT ID", slotIds);
+    console.log("slot start time", startTime);
+    console.log("slot end time", endTime);
+
     try {
+      if (!vetId) throw new Error("Missing vetId");
+      if (!slotIds || slotIds.length === 0)
+        throw new Error("No slotIds provided");
       const payload = {
-        slotPeriods: [
-          {
-            start: slot.startTime,
-            end: slot.endTime,
-          },
-        ],
+        vetId,
+        slotIds,
+        startTime,
+        endTime,
         slotDuration: 30,
         bufferBetweenSlots: 0,
-        dateRange: selectedRange,
+        selectedRange,
       };
-
-      const res = await fetch(`/api/appointments/generate-appointment-slot/${vetId}`, {
-        method: "PATCH",
+      console.log("payload", payload);
+      const res = await fetch(`/api/appointments/slots/update-period`, {
+        method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-
       if (!res.ok) {
         const msg = await res.text();
         throw new Error(msg || "Failed to update period");
       }
-
-      toast.success(`Period updated successfully!`);
+      toast.success("Period updated successfully!");
       if (typeof refetch === "function") {
         try {
-          await refetch();
+          refetch();
         } catch {}
       }
     } catch (error: any) {
       console.error("Error updating existing period:", error);
-      toast.error("Failed to update period", { description: error.message || "Please try again." });
+      toast.error("Failed to update period", {
+        description: error.message || "Please try again.",
+      });
     }
   };
 

@@ -2,47 +2,61 @@
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Calendar, Clock, Edit3, Save, Trash2 } from "lucide-react";
+import { AlertTriangle, ChevronDown, Clock, Edit3, Save, Trash2 } from "lucide-react";
 import moment from "moment";
 
+interface TimeSlot {
+  id: string;
+  startTime: string;
+  endTime: string;
+  isExisting?: boolean;
+  isSelected?: boolean;
+  date?: Date | string;
+  slotIDs?: string[];
+}
+
 interface PeriodCardProps {
-  slot: {
-    id: string;
-    startTime: string;
-    endTime: string;
-    isExisting?: boolean;
-    isSelected?: boolean;
-    date?: Date | string;
-  };
+  slot: TimeSlot;
+  index: number;
   formattedDate: string;
-  isValidSlot: (slot: any) => boolean;
+  isValidSlot: (slot: TimeSlot) => boolean;
   generateAvailableTimeBlocks: (slotId: string) => Array<{ start: string; end: string; label: string }>;
   customTimeInputs: { [key: string]: { startTime: string; endTime: string } };
   openCustomTimeDialog: { [key: string]: boolean };
   setOpenCustomTimeDialog: (updater: (prev: any) => any) => void;
+  setCustomTimeInputs: (updater: (prev: any) => any) => void;
+  setSlots: (updater: (prev: TimeSlot[]) => TimeSlot[]) => void;
   toggleSlotSelection: (id: string) => void;
   updateSlotWithTimeBlock: (id: string, timeBlock: { start: string; end: string }) => void;
   handleCustomTimeChange: (slotId: string, field: "startTime" | "endTime", value: string) => void;
   saveIndividualPeriod: (slotId: string) => Promise<void>;
-  updateIndividualPeriod: (slotId: string) => Promise<void>;
+  updateIndividualPeriod: (slotIds: string[] | undefined, startTime: string, endTime: string) => Promise<void>;
   removeSlot: (slotId: string) => Promise<void>;
+  formatDuration: (hours: number) => string;
+  slots: TimeSlot[];
 }
 
 export const PeriodCard: React.FC<PeriodCardProps> = ({
   slot,
+  index,
   formattedDate,
   isValidSlot,
   generateAvailableTimeBlocks,
   customTimeInputs,
   openCustomTimeDialog,
   setOpenCustomTimeDialog,
+  setCustomTimeInputs,
+  setSlots,
   toggleSlotSelection,
   updateSlotWithTimeBlock,
   handleCustomTimeChange,
   saveIndividualPeriod,
   updateIndividualPeriod,
   removeSlot,
+  formatDuration,
+  slots,
 }) => {
   return (
     <div
