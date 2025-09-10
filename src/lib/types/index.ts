@@ -248,8 +248,8 @@ export interface Help {
 // Re-export appointment types
 export * from "./appointment";
 export interface DateRange {
-  start: Date;
-  end: Date;
+  start: string;
+  end: string;
 }
 
 export interface SlotPeriod {

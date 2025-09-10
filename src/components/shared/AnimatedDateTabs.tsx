@@ -115,8 +115,8 @@ const AnimatedDateTabs: React.FC<AnimatedDateTabsProps> = ({
       setDateRange(initialRange);
       // Also update the dashboard context
       setSelectedRange({
-        start: initialRange.from!,
-        end: initialRange.to!,
+        start: moment(initialRange.from!).format("YYYY-MM-DD"),
+        end: moment(initialRange.to!).format("YYYY-MM-DD"),
       });
     }
   }, [initialTab, setSelectedRange]);
@@ -259,8 +259,8 @@ const AnimatedDateTabs: React.FC<AnimatedDateTabsProps> = ({
         setDateRange(newRange);
         // Also update the dashboard context
         setSelectedRange({
-          start: newRange.from!,
-          end: newRange.to!,
+          start: moment(newRange.from!).format("YYYY-MM-DD"),
+          end: moment(newRange.to!).format("YYYY-MM-DD"),
         });
       }
 
@@ -278,8 +278,8 @@ const AnimatedDateTabs: React.FC<AnimatedDateTabsProps> = ({
         setActiveTab("custom");
         // Update dashboard context
         setSelectedRange({
-          start: date,
-          end: date,
+          start: moment(date).format("YYYY-MM-DD"),
+          end: moment(date).format("YYYY-MM-DD"),
         });
 
         if (onDateChange) {
@@ -317,8 +317,8 @@ const AnimatedDateTabs: React.FC<AnimatedDateTabsProps> = ({
           setActiveTab("range");
           // Update dashboard context
           setSelectedRange({
-            start: range.from,
-            end: range.to,
+            start: moment(range.from).format("YYYY-MM-DD"),
+            end: moment(range.to).format("YYYY-MM-DD"),
           });
 
           if (onDateChange) {
@@ -385,8 +385,8 @@ const AnimatedDateTabs: React.FC<AnimatedDateTabsProps> = ({
     if (initialRange) {
       setDateRange(initialRange);
       setSelectedRange({
-        start: initialRange.from!,
-        end: initialRange.to!,
+        start: moment(initialRange.from!).format("YYYY-MM-DD"),
+        end: moment(initialRange.to!).format("YYYY-MM-DD"),
       });
     } else {
       setSelectedRange(null);

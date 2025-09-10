@@ -74,7 +74,9 @@ export const POST = async (req: NextRequest) => {
         404
       );
     }
-
+    if (!vet.timezone) {
+      throw new Error("Veterinarian timezone is required");
+    }
     const payload: IGenerateSinglePeriod = {
       vetId,
       dateRange: dateRange,

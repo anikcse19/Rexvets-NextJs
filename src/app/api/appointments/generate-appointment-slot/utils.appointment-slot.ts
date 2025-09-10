@@ -257,9 +257,23 @@ export const generateAppointmentSlotsForPeriod = async (
     if (!inputRange?.start || !inputRange?.end) {
       throw new Error("dateRange is required");
     }
-    const startDate = moment(inputRange.start).startOf("day");
-    const endDate = moment(inputRange.end).endOf("day");
+    
+    // Parse the date part from UTC timestamps and apply timezone
+    console.log("Input start date (UTC):", inputRange.start);
+    console.log("Input end date (UTC):", inputRange.end);
+    console.log("Timezone:", timezone);
+    
+    // Extract the date part from UTC timestamps and create dates in the target timezone
+    const startDateUTC = moment.utc(inputRange.start);
+    const endDateUTC = moment.utc(inputRange.end);
+    
+    // Create dates in the target timezone using the date part from UTC
+    const startDate = moment.tz(`${startDateUTC.format('YYYY-MM-DD')} 00:00:00`, timezone);
+    const endDate = moment.tz(`${endDateUTC.format('YYYY-MM-DD')} 23:59:59`, timezone);
     const currentDateInTimezone = moment.tz(timezone).startOf("day");
+    
+    console.log("Converted start date:", startDate.format("YYYY-MM-DD HH:mm:ss Z"));
+    console.log("Converted end date:", endDate.format("YYYY-MM-DD HH:mm:ss Z"));
 
     if (endDate.isBefore(startDate)) {
       throw new Error("Invalid date range: end date must be after start date");

@@ -9,6 +9,7 @@ import {
 } from "@/lib/utils/send.response";
 import { SlotStatus } from "@/models/AppointmentSlot";
 import Veterinarian from "@/models/Veterinarian";
+import moment from "moment-timezone";
 import { Types } from "mongoose";
 import { getServerSession } from "next-auth/next";
 import { NextRequest } from "next/server";
@@ -16,6 +17,12 @@ import {
   getSlotsByVetId,
   IGetSlotsParams,
 } from "../../../generate-appointment-slot/utils.appointment-slot";
+interface ConvertedDateRange {
+  start: string; // "YYYY-MM-DD"
+  end: string; // "YYYY-MM-DD"
+}
+
+import { DateRange } from "@/lib/types";
 import {
   groupSlotsIntoPeriods,
   updateSlotStatus,
@@ -76,23 +83,40 @@ export const GET = async (
       return throwAppError(errResp, 404);
     }
     // Prepare parameters for slot retrieval
+    // Use veterinarian's timezone for date range conversion
+    const vetTimezone = isVetExist?.timezone || "UTC";
+
+    // Convert date strings to proper Date objects with full day range in vet's timezone
+    const startDateObj = moment
+      .tz(startDate, vetTimezone)
+      .startOf("day")
+      .toDate();
+    const endDateObj = moment.tz(endDate, vetTimezone).endOf("day").toDate();
+
+    console.log("Date range conversion:");
+    console.log("Vet timezone:", vetTimezone);
+    console.log("Input startDate:", startDate);
+    console.log("Input endDate:", endDate);
+    console.log("Converted startDateObj:", startDateObj);
+    console.log("Converted endDateObj:", endDateObj);
+
     const paramsFn: IGetSlotsParams = {
       vetId,
       dateRange: {
-        start: new Date(startDate),
-        end: new Date(endDate),
+        start: startDateObj,
+        end: endDateObj,
       },
-      timezone: isVetExist?.timezone || "UTC", // Pass timezone for display conversion
+      timezone: vetTimezone, // Always use vet's timezone
       status: slotStatus,
       limit,
       page,
     };
     console.log("paramsFn", paramsFn);
     const response = await getSlotsByVetId(paramsFn);
-    console.log("Raw slots response:", response.data.length);
+    console.log("Raw slots response:", response.data);
 
     const slotPeriods = groupSlotsIntoPeriods(response.data);
-    console.log("Grouped slot periods:", slotPeriods);
+    // console.log("Grouped slot periods:", slotPeriods);
 
     const responseFormat: ISendResponse<any> = {
       statusCode: 200,
@@ -212,4 +236,13 @@ export const PUT = async (
     };
     return throwAppError(errResp, 500);
   }
+};
+export const convertDateRange = (
+  dateRange: DateRange,
+  timezone: string = "Asia/Dhaka"
+): ConvertedDateRange => {
+  return {
+    start: moment.tz(dateRange.start, timezone).format("YYYY-MM-DD"),
+    end: moment.tz(dateRange.end, timezone).format("YYYY-MM-DD"),
+  };
 };
