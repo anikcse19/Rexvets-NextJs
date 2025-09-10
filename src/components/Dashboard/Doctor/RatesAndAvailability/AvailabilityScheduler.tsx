@@ -124,10 +124,7 @@ const AvailabilityScheduler: React.FC<Props> = ({
       }
       const payload = {
         slotIds,
-        status:
-          slotStatus === SlotStatus.DISABLED
-            ? SlotStatus.AVAILABLE
-            : SlotStatus.DISABLED,
+        status: SlotStatus.DISABLED,
       };
 
       const response = await fetch(
@@ -407,7 +404,57 @@ const AvailabilityScheduler: React.FC<Props> = ({
                   {/* Day's Time Slots */}
                   <div className="space-y-2">
                     {dayData?.periods?.map((period, periodIndex) => {
-                      console.log("period", period);
+                      // console.log("period", period);
+
+                      // Calculate slot counts
+                      const totalSlots = period?.slots?.length || 0;
+                      const availableSlots =
+                        period?.slots?.filter(
+                          (slot) => slot.status === SlotStatus.AVAILABLE
+                        ).length || 0;
+                      const bookedSlots =
+                        period?.slots?.filter(
+                          (slot) => slot.status === SlotStatus.BOOKED
+                        ).length || 0;
+                      const disabledSlots =
+                        period?.slots?.filter(
+                          (slot) => slot.status === SlotStatus.DISABLED
+                        ).length || 0;
+                      console.log("disabledSlots", disabledSlots);
+                      // Determine the main status badge
+                      const getStatusBadge = () => {
+                        if (disabledSlots === totalSlots && totalSlots > 0) {
+                          return {
+                            text: `${disabledSlots} Disabled`,
+                            className:
+                              "px-1.5 py-0.5 bg-red-100 text-red-700 rounded",
+                          };
+                        } else if (
+                          bookedSlots === totalSlots &&
+                          totalSlots > 0
+                        ) {
+                          return {
+                            text: `${bookedSlots} Booked`,
+                            className:
+                              "px-1.5 py-0.5 bg-orange-100 text-orange-700 rounded",
+                          };
+                        } else if (availableSlots > 0) {
+                          return {
+                            text: `${availableSlots} Available`,
+                            className:
+                              "px-1.5 py-0.5 bg-green-100 text-green-700 rounded",
+                          };
+                        } else {
+                          return {
+                            text: "No Slots",
+                            className:
+                              "px-1.5 py-0.5 bg-gray-100 text-gray-700 rounded",
+                          };
+                        }
+                      };
+
+                      const statusBadge = getStatusBadge();
+
                       return (
                         <div
                           key={periodIndex}
@@ -432,8 +479,8 @@ const AvailabilityScheduler: React.FC<Props> = ({
                               )}
                             </span>
                             <div className="flex items-center gap-1 text-xs">
-                              <span className="px-1.5 py-0.5 bg-green-100 text-green-700 rounded">
-                                Available
+                              <span className={statusBadge.className}>
+                                {statusBadge.text}
                               </span>
                               {period?.timezone &&
                                 period.timezone !== userTimezone && (
@@ -452,9 +499,33 @@ const AvailabilityScheduler: React.FC<Props> = ({
 
                           {/* Bottom Row - Hours and Controls */}
                           <div className="flex items-center justify-between">
-                            <span className="text-xs sm:text-sm font-medium text-gray-500">
-                              {period?.totalHours || 0} hours
-                            </span>
+                            <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
+                              <span className="text-xs sm:text-sm font-medium text-gray-500">
+                                {period?.totalHours || 0} hours
+                              </span>
+                              {totalSlots > 0 && (
+                                <div className="flex items-center gap-1 text-xs">
+                                  <span className="text-gray-500">
+                                    {totalSlots} slots:
+                                  </span>
+                                  {availableSlots > 0 && (
+                                    <span className="px-1 py-0.5 bg-green-50 text-green-600 rounded text-xs">
+                                      {availableSlots} available
+                                    </span>
+                                  )}
+                                  {bookedSlots > 0 && (
+                                    <span className="px-1 py-0.5 bg-orange-50 text-orange-600 rounded text-xs">
+                                      {bookedSlots} booked
+                                    </span>
+                                  )}
+                                  {disabledSlots > 0 && (
+                                    <span className="px-1 py-0.5 bg-red-50 text-red-600 rounded text-xs">
+                                      {disabledSlots} disabled
+                                    </span>
+                                  )}
+                                </div>
+                              )}
+                            </div>
                             <div className="flex items-center gap-2">
                               <Switch
                                 id="notifications"
