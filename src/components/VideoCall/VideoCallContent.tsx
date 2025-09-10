@@ -163,7 +163,7 @@ const VideoCallContent: React.FC<VideoCallContentProps> = ({ onEndCall }) => {
           isOpen={isOpen}
           onClose={() => setIsOpen(false)}
           doctorId="123"
-          docType="PetParent"
+          docType={userRole}
           appointmentDetails={appointmentDetails}
         />
       )}
