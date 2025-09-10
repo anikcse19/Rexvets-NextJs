@@ -68,9 +68,9 @@ export const generateAppointmentSlots = async (
     // If slots already exist, return early without generating new ones
     if (existingSlots.length > 0) {
       throw new Error(
-        `Appointment slots already exist for ${(existingSlots[0].vetId as any)?.name} between ${startDate.format(
-          "YYYY-MM-DD"
-        )} and ${endDate.format(
+        `Appointment slots already exist for ${
+          (existingSlots[0].vetId as any)?.name
+        } between ${startDate.format("YYYY-MM-DD")} and ${endDate.format(
           "YYYY-MM-DD"
         )} in timezone ${timezone}. Please delete existing slots or choose a different date range or time .`
       );
@@ -264,7 +264,10 @@ export const generateAppointmentSlotsForPeriod = async (
     }
 
     // Build candidate slots for this single period
-    const periodStart = moment(`2000-01-01 ${period.start}`, "YYYY-MM-DD HH:mm");
+    const periodStart = moment(
+      `2000-01-01 ${period.start}`,
+      "YYYY-MM-DD HH:mm"
+    );
     let periodEnd = period.end;
     let periodEndMoment = moment(`2000-01-01 ${periodEnd}`, "YYYY-MM-DD HH:mm");
     if (period.end === "24:00") {
@@ -288,9 +291,14 @@ export const generateAppointmentSlotsForPeriod = async (
     const slotsToCreate: any[] = [];
     let cursor = periodStart.clone();
     const endBoundary = periodEndMoment.clone();
-    while (cursor.clone().add(slotDuration, "minutes").isSameOrBefore(endBoundary)) {
+    while (
+      cursor.clone().add(slotDuration, "minutes").isSameOrBefore(endBoundary)
+    ) {
       const slotStartStr = cursor.format("HH:mm");
-      const slotEndStr = cursor.clone().add(slotDuration, "minutes").format("HH:mm");
+      const slotEndStr = cursor
+        .clone()
+        .add(slotDuration, "minutes")
+        .format("HH:mm");
 
       // Check overlap with existing slots for the same day (strict per-vet overlap prevention)
       const overlaps = existingForDay.some((s) => {
@@ -318,7 +326,10 @@ export const generateAppointmentSlotsForPeriod = async (
     }
 
     if (slotsToCreate.length === 0) {
-      return { createdSlotsCount: 0, message: "No new slots created (all overlapped)" };
+      return {
+        createdSlotsCount: 0,
+        message: "No new slots created (all overlapped)",
+      };
     }
 
     await AppointmentSlot.insertMany(slotsToCreate, { ordered: false });
@@ -658,7 +669,12 @@ export const getAppointmentSlots = async (
     // Execute queries in parallel for better performance
     const [slots, totalCount] = await Promise.all([
       // Get paginated results with populated vetId
-      AppointmentSlot.find(baseQuery).populate("vetId", "name email").sort(sort).skip(skip).limit(limit),
+      AppointmentSlot.find(baseQuery)
+        .populate("vetId", "name email")
+        .sort(sort)
+        .skip(skip)
+        .limit(limit)
+        .lean(),
 
       // Get total count for pagination
       AppointmentSlot.countDocuments(baseQuery),

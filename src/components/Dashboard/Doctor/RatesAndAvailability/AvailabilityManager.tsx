@@ -147,7 +147,7 @@ const AvailabilityManager: React.FC = () => {
 
   // Defer large arrays to avoid blocking rendering
   const deferredExistingPeriods = useDeferredValue(existingPeriods);
-
+  console.log("availableSlotsApiResponse.data", availableSlotsApiResponse.data);
   // console.log("deferredExistingPeriods", deferredExistingPeriods);
   return (
     <div className="container mx-auto p-2 md:p-6 space-y-6">
@@ -159,10 +159,7 @@ const AvailabilityManager: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="space-y-6 relative">
           <AnimatedDateTabs />
-          {/* <DateRangeCalendar
-            selectedRange={selectedRange}
-            onRangeSelect={setSelectedRange}
-          /> */}
+
           <div className=" flex items-center justify-end absolute top-[178px] right-3 md:top-[190px] md:right-7 z-50">
             <Button
               className="  cursor-pointer"
