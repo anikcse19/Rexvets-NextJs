@@ -50,11 +50,9 @@ const VideoCallContent: React.FC<VideoCallContentProps> = ({ onEndCall }) => {
   const { data: session } = useSession();
   const userRole = session?.user?.role;
 
-  console.log("isOpen---", isOpen);
+  console.log(" session?.user.refId---", session?.user.refId);
   console.log("userRole---***", userRole === "pet_parent"),
-
-
-  console.log("remoteUsersState", remoteUsersState);
+    console.log("remoteUsersState", remoteUsersState);
   // Log when component mounts (only once)
   useEffect(() => {
     // Force a re-render of the video after a short delay to ensure it's displayed
@@ -127,8 +125,14 @@ const VideoCallContent: React.FC<VideoCallContentProps> = ({ onEndCall }) => {
             isProcessingVirtualBg={isProcessingVirtualBg}
             userRole={userRole as string}
             appointmentId={appointmentDetails?._id as string}
-            otherPartyName={userRole === "veterinarian" ? petParent?.name : veterinarian?.name}
-            otherPartyImage={userRole === "veterinarian" ? petParent?.profileImage : veterinarian?.profileImage}
+            otherPartyName={
+              userRole === "veterinarian" ? petParent?.name : veterinarian?.name
+            }
+            otherPartyImage={
+              userRole === "veterinarian"
+                ? petParent?.profileImage
+                : veterinarian?.profileImage
+            }
           />
         </div>
 
@@ -153,9 +157,8 @@ const VideoCallContent: React.FC<VideoCallContentProps> = ({ onEndCall }) => {
         docType="Parent"
         appointmentDetails={appointmentDetails}
       /> */}
-   
+
       {userRole === "pet_parent" && (
-        console.log("isOpen---==============", isOpen),
         <PostCallModal
           isOpen={isOpen}
           onClose={() => setIsOpen(false)}
@@ -167,7 +170,7 @@ const VideoCallContent: React.FC<VideoCallContentProps> = ({ onEndCall }) => {
     </div>
   ) : (
     <LoadingScreen />
-  );  
+  );
 };
 
 export default VideoCallContent;
