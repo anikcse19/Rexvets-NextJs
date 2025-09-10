@@ -253,8 +253,7 @@ export default function FindVetPage({
                 Find Your Perfect Veterinarian
               </h1>
               <p className="text-blue-100 text-lg mb-6">
-                Connect with experienced veterinarians in your area for expert
-                pet care services
+                Connect with experienced veterinarians for expert pet care services
               </p>
 
               <div className="flex flex-wrap gap-3">
