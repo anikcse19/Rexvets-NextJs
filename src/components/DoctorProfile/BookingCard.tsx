@@ -77,7 +77,7 @@ export default function BookingSystem({
   const pageSize = 6;
   const { appState, setAppState } = useAppContext();
   const { slotDate: selectedSlotDate, slotId: selectedSlotId } = appState;
-  console.log("selectedSlotId", selectedSlotId);
+  // console.log("selectedSlotId", selectedSlotId);
   const [veterinarianTimezone, setVeterinarianTimezone] = useState("");
   const toLocalDateString = (date: Date) => date.toLocaleDateString("en-CA"); // YYYY-MM-DD
   const currentTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -125,8 +125,6 @@ export default function BookingSystem({
 
   const availableDays = getNextFewDays();
 
-  console.log("selectedDate", selectedDate, selectedSlot);
-
   const fetchVetSlots = async () => {
     if (!doctorData?._id) {
       console.error("Doctor ID is missing");
@@ -164,7 +162,7 @@ export default function BookingSystem({
     fetchVetSlots();
   }, [selectedDate, selectedSlotDate, selectedSlotId, vetTimezone]);
 
-  console.log("slots", slots);
+  // console.log("slots", slots);
 
   useEffect(() => {
     const date = localStorage.getItem("selectedDate");
@@ -187,15 +185,24 @@ export default function BookingSystem({
       setSelectedDate(formatted);
       if (slots.length > 0) {
         const findSlot = slots.find((slot) => slot._id === selectedSlotId);
-        console.log("findSlot", findSlot);
+        // console.log("findSlot", findSlot);
         if (findSlot) {
-          console.log("FIND SLOT TIME:", findSlot.startTime);
+          // console.log("FIND SLOT TIME:", findSlot.startTime);
           setSelectedTime(findSlot?.startTime);
           setSelectedSlot(findSlot?._id);
         }
       }
     }
   }, [selectedSlotDate, selectedSlotId, slots]);
+
+  console.log(
+    "selectedDate",
+    selectedDate,
+    "time",
+    selectedTime,
+    "slot",
+    selectedSlot
+  );
   return (
     <Card className="shadow-xl rounded-md p-0 border-0 bg-white sticky top-6">
       <div className="bg-gradient-to-r from-green-600 to-emerald-600 p-6 text-white">
@@ -462,13 +469,9 @@ export default function BookingSystem({
           {/* Confirm Button */}
           <Button
             onClick={() => {
-              console.log("SELECTED DATE:", selectedDate);
-              console.log("SELECTED TIME:", selectedTime);
-              console.log("SELECTED SLOT:", selectedSlot);
               localStorage.setItem("selectedDate", selectedDate);
               localStorage.setItem("selectedTime", selectedTime as string);
               localStorage.setItem("selectedSlot", selectedSlot as string);
-              localStorage.setItem("showForm", JSON.stringify(true));
 
               if (selectedSlot && selectedTime) {
                 if (session?.user) {

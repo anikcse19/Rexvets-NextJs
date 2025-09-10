@@ -104,7 +104,7 @@ const PetList = () => {
                           </Badge>
                         </div>
 
-                        <p className="text-sm text-gray-600 mb-2">
+                        <p className="text-sm text-gray-600 mb-2 capitalize">
                           {pet?.species} • {pet?.breed}
                         </p>
                       </div>

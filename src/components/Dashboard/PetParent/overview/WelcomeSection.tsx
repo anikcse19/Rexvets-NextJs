@@ -4,6 +4,21 @@ import { Calendar, PawPrint } from "lucide-react";
 import React from "react";
 
 const WelcomeSection = ({ petParentData }: { petParentData: PetParent }) => {
+  const formatDate = (dateStr: string) => {
+    return new Date(dateStr).toLocaleDateString("en-US", {
+      month: "short",
+      day: "2-digit",
+      year: "numeric",
+    });
+  };
+
+  const formatTime = (dateStr: string) => {
+    return new Date(dateStr).toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    });
+  };
   return (
     <div
       style={{
@@ -49,7 +64,7 @@ const WelcomeSection = ({ petParentData }: { petParentData: PetParent }) => {
                 </div>
                 <div>
                   <p className="text-2xl font-bold">
-                    {/* {petParentData.totalPets} */}
+                    {petParentData?.pets?.length}
                   </p>
                   <p className="text-blue-100 text-sm">Registered Pets</p>
                 </div>
@@ -63,10 +78,12 @@ const WelcomeSection = ({ petParentData }: { petParentData: PetParent }) => {
                 </div>
                 <div>
                   <p className="text-sm font-semibold">Next Appointment</p>
-                  {/* <p className="text-blue-100 text-sm">
-                    {formatDate(petParentData.nextAppointment.date)} at{" "}
-                    {mockParentData.nextAppointment.time}
-                  </p> */}
+                  <p className="text-blue-100 text-sm">
+                    {formatDate(petParentData?.appointments?.appointmentDate)}{" "}
+                    at{" "}
+                    {formatTime(petParentData?.appointments?.appointmentDate)}{" "}
+                    with Dr {petParentData?.appointments?.veterinarian?.name}
+                  </p>
                 </div>
               </div>
             </div>

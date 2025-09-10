@@ -34,108 +34,6 @@ import WelcomeSection from "./overview/WelcomeSection";
 import UpcomingAppointments from "./overview/UpcomingAppointments";
 import PetList from "./overview/PetList";
 
-// Mock data for pet parent
-const mockParentData = {
-  name: "Sarah Johnson",
-  email: "sarah.johnson@email.com",
-  phone: "+1 (555) 123-4567",
-  profileImage:
-    "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=200&h=200&fit=crop&crop=face",
-  memberSince: "2022-03-15",
-  totalPets: 3,
-  nextAppointment: {
-    date: "2025-01-18",
-    time: "2:30 PM",
-    petName: "Max",
-    doctorName: "Dr. Anik Rahman",
-    service: "Routine Checkup",
-  },
-};
-
-const mockPets = [
-  {
-    id: "1",
-    name: "Max",
-    image:
-      "https://images.pexels.com/photos/1108099/pexels-photo-1108099.jpeg?auto=compress&cs=tinysrgb&w=200&h=200&fit=crop",
-    breed: "Golden Retriever",
-    age: "3 years",
-    weight: "28 kg",
-    lastVisit: "2025-01-15",
-    nextVaccination: "2025-06-15",
-    healthStatus: "Healthy",
-    microchipped: true,
-  },
-  {
-    id: "2",
-    name: "Luna",
-    image:
-      "https://images.pexels.com/photos/1170986/pexels-photo-1170986.jpeg?auto=compress&cs=tinysrgb&w=200&h=200&fit=crop",
-    breed: "Siamese Cat",
-    age: "2 years",
-    weight: "4.5 kg",
-    lastVisit: "2024-12-20",
-    nextVaccination: "2025-03-20",
-    healthStatus: "Healthy",
-    microchipped: true,
-  },
-  {
-    id: "3",
-    name: "Charlie",
-    image:
-      "https://images.pexels.com/photos/1805164/pexels-photo-1805164.jpeg?auto=compress&cs=tinysrgb&w=200&h=200&fit=crop",
-    breed: "Beagle",
-    age: "5 years",
-    weight: "15 kg",
-    lastVisit: "2025-01-10",
-    nextVaccination: "2025-04-10",
-    healthStatus: "Under Treatment",
-    microchipped: true,
-  },
-];
-
-const mockUpcomingAppointments = [
-  {
-    id: "1",
-    petName: "Max",
-    petImage:
-      "https://images.pexels.com/photos/1108099/pexels-photo-1108099.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop",
-    date: "2025-01-18",
-    time: "2:30 PM",
-    doctorName: "Dr. Anik Rahman",
-    doctorImage:
-      "https://images.pexels.com/photos/5327585/pexels-photo-5327585.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop&crop=face",
-    service: "Routine Checkup",
-    status: "confirmed",
-  },
-  {
-    id: "2",
-    petName: "Luna",
-    petImage:
-      "https://images.pexels.com/photos/1170986/pexels-photo-1170986.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop",
-    date: "2025-01-22",
-    time: "10:00 AM",
-    doctorName: "Dr. Anik Rahman",
-    doctorImage:
-      "https://images.pexels.com/photos/5327585/pexels-photo-5327585.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop&crop=face",
-    service: "Vaccination",
-    status: "confirmed",
-  },
-  {
-    id: "3",
-    petName: "Charlie",
-    petImage:
-      "https://images.pexels.com/photos/1805164/pexels-photo-1805164.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop",
-    date: "2025-01-25",
-    time: "4:15 PM",
-    doctorName: "Dr. Anik Rahman",
-    doctorImage:
-      "https://images.pexels.com/photos/5327585/pexels-photo-5327585.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop&crop=face",
-    service: "Follow-up",
-    status: "pending",
-  },
-];
-
 const quickActions = [
   {
     title: "Book Appointment",
@@ -163,6 +61,7 @@ const quickActions = [
 export default function PetParentOverviewPage() {
   const { data: session } = useSession();
   const [petParentData, setPetParentData] = useState<PetParent>();
+
   const fetchPetParent = async () => {
     try {
       const res = await fetch(`/api/pet-parent/${session?.user?.refId}`);
@@ -172,7 +71,7 @@ export default function PetParentOverviewPage() {
 
       const data = await res.json();
 
-      console.log(data?.data);
+      console.log("pet parent details", data?.data);
       setPetParentData(data?.data);
     } catch (error: any) {
       toast.error(error.message);
