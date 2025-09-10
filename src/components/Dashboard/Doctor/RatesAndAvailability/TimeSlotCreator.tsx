@@ -269,6 +269,11 @@ export default function TimeSlotCreator({
     return true;
   };
 
+  // Check if there are any new periods (non-existing slots)
+  const hasNewPeriods = (): boolean => {
+    return slots.some((slot) => !slot.isExisting);
+  };
+
   const handleSave = async () => {
     // Clear any previous error messages
     setErrorMessage("");
@@ -276,6 +281,13 @@ export default function TimeSlotCreator({
     if (!selectedRange || !validateSlots()) {
       const errorMsg =
         "Please select a date range and ensure all time slots are valid";
+      setErrorMessage(errorMsg);
+      toast.error(errorMsg);
+      return;
+    }
+
+    if (!hasNewPeriods()) {
+      const errorMsg = "Please add at least one new period to save";
       setErrorMessage(errorMsg);
       toast.error(errorMsg);
       return;
@@ -463,10 +475,12 @@ export default function TimeSlotCreator({
     }
   };
   const displaySaveBtn = (className: string) => {
+    const isDisabled = !validateSlots() || !hasNewPeriods() || isLoading;
+    
     return (
       <Button
         onClick={handleSave}
-        disabled={!validateSlots() || isLoading}
+        disabled={isDisabled}
         className={` ${className} cursor-pointer  w-[200px] bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold py-4 rounded-2xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl`}
       >
         {isLoading ? (
