@@ -647,7 +647,7 @@ export const getSlotsByVetId = async ({
   sortOrder = SortOrder.ASC,
   page = 1,
   search = "",
-  status = SlotStatus.AVAILABLE,
+  status = SlotStatus.ALL,
 }: IGetSlotsParams) => {
   return getAppointmentSlots({
     vetId,
