@@ -316,14 +316,8 @@ export const generateAppointmentSlotsForPeriod = async (
       overlapsPeriodWindow(s.startTime, s.endTime)
     );
 
-    // As requested: only create if range has slots, but this specific period has none
-    if (!hasAnySlotsInRange) {
-      return {
-        createdSlotsCount: 0,
-        message:
-          "No slots exist in the given date range; skipping period creation per rule.",
-      };
-    }
+    // Allow slot creation for vets with no existing slots (new vets)
+    // Only skip if the specific period already has slots
     if (periodHasAnySlots) {
       return {
         createdSlotsCount: 0,
