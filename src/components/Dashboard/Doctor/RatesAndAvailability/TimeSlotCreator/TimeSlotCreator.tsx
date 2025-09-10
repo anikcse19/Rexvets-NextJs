@@ -33,13 +33,16 @@ import {
   Trash2,
 } from "lucide-react";
 import moment from "moment";
-import { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
   addNewPeriod,
   addSinglePeriod,
   deleteSlotsByIds,
-} from "./services/delete-periods";
+} from "../services/delete-periods";
+import BulkActions from "./BulkActions";
+import OverviewPanel from "./OverviewPanel";
+import PeriodCard from "./PeriodCard";
 
 interface TimeSlotCreatorProps {
   selectedRange: DateRange | null;
@@ -66,14 +69,14 @@ interface TimeSlot {
   slotIDs?: string[]; // Array of actual slot IDs from database
 }
 
-export default function TimeSlotCreator({
+const TimeSlotCreator = ({
   selectedRange,
   hasExistingSlots = false,
   existingPeriods = [],
   onClose,
   vetId,
   refetch,
-}: TimeSlotCreatorProps) {
+}: TimeSlotCreatorProps) => {
   console.log("existingPeriods", existingPeriods);
   const [slots, setSlots] = useState<TimeSlot[]>([
     {
@@ -1437,4 +1440,5 @@ export default function TimeSlotCreator({
       )}
     </div>
   );
-}
+};
+export default React.memo(TimeSlotCreator);

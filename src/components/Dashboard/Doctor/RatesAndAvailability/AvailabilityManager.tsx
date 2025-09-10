@@ -20,15 +20,8 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { useDashboardContext } from "@/hooks/DashboardContext";
-import {
-  getMonthRange,
-  getTimezoneOffset,
-  getTimezones,
-  getTodayUTC,
-  getUserTimezone,
-  getWeekRange,
-} from "@/lib/timezone";
-import { CreateAvailabilityRequest, DateRange, SlotPeriod } from "@/lib/types";
+import { getTimezoneOffset } from "@/lib/timezone";
+import { DateRange, SlotPeriod } from "@/lib/types";
 import { format } from "date-fns";
 import { AlertTriangle, Calendar, Clock, Globe } from "lucide-react";
 import moment from "moment";
@@ -42,19 +35,21 @@ import React, {
   useState,
 } from "react";
 import { toast } from "sonner";
-import DateRangeCalendar from "./DateRangeCalender";
 
-const TimeSlotCreator = dynamic(() => import("./TimeSlotCreator"), {
-  ssr: false,
-  loading: () => (
-    <div className="flex items-center justify-center h-64">
-      <div className="flex flex-col items-center space-y-4">
-        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-        <p className="text-gray-600">Processing....</p>
+const TimeSlotCreator = dynamic(
+  () => import("./TimeSlotCreator/TimeSlotCreator"),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex items-center justify-center h-64">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-gray-600">Processing....</p>
+        </div>
       </div>
-    </div>
-  ),
-});
+    ),
+  }
+);
 
 interface SessionUserWithRefId {
   refId: string;

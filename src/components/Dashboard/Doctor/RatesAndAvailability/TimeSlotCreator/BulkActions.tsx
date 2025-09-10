@@ -1,37 +1,26 @@
 "use client";
-
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Check, Trash2 } from "lucide-react";
+import React from "react";
 
-interface BulkActionsProps {
-  totalCount: number;
+type Props = {
+  total: number;
   selectedCount: number;
   selectAll: boolean;
-  onToggleSelectAll: () => void;
+  onToggleAll: () => void;
   onBulkDelete: () => void;
-}
+};
 
-export const BulkActions: React.FC<BulkActionsProps> = ({
-  totalCount,
-  selectedCount,
-  selectAll,
-  onToggleSelectAll,
-  onBulkDelete,
-}) => {
-  if (totalCount <= 1) return null;
+export default function BulkActions({ total, selectedCount, selectAll, onToggleAll, onBulkDelete }: Props) {
+  if (total <= 1) return null;
   return (
     <div className="flex items-center justify-between mb-6 p-4 bg-white rounded-2xl border border-gray-200 shadow-sm">
       <div className="flex items-center space-x-4">
         <div className="flex items-center space-x-2">
-          <Checkbox
-            id="select-all"
-            checked={selectAll}
-            onCheckedChange={onToggleSelectAll}
-            className="data-[state=checked]:bg-emerald-500 cursor-pointer data-[state=checked]:border-emerald-500"
-          />
+          <Checkbox id="select-all" checked={selectAll} onCheckedChange={onToggleAll} className="data-[state=checked]:bg-emerald-500 cursor-pointer data-[state=checked]:border-emerald-500" />
           <label htmlFor="select-all" className="text-sm font-medium text-gray-700 cursor-pointer">
-            Select All ({totalCount})
+            Select All ({total})
           </label>
         </div>
         {selectedCount > 0 && (
@@ -49,6 +38,6 @@ export const BulkActions: React.FC<BulkActionsProps> = ({
       )}
     </div>
   );
-};
+}
 
 
