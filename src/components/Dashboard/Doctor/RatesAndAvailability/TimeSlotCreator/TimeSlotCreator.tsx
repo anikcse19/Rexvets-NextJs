@@ -976,9 +976,6 @@ const TimeSlotCreator = ({
                         {!slot.isExisting && (
                           <div className="space-y-2 mb-3">
                             <div>
-                              <p className="text-xs font-medium text-gray-600 mb-2">
-                                Set Time Block:
-                              </p>
                               <div className="grid grid-cols-2 gap-2">
                                 <div>
                                   <label className="text-xs text-gray-600 block mb-1">
@@ -991,7 +988,10 @@ const TimeSlotCreator = ({
                                       setSlots((prev) =>
                                         prev.map((s) =>
                                           s.id === slot.id
-                                            ? { ...s, startTime: e.target.value }
+                                            ? {
+                                                ...s,
+                                                startTime: e.target.value,
+                                              }
                                             : s
                                         )
                                       );
