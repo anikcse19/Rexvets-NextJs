@@ -420,6 +420,7 @@ const AvailabilityScheduler: React.FC<Props> = ({
                         period?.slots?.filter(
                           (slot) => slot.status === SlotStatus.DISABLED
                         ).length || 0;
+                      const isAllDisabled = totalSlots > 0 && disabledSlots === totalSlots;
                       console.log("disabledSlots", disabledSlots);
                       // Determine the main status badge
                       const getStatusBadge = () => {
@@ -525,8 +526,8 @@ const AvailabilityScheduler: React.FC<Props> = ({
                             <div className="flex items-center gap-2">
                               <Switch
                                 id="notifications"
-                                checked={slotStatus === SlotStatus.AVAILABLE}
-                                disabled={isLoading}
+                                checked={!isAllDisabled}
+                                disabled={isLoading || totalSlots === 0}
                                 onCheckedChange={() => {
                                   const slotIds =
                                     period?.slots
