@@ -20,15 +20,8 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { useDashboardContext } from "@/hooks/DashboardContext";
-import {
-  getMonthRange,
-  getTimezoneOffset,
-  getTimezones,
-  getTodayUTC,
-  getUserTimezone,
-  getWeekRange,
-} from "@/lib/timezone";
-import { CreateAvailabilityRequest, DateRange, SlotPeriod } from "@/lib/types";
+import { getTimezoneOffset } from "@/lib/timezone";
+import { DateRange, SlotPeriod } from "@/lib/types";
 import { format } from "date-fns";
 import { AlertTriangle, Calendar, Clock, Globe } from "lucide-react";
 import moment from "moment";
@@ -42,19 +35,21 @@ import React, {
   useState,
 } from "react";
 import { toast } from "sonner";
-import DateRangeCalendar from "./DateRangeCalender";
 
-const TimeSlotCreator = dynamic(() => import("./TimeSlotCreator"), {
-  ssr: false,
-  loading: () => (
-    <div className="flex items-center justify-center h-64">
-      <div className="flex flex-col items-center space-y-4">
-        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-        <p className="text-gray-600">Processing....</p>
+const TimeSlotCreator = dynamic(
+  () => import("./TimeSlotCreator/TimeSlotCreator"),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex items-center justify-center h-64">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-gray-600">Processing....</p>
+        </div>
       </div>
-    </div>
-  ),
-});
+    ),
+  }
+);
 
 interface SessionUserWithRefId {
   refId: string;
@@ -147,28 +142,19 @@ const AvailabilityManager: React.FC = () => {
 
   // Defer large arrays to avoid blocking rendering
   const deferredExistingPeriods = useDeferredValue(existingPeriods);
-
+  console.log("availableSlotsApiResponse.data", availableSlotsApiResponse.data);
   // console.log("deferredExistingPeriods", deferredExistingPeriods);
   return (
     <div className="container mx-auto p-2 md:p-6 space-y-6">
+      {process.env.NODE_ENV !== "production" && (
+        <>
+          <p>VET ID:{user?.refId}</p>
+        </>
+      )}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="space-y-6 relative">
-          <AnimatedDateTabs
-          // onDateChange={(date) => {
-          //   const { startDate, endDate } = date;
-          //   if (user?.refId && !selectedRange) {
-          //     console.log("DATE CHANGE:", date);
-          //     setSelectedRange({
-          //       start: startDate,
-          //       end: endDate,
-          //     });
-          //   }
-          // }}
-          />
-          {/* <DateRangeCalendar
-            selectedRange={selectedRange}
-            onRangeSelect={setSelectedRange}
-          /> */}
+          <AnimatedDateTabs />
+
           <div className=" flex items-center justify-end absolute top-[178px] right-3 md:top-[190px] md:right-7 z-50">
             <Button
               className="  cursor-pointer"

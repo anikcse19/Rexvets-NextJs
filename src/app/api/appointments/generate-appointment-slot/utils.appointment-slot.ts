@@ -1,4 +1,5 @@
 import { isTimeInPast, isValidTimezone } from "@/lib/timezone";
+import { DateRange } from "@/lib/types";
 import { AppointmentSlot, SlotStatus } from "@/models/AppointmentSlot";
 import moment from "moment";
 import { Types } from "mongoose";
@@ -63,16 +64,16 @@ export const generateAppointmentSlots = async (
         $lte: endDate.toDate(),
       },
       timezone: timezone,
-    });
+    }).populate("vetId", "name email");
 
     // If slots already exist, return early without generating new ones
     if (existingSlots.length > 0) {
       throw new Error(
-        `Appointment slots already exist for this vet between ${startDate.format(
+        `Appointment slots already exist for ${
+          (existingSlots[0].vetId as any)?.name
+        } between ${startDate.format("YYYY-MM-DD")} and ${endDate.format(
           "YYYY-MM-DD"
-        )} and ${endDate.format(
-          "YYYY-MM-DD"
-        )} in timezone ${timezone}. Please delete existing slots first.`
+        )} in timezone ${timezone}. Please delete existing slots or choose a different date range or time .`
       );
     }
 
@@ -202,7 +203,7 @@ export const generateAppointmentSlots = async (
     };
   } catch (error: any) {
     console.error("Error generating appointment slots:", error);
-    throw new Error(`Failed to generate appointment slots: ${error.message}`);
+    throw new Error(`${error?.message}`);
   }
 };
 
@@ -220,6 +221,177 @@ export interface IUpdateAppointmentSlots {
   bufferBetweenSlots?: number;
   slotDuration?: number;
 }
+
+// Create slots for a single day and a single period without blocking entire date-range
+export interface IGenerateSinglePeriod {
+  vetId: string;
+  // New payload supports dateRange; keep "date" for backward compatibility
+  dateRange?: DateRange;
+  date?: DateRange;
+  timezone: string;
+  period: { start: string; end: string }; // HH:mm
+  slotDuration?: number; // minutes
+  bufferBetweenSlots?: number; // minutes
+}
+
+export const generateAppointmentSlotsForPeriod = async (
+  data: IGenerateSinglePeriod
+) => {
+  const {
+    vetId,
+    dateRange,
+    date,
+    timezone,
+    period,
+    bufferBetweenSlots = 5,
+    slotDuration = 30,
+  } = data;
+
+  try {
+    if (!isValidTimezone(timezone)) {
+      throw new Error(`Invalid timezone: ${timezone}`);
+    }
+
+    // Normalize the input to a date range (inclusive)
+    const inputRange: DateRange | undefined = dateRange || date;
+    if (!inputRange?.start || !inputRange?.end) {
+      throw new Error("dateRange is required");
+    }
+    const startDate = moment(inputRange.start).startOf("day");
+    const endDate = moment(inputRange.end).endOf("day");
+    const currentDateInTimezone = moment.tz(timezone).startOf("day");
+
+    if (endDate.isBefore(startDate)) {
+      throw new Error("Invalid date range: end date must be after start date");
+    }
+    if (startDate.isBefore(currentDateInTimezone)) {
+      throw new Error("Cannot create slots for past dates");
+    }
+
+    // Validate time format
+    const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
+    if (!timeRegex.test(period.start) || !timeRegex.test(period.end)) {
+      throw new Error(
+        `Invalid time format. Expected HH:mm, got start: ${period.start}, end: ${period.end}`
+      );
+    }
+
+    // Build candidate slots setup for this period window
+    const periodStart = moment(
+      `2000-01-01 ${period.start}`,
+      "YYYY-MM-DD HH:mm"
+    );
+    let periodEnd = period.end;
+    let periodEndMoment = moment(`2000-01-01 ${periodEnd}`, "YYYY-MM-DD HH:mm");
+    if (period.end === "24:00") {
+      periodEnd = "00:00";
+      periodEndMoment = moment("2000-01-02 00:00", "YYYY-MM-DD HH:mm");
+    }
+    if (periodEndMoment.isSameOrBefore(periodStart)) {
+      throw new Error(
+        `Invalid time period: end time ${period.end} must be after start time ${period.start}`
+      );
+    }
+
+    // Fetch all existing slots for this vet in the date range and timezone
+    const existingInRange = await AppointmentSlot.find({
+      vetId: new Types.ObjectId(vetId),
+      date: { $gte: startDate.toDate(), $lte: endDate.toDate() },
+      timezone,
+    });
+
+    const hasAnySlotsInRange = existingInRange.length > 0;
+
+    // Helper: does a slot overlap the target period window (same-day window)
+    const overlapsPeriodWindow = (slotStart: string, slotEnd: string) => {
+      const sStart = moment(`2000-01-01 ${slotStart}`, "YYYY-MM-DD HH:mm");
+      const sEnd = moment(`2000-01-01 ${slotEnd}`, "YYYY-MM-DD HH:mm");
+      const pStart = periodStart;
+      const pEnd = periodEndMoment;
+      return sStart.isBefore(pEnd) && sEnd.isAfter(pStart);
+    };
+
+    // Check if given period has any slots across the date range
+    const periodHasAnySlots = existingInRange.some((s) =>
+      overlapsPeriodWindow(s.startTime, s.endTime)
+    );
+
+    // As requested: only create if range has slots, but this specific period has none
+    if (!hasAnySlotsInRange) {
+      return {
+        createdSlotsCount: 0,
+        message:
+          "No slots exist in the given date range; skipping period creation per rule.",
+      };
+    }
+    if (periodHasAnySlots) {
+      return {
+        createdSlotsCount: 0,
+        message: "Target period already has slots in the given date range",
+      };
+    }
+
+    // Create slots for the given period across the date range, skipping overlaps per day
+    const slotsToCreate: any[] = [];
+    const totalDays = endDate.clone().startOf("day").diff(startDate.clone().startOf("day"), "days") + 1;
+    for (let day = 0; day < totalDays; day++) {
+      const currentDate = startDate.clone().startOf("day").add(day, "days");
+      if (currentDate.isBefore(currentDateInTimezone)) continue; // safety
+
+      const localDate = currentDate.toDate();
+      const existingForDay = existingInRange.filter((s) =>
+        moment(s.date).isSame(currentDate, "day")
+      );
+
+      let cursor = periodStart.clone();
+      const endBoundary = periodEndMoment.clone();
+      while (cursor.clone().add(slotDuration, "minutes").isSameOrBefore(endBoundary)) {
+        const slotStartStr = cursor.format("HH:mm");
+        const slotEndStr = cursor.clone().add(slotDuration, "minutes").format("HH:mm");
+
+        // Skip if time already passed for today in appointment timezone
+        if (
+          currentDate.isSame(currentDateInTimezone, "day") &&
+          isTimeInPast(slotEndStr, currentDate.toDate(), timezone)
+        ) {
+          cursor = cursor.add(slotDuration + bufferBetweenSlots, "minutes");
+          continue;
+        }
+
+        const overlaps = existingForDay.some((s) => {
+          const sStart = moment(`2000-01-01 ${s.startTime}`, "YYYY-MM-DD HH:mm");
+          const sEnd = moment(`2000-01-01 ${s.endTime}`, "YYYY-MM-DD HH:mm");
+          const cStart = moment(`2000-01-01 ${slotStartStr}`, "YYYY-MM-DD HH:mm");
+          const cEnd = moment(`2000-01-01 ${slotEndStr}`, "YYYY-MM-DD HH:mm");
+          return cStart.isBefore(sEnd) && cEnd.isAfter(sStart);
+        });
+
+        if (!overlaps) {
+          slotsToCreate.push({
+            vetId: new Types.ObjectId(vetId),
+            date: localDate,
+            startTime: slotStartStr,
+            endTime: slotEndStr,
+            timezone,
+            status: SlotStatus.AVAILABLE,
+            createdAt: new Date(),
+          });
+        }
+
+        cursor = cursor.add(slotDuration + bufferBetweenSlots, "minutes");
+      }
+    }
+
+    if (slotsToCreate.length === 0) {
+      return { createdSlotsCount: 0, message: "No new slots created (all overlapped)" };
+    }
+
+    await AppointmentSlot.insertMany(slotsToCreate, { ordered: false });
+    return { createdSlotsCount: slotsToCreate.length };
+  } catch (error) {
+    throw error;
+  }
+};
 
 export const updateAppointmentSlots = async (data: IUpdateAppointmentSlots) => {
   try {
@@ -270,7 +442,7 @@ export const updateAppointmentSlots = async (data: IUpdateAppointmentSlots) => {
         $lte: endDate.toDate(),
       },
       timezone: timezone,
-    });
+    }).populate("vetId", "name email");
 
     // Separate slots by status for smart handling
     const bookedSlots = existingSlots.filter(
@@ -550,8 +722,13 @@ export const getAppointmentSlots = async (
 
     // Execute queries in parallel for better performance
     const [slots, totalCount] = await Promise.all([
-      // Get paginated results
-      AppointmentSlot.find(baseQuery).sort(sort).skip(skip).limit(limit).lean(),
+      // Get paginated results with populated vetId
+      AppointmentSlot.find(baseQuery)
+        .populate("vetId", "name email")
+        .sort(sort)
+        .skip(skip)
+        .limit(limit)
+        .lean(),
 
       // Get total count for pagination
       AppointmentSlot.countDocuments(baseQuery),

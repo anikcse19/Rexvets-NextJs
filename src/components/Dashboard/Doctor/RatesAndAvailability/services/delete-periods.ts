@@ -1,3 +1,5 @@
+import { DateRange } from "@/lib/types";
+
 interface PeriodToDelete {
   date: string; // YYYY-MM-DD format
   startTime: string; // HH:mm format
@@ -205,7 +207,54 @@ export const addNewPeriod = async (
   }
 };
 
-export type {
-  AddPeriodRequest, AddPeriodResponse, DeletePeriodRequest, DeletePeriodResponse, DeletePeriodsBulkRequest, DeletePeriodsBulkResponse, DeleteSlotsByIdsRequest, DeleteSlotsByIdsResponse, PeriodToDelete
+// Create slots for a single day/period (more granular than add-period)
+export interface AddSinglePeriodRequest {
+  vetId: string;
+  dateRange: DateRange;
+  period: { start: string; end: string };
+  slotDuration?: number;
+  bufferBetweenSlots?: number;
+}
+
+export interface AddSinglePeriodResponse {
+  success: boolean;
+  data: { createdSlotsCount: number; message?: string };
+  message: string;
+}
+
+export const addSinglePeriod = async (
+  request: AddSinglePeriodRequest
+): Promise<AddSinglePeriodResponse> => {
+  try {
+    const response = await fetch("/api/appointments/add-single-period", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(request),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Failed to add single period");
+    }
+
+    return data;
+  } catch (error: any) {
+    console.error("Error adding single period:", error);
+    throw new Error(error.message || "Failed to add single period");
+  }
 };
 
+export type {
+  AddPeriodRequest,
+  AddPeriodResponse,
+  DeletePeriodRequest,
+  DeletePeriodResponse,
+  DeletePeriodsBulkRequest,
+  DeletePeriodsBulkResponse,
+  DeleteSlotsByIdsRequest,
+  DeleteSlotsByIdsResponse,
+  PeriodToDelete,
+};
