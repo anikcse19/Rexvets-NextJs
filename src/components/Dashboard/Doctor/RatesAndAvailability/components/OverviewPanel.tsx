@@ -11,7 +11,7 @@ interface OverviewPanelProps {
   getTotalHours: () => number;
   formatDuration: (hours: number) => string;
   formatDateRange: (start: Date, end: Date, tz?: string) => string;
-  displaySaveBtn: (className: string) => JSX.Element;
+  displaySaveBtn: (className: string) => React.ReactNode;
 }
 
 export const OverviewPanel: React.FC<OverviewPanelProps> = ({

@@ -21,6 +21,7 @@ import { getUserTimezone } from "@/lib/timezone";
 import { convertTimesToUserTimezone } from "@/lib/timezone/index";
 import { DateRange, SlotPeriod } from "@/lib/types";
 import { generateTimeOptions } from "@/lib/utils";
+import { Slot } from "@radix-ui/react-slot";
 import {
   AlertTriangle,
   Calendar,
@@ -516,38 +517,42 @@ export default function TimeSlotCreator({
   };
 
   // Update individual existing period
-  const updateIndividualPeriod = async (slotId: string) => {
-    const slot = slots.find((s) => s.id === slotId);
-    if (!slot || !slot.isExisting) return;
-
-    if (!selectedRange || !vetId) {
-      toast.error("Missing required information");
-      return;
-    }
-
-    if (!isValidSlot(slot)) {
-      toast.error("Invalid time slot configuration");
-      return;
-    }
+  const updateIndividualPeriod = async (
+    slotIds: string[] | undefined,
+    startTime: string,
+    endTime: string
+  ) => {
+    console.log("SLOT ID", slotIds);
+    console.log("slot start time", startTime);
+    console.log("slot end time", endTime);
 
     try {
-      // For existing periods, we need to update the existing slots in the database
-      // This would typically involve updating the slot times in the database
-      // For now, we'll show a success message
-
-      toast.success(`Period updated successfully!`);
-
-      // In a real implementation, you would:
-      // 1. Find the existing slots for this period
-      // 2. Update their start/end times in the database
-      // 3. Handle any conflicts with existing appointments
-
-      console.log("Updating existing period:", {
-        slotId,
-        newStartTime: slot.startTime,
-        newEndTime: slot.endTime,
-        existingSlotIDs: slot.slotIDs,
+      if (!vetId) throw new Error("Missing vetId");
+      if (!slotIds || slotIds.length === 0)
+        throw new Error("No slotIds provided");
+      const payload = {
+        vetId,
+        slotIds,
+        startTime,
+        endTime,
+        slotDuration: 30,
+        bufferBetweenSlots: 0,
+      };
+      const res = await fetch(`/api/appointments/slots/update-period`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
       });
+      if (!res.ok) {
+        const msg = await res.text();
+        throw new Error(msg || "Failed to update period");
+      }
+      toast.success("Period updated successfully!");
+      if (typeof refetch === "function") {
+        try {
+          refetch();
+        } catch {}
+      }
     } catch (error: any) {
       console.error("Error updating existing period:", error);
       toast.error("Failed to update period", {
@@ -774,29 +779,7 @@ export default function TimeSlotCreator({
       )}`;
     }
   };
-  const displaySaveBtn = (className: string) => {
-    const isDisabled = !validateSlots() || !hasNewPeriods() || isLoading;
 
-    return (
-      <Button
-        onClick={handleSave}
-        disabled={isDisabled}
-        className={` ${className} cursor-pointer  w-[200px] bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold py-4 rounded-2xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl`}
-      >
-        {isLoading ? (
-          <div className="flex items-center justify-center space-x-3">
-            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-            <span>Saving Schedule...</span>
-          </div>
-        ) : (
-          <div className="flex items-center justify-center space-x-3">
-            {/* <Save className="w-6 h-6" /> */}
-            <span>Save & Launch Schedule</span>
-          </div>
-        )}
-      </Button>
-    );
-  };
   return (
     <div className="w-full min-h-screen  p-6">
       {!selectedRange ? (
@@ -957,7 +940,6 @@ export default function TimeSlotCreator({
                   </div>
 
                   <div className="flex gap-x-3 items-center">
-                    {displaySaveBtn("flex")}
                     <div className="flex items-center space-x-3">
                       <Button
                         onClick={addSlot}
@@ -982,8 +964,7 @@ export default function TimeSlotCreator({
                       </h3>
                       <p className="text-sm text-blue-700 mt-1">
                         🕐 2-hour minimum periods • ⏰ 1-hour buffer between
-                        blocks • 🚫 No conflicts possible • ✨ Industry-standard
-                        scheduling
+                        blocks • 🚫 No conflicts possible •
                       </p>
                       <div className="mt-2 text-xs text-blue-600">
                         <p>
@@ -992,10 +973,7 @@ export default function TimeSlotCreator({
                           periods, {slots.filter((s) => !s.isExisting).length}{" "}
                           new periods
                         </p>
-                        <p>
-                          ✏️ Existing periods can now be modified with time
-                          block selection
-                        </p>
+
                         <p>
                           🚫 All periods cannot overlap with each other (1hr
                           buffer enforced)
@@ -1403,7 +1381,11 @@ export default function TimeSlotCreator({
                                 size="sm"
                                 onClick={() => {
                                   if (slot.isExisting) {
-                                    updateIndividualPeriod(slot.id);
+                                    updateIndividualPeriod(
+                                      slot.slotIDs || [],
+                                      slot.startTime,
+                                      slot.endTime
+                                    );
                                   } else {
                                     saveIndividualPeriod(slot.id);
                                   }

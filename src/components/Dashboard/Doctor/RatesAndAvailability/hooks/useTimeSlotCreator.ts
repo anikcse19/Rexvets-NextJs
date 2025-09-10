@@ -309,13 +309,35 @@ export function useTimeSlotCreator({
       return;
     }
     try {
-      toast.success(`Period updated successfully!`);
-      console.log("Updating existing period:", {
-        slotId,
-        newStartTime: slot.startTime,
-        newEndTime: slot.endTime,
-        existingSlotIDs: slot.slotIDs,
+      const payload = {
+        slotPeriods: [
+          {
+            start: slot.startTime,
+            end: slot.endTime,
+          },
+        ],
+        slotDuration: 30,
+        bufferBetweenSlots: 0,
+        dateRange: selectedRange,
+      };
+
+      const res = await fetch(`/api/appointments/generate-appointment-slot/${vetId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
       });
+
+      if (!res.ok) {
+        const msg = await res.text();
+        throw new Error(msg || "Failed to update period");
+      }
+
+      toast.success(`Period updated successfully!`);
+      if (typeof refetch === "function") {
+        try {
+          await refetch();
+        } catch {}
+      }
     } catch (error: any) {
       console.error("Error updating existing period:", error);
       toast.error("Failed to update period", { description: error.message || "Please try again." });

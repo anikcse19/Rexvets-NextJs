@@ -38,7 +38,6 @@ export const BulkActions: React.FC<BulkActionsProps> = ({
           <div className="flex items-center space-x-2 text-emerald-600">
             <Check className="w-4 h-4" />
             <span className="text-sm font-medium">{selectedCount} selected</span>
-          </span>
           </div>
         )}
       </div>
