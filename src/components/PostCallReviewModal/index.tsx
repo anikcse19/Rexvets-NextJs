@@ -108,7 +108,7 @@ const PostCallModal: React.FC<PostCallModalProps> = ({
   const [reviewSubmitted, setReviewSubmitted] = useState<boolean>(false);
   const router = useRouter();
 
-  if (!isOpen || docType !== "Parent") return null;
+  if (!isOpen) return null;
   console.log("appointment details:", appointmentDetails);
   if (!appointmentDetails) return null;
 

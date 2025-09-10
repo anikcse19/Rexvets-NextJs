@@ -22,6 +22,7 @@ export const useVideoCall = () => {
   const { data: session } = useSession();
   const user = session?.user;
   const searchParams = useSearchParams();
+  const userRole = session?.user?.role as string | undefined;
 
   // State
   const [hasError, setHasError] = useState(false);
@@ -847,46 +848,20 @@ export const useVideoCall = () => {
       setErrorMessage(null);
       // Stop timer when call ends
       setIsTimerRunning(false);
+      if (!hasExistingReview && userRole === "pet_parent") {
+        setIsOpen(true);
+      } else {
+        router.replace("/");
+      }
     } catch (error) {
       console.error("Error ending call:", error);
       setErrorMessage("Failed to end call.");
       setCallState("ended");
     } finally {
-      // Check if review already exists before showing modal
-      if (appointmentDetails?.veterinarian && appointmentDetails?.petParent) {
-        const vet_id = extractId(appointmentDetails.veterinarian);
-        const parent_id = extractId(appointmentDetails.petParent);
-
-        if (vet_id && parent_id) {
-          console.log("Checking review in endCall:", { vet_id, parent_id });
-          const hasReview = await checkExistingReview(vet_id, parent_id);
-
-          if (hasReview) {
-            toast.info(
-              "You have already reviewed this veterinarian. Redirecting to home..."
-            );
-            setTimeout(() => {
-              router.push("/");
-            }, 2000);
-          } else {
-            setIsOpen(true);
-          }
-        } else {
-          console.warn(
-            "Could not extract valid IDs for review check in endCall:",
-            {
-              veterinarian: appointmentDetails.veterinarian,
-              petParent: appointmentDetails.petParent,
-            }
-          );
-          setIsOpen(true);
-        }
-      } else {
-        setIsOpen(true);
-      }
+      // stay on page to allow modal rendering
     }
-  }, [appointmentDetails, checkExistingReview, router]);
-
+  }, [hasExistingReview, userRole]);
+  console.log("hasExistingReview", hasExistingReview);
   // Effects
   useEffect(() => {
     (async () => {
@@ -969,6 +944,23 @@ export const useVideoCall = () => {
       setIsTimerRunning(false);
     }
   }, [callState]);
+
+  // After call ends, decide on post-call modal/redirect using hasExistingReview
+  useEffect(() => {
+    if (callState !== "ended") return;
+    if (userRole === "pet_parent") {
+      if (hasExistingReview === false) {
+        setIsOpen(true);
+      } else if (hasExistingReview === true) {
+        toast.info(
+          "You have already reviewed this veterinarian. Redirecting to home..."
+        );
+        setTimeout(() => {
+          router.push("/");
+        }, 2000);
+      }
+    }
+  }, [callState, hasExistingReview, userRole, router]);
 
   useEffect(() => {
     if (user && !isInitializedRef.current) {
