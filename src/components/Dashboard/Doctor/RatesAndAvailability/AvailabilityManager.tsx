@@ -1,6 +1,7 @@
 "use client";
 
 import AvailabilityScheduler from "@/components/Dashboard/Doctor/RatesAndAvailability/AvailabilityScheduler";
+import AnimatedDateTabs from "@/components/shared/AnimatedDateTabs";
 import BookingNoticePeriod from "@/components/shared/BookingNoticePeriod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -19,15 +20,8 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { useDashboardContext } from "@/hooks/DashboardContext";
-import {
-  getMonthRange,
-  getTimezoneOffset,
-  getTimezones,
-  getTodayUTC,
-  getUserTimezone,
-  getWeekRange,
-} from "@/lib/timezone";
-import { CreateAvailabilityRequest, DateRange, SlotPeriod } from "@/lib/types";
+import { getTimezoneOffset } from "@/lib/timezone";
+import { DateRange, SlotPeriod } from "@/lib/types";
 import { format } from "date-fns";
 import { AlertTriangle, Calendar, Clock, Globe } from "lucide-react";
 import moment from "moment";
@@ -41,19 +35,21 @@ import React, {
   useState,
 } from "react";
 import { toast } from "sonner";
-import DateRangeCalendar from "./DateRangeCalender";
 
-const TimeSlotCreator = dynamic(() => import("./TimeSlotCreator"), {
-  ssr: false,
-  loading: () => (
-    <div className="flex items-center justify-center h-64">
-      <div className="flex flex-col items-center space-y-4">
-        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-        <p className="text-gray-600">Processing....</p>
+const TimeSlotCreator = dynamic(
+  () => import("./TimeSlotCreator/TimeSlotCreator"),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex items-center justify-center h-64">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-gray-600">Processing....</p>
+        </div>
       </div>
-    </div>
-  ),
-});
+    ),
+  }
+);
 
 interface SessionUserWithRefId {
   refId: string;
@@ -71,7 +67,7 @@ interface TimezoneModalState {
 
 const AvailabilityManager: React.FC = () => {
   const {
-    getAvailableSlots,
+    getSlots,
     availableSlotsApiResponse,
     selectedRange,
     setSelectedRange,
@@ -91,7 +87,7 @@ const AvailabilityManager: React.FC = () => {
     null
   );
 
-  const fetchAvailableSlots = useCallback(async () => {
+  const fetchSlots = useCallback(async () => {
     if (!selectedRange || !user?.refId) {
       throw new Error("Missing required data");
     }
@@ -100,7 +96,7 @@ const AvailabilityManager: React.FC = () => {
       const startDate = format(selectedRange.start, "yyyy-MM-dd");
       const endDate = format(selectedRange.end, "yyyy-MM-dd");
 
-      await getAvailableSlots(startDate, endDate, user.refId, userTimezone);
+      await getSlots(startDate, endDate, user.refId, userTimezone);
 
       const diff = getDaysBetween(selectedRange);
       console.log("Days between selected range:", diff);
@@ -110,37 +106,32 @@ const AvailabilityManager: React.FC = () => {
         description: "Please try refreshing the page or contact support.",
       });
     }
-  }, [selectedRange, user?.refId, userTimezone, getAvailableSlots]);
+  }, [selectedRange, user?.refId, userTimezone, getSlots]);
 
   useEffect(() => {
     // Only fetch if we have both selectedRange and user refId
     if (selectedRange && user?.refId) {
-      fetchAvailableSlots();
+      fetchSlots();
     }
-  }, [
-    selectedRange,
-    user?.refId,
-    slotStatus,
-    userTimezone,
-    fetchAvailableSlots,
-  ]);
+  }, [selectedRange, user?.refId, slotStatus, userTimezone, fetchSlots]);
   useEffect(() => {
     if (availableSlotsApiResponse.data) {
       setHasExistingSlots(availableSlotsApiResponse.data.periods.length > 0);
     }
   }, [availableSlotsApiResponse.data]);
   // Initialize with today's date when component mounts and user is available
-  useEffect(() => {
-    if (user?.refId && !selectedRange) {
-      // Use timezone-agnostic date to ensure slots are always visible
-      // regardless of the user's current timezone
-      const weekDateRange = getWeekRange();
-      setSelectedRange({
-        start: new Date(weekDateRange.start),
-        end: new Date(weekDateRange.end),
-      });
-    }
-  }, [user?.refId, selectedRange, setSelectedRange]);
+  // useEffect(() => {
+  //   if (user?.refId && !selectedRange) {
+  //     // Use timezone-agnostic date to ensure slots are always visible
+  //     // regardless of the user's current timezone
+  //     const weekDateRange = getWeekRange();
+  //     console.log("weekDateRange", weekDateRange);
+  //     setSelectedRange({
+  //       start: new Date(weekDateRange.start),
+  //       end: new Date(weekDateRange.end),
+  //     });
+  //   }
+  // }, [user?.refId, selectedRange, setSelectedRange]);
   // Memoize the existing periods to avoid recalculating on every render
   const existingPeriods = useMemo(() => {
     if (!availableSlotsApiResponse.data?.periods) return [];
@@ -151,19 +142,20 @@ const AvailabilityManager: React.FC = () => {
 
   // Defer large arrays to avoid blocking rendering
   const deferredExistingPeriods = useDeferredValue(existingPeriods);
-
+  console.log("availableSlotsApiResponse.data", availableSlotsApiResponse.data);
   // console.log("deferredExistingPeriods", deferredExistingPeriods);
   return (
     <div className="container mx-auto p-2 md:p-6 space-y-6">
-      <BookingNoticePeriod vetId={user?.refId} />
-
+      {process.env.NODE_ENV !== "production" && (
+        <>
+          <p>VET ID:{user?.refId}</p>
+        </>
+      )}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="space-y-6">
-          <DateRangeCalendar
-            selectedRange={selectedRange}
-            onRangeSelect={setSelectedRange}
-          />
-          <div className=" flex items-center justify-end">
+        <div className="space-y-6 relative">
+          <AnimatedDateTabs />
+
+          <div className=" flex items-center justify-end absolute top-[178px] right-3 md:top-[190px] md:right-7 z-50">
             <Button
               className="  cursor-pointer"
               disabled={availableSlotsApiResponse.loading}
@@ -175,14 +167,15 @@ const AvailabilityManager: React.FC = () => {
                 : "Create Availability Slots"}
             </Button>
           </div>
-        </div>
-
-        <div>
           <AvailabilityScheduler
             data={availableSlotsApiResponse.data}
             error={availableSlotsApiResponse.error}
             loading={availableSlotsApiResponse.loading}
           />
+        </div>
+
+        <div>
+          <BookingNoticePeriod vetId={user?.refId} />
         </div>
       </div>
 
@@ -328,7 +321,7 @@ const AvailabilityManager: React.FC = () => {
               <TimeSlotCreator
                 refetch={async () => {
                   if (selectedRange) {
-                    await fetchAvailableSlots();
+                    await fetchSlots();
                   }
                 }}
                 selectedRange={selectedRange}

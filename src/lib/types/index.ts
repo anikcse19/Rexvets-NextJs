@@ -24,7 +24,12 @@ export interface PetParent extends User {
   gender: string;
   isDeleted: boolean;
   locale: string;
+  preferences: any;
+  categoryBadge: string;
+  lastDonationAmount: number;
+  lastDonationDate: string;
   pets: any[]; // you can replace `any[]` with a proper Pet type if you have one
+  appointments: Appointment;
   createdAt: string; // ISO date string
   updatedAt: string; // ISO date string
   __v: number;

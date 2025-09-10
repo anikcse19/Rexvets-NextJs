@@ -1,16 +1,15 @@
 import { connectToDatabase } from "@/lib/mongoose";
-import { getUserTimezone } from "@/lib/timezone";
 import {
-    IErrorResponse,
-    sendResponse,
-    throwAppError,
+  IErrorResponse,
+  sendResponse,
+  throwAppError,
 } from "@/lib/utils/send.response";
 import Veterinarian from "@/models/Veterinarian";
 import moment from "moment";
 import { NextRequest } from "next/server";
 import {
-    generateAppointmentSlots,
-    IGenerateAppointmentSlots,
+  generateAppointmentSlots,
+  IGenerateAppointmentSlots,
 } from "../generate-appointment-slot/utils.appointment-slot";
 
 interface AddPeriodRequest {
@@ -30,7 +29,7 @@ interface AddPeriodRequest {
 export const POST = async (req: NextRequest) => {
   try {
     await connectToDatabase();
-    
+
     const {
       vetId,
       slotPeriods,
@@ -50,7 +49,11 @@ export const POST = async (req: NextRequest) => {
       return throwAppError(errResp, 400);
     }
 
-    if (!slotPeriods || !Array.isArray(slotPeriods) || slotPeriods.length === 0) {
+    if (
+      !slotPeriods ||
+      !Array.isArray(slotPeriods) ||
+      slotPeriods.length === 0
+    ) {
       const errResp: IErrorResponse = {
         success: false,
         message: "Slot periods are required",
@@ -83,7 +86,7 @@ export const POST = async (req: NextRequest) => {
     }
 
     // Convert slot periods from Date objects to HH:mm format strings
-    const formattedSlotPeriods = slotPeriods.map(period => ({
+    const formattedSlotPeriods = slotPeriods.map((period) => ({
       start: moment(period.start).format("HH:mm"),
       end: moment(period.end).format("HH:mm"),
     }));
@@ -93,7 +96,7 @@ export const POST = async (req: NextRequest) => {
       vetId: existingVet._id,
       slotPeriods: formattedSlotPeriods,
       dateRange: dateRange,
-      timezone: existingVet?.timezone || getUserTimezone(),
+      timezone: existingVet?.timezone,
       bufferBetweenSlots: bufferBetweenSlots,
       slotDuration: slotDuration,
     };
@@ -102,9 +105,9 @@ export const POST = async (req: NextRequest) => {
 
     // Generate appointment slots for the new period
     const response = await generateAppointmentSlots(slotData);
-    
+
     console.log("New period slots generated:", response);
-    
+
     return sendResponse({
       success: true,
       message: "New period added and slots generated successfully",
@@ -113,7 +116,7 @@ export const POST = async (req: NextRequest) => {
     });
   } catch (error: any) {
     console.log("ERROR adding new period:", error.message);
-    
+
     // Handle specific MongoDB duplicate key errors
     if (error.message?.includes("E11000 duplicate key error")) {
       const errResp: IErrorResponse = {

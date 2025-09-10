@@ -39,9 +39,30 @@ export default function DoctorProfilePage({
 
   const router = useRouter();
 
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const storedDate = localStorage.getItem("selectedDate");
+      const storedTime = localStorage.getItem("selectedTime");
+      const storedSlot = localStorage.getItem("selectedSlot");
+
+      if (storedDate) setSelectedDate(storedDate);
+      if (storedTime) setSelectedTime(storedTime);
+      if (storedSlot) setSelectedSlot(storedSlot);
+    }
+  }, []);
+
   const handleDonationComplete = (amount: number) => {
     localStorage.setItem("doctorData", JSON.stringify(doctorData));
     console.log("Donation completed:", amount);
+
+    console.log(
+      "selectedDate",
+      selectedDate,
+      "time",
+      selectedTime,
+      "slot",
+      selectedSlot
+    );
 
     router.push(
       "/appointment-confirmation?date=" +
@@ -58,8 +79,14 @@ export default function DoctorProfilePage({
     localStorage.removeItem("selectedTime");
     localStorage.removeItem("selectedSlot");
   };
-  console.log("doctorData", doctorData);
-
+  console.log(
+    "selectedDate",
+    selectedDate,
+    "time",
+    selectedTime,
+    "slot",
+    selectedSlot
+  );
   return (
     <div className="min-h-screen mt-14 bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 p-4 lg:p-6">
       {/* Donation Modal */}

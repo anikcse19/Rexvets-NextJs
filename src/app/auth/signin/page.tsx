@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
@@ -34,6 +34,17 @@ export default function SignInPage() {
 
   console.log("redirect to", redirect);
 
+  useEffect(() => {
+    const handlePopState = () => {
+      window.location.replace("/"); // send them home
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -47,6 +58,9 @@ export default function SignInPage() {
       });
 
       if (result?.ok) {
+        if (redirect !== "/") {
+          localStorage.setItem("showForm", JSON.stringify(true));
+        }
         router.push(redirect);
       } else {
         // Handle different error cases
@@ -103,7 +117,12 @@ export default function SignInPage() {
     setGoogleLoading(true);
     setError(""); // Clear previous errors
     try {
-      await signIn("google", { callbackUrl: "/" });
+      if (redirect !== "/") {
+        localStorage.setItem("showForm", JSON.stringify(true));
+      }
+      await signIn("google", {
+        callbackUrl: redirect || "/",
+      });
     } catch {
       setError("Google sign-in failed. Please try again.");
     } finally {

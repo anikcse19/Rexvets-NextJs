@@ -1,6 +1,6 @@
 import { authOptions } from "@/lib/auth";
 import { connectToDatabase } from "@/lib/mongoose";
-import { PetParentModel } from "@/models";
+import { AppointmentModel, PetModel, PetParentModel } from "@/models";
 import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -41,6 +41,23 @@ export async function GET(
       );
     }
 
+    const pets = await PetModel.find({ parentId: id }).select("-__v");
+
+    // Fetch related Appointments
+    const nextAppointment = await AppointmentModel.findOne({
+      petParent: id,
+      appointmentDate: { $gte: new Date() }, // only future appointments
+    })
+      .populate("veterinarian", "name")
+      .sort({ appointmentDate: 1 }) // earliest upcoming
+      .select("-__v");
+
+    const petParentWithRelations = {
+      ...petParent.toObject(), // convert Mongoose doc → plain object
+      pets,
+      appointments: nextAppointment,
+    };
+
     // Check if the user is authorized to access this pet parent data
     // Allow access if the user is the pet parent themselves or if they have admin privileges
     // const isAuthorized =
@@ -55,10 +72,11 @@ export async function GET(
     //   );
     // }
 
+    console.log("parent details", petParentWithRelations);
     return NextResponse.json({
       success: true,
       message: "Pet parent details retrieved successfully",
-      data: petParent,
+      data: petParentWithRelations,
     });
   } catch (error: any) {
     console.error("Error fetching pet parent details:", error);

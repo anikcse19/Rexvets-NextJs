@@ -35,7 +35,7 @@ export const GET = async (
     const page = parseInt(searchParams.get("page") as string) || 1;
     const limit = parseInt(searchParams.get("limit") as string) || 1000;
     const slotStatus =
-      (searchParams.get("status") as SlotStatus) || SlotStatus.AVAILABLE;
+      (searchParams.get("status") as SlotStatus) || SlotStatus.ALL;
 
     // Validate vetId
     if (!vetId || !new Types.ObjectId(vetId)) {
@@ -75,7 +75,6 @@ export const GET = async (
       };
       return throwAppError(errResp, 404);
     }
-    console.log("isVetExist.timezone", isVetExist.timezone);
     // Prepare parameters for slot retrieval
     const paramsFn: IGetSlotsParams = {
       vetId,
@@ -90,7 +89,7 @@ export const GET = async (
     };
     console.log("paramsFn", paramsFn);
     const response = await getSlotsByVetId(paramsFn);
-    console.log("Raw slots response:", response);
+    console.log("Raw slots response:", response.data.length);
 
     const slotPeriods = groupSlotsIntoPeriods(response.data);
     console.log("Grouped slot periods:", slotPeriods);

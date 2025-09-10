@@ -1,7 +1,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
-import { Activity, Calendar, Heart, Plus, Shield } from "lucide-react";
+import { Heart, Plus } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import AddPetModal from "../Pets/AddPetModal";
 import { PetRegistrationData } from "@/lib/validation/pet";
@@ -11,20 +11,28 @@ import { getPetsByParent } from "../Service/pet";
 
 const PetList = () => {
   const [isAddPetModalOpen, setIsAddPetModalOpen] = useState(false);
-
   const [pets, setPets] = useState<Pet[]>([]);
-
+  const [loading, setLoading] = useState<boolean>(true);
   const { data: session } = useSession();
 
   const fetchPets = async () => {
     if (!session) {
       setPets([]);
+      setLoading(false);
       return;
     }
-    const data = await getPetsByParent(
-      (session.user as typeof session.user & { refId?: string })?.refId || ""
-    );
-    setPets(data.data || []);
+    try {
+      setLoading(true);
+      const data = await getPetsByParent(
+        (session.user as typeof session.user & { refId?: string })?.refId || ""
+      );
+      setPets(data.data || []);
+    } catch (error) {
+      console.error("Error fetching pets:", error);
+      setPets([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -33,8 +41,8 @@ const PetList = () => {
 
   const handlePetRegistrationSuccess = (petData: PetRegistrationData) => {
     console.log("Pet registered successfully:", petData);
-    // Here you would typically update your pets list or refetch data
-    // For now, we'll just log the success
+    // Optionally, refetch pets list
+    fetchPets();
   };
 
   const getHealthStatusColor = (status: string) => {
@@ -70,51 +78,75 @@ const PetList = () => {
 
           <CardContent className="p-6">
             <div className="space-y-4">
-              {pets.map((pet) => (
-                <div key={pet._id} className="group">
-                  <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-white via-gray-50 to-pink-50/30 border border-gray-200/60 hover:border-pink-300/60 transition-all duration-300 hover:shadow-lg p-4">
-                    <div className="flex items-center gap-4">
-                      {/* Pet Avatar */}
-                      <div className="relative">
+              {/* Loading Skeleton */}
+              {loading && (
+                <div className="space-y-4">
+                  {[1, 2].map((i) => (
+                    <div
+                      key={i}
+                      className="animate-pulse flex items-center gap-4 p-4 border rounded-2xl bg-gray-50"
+                    >
+                      <div className="w-14 h-14 rounded-full bg-gray-200" />
+                      <div className="flex-1 space-y-2">
+                        <div className="h-4 w-32 bg-gray-200 rounded" />
+                        <div className="h-3 w-24 bg-gray-200 rounded" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* No Pets Found */}
+              {!loading && pets.length === 0 && (
+                <div className="text-center py-10 text-gray-500">
+                  <Heart className="w-10 h-10 mx-auto mb-3 text-gray-400" />
+                  <p className="text-lg font-medium">No pets found</p>
+                  <p className="text-sm text-gray-400">
+                    You haven’t added any pets yet. Click below to register a
+                    new companion.
+                  </p>
+                </div>
+              )}
+
+              {/* Pets List */}
+              {!loading &&
+                pets.map((pet) => (
+                  <div key={pet._id} className="group">
+                    <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-white via-gray-50 to-pink-50/30 border border-gray-200/60 hover:border-pink-300/60 transition-all duration-300 hover:shadow-lg p-4">
+                      <div className="flex items-center gap-4">
+                        {/* Pet Avatar */}
                         <Avatar className="w-14 h-14 border-3 border-white shadow-md ring-2 ring-pink-100">
                           <AvatarImage src={pet.image} alt={pet.name} />
                           <AvatarFallback className="bg-gradient-to-br from-pink-100 to-pink-200 text-pink-700 font-bold">
                             {pet.name.charAt(0)}
                           </AvatarFallback>
                         </Avatar>
-                        {/* {pet.microchipped && (
-                          <div className="absolute -bottom-1 -right-1 bg-gradient-to-br from-blue-400 to-blue-600 text-white rounded-full p-1">
-                            <Shield className="w-3 h-3" />
+
+                        {/* Pet Info */}
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h3 className="font-bold text-gray-900">
+                              {pet?.name}
+                            </h3>
+                            <Badge
+                              className={`${getHealthStatusColor(
+                                pet?.healthStatus
+                              )} text-xs`}
+                            >
+                              {pet?.healthStatus || "Unknown"}
+                            </Badge>
                           </div>
-                        )} */}
-                      </div>
-
-                      {/* Pet Info */}
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h3 className="font-bold text-gray-900">
-                            {pet?.name}
-                          </h3>
-                          <Badge
-                            className={`${getHealthStatusColor(
-                              pet?.healthStatus
-                            )} text-xs`}
-                          >
-                            {pet?.healthStatus}
-                          </Badge>
+                          <p className="text-sm text-gray-600 mb-2 capitalize">
+                            {pet?.species || "Unknown"} •{" "}
+                            {pet?.breed || "Unknown"}
+                          </p>
                         </div>
-
-                        <p className="text-sm text-gray-600 mb-2">
-                          {pet?.species} • {pet?.breed}
-                        </p>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
 
               {/* Add New Pet Button */}
-
               <div
                 onClick={() => setIsAddPetModalOpen(true)}
                 className="group cursor-pointer"
