@@ -148,7 +148,7 @@ const Home = () => {
       <VirtualCareIntroSection />
       <BlogPostSection />
       <TestimonialsSection />
-      {/* <VetScheduleSetupAlertModal open={open}  /> */}
+      <VetScheduleSetupAlertModal open={open} />
 
       {/* Chat Icon */}
     </div>
