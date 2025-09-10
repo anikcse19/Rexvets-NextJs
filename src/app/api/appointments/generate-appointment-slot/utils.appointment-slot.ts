@@ -63,16 +63,16 @@ export const generateAppointmentSlots = async (
         $lte: endDate.toDate(),
       },
       timezone: timezone,
-    });
+    }).populate("vetId", "name email");
 
     // If slots already exist, return early without generating new ones
     if (existingSlots.length > 0) {
       throw new Error(
-        `Appointment slots already exist for this vet between ${startDate.format(
+        `Appointment slots already exist for ${(existingSlots[0].vetId as any)?.name} between ${startDate.format(
           "YYYY-MM-DD"
         )} and ${endDate.format(
           "YYYY-MM-DD"
-        )} in timezone ${timezone}. Please delete existing slots first.`
+        )} in timezone ${timezone}. Please delete existing slots or choose a different date range or time .`
       );
     }
 
@@ -202,7 +202,7 @@ export const generateAppointmentSlots = async (
     };
   } catch (error: any) {
     console.error("Error generating appointment slots:", error);
-    throw new Error(`Failed to generate appointment slots: ${error.message}`);
+    throw new Error(`${error?.message}`);
   }
 };
 
@@ -270,7 +270,7 @@ export const updateAppointmentSlots = async (data: IUpdateAppointmentSlots) => {
         $lte: endDate.toDate(),
       },
       timezone: timezone,
-    });
+    }).populate("vetId", "name email");
 
     // Separate slots by status for smart handling
     const bookedSlots = existingSlots.filter(
@@ -550,8 +550,8 @@ export const getAppointmentSlots = async (
 
     // Execute queries in parallel for better performance
     const [slots, totalCount] = await Promise.all([
-      // Get paginated results
-      AppointmentSlot.find(baseQuery).sort(sort).skip(skip).limit(limit).lean(),
+      // Get paginated results with populated vetId
+      AppointmentSlot.find(baseQuery).populate("vetId", "name email").sort(sort).skip(skip).limit(limit),
 
       // Get total count for pagination
       AppointmentSlot.countDocuments(baseQuery),

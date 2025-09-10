@@ -61,7 +61,6 @@ export const POST = async (
     };
 
     const response = await generateAppointmentSlots(slotData);
-    console.log("RESPONSE", response);
     return sendResponse({
       success: true,
       message: "Appointment slots generated successfully",

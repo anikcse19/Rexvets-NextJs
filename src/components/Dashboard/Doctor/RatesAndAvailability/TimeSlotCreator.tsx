@@ -114,6 +114,9 @@ export default function TimeSlotCreator({
   const timeOptions = generateTimeOptions();
 
   const addSlot = () => {
+    // Clear any error messages when adding a new slot
+    setErrorMessage("");
+
     const newSlot: TimeSlot = {
       id: Date.now().toString(),
       startTime: "09:00", // Default start time
@@ -146,6 +149,10 @@ export default function TimeSlotCreator({
           );
         } catch (error: any) {
           console.error("Error deleting period:", error);
+          const errorMsg = `Failed to delete period: ${
+            error.message || "Please try again."
+          }`;
+          setErrorMessage(errorMsg);
           toast.error("Failed to delete period", {
             description: error.message || "Please try again.",
           });
@@ -205,6 +212,10 @@ export default function TimeSlotCreator({
         );
       } catch (error: any) {
         console.error("Error deleting periods in bulk:", error);
+        const errorMsg = `Failed to delete periods: ${
+          error.message || "Please try again."
+        }`;
+        setErrorMessage(errorMsg);
         toast.error("Failed to delete periods", {
           description: error.message || "Please try again.",
         });
@@ -239,6 +250,9 @@ export default function TimeSlotCreator({
     field: "startTime" | "endTime",
     value: string
   ) => {
+    // Clear any error messages when updating a slot
+    setErrorMessage("");
+
     setSlots(
       slots.map((slot) => (slot.id === id ? { ...slot, [field]: value } : slot))
     );
@@ -256,15 +270,21 @@ export default function TimeSlotCreator({
   };
 
   const handleSave = async () => {
+    // Clear any previous error messages
+    setErrorMessage("");
+
     if (!selectedRange || !validateSlots()) {
-      toast.error(
-        "Please select a date range and ensure all time slots are valid"
-      );
+      const errorMsg =
+        "Please select a date range and ensure all time slots are valid";
+      setErrorMessage(errorMsg);
+      toast.error(errorMsg);
       return;
     }
 
     if (!vetId) {
-      toast.error("Veterinarian ID is required");
+      const errorMsg = "Veterinarian ID is required";
+      setErrorMessage(errorMsg);
+      toast.error(errorMsg);
       return;
     }
 
@@ -327,6 +347,8 @@ export default function TimeSlotCreator({
       }
     } catch (error: any) {
       console.error("Error saving slots:", error);
+      const errorMsg = `${error.message || "Please try again."}`;
+      setErrorMessage(errorMsg);
       toast.error("Failed to save availability slots", {
         description: error.message || "Please try again.",
       });
@@ -633,6 +655,25 @@ export default function TimeSlotCreator({
                     </div>
                   </div>
                 </div>
+
+                {/* Error Message Display */}
+                {errorMessage && (
+                  <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl shadow-sm">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
+                        <AlertTriangle className="w-4 h-4 text-red-600" />
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-semibold text-red-800">
+                          Error
+                        </h3>
+                        <p className="text-sm text-red-700 mt-1">
+                          {errorMessage}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {/* Bulk Actions */}
                 {slots.length > 1 && (
