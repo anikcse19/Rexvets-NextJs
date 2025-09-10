@@ -1,19 +1,20 @@
 import { connectToDatabase } from "@/lib/mongoose";
+import { DateRange } from "@/lib/types";
 import {
-    IErrorResponse,
-    sendResponse,
-    throwAppError,
+  IErrorResponse,
+  sendResponse,
+  throwAppError,
 } from "@/lib/utils/send.response";
 import Veterinarian from "@/models/Veterinarian";
 import { NextRequest } from "next/server";
 import {
-    IGenerateSinglePeriod,
-    generateAppointmentSlotsForPeriod,
+  IGenerateSinglePeriod,
+  generateAppointmentSlotsForPeriod,
 } from "../generate-appointment-slot/utils.appointment-slot";
 
 interface AddSinglePeriodRequest {
   vetId: string;
-  date: Date;
+  dateRange: DateRange;
   timezone?: string; // optional; fallback to vet.timezone
   period: { start: string; end: string }; // HH:mm
   slotDuration?: number;
@@ -26,7 +27,7 @@ export const POST = async (req: NextRequest) => {
 
     const {
       vetId,
-      date,
+      dateRange,
       timezone,
       period,
       slotDuration = 30,
@@ -35,13 +36,28 @@ export const POST = async (req: NextRequest) => {
 
     if (!vetId) {
       return throwAppError(
-        { success: false, message: "Veterinarian ID is required", errorCode: "VET_ID_REQUIRED", errors: null },
+        {
+          success: false,
+          message: "Veterinarian ID is required",
+          errorCode: "VET_ID_REQUIRED",
+          errors: null,
+        },
         400
       );
     }
-    if (!date || !period?.start || !period?.end) {
+    if (
+      !dateRange?.start ||
+      !dateRange?.end ||
+      !period?.start ||
+      !period?.end
+    ) {
       return throwAppError(
-        { success: false, message: "Date and period are required", errorCode: "INPUT_REQUIRED", errors: null },
+        {
+          success: false,
+          message: "Date and period are required",
+          errorCode: "INPUT_REQUIRED",
+          errors: null,
+        },
         400
       );
     }
@@ -49,15 +65,20 @@ export const POST = async (req: NextRequest) => {
     const vet = await Veterinarian.findById(vetId);
     if (!vet) {
       return throwAppError(
-        { success: false, message: "Veterinarian not found", errorCode: "VET_NOT_FOUND", errors: null },
+        {
+          success: false,
+          message: "Veterinarian not found",
+          errorCode: "VET_NOT_FOUND",
+          errors: null,
+        },
         404
       );
     }
 
     const payload: IGenerateSinglePeriod = {
       vetId,
-      date: new Date(date),
-      timezone: timezone || vet.timezone,
+      dateRange: dateRange,
+      timezone: vet.timezone,
       period,
       slotDuration,
       bufferBetweenSlots,
@@ -81,5 +102,3 @@ export const POST = async (req: NextRequest) => {
     return throwAppError(errResp, 500);
   }
 };
-
-

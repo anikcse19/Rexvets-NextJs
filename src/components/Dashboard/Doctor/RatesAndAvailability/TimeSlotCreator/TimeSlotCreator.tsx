@@ -28,6 +28,7 @@ import {
   ChevronDown,
   Clock,
   Edit3,
+  Loader2,
   Plus,
   Save,
   Trash2,
@@ -89,6 +90,7 @@ const TimeSlotCreator = ({
     },
   ]);
   const [isLoading, setIsLoading] = useState(false);
+  const [savingSlotId, setSavingSlotId] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [openPopover, setOpenPopover] = useState<{
     [key: string]: boolean;
@@ -478,16 +480,23 @@ const TimeSlotCreator = ({
   // Save individual new period
   const saveIndividualPeriod = async (slotId: string) => {
     setErrorMessage("");
+    setSavingSlotId(slotId);
+
     const slot = slots.find((s) => s.id === slotId);
-    if (!slot || slot.isExisting) return;
+    if (!slot || slot.isExisting) {
+      setSavingSlotId(null);
+      return;
+    }
 
     if (!selectedRange || !vetId) {
       toast.error("Missing required information");
+      setSavingSlotId(null);
       return;
     }
 
     if (!isValidSlot(slot)) {
       toast.error("Invalid time slot configuration");
+      setSavingSlotId(null);
       return;
     }
 
@@ -495,7 +504,7 @@ const TimeSlotCreator = ({
       // Use granular single-period creation to avoid date-range conflict errors
       const result = await addSinglePeriod({
         vetId,
-        date: new Date(selectedRange.start),
+        dateRange: selectedRange,
         period: { start: slot.startTime, end: slot.endTime },
         slotDuration: 30,
         bufferBetweenSlots: 0,
@@ -515,6 +524,8 @@ const TimeSlotCreator = ({
       toast.error("Failed to save period", {
         description: error.message || "Please try again.",
       });
+    } finally {
+      setSavingSlotId(null);
     }
   };
 
@@ -947,10 +958,19 @@ const TimeSlotCreator = ({
                     <div className="flex items-center space-x-3">
                       <Button
                         onClick={addSlot}
-                        className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold px-4 sm:px-6 py-2 sm:py-3 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl text-sm sm:text-base"
+                        disabled={savingSlotId !== null}
+                        className={`font-semibold px-4 sm:px-6 py-2 sm:py-3 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl text-sm sm:text-base ${
+                          savingSlotId !== null
+                            ? "bg-gray-400 cursor-not-allowed text-gray-200"
+                            : "bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white"
+                        }`}
                       >
-                        <Plus className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-                        Add Period
+                        {savingSlotId !== null ? (
+                          <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 mr-2 animate-spin" />
+                        ) : (
+                          <Plus className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                        )}
+                        {savingSlotId !== null ? "Saving..." : "Add Period"}
                       </Button>
                     </div>
                   </div>
@@ -1178,8 +1198,11 @@ const TimeSlotCreator = ({
                                   <DropdownMenuTrigger asChild>
                                     <Button
                                       variant="outline"
+                                      disabled={savingSlotId === slot.id}
                                       className={`w-full justify-between h-8 text-gray-800 hover:bg-gray-50 text-xs ${
-                                        slot.isExisting
+                                        savingSlotId === slot.id
+                                          ? "bg-gray-100 border-gray-200 cursor-not-allowed opacity-50"
+                                          : slot.isExisting
                                           ? "bg-blue-50 border-blue-300 hover:bg-blue-100"
                                           : "bg-white border-gray-300"
                                       }`}
@@ -1383,6 +1406,7 @@ const TimeSlotCreator = ({
                               <Button
                                 variant="ghost"
                                 size="sm"
+                                disabled={savingSlotId === slot.id}
                                 onClick={() => {
                                   if (slot.isExisting) {
                                     updateIndividualPeriod(
@@ -1395,17 +1419,23 @@ const TimeSlotCreator = ({
                                   }
                                 }}
                                 className={`h-6 w-6 p-0 rounded-md transition-all duration-200 ${
-                                  slot.isExisting
+                                  savingSlotId === slot.id
+                                    ? "text-gray-400 cursor-not-allowed"
+                                    : slot.isExisting
                                     ? "text-blue-600 hover:text-blue-700 hover:bg-blue-100"
                                     : "text-emerald-600 hover:text-emerald-700 hover:bg-emerald-100"
                                 }`}
                                 title={
-                                  slot.isExisting
+                                  savingSlotId === slot.id
+                                    ? "Saving..."
+                                    : slot.isExisting
                                     ? "Update existing period"
                                     : "Save new period"
                                 }
                               >
-                                {slot.isExisting ? (
+                                {savingSlotId === slot.id ? (
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : slot.isExisting ? (
                                   <Edit3 className="h-4 w-4" />
                                 ) : (
                                   <Save className="h-4 w-4" />
@@ -1418,12 +1448,21 @@ const TimeSlotCreator = ({
                             <Button
                               variant="ghost"
                               size="sm"
+                              disabled={savingSlotId === slot.id}
                               onClick={() => {
                                 console.log("SLOT PERIOD:", slot);
                                 removeSlot(slot.id);
                               }}
-                              className="h-6 w-6 p-0 text-red-400 hover:text-red-300 hover:bg-red-500/20 rounded-md transition-all duration-200"
-                              title="Delete period"
+                              className={`h-6 w-6 p-0 rounded-md transition-all duration-200 ${
+                                savingSlotId === slot.id
+                                  ? "text-gray-300 cursor-not-allowed"
+                                  : "text-red-400 hover:text-red-300 hover:bg-red-500/20"
+                              }`}
+                              title={
+                                savingSlotId === slot.id
+                                  ? "Cannot delete while saving"
+                                  : "Delete period"
+                              }
                             >
                               <Trash2 className="h-3 w-3" />
                             </Button>

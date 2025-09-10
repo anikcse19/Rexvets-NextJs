@@ -1,3 +1,5 @@
+import { DateRange } from "@/lib/types";
+
 interface PeriodToDelete {
   date: string; // YYYY-MM-DD format
   startTime: string; // HH:mm format
@@ -208,7 +210,7 @@ export const addNewPeriod = async (
 // Create slots for a single day/period (more granular than add-period)
 export interface AddSinglePeriodRequest {
   vetId: string;
-  date: Date;
+  dateRange: DateRange;
   period: { start: string; end: string };
   slotDuration?: number;
   bufferBetweenSlots?: number;
@@ -246,6 +248,13 @@ export const addSinglePeriod = async (
 };
 
 export type {
-  AddPeriodRequest, AddPeriodResponse, DeletePeriodRequest, DeletePeriodResponse, DeletePeriodsBulkRequest, DeletePeriodsBulkResponse, DeleteSlotsByIdsRequest, DeleteSlotsByIdsResponse, PeriodToDelete
+  AddPeriodRequest,
+  AddPeriodResponse,
+  DeletePeriodRequest,
+  DeletePeriodResponse,
+  DeletePeriodsBulkRequest,
+  DeletePeriodsBulkResponse,
+  DeleteSlotsByIdsRequest,
+  DeleteSlotsByIdsResponse,
+  PeriodToDelete,
 };
-
