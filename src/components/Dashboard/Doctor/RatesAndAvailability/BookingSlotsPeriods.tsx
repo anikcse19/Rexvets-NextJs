@@ -26,7 +26,6 @@ const BookingSlotsPeriods: React.FC<BookingSlotsProps> = ({
 }) => {
   const {
     selectedSlot,
-    slotStatus,
     setSlotStatus,
     setSelectedSlotIds,
     selectedSlotIds,
@@ -71,11 +70,6 @@ const BookingSlotsPeriods: React.FC<BookingSlotsProps> = ({
         return "bg-gray-100 text-gray-800 border-gray-200";
     }
   };
-
-  const filteredSlots =
-    slotStatus === SlotStatus.ALL
-      ? selectedSlot
-      : selectedSlot?.filter((slot) => slot.status === slotStatus);
 
   const handleSlotClick = (slot: Slot) => {
     // Only allow clicking for available slots
@@ -159,7 +153,7 @@ const BookingSlotsPeriods: React.FC<BookingSlotsProps> = ({
     }, {} as Record<string, Slot[]>);
   };
 
-  const groupedSlots = groupSlotsByDate(filteredSlots ?? null);
+  const groupedSlots = groupSlotsByDate(selectedSlot ?? null);
 
   const formatDateForDisplay = (dateString: string) => {
     const date = new Date(dateString);
@@ -210,10 +204,10 @@ const BookingSlotsPeriods: React.FC<BookingSlotsProps> = ({
   return (
     <div className={`w-full max-w-4xl mx-auto p-6 ${className}`}>
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">
+        {/* <h2 className="text-2xl font-bold text-gray-900 mb-4">
           {slotStatus?.charAt(0)?.toUpperCase() + slotStatus?.slice(1)} Time
           Slots
-        </h2>
+        </h2> */}
 
         {/* Timezone Information */}
         {selectedSlot && selectedSlot.length > 0 && (
