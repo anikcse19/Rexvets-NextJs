@@ -79,8 +79,8 @@ const TimeSlotCreator = ({
   const [slots, setSlots] = useState<TimeSlot[]>([
     {
       id: "1",
-      startTime: "09:00",
-      endTime: "17:00",
+      startTime: "06:00",
+      endTime: "09:00",
       isExisting: false,
       isSelected: false,
       date: selectedRange?.start,
@@ -126,7 +126,7 @@ const TimeSlotCreator = ({
           {
             id: "temp",
             startTime: "09:00",
-            endTime: "17:00",
+            endTime: "12:00",
             isExisting: false,
             isSelected: false,
             date: selectedRange?.start,
@@ -137,7 +137,7 @@ const TimeSlotCreator = ({
         // For now, use a safe default that's unlikely to conflict
         return {
           startTime: "06:00",
-          endTime: "08:00",
+          endTime: "09:00",
         };
       };
 
@@ -196,7 +196,7 @@ const TimeSlotCreator = ({
       });
     });
 
-    // Generate available time blocks (2-hour minimum periods)
+    // Generate available time blocks (3-hour minimum periods)
     const availableBlocks: Array<{
       start: string;
       end: string;
@@ -209,7 +209,7 @@ const TimeSlotCreator = ({
           .toString()
           .padStart(2, "0")}`;
         const endTime = moment(`2000-01-01 ${startTime}`, "YYYY-MM-DD HH:mm")
-          .add(2, "hours")
+          .add(3, "hours")
           .format("HH:mm");
 
         // Skip if end time goes past midnight
@@ -224,7 +224,7 @@ const TimeSlotCreator = ({
           "YYYY-MM-DD HH:mm"
         );
 
-        // Check if this 2-hour block conflicts with any blocked ranges
+        // Check if this 3-hour block conflicts with any blocked ranges
         const hasConflict = blockedRanges.some((blockedRange) => {
           // Check for overlap: block overlaps with blocked range
           return (
@@ -280,7 +280,7 @@ const TimeSlotCreator = ({
       // Fallback to a safe default time if no blocks available
       return {
         startTime: "06:00",
-        endTime: "08:00",
+        endTime: "09:00",
       };
     };
 
@@ -426,7 +426,7 @@ const TimeSlotCreator = ({
       if (!customTimeInputs[id]) {
         setCustomTimeInputs((prev) => ({
           ...prev,
-          [id]: { startTime: "09:00", endTime: "17:00" },
+          [id]: { startTime: "09:00", endTime: "12:00" },
         }));
       }
       setOpenCustomTimeDialog((prev) => ({ ...prev, [id]: true }));
@@ -658,7 +658,7 @@ const TimeSlotCreator = ({
           {
             id: "1",
             startTime: "06:00",
-            endTime: "08:00",
+            endTime: "09:00",
             isExisting: false,
             isSelected: false,
             date: selectedRange?.start,
@@ -687,13 +687,40 @@ const TimeSlotCreator = ({
   };
 
   const isValidSlot = (slot: TimeSlot): boolean => {
-    return (
-      typeof slot.startTime === "string" &&
-      slot.startTime !== "" &&
-      typeof slot.endTime === "string" &&
-      slot.endTime !== "" &&
-      slot.startTime < slot.endTime
+    if (
+      !(
+        typeof slot.startTime === "string" &&
+        slot.startTime !== "" &&
+        typeof slot.endTime === "string" &&
+        slot.endTime !== "" &&
+        slot.startTime < slot.endTime
+      )
+    ) {
+      return false;
+    }
+
+    // Existing periods are always considered valid regardless of duration
+    if (slot.isExisting) {
+      return true;
+    }
+
+    // For new periods, enforce 3-hour minimum
+    const [sh, sm] = slot.startTime.split(":").map(Number);
+    const [eh, em] = slot.endTime.split(":").map(Number);
+    const start = new Date(
+      `2000-01-01T${String(sh).padStart(2, "0")}:${String(sm).padStart(
+        2,
+        "0"
+      )}:00`
     );
+    const end = new Date(
+      `2000-01-01T${String(eh).padStart(2, "0")}:${String(em).padStart(
+        2,
+        "0"
+      )}:00`
+    );
+    const durationHours = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
+    return durationHours >= 3;
   };
 
   const getTotalHours = (): number => {
@@ -984,7 +1011,7 @@ const TimeSlotCreator = ({
                         Professional Time Block Scheduling
                       </h3>
                       <p className="text-sm text-blue-700 mt-1">
-                        🕐 2-hour minimum periods • ⏰ 1-hour buffer between
+                        🕐 3-hour minimum periods • ⏰ 1-hour buffer between
                         blocks • 🚫 No conflicts possible •
                       </p>
                       <div className="mt-2 text-xs text-blue-600">
@@ -1170,15 +1197,6 @@ const TimeSlotCreator = ({
                                 : "Invalid"}
                             </p>
                           </div>
-
-                          {/* Professional Block Indicator */}
-                          {!slot.isExisting && (
-                            <div className="text-center">
-                              <p className="text-xs text-blue-600 font-medium">
-                                🕐 2hr professional block
-                              </p>
-                            </div>
-                          )}
                         </div>
 
                         {/* Professional Time Block Dropdown */}
@@ -1320,7 +1338,7 @@ const TimeSlotCreator = ({
                                           type="time"
                                           value={
                                             customTimeInputs[slot.id]
-                                              ?.endTime || "17:00"
+                                              ?.endTime || "12:00"
                                           }
                                           onChange={(e) =>
                                             handleCustomTimeChange(
@@ -1347,7 +1365,7 @@ const TimeSlotCreator = ({
                                             slot.id
                                           ] || {
                                             startTime: "09:00",
-                                            endTime: "17:00",
+                                            endTime: "12:00",
                                           };
                                           setSlots((prev) =>
                                             prev.map((s) =>
