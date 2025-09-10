@@ -83,7 +83,7 @@ const TimeSlotCreator = ({
       endTime: "09:00",
       isExisting: false,
       isSelected: false,
-      date: selectedRange?.start,
+      date: selectedRange?.start ? new Date(selectedRange.start) : undefined,
     },
   ]);
   const [isLoading, setIsLoading] = useState(false);
@@ -109,7 +109,7 @@ const TimeSlotCreator = ({
       endTime: period.endTime,
       isExisting: true,
       isSelected: false,
-      date: period?.slots[0]?.formattedDate,
+      date: period?.slots[0]?.formattedDate ? new Date(period.slots[0].formattedDate) : undefined,
       slotIDs: period.slots.map((slot) => slot._id),
     }));
   }, [hasExistingSlots, existingPeriods]);
@@ -150,7 +150,7 @@ const TimeSlotCreator = ({
           endTime: initialTime.endTime,
           isExisting: false,
           isSelected: false,
-          date: selectedRange?.start,
+          date: selectedRange?.start ? new Date(selectedRange.start) : undefined,
         },
       ]);
     }
@@ -292,7 +292,7 @@ const TimeSlotCreator = ({
       endTime: defaultTime.endTime,
       isExisting: false,
       isSelected: false,
-      date: selectedRange?.start,
+      date: selectedRange?.start ? new Date(selectedRange.start) : undefined,
     };
     setSlots([...slots, newSlot]);
   };
@@ -638,7 +638,10 @@ const TimeSlotCreator = ({
       const result = await addNewPeriod({
         vetId,
         slotPeriods,
-        dateRange: selectedRange,
+        dateRange: {
+          start: new Date(selectedRange.start),
+          end: new Date(selectedRange.end)
+        },
         slotDuration: 30, // Default slot duration
         bufferBetweenSlots: 0, // Default buffer
       });
@@ -661,7 +664,7 @@ const TimeSlotCreator = ({
             endTime: "09:00",
             isExisting: false,
             isSelected: false,
-            date: selectedRange?.start,
+            date: selectedRange?.start ? new Date(selectedRange.start) : undefined,
           },
         ]);
       }
@@ -873,8 +876,8 @@ const TimeSlotCreator = ({
                           </p>
                           <p className="text-lg font-bold text-gray-800">
                             {formatDateRange(
-                              selectedRange.start,
-                              selectedRange.end,
+                              new Date(selectedRange.start),
+                              new Date(selectedRange.end),
                               getUserTimezone()
                             )}
                           </p>

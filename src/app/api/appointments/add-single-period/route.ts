@@ -103,9 +103,7 @@ export const POST = async (req: NextRequest) => {
       slotDuration,
       bufferBetweenSlots,
     };
-    console.log("generateAppointmentSlotsForPeriod payload", payload);
     const result = await generateAppointmentSlotsForPeriod(payload);
-    console.log("total DATA created", result.createdSlotsCount);
     return sendResponse({
       success: true,
       message: "Single period slots created successfully",
