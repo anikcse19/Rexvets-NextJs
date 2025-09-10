@@ -18,7 +18,7 @@
 
 1. apply blue border new period **DONE**
 2. show a dropdown for select date/range **DONE**
-3. show error message **WORKING**
+3. show error message **DONE**
 4. slot get all status **DONE**
 5. change period status text and its color **DONE**
-6. doctor acc will not
+6. doctor acc will not show postcall modal **DONE**
