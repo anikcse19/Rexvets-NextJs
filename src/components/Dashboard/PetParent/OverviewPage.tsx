@@ -84,13 +84,19 @@ export default function PetParentOverviewPage() {
     }
   }, [session]);
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      weekday: "long",
+  const formatDate = (dateStr: string) => {
+    return new Date(dateStr).toLocaleDateString("en-US", {
+      month: "short",
+      day: "2-digit",
       year: "numeric",
-      month: "long",
-      day: "numeric",
+    });
+  };
+
+  const formatTime = (dateStr: string) => {
+    return new Date(dateStr).toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
     });
   };
 
@@ -146,55 +152,78 @@ export default function PetParentOverviewPage() {
             <Card className="shadow-xl border-0 bg-white overflow-hidden">
               <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-6 text-white">
                 <div className="flex items-center gap-4">
-                  <div className="bg-white/20 p-3 rounded-xl">
-                    <Activity className="w-6 h-6" />
-                  </div>
+                  <Avatar className="w-14 h-14">
+                    {petParentData?.profileImage ? (
+                      <AvatarImage src={petParentData.profileImage} />
+                    ) : (
+                      <AvatarFallback>
+                        {petParentData?.firstName?.[0] || "P"}
+                      </AvatarFallback>
+                    )}
+                  </Avatar>
                   <div>
                     <CardTitle className="text-xl font-bold text-white">
-                      Health Insights
+                      {petParentData?.firstName || "Pet Parent"}{" "}
+                      {petParentData?.lastName || ""}
                     </CardTitle>
                     <p className="text-indigo-100 mt-1">
-                      Keep track of your pets&apos; wellness
+                      {petParentData?.city || "City Unknown"} |{" "}
+                      {petParentData?.preferences?.timezone ||
+                        "Timezone Unknown"}
                     </p>
                   </div>
                 </div>
               </div>
 
-              <CardContent className="p-6">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="text-center p-6 bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl border border-green-200">
-                    <div className="bg-green-500 text-white p-3 rounded-full w-12 h-12 mx-auto mb-4 flex items-center justify-center">
-                      <CheckCircle className="w-6 h-6" />
-                    </div>
-                    <h3 className="text-2xl font-bold text-green-600 mb-2">
-                      2
-                    </h3>
-                    <p className="text-green-700 font-medium">Healthy Pets</p>
+              <CardContent className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Category Badge */}
+                <div className="text-center p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl border border-blue-200">
+                  <div className="bg-blue-500 text-white p-3 rounded-full w-12 h-12 mx-auto mb-4 flex items-center justify-center">
+                    <Award className="w-6 h-6" />
                   </div>
+                  <h3 className="text-lg font-bold text-blue-600 mb-2">
+                    Category
+                  </h3>
+                  <p className="text-blue-700 font-medium">
+                    {petParentData?.categoryBadge || "No Badge"}
+                  </p>
+                </div>
 
-                  <div className="text-center p-6 bg-gradient-to-br from-yellow-50 to-orange-50 rounded-2xl border border-yellow-200">
-                    <div className="bg-yellow-500 text-white p-3 rounded-full w-12 h-12 mx-auto mb-4 flex items-center justify-center">
-                      <Clock className="w-6 h-6" />
-                    </div>
-                    <h3 className="text-2xl font-bold text-yellow-600 mb-2">
-                      1
-                    </h3>
-                    <p className="text-yellow-700 font-medium">
-                      Under Treatment
-                    </p>
+                {/* Last Donation */}
+                <div className="text-center p-6 bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl border border-green-200">
+                  <div className="bg-green-500 text-white p-3 rounded-full w-12 h-12 mx-auto mb-4 flex items-center justify-center">
+                    <CheckCircle className="w-6 h-6" />
                   </div>
+                  <h3 className="text-lg font-bold text-green-600 mb-2">
+                    Last Donation
+                  </h3>
+                  {petParentData?.lastDonationAmount ? (
+                    <p className="text-green-700 font-medium">
+                      ${petParentData.lastDonationAmount} on{" "}
+                      {petParentData.lastDonationDate
+                        ? `${formatDate(
+                            petParentData.lastDonationDate
+                          )} at ${formatTime(petParentData?.lastDonationDate)}`
+                        : "Unknown"}
+                    </p>
+                  ) : (
+                    <p className="text-green-700 font-medium">
+                      No donations yet
+                    </p>
+                  )}
+                </div>
 
-                  <div className="text-center p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl border border-blue-200">
-                    <div className="bg-blue-500 text-white p-3 rounded-full w-12 h-12 mx-auto mb-4 flex items-center justify-center">
-                      <Award className="w-6 h-6" />
-                    </div>
-                    <h3 className="text-2xl font-bold text-blue-600 mb-2">
-                      100%
-                    </h3>
-                    <p className="text-blue-700 font-medium">
-                      Vaccination Rate
-                    </p>
+                {/* Timezone / Preferences */}
+                <div className="text-center p-6 bg-gradient-to-br from-yellow-50 to-orange-50 rounded-2xl border border-yellow-200 md:col-span-2">
+                  <div className="bg-yellow-500 text-white p-3 rounded-full w-12 h-12 mx-auto mb-4 flex items-center justify-center">
+                    <Clock className="w-6 h-6" />
                   </div>
+                  <h3 className="text-lg font-bold text-yellow-600 mb-2">
+                    Timezone
+                  </h3>
+                  <p className="text-yellow-700 font-medium">
+                    {petParentData?.preferences?.timezone || "Not set"}
+                  </p>
                 </div>
               </CardContent>
             </Card>

@@ -122,104 +122,129 @@ export function RequestsTable({ requests }: RequestsTableProps) {
       </CardHeader>
 
       <CardContent>
-        {/* Responsive wrapper */}
-        <div className="w-full overflow-x-auto rounded-lg border border-gray-200">
-          <Table className="min-w-[800px]">
-            <TableHeader className="bg-gray-50">
-              <TableRow>
-                <TableHead className="font-semibold text-gray-900">
-                  Pharmacy
-                </TableHead>
-                <TableHead className="font-semibold text-gray-900">
-                  Contact
-                </TableHead>
-                <TableHead className="font-semibold text-gray-900">
-                  Address
-                </TableHead>
-                <TableHead className="font-semibold text-gray-900">
-                  Appointment Date
-                </TableHead>
-                <TableHead className="font-semibold text-gray-900">
-                  Amount
-                </TableHead>
-                <TableHead className="font-semibold text-gray-900">
-                  Payment
-                </TableHead>
-                <TableHead className="font-semibold text-gray-900">
-                  Status
-                </TableHead>
-                <TableHead className="font-semibold text-gray-900">
-                  Submitted
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {requests &&
-                requests?.map((request) => {
-                  const StatusIcon = statusConfig[request?.status].icon;
-                  return (
-                    <TableRow
-                      key={request?._id}
-                      className="hover:bg-gray-50 transition-colors"
-                    >
-                      <TableCell>
-                        <div className="font-medium text-gray-900">
-                          {request?.pharmacyName}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="text-sm text-gray-600">
-                          {request?.phoneNumber}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="text-sm text-gray-600">
-                          {request?.street}
+        {requests?.length === 0 ? (
+          <div className="text-center py-8">
+            <History className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <p className="text-gray-600 text-sm">
+              You haven&apos;t submitted any prescription transfer requests yet.
+            </p>
+          </div>
+        ) : (
+          <>
+            {/* Desktop Table */}
+            <div className="hidden md:block w-full overflow-x-auto">
+              <Table className="min-w-[900px]">
+                <TableHeader className="bg-gray-50">
+                  <TableRow>
+                    <TableHead>Pharmacy</TableHead>
+                    <TableHead>Contact</TableHead>
+                    <TableHead>Address</TableHead>
+                    <TableHead>Appointment Date</TableHead>
+                    <TableHead>Amount</TableHead>
+                    <TableHead>Payment</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Submitted</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {requests.map((request) => {
+                    const StatusIcon = statusConfig[request.status].icon;
+                    return (
+                      <TableRow key={request._id} className="hover:bg-gray-50">
+                        <TableCell className="font-medium">
+                          {request.pharmacyName}
+                        </TableCell>
+                        <TableCell>{request.phoneNumber}</TableCell>
+                        <TableCell>
+                          {request.street}
                           <br />
-                          {request?.city}, {request?.state}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="text-sm text-gray-900">
-                          {formatDate(request?.appointment?.appointmentDate)}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="font-medium text-gray-900">
-                          {formatCurrency(request?.amount)}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          className={
-                            paymentStatusConfig[request?.paymentStatus]
-                              .className
-                          }
-                        >
-                          {paymentStatusConfig[request?.paymentStatus].label}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          className={`${
-                            statusConfig[request?.status].className
-                          } flex items-center gap-1 w-fit`}
-                        >
-                          <StatusIcon className="h-3 w-3" />
-                          {statusConfig[request?.status].label}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="text-sm text-gray-600">
-                          {formatDate(request?.createdAt)}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-            </TableBody>
-          </Table>
-        </div>
+                          {request.city}, {request.state}
+                        </TableCell>
+                        <TableCell>
+                          {formatDate(request.appointment?.appointmentDate)}
+                        </TableCell>
+                        <TableCell>{formatCurrency(request.amount)}</TableCell>
+                        <TableCell>
+                          <Badge
+                            className={
+                              paymentStatusConfig[request.paymentStatus]
+                                .className
+                            }
+                          >
+                            {paymentStatusConfig[request.paymentStatus].label}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            className={`${
+                              statusConfig[request.status].className
+                            } flex items-center gap-1`}
+                          >
+                            <StatusIcon className="h-3 w-3" />
+                            {statusConfig[request.status].label}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>{formatDate(request.createdAt)}</TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+
+            {/* Mobile Card View */}
+            <div className="space-y-4 md:hidden">
+              {requests.map((request) => {
+                const StatusIcon = statusConfig[request.status].icon;
+                return (
+                  <div
+                    key={request._id}
+                    className="p-4 bg-white rounded-lg shadow border space-y-2"
+                  >
+                    <div className="flex justify-between items-center">
+                      <h3 className="font-semibold text-gray-900">
+                        {request.pharmacyName}
+                      </h3>
+                      <Badge
+                        className={
+                          paymentStatusConfig[request.paymentStatus].className
+                        }
+                      >
+                        {paymentStatusConfig[request.paymentStatus].label}
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-gray-600">
+                      {request.phoneNumber}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      {request.street}, {request.city}, {request.state}
+                    </p>
+                    <p className="text-sm text-gray-700">
+                      <span className="font-medium">Appointment:</span>{" "}
+                      {formatDate(request.appointment?.appointmentDate)}
+                    </p>
+                    <p className="text-sm font-semibold text-gray-900">
+                      {formatCurrency(request.amount)}
+                    </p>
+                    <div className="flex items-center justify-between">
+                      <Badge
+                        className={`${
+                          statusConfig[request.status].className
+                        } flex items-center gap-1`}
+                      >
+                        <StatusIcon className="h-3 w-3" />
+                        {statusConfig[request.status].label}
+                      </Badge>
+                      <span className="text-xs text-gray-500">
+                        {formatDate(request.createdAt)}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        )}
       </CardContent>
     </Card>
   );
