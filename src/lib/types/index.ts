@@ -25,6 +25,7 @@ export interface PetParent extends User {
   isDeleted: boolean;
   locale: string;
   pets: any[]; // you can replace `any[]` with a proper Pet type if you have one
+  appointments: Appointment;
   createdAt: string; // ISO date string
   updatedAt: string; // ISO date string
   __v: number;

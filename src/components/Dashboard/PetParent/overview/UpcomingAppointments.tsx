@@ -7,6 +7,7 @@ import {
   CheckCircle,
   Clock,
   Eye,
+  Router,
   Stethoscope,
   Video,
 } from "lucide-react";
@@ -181,9 +182,12 @@ const UpcomingAppointments = () => {
                         </Button>
                       </Link>
                       <Button
+                        onClick={() =>
+                          window.open(appointment?.meetingLink, "_blank")
+                        }
                         size="sm"
                         variant="outline"
-                        className="border-green-300 text-green-600 hover:bg-green-50"
+                        className="border-green-300 text-green-600 hover:bg-green-50 cursor-pointer"
                       >
                         <Video className="w-4 h-4 mr-2" />
                         Join
