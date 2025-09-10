@@ -11,21 +11,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { getUserTimezone } from "@/lib/timezone";
 import { convertTimesToUserTimezone } from "@/lib/timezone/index";
 import { DateRange, SlotPeriod } from "@/lib/types";
-import { generateTimeOptions } from "@/lib/utils";
 import {
   AlertTriangle,
   Calendar,
   Check,
-  ChevronDown,
   Clock,
   Edit3,
   Loader2,
@@ -79,8 +71,8 @@ const TimeSlotCreator = ({
   const [slots, setSlots] = useState<TimeSlot[]>([
     {
       id: "1",
-      startTime: "06:00",
-      endTime: "09:00",
+      startTime: "09:00",
+      endTime: "12:00",
       isExisting: false,
       isSelected: false,
       date: selectedRange?.start ? new Date(selectedRange.start) : undefined,
@@ -121,35 +113,11 @@ const TimeSlotCreator = ({
     if (hasExistingSlots && processedExistingPeriods.length > 0) {
       setSlots(processedExistingPeriods);
     } else {
-      // Find the first available time block for the initial slot
-      const getInitialTimeBlock = () => {
-        // Create a temporary slot to check available blocks
-        const tempSlots = [
-          {
-            id: "temp",
-            startTime: "09:00",
-            endTime: "12:00",
-            isExisting: false,
-            isSelected: false,
-            date: selectedRange?.start,
-          },
-        ];
-
-        // This is a simplified check - in practice, we'd need the full generateAvailableTimeBlocks logic
-        // For now, use a safe default that's unlikely to conflict
-        return {
-          startTime: "06:00",
-          endTime: "09:00",
-        };
-      };
-
-      const initialTime = getInitialTimeBlock();
-
       setSlots([
         {
           id: "1",
-          startTime: initialTime.startTime,
-          endTime: initialTime.endTime,
+          startTime: "09:00",
+          endTime: "12:00",
           isExisting: false,
           isSelected: false,
           date: selectedRange?.start
@@ -160,140 +128,16 @@ const TimeSlotCreator = ({
     }
   }, [hasExistingSlots, processedExistingPeriods, selectedRange]);
 
-  const timeOptions = generateTimeOptions();
 
-  // Generate available time blocks for professional scheduling
-  const generateAvailableTimeBlocks = (currentSlotId: string) => {
-    const currentSlot = slots.find((slot) => slot.id === currentSlotId);
-    if (!currentSlot) return [];
-
-    // Get all other slots (both existing and new periods) to filter out conflicts
-    const otherSlots = slots.filter(
-      (slot) => slot.id !== currentSlotId && isValidSlot(slot)
-    );
-
-    // Create blocked time ranges with 1-hour buffer
-    const blockedRanges: Array<{
-      start: moment.Moment;
-      end: moment.Moment;
-      type: string;
-    }> = [];
-
-    otherSlots.forEach((slot) => {
-      const startMoment = moment(
-        `2000-01-01 ${slot.startTime}`,
-        "YYYY-MM-DD HH:mm"
-      );
-      const endMoment = moment(
-        `2000-01-01 ${slot.endTime}`,
-        "YYYY-MM-DD HH:mm"
-      );
-
-      // Add 1-hour buffer before and after each period
-      const bufferStart = startMoment.clone().subtract(1, "hour");
-      const bufferEnd = endMoment.clone().add(1, "hour");
-
-      blockedRanges.push({
-        start: bufferStart,
-        end: bufferEnd,
-        type: slot.isExisting ? "existing" : "new",
-      });
-    });
-
-    // Generate available time blocks (3-hour minimum periods)
-    const availableBlocks: Array<{
-      start: string;
-      end: string;
-      label: string;
-    }> = [];
-
-    for (let hour = 6; hour <= 22; hour++) {
-      for (let minute = 0; minute < 60; minute += 30) {
-        const startTime = `${hour.toString().padStart(2, "0")}:${minute
-          .toString()
-          .padStart(2, "0")}`;
-        const endTime = moment(`2000-01-01 ${startTime}`, "YYYY-MM-DD HH:mm")
-          .add(3, "hours")
-          .format("HH:mm");
-
-        // Skip if end time goes past midnight
-        if (endTime === "00:00") continue;
-
-        const blockStartMoment = moment(
-          `2000-01-01 ${startTime}`,
-          "YYYY-MM-DD HH:mm"
-        );
-        const blockEndMoment = moment(
-          `2000-01-01 ${endTime}`,
-          "YYYY-MM-DD HH:mm"
-        );
-
-        // Check if this 3-hour block conflicts with any blocked ranges
-        const hasConflict = blockedRanges.some((blockedRange) => {
-          // Check for overlap: block overlaps with blocked range
-          return (
-            blockStartMoment.isBefore(blockedRange.end) &&
-            blockEndMoment.isAfter(blockedRange.start)
-          );
-        });
-
-        if (!hasConflict) {
-          const startFormatted = blockStartMoment.format("h:mm A");
-          const endFormatted = blockEndMoment.format("h:mm A");
-
-          availableBlocks.push({
-            start: startTime,
-            end: endTime,
-            label: `${startFormatted} - ${endFormatted}`,
-          });
-        }
-      }
-    }
-
-    // Add custom time option
-    availableBlocks.push({
-      start: "custom",
-      end: "custom",
-      label: "Custom Time",
-    });
-
-    // Sort available blocks by start time (custom time at the end)
-    return availableBlocks.sort((a, b) => {
-      if (a.start === "custom") return 1; // Custom time at the end
-      if (b.start === "custom") return -1;
-      const aMoment = moment(`2000-01-01 ${a.start}`, "YYYY-MM-DD HH:mm");
-      const bMoment = moment(`2000-01-01 ${b.start}`, "YYYY-MM-DD HH:mm");
-      return aMoment.diff(bMoment);
-    });
-  };
 
   const addSlot = () => {
     // Clear any error messages when adding a new slot
     setErrorMessage("");
 
-    // Find the first available time block for new periods
-    const getDefaultTimeBlock = () => {
-      const availableBlocks = generateAvailableTimeBlocks("new-slot");
-      if (availableBlocks.length > 0) {
-        return {
-          startTime: availableBlocks[0].start,
-          endTime: availableBlocks[0].end,
-        };
-      }
-
-      // Fallback to a safe default time if no blocks available
-      return {
-        startTime: "06:00",
-        endTime: "09:00",
-      };
-    };
-
-    const defaultTime = getDefaultTimeBlock();
-
     const newSlot: TimeSlot = {
       id: Date.now().toString(),
-      startTime: defaultTime.startTime,
-      endTime: defaultTime.endTime,
+      startTime: "09:00",
+      endTime: "12:00",
       isExisting: false,
       isSelected: false,
       date: selectedRange?.start ? new Date(selectedRange.start) : undefined,
@@ -418,38 +262,6 @@ const TimeSlotCreator = ({
     }
   }, [slots]);
 
-  const updateSlotWithTimeBlock = (
-    id: string,
-    timeBlock: { start: string; end: string }
-  ) => {
-    // Clear any error messages when updating a slot
-    setErrorMessage("");
-
-    if (timeBlock.start === "custom") {
-      // Initialize custom time inputs if not exists and open dialog
-      if (!customTimeInputs[id]) {
-        setCustomTimeInputs((prev) => ({
-          ...prev,
-          [id]: { startTime: "09:00", endTime: "12:00" },
-        }));
-      }
-      setOpenCustomTimeDialog((prev) => ({ ...prev, [id]: true }));
-      return; // Wait for dialog actions
-    }
-
-    setSlots(
-      slots.map((slot) => {
-        if (slot.id === id) {
-          return {
-            ...slot,
-            startTime: timeBlock.start,
-            endTime: timeBlock.end,
-          };
-        }
-        return slot;
-      })
-    );
-  };
 
   const handleCustomTimeChange = (
     slotId: string,
@@ -660,12 +472,12 @@ const TimeSlotCreator = ({
       if (hasExistingSlots && processedExistingPeriods.length > 0) {
         setSlots(processedExistingPeriods);
       } else {
-        // Use smart default time that doesn't conflict
+        // Use default time
         setSlots([
           {
             id: "1",
-            startTime: "06:00",
-            endTime: "09:00",
+            startTime: "09:00",
+            endTime: "12:00",
             isExisting: false,
             isSelected: false,
             date: selectedRange?.start
@@ -1204,208 +1016,144 @@ const TimeSlotCreator = ({
                           </div>
                         </div>
 
-                        {/* Professional Time Block Dropdown */}
+                        {/* Time Block Selector */}
                         <div className="space-y-2 mb-3">
                           <div>
                             <p className="text-xs font-medium text-gray-600 mb-2">
                               {slot.isExisting
                                 ? "Modify Time Block:"
-                                : "Choose Available Time Block:"}
+                                : "Set Time Block:"}
                             </p>
-                            {generateAvailableTimeBlocks(slot.id).length > 0 ? (
-                              <>
-                                <DropdownMenu>
-                                  <DropdownMenuTrigger asChild>
-                                    <Button
-                                      variant="outline"
-                                      disabled={savingSlotId === slot.id}
-                                      className={`w-full justify-between h-8 text-gray-800 hover:bg-gray-50 text-xs ${
-                                        savingSlotId === slot.id
-                                          ? "bg-gray-100 border-gray-200 cursor-not-allowed opacity-50"
-                                          : slot.isExisting
-                                          ? "bg-blue-50 border-blue-300 hover:bg-blue-100"
-                                          : "bg-white border-gray-300"
-                                      }`}
-                                    >
-                                      <span
-                                        className={`${
-                                          customTimeInputs[slot.id]
-                                            ? slot.isExisting
-                                              ? "text-blue-700"
-                                              : "text-emerald-700"
-                                            : ""
-                                        }`}
-                                      >
-                                        {customTimeInputs[slot.id]
-                                          ? "Custom Time"
-                                          : slot.startTime && slot.endTime
-                                          ? `${moment(
-                                              `2000-01-01 ${slot.startTime}`,
-                                              "YYYY-MM-DD HH:mm"
-                                            ).format("h:mm A")} - ${moment(
-                                              `2000-01-01 ${slot.endTime}`,
-                                              "YYYY-MM-DD HH:mm"
-                                            ).format("h:mm A")}`
-                                          : "Select time block"}
-                                      </span>
-                                      <ChevronDown className="h-3 w-3 opacity-50" />
-                                    </Button>
-                                  </DropdownMenuTrigger>
-                                  <DropdownMenuContent className="w-full min-w-[200px] max-h-48 overflow-y-auto">
-                                    {generateAvailableTimeBlocks(slot.id).map(
-                                      (block, blockIndex) => {
-                                        const isCurrentSelection =
-                                          block.start === "custom"
-                                            ? customTimeInputs[slot.id]
-                                            : slot.startTime === block.start &&
-                                              slot.endTime === block.end;
-                                        const isCustomItem =
-                                          block.start === "custom";
-                                        return (
-                                          <DropdownMenuItem
-                                            key={blockIndex}
-                                            onClick={() =>
-                                              updateSlotWithTimeBlock(
-                                                slot.id,
-                                                block
-                                              )
-                                            }
-                                            className={`text-xs cursor-pointer ${
-                                              isCustomItem
-                                                ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
-                                                : isCurrentSelection
-                                                ? "bg-blue-100 text-blue-700 font-medium"
-                                                : "hover:bg-emerald-50 hover:text-emerald-700"
-                                            }`}
-                                          >
-                                            <Clock className="mr-2 h-3 w-3" />
-                                            {block.label}
-                                            {isCurrentSelection && (
-                                              <span className="ml-auto text-xs">
-                                                ✓
-                                              </span>
-                                            )}
-                                          </DropdownMenuItem>
-                                        );
-                                      }
-                                    )}
-                                    {slots.filter((s) => s.isExisting).length >
-                                      0 && (
-                                      <div className="px-2 py-1 border-t border-gray-200 mt-1">
-                                        <p className="text-xs text-gray-500 text-center">
-                                          🛡️ Existing periods filtered out
-                                        </p>
-                                      </div>
-                                    )}
-                                  </DropdownMenuContent>
-                                </DropdownMenu>
+                            <Button
+                              variant="outline"
+                              disabled={savingSlotId === slot.id}
+                              onClick={() => {
+                                // Initialize custom time inputs if not exists
+                                if (!customTimeInputs[slot.id]) {
+                                  setCustomTimeInputs((prev) => ({
+                                    ...prev,
+                                    [slot.id]: { 
+                                      startTime: slot.startTime || "09:00", 
+                                      endTime: slot.endTime || "12:00" 
+                                    },
+                                  }));
+                                }
+                                setOpenCustomTimeDialog((prev) => ({ ...prev, [slot.id]: true }));
+                              }}
+                              className={`w-full justify-center h-8 text-gray-800 hover:bg-gray-50 text-xs ${
+                                savingSlotId === slot.id
+                                  ? "bg-gray-100 border-gray-200 cursor-not-allowed opacity-50"
+                                  : slot.isExisting
+                                  ? "bg-blue-50 border-blue-300 hover:bg-blue-100"
+                                  : "bg-white border-gray-300"
+                              }`}
+                            >
+                              <Clock className="mr-2 h-3 w-3" />
+                              {slot.startTime && slot.endTime
+                                ? `${moment(
+                                    `2000-01-01 ${slot.startTime}`,
+                                    "YYYY-MM-DD HH:mm"
+                                  ).format("h:mm A")} - ${moment(
+                                    `2000-01-01 ${slot.endTime}`,
+                                    "YYYY-MM-DD HH:mm"
+                                  ).format("h:mm A")}`
+                                : "Set time block"}
+                            </Button>
 
-                                {/* Custom Time Dialog */}
-                                <Dialog
-                                  open={!!openCustomTimeDialog[slot.id]}
-                                  onOpenChange={(open) =>
-                                    setOpenCustomTimeDialog((prev) => ({
-                                      ...prev,
-                                      [slot.id]: open,
-                                    }))
-                                  }
-                                >
-                                  <DialogContent>
-                                    <DialogHeader>
-                                      <DialogTitle>Custom Time</DialogTitle>
-                                    </DialogHeader>
-                                    <div className="grid grid-cols-2 gap-3 mt-2">
-                                      <div>
-                                        <label className="text-xs text-gray-600 block mb-1">
-                                          Start Time
-                                        </label>
-                                        <input
-                                          type="time"
-                                          value={
-                                            customTimeInputs[slot.id]
-                                              ?.startTime || "09:00"
-                                          }
-                                          onChange={(e) =>
-                                            handleCustomTimeChange(
-                                              slot.id,
-                                              "startTime",
-                                              e.target.value
-                                            )
-                                          }
-                                          className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-                                        />
-                                      </div>
-                                      <div>
-                                        <label className="text-xs text-gray-600 block mb-1">
-                                          End Time
-                                        </label>
-                                        <input
-                                          type="time"
-                                          value={
-                                            customTimeInputs[slot.id]
-                                              ?.endTime || "12:00"
-                                          }
-                                          onChange={(e) =>
-                                            handleCustomTimeChange(
-                                              slot.id,
-                                              "endTime",
-                                              e.target.value
-                                            )
-                                          }
-                                          className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-                                        />
-                                      </div>
-                                    </div>
-                                    <DialogFooter>
-                                      <DialogClose asChild>
-                                        <Button variant="outline" size="sm">
-                                          Cancel
-                                        </Button>
-                                      </DialogClose>
-                                      <Button
-                                        size="sm"
-                                        onClick={() => {
-                                          // Ensure slot gets updated with current custom inputs
-                                          const times = customTimeInputs[
-                                            slot.id
-                                          ] || {
-                                            startTime: "09:00",
-                                            endTime: "12:00",
-                                          };
-                                          setSlots((prev) =>
-                                            prev.map((s) =>
-                                              s.id === slot.id
-                                                ? {
-                                                    ...s,
-                                                    startTime: times.startTime,
-                                                    endTime: times.endTime,
-                                                  }
-                                                : s
-                                            )
-                                          );
-                                          setOpenCustomTimeDialog((prev) => ({
-                                            ...prev,
-                                            [slot.id]: false,
-                                          }));
-                                        }}
-                                      >
-                                        Apply
-                                      </Button>
-                                    </DialogFooter>
-                                  </DialogContent>
-                                </Dialog>
-                              </>
-                            ) : (
-                              <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg text-center">
-                                <p className="text-xs text-gray-500 font-medium">
-                                  No available time blocks
-                                </p>
-                                <p className="text-xs text-gray-400 mt-1">
-                                  All times blocked by other periods + 1hr
-                                  buffer
-                                </p>
-                              </div>
-                            )}
+                            {/* Custom Time Dialog */}
+                            <Dialog
+                              open={!!openCustomTimeDialog[slot.id]}
+                              onOpenChange={(open) =>
+                                setOpenCustomTimeDialog((prev) => ({
+                                  ...prev,
+                                  [slot.id]: open,
+                                }))
+                              }
+                            >
+                              <DialogContent>
+                                <DialogHeader>
+                                  <DialogTitle>Set Time Block</DialogTitle>
+                                </DialogHeader>
+                                <div className="grid grid-cols-2 gap-3 mt-2">
+                                  <div>
+                                    <label className="text-xs text-gray-600 block mb-1">
+                                      Start Time
+                                    </label>
+                                    <input
+                                      type="time"
+                                      value={
+                                        customTimeInputs[slot.id]
+                                          ?.startTime || "09:00"
+                                      }
+                                      onChange={(e) =>
+                                        handleCustomTimeChange(
+                                          slot.id,
+                                          "startTime",
+                                          e.target.value
+                                        )
+                                      }
+                                      className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="text-xs text-gray-600 block mb-1">
+                                      End Time
+                                    </label>
+                                    <input
+                                      type="time"
+                                      value={
+                                        customTimeInputs[slot.id]
+                                          ?.endTime || "12:00"
+                                      }
+                                      onChange={(e) =>
+                                        handleCustomTimeChange(
+                                          slot.id,
+                                          "endTime",
+                                          e.target.value
+                                        )
+                                      }
+                                      className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                    />
+                                  </div>
+                                </div>
+                                <DialogFooter>
+                                  <DialogClose asChild>
+                                    <Button variant="outline" size="sm">
+                                      Cancel
+                                    </Button>
+                                  </DialogClose>
+                                  <Button
+                                    size="sm"
+                                    onClick={() => {
+                                      // Ensure slot gets updated with current custom inputs
+                                      const times = customTimeInputs[
+                                        slot.id
+                                      ] || {
+                                        startTime: "09:00",
+                                        endTime: "12:00",
+                                      };
+                                      setSlots((prev) =>
+                                        prev.map((s) =>
+                                          s.id === slot.id
+                                            ? {
+                                                ...s,
+                                                startTime: times.startTime,
+                                                endTime: times.endTime,
+                                              }
+                                            : s
+                                        )
+                                      );
+                                      setOpenCustomTimeDialog((prev) => ({
+                                        ...prev,
+                                        [slot.id]: false,
+                                      }));
+                                    }}
+                                  >
+                                    Apply
+                                  </Button>
+                                </DialogFooter>
+                              </DialogContent>
+                            </Dialog>
                           </div>
                         </div>
 
