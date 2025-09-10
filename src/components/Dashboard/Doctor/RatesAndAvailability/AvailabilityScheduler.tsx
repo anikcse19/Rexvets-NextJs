@@ -79,7 +79,7 @@ const AvailabilityScheduler: React.FC<Props> = ({
     slotStatus,
     open,
     setOpen,
-    getAvailableSlots,
+    getSlots: getAvailableSlots,
     selectedRange,
   } = useDashboardContext();
 
@@ -124,10 +124,7 @@ const AvailabilityScheduler: React.FC<Props> = ({
       }
       const payload = {
         slotIds,
-        status:
-          slotStatus === SlotStatus.DISABLED
-            ? SlotStatus.AVAILABLE
-            : SlotStatus.DISABLED,
+        status: SlotStatus.DISABLED,
       };
 
       const response = await fetch(
@@ -202,11 +199,13 @@ const AvailabilityScheduler: React.FC<Props> = ({
   // Loading state
   if (loading) {
     return (
-      <div className="max-w-2xl mx-auto p-6 bg-gray-50 min-h-screen">
-        <div className="bg-white rounded-lg shadow-sm p-8">
+      <div className="max-w-2xl mx-auto p-3 sm:p-6 bg-gray-50 min-h-screen">
+        <div className="bg-white rounded-lg shadow-sm p-4 sm:p-8">
           <div className="flex items-center justify-center">
-            <FiLoader className="animate-spin text-blue-500 text-2xl mr-3" />
-            <span className="text-gray-600">Loading availability data...</span>
+            <FiLoader className="animate-spin text-blue-500 text-xl sm:text-2xl mr-2 sm:mr-3" />
+            <span className="text-gray-600 text-sm sm:text-base">
+              Loading availability data...
+            </span>
           </div>
         </div>
       </div>
@@ -216,16 +215,16 @@ const AvailabilityScheduler: React.FC<Props> = ({
   // Error state
   if (error) {
     return (
-      <div className="max-w-2xl mx-auto p-6 bg-gray-50 min-h-screen">
-        <div className="bg-white rounded-lg shadow-sm p-8">
+      <div className="max-w-2xl mx-auto p-3 sm:p-6 bg-gray-50 min-h-screen">
+        <div className="bg-white rounded-lg shadow-sm p-4 sm:p-8">
           <div className="text-center">
-            <div className="text-red-500 text-lg mb-2">
+            <div className="text-red-500 text-base sm:text-lg mb-2">
               ⚠️ Error Loading Data
             </div>
-            <p className="text-gray-600 mb-4">{error}</p>
+            <p className="text-gray-600 mb-4 text-sm sm:text-base">{error}</p>
             <button
               onClick={() => window.location.reload()}
-              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+              className="px-3 sm:px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm sm:text-base"
             >
               Try Again
             </button>
@@ -265,12 +264,14 @@ const AvailabilityScheduler: React.FC<Props> = ({
   // No data state
   if (!data || !periods || periods.length === 0) {
     return (
-      <div className="max-w-2xl mx-auto p-6 bg-gray-50 min-h-screen">
-        <div className="bg-white rounded-lg shadow-sm p-8">
+      <div className="max-w-2xl mx-auto p-3 sm:p-6 bg-gray-50 min-h-screen">
+        <div className="bg-white rounded-lg shadow-sm p-4 sm:p-8">
           {filterButtons()}
           <div className="text-center text-gray-600">
-            <FiCalendar className="text-4xl mx-auto mb-4 text-gray-400" />
-            <p>No availability data found for the selected period.</p>
+            <FiCalendar className="text-3xl sm:text-4xl mx-auto mb-4 text-gray-400" />
+            <p className="text-sm sm:text-base">
+              No availability data found for the selected period.
+            </p>
           </div>
         </div>
       </div>
@@ -281,25 +282,30 @@ const AvailabilityScheduler: React.FC<Props> = ({
   const dateRange = formatDateRange(periods);
 
   return (
-    <div className="max-w-2xl mx-auto md:p-6 bg-gray-50 min-h-screen">
+    <div className=" w-full mx-auto p-3 md:p-6 bg-gray-50 min-h-screen">
       <div className="bg-white rounded-lg shadow-sm">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-200">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 border-b border-gray-200 gap-3 sm:gap-0">
           <div className="flex items-center gap-2">
-            <FiCalendar className="text-green-500 text-lg" />
-            <h2 className="text-lg font-semibold text-gray-800">
+            <FiCalendar className="text-green-500 text-base sm:text-lg" />
+            <h2 className="text-base sm:text-lg font-semibold text-gray-800">
               Existing Availability
             </h2>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <div className="flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">
               <span className="font-medium">{summary.totalDays} days</span>
             </div>
             {userTimezone && (
               <div className="flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">
                 <FiGlobe className="w-3 h-3" />
-                <span className="font-medium">{userTimezone}</span>
-                <span className="text-xs opacity-75">
+                <span className="font-medium hidden sm:inline">
+                  {userTimezone}
+                </span>
+                <span className="font-medium sm:hidden">
+                  {userTimezone.split("/")[1] || userTimezone}
+                </span>
+                <span className="text-xs opacity-75 hidden sm:inline">
                   ({getTimezoneOffset(userTimezone)})
                 </span>
               </div>
@@ -308,15 +314,17 @@ const AvailabilityScheduler: React.FC<Props> = ({
         </div>
 
         {/* Filter Buttons */}
-        {filterButtons()}
+        {/* {filterButtons()} */}
 
         {/* Availability Group */}
-        <div className="p-4">
+        <div className="p-3 sm:p-4">
           {/* Group Header */}
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-3">
-              <h3 className="font-medium text-gray-900">{dateRange}</h3>
-              <div className="flex items-center gap-2 text-xs">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3 gap-3 sm:gap-0">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+              <h3 className="font-medium text-gray-900 text-sm sm:text-base">
+                {dateRange}
+              </h3>
+              <div className="flex flex-wrap items-center gap-2 text-xs">
                 <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-full font-medium">
                   {summary.totalPeriods} slot
                   {summary.totalPeriods > 1 ? "s" : ""}
@@ -326,8 +334,13 @@ const AvailabilityScheduler: React.FC<Props> = ({
                 </span>
                 {periods?.[0]?.timezone &&
                   periods[0].timezone !== currentUserTimezone && (
-                    <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full font-medium">
-                      Timezone: {periods[0].timezone} → {currentUserTimezone}
+                    <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full font-medium text-xs">
+                      <span className="hidden sm:inline">
+                        Timezone: {periods[0].timezone} → {currentUserTimezone}
+                      </span>
+                      <span className="sm:hidden">
+                        {periods[0].timezone} → {currentUserTimezone}
+                      </span>
                     </span>
                   )}
               </div>
@@ -335,124 +348,219 @@ const AvailabilityScheduler: React.FC<Props> = ({
           </div>
 
           {/* Total Hours */}
-          <div className="flex items-center gap-1 text-sm text-gray-500 mb-4">
-            <FiClock size={14} />
+          <div className="flex flex-wrap items-center gap-1 text-xs sm:text-sm text-gray-500 mb-4">
+            <FiClock size={12} className="sm:w-3.5 sm:h-3.5" />
             <span>{summary.totalHours} hours total</span>
             {periods?.[0]?.timezone && (
-              <span className="ml-2 text-xs text-gray-400">
+              <span className="text-xs text-gray-400">
                 (in {periods[0].timezone} timezone)
               </span>
             )}
           </div>
 
           {/* Time Slots by Day */}
-          <ScrollArea className="h-[55vh]">
-            <div className="space-y-4">
+          <ScrollArea className="h-[50vh] sm:h-[55vh]">
+            <div className="space-y-3 sm:space-y-4">
               {periods?.map((dayData, dayIndex) => (
                 <div
                   key={dayIndex}
-                  className="border border-gray-200 rounded-lg p-3 bg-gray-50"
+                  className="border border-gray-200 rounded-lg p-2 sm:p-3 bg-gray-50"
                 >
                   {/* Day Header */}
-                  <div className="flex items-center justify-between mb-3">
-                    <h4 className="font-medium text-gray-800">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-2 sm:mb-3 gap-1 sm:gap-0">
+                    <h4 className="font-medium text-gray-800 text-sm sm:text-base">
                       {formatDate(
                         dayData?.date?.start || "",
                         dayData?.timezone
                       )}
                     </h4>
-                    <div className="text-xs text-gray-500 flex-row items-center flex">
-                      {dayData?.numberOfPeriods || 0} period
-                      {(dayData?.numberOfPeriods || 0) > 1 ? "s" : ""} •{" "}
-                      {dayData?.periods?.reduce(
-                        (sum, p) => sum + (p?.totalHours || 0),
-                        0
-                      ) || 0}
-                      h total
+                    <div className="text-xs text-gray-500 flex flex-wrap items-center gap-1">
+                      <span>
+                        {dayData?.numberOfPeriods || 0} period
+                        {(dayData?.numberOfPeriods || 0) > 1 ? "s" : ""}
+                      </span>
+                      <span>•</span>
+                      <span>
+                        {dayData?.periods?.reduce(
+                          (sum, p) => sum + (p?.totalHours || 0),
+                          0
+                        ) || 0}
+                        h total
+                      </span>
                       {dayData?.timezone && (
-                        <span className="ml-1">• {dayData.timezone}</span>
+                        <>
+                          <span>•</span>
+                          <span className="hidden sm:inline">
+                            {dayData.timezone}
+                          </span>
+                          <span className="sm:hidden">
+                            {dayData.timezone.split("/")[1] || dayData.timezone}
+                          </span>
+                        </>
                       )}
                     </div>
                   </div>
 
                   {/* Day's Time Slots */}
                   <div className="space-y-2">
-                    {dayData?.periods?.map((period, periodIndex) => (
-                      <div
-                        key={periodIndex}
-                        className="flex flex-col md:flex-row md:items-center justify-between p-3 bg-white rounded-lg border border-gray-200"
-                      >
-                        <div className="flex flex-col md:flex-row md:items-center gap-3">
-                          <span className="text-sm font-medium text-gray-700">
-                            Periods: {periodIndex + 1}
-                          </span>
-                          <span className="text-sm text-gray-600">
-                            {formatTime(
-                              period?.startTime || "",
-                              dayData?.date?.start || "",
-                              period?.timezone
-                            )}{" "}
-                            -{" "}
-                            {formatTime(
-                              period?.endTime || "",
-                              dayData?.date?.start || "",
-                              period?.timezone
-                            )}
-                          </span>
-                          <div className="flex items-center gap-1 text-xs">
-                            <span className="px-1.5 py-0.5 bg-green-100 text-green-700 rounded">
-                              Available
+                    {dayData?.periods?.map((period, periodIndex) => {
+                      // console.log("period", period);
+
+                      // Calculate slot counts
+                      const totalSlots = period?.slots?.length || 0;
+                      const availableSlots =
+                        period?.slots?.filter(
+                          (slot) => slot.status === SlotStatus.AVAILABLE
+                        ).length || 0;
+                      const bookedSlots =
+                        period?.slots?.filter(
+                          (slot) => slot.status === SlotStatus.BOOKED
+                        ).length || 0;
+                      const disabledSlots =
+                        period?.slots?.filter(
+                          (slot) => slot.status === SlotStatus.DISABLED
+                        ).length || 0;
+                      console.log("disabledSlots", disabledSlots);
+                      // Determine the main status badge
+                      const getStatusBadge = () => {
+                        if (disabledSlots === totalSlots && totalSlots > 0) {
+                          return {
+                            text: `${disabledSlots} Disabled`,
+                            className:
+                              "px-1.5 py-0.5 bg-red-100 text-red-700 rounded",
+                          };
+                        } else if (
+                          bookedSlots === totalSlots &&
+                          totalSlots > 0
+                        ) {
+                          return {
+                            text: `${bookedSlots} Booked`,
+                            className:
+                              "px-1.5 py-0.5 bg-orange-100 text-orange-700 rounded",
+                          };
+                        } else if (availableSlots > 0) {
+                          return {
+                            text: `${availableSlots} Available`,
+                            className:
+                              "px-1.5 py-0.5 bg-green-100 text-green-700 rounded",
+                          };
+                        } else {
+                          return {
+                            text: "No Slots",
+                            className:
+                              "px-1.5 py-0.5 bg-gray-100 text-gray-700 rounded",
+                          };
+                        }
+                      };
+
+                      const statusBadge = getStatusBadge();
+
+                      return (
+                        <div
+                          key={periodIndex}
+                          className="flex flex-col gap-3 p-2 sm:p-3 bg-white rounded-lg border border-gray-200"
+                        >
+                          {/* Top Row - Period Info */}
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+                            <span className="text-xs sm:text-sm font-medium text-gray-700">
+                              Period {periodIndex + 1}
                             </span>
-                            {period?.timezone &&
-                              period.timezone !== userTimezone && (
-                                <span className="px-1.5 py-0.5 bg-yellow-100 text-yellow-700 rounded">
-                                  {period.timezone}
-                                </span>
+                            <span className="text-xs sm:text-sm text-gray-600">
+                              {formatTime(
+                                period?.startTime || "",
+                                dayData?.date?.start || "",
+                                period?.timezone
+                              )}{" "}
+                              -{" "}
+                              {formatTime(
+                                period?.endTime || "",
+                                dayData?.date?.start || "",
+                                period?.timezone
                               )}
+                            </span>
+                            <div className="flex items-center gap-1 text-xs">
+                              <span className={statusBadge.className}>
+                                {statusBadge.text}
+                              </span>
+                              {period?.timezone &&
+                                period.timezone !== userTimezone && (
+                                  <span className="px-1.5 py-0.5 bg-yellow-100 text-yellow-700 rounded">
+                                    <span className="hidden sm:inline">
+                                      {period.timezone}
+                                    </span>
+                                    <span className="sm:hidden">
+                                      {period.timezone.split("/")[1] ||
+                                        period.timezone}
+                                    </span>
+                                  </span>
+                                )}
+                            </div>
+                          </div>
+
+                          {/* Bottom Row - Hours and Controls */}
+                          <div className="flex items-center justify-between">
+                            <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
+                              <span className="text-xs sm:text-sm font-medium text-gray-500">
+                                {period?.totalHours || 0} hours
+                              </span>
+                              {totalSlots > 0 && (
+                                <div className="flex items-center gap-1 text-xs">
+                                  <span className="text-gray-500">
+                                    {totalSlots} slots:
+                                  </span>
+
+                                  {bookedSlots > 0 && (
+                                    <span className="px-1 py-0.5 bg-orange-50 text-orange-600 rounded text-xs">
+                                      {bookedSlots} booked
+                                    </span>
+                                  )}
+                                  {disabledSlots > 0 && (
+                                    <span className="px-1 py-0.5 bg-red-50 text-red-600 rounded text-xs">
+                                      {disabledSlots} disabled
+                                    </span>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Switch
+                                id="notifications"
+                                checked={slotStatus === SlotStatus.AVAILABLE}
+                                disabled={isLoading}
+                                onCheckedChange={() => {
+                                  const slotIds =
+                                    period?.slots
+                                      ?.map((slot) => slot?._id)
+                                      ?.filter(Boolean) || [];
+                                  updateSlotPeriod(slotIds);
+                                  // console.log("slotIds:", slotIds);
+                                  // setDisabledSlotIds((prev) => [
+                                  //   ...prev,
+                                  //   ...slotIds,
+                                  // ]);
+                                  // setEnabled(!enabled);
+                                }}
+                                className={cn(
+                                  "peer rounded-full border-2 transition-colors duration-300 cursor-pointer",
+                                  "data-[state=unchecked]:bg-gray-300", // background when OFF
+                                  "data-[state=checked]:bg-green-500" // background when ON
+                                )}
+                              />
+                              <button
+                                onClick={() => {
+                                  setOpen(true);
+                                  console.log("slots", period?.slots);
+                                  setSelectedSlot(period?.slots || []);
+                                }}
+                                className="p-1.5 cursor-pointer text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded transition-colors"
+                              >
+                                <FiEdit2 size={14} className="sm:w-4 sm:h-4" />
+                              </button>
+                            </div>
                           </div>
                         </div>
-                        <span className="text-sm font-medium text-gray-500">
-                          {period?.totalHours || 0}h
-                        </span>
-                        <div className="flex items-center gap-x-3">
-                          <div className="flex items-center gap-0 ml-1 gap-x-3">
-                            <Switch
-                              id="notifications"
-                              checked={slotStatus === SlotStatus.AVAILABLE}
-                              disabled={isLoading}
-                              onCheckedChange={() => {
-                                const slotIds =
-                                  period?.slots
-                                    ?.map((slot) => slot?._id)
-                                    ?.filter(Boolean) || [];
-                                updateSlotPeriod(slotIds);
-                                // console.log("slotIds:", slotIds);
-                                // setDisabledSlotIds((prev) => [
-                                //   ...prev,
-                                //   ...slotIds,
-                                // ]);
-                                // setEnabled(!enabled);
-                              }}
-                              className={cn(
-                                "peer rounded-full border-2 transition-colors duration-300 cursor-pointer",
-                                "data-[state=unchecked]:bg-gray-300", // background when OFF
-                                "data-[state=checked]:bg-green-500" // background when ON
-                              )}
-                            />
-                          </div>
-                          <button
-                            onClick={() => {
-                              setOpen(true);
-                              console.log("slots", period?.slots);
-                              setSelectedSlot(period?.slots || []);
-                            }}
-                            className="p-1.5 cursor-pointer text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded transition-colors"
-                          >
-                            <FiEdit2 size={16} />
-                          </button>
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               ))}
@@ -460,9 +568,9 @@ const AvailabilityScheduler: React.FC<Props> = ({
           </ScrollArea>
 
           {/* Summary Stats */}
-          <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-            <div className="flex items-center justify-between text-sm">
-              <div className="flex items-center gap-4">
+          <div className="mt-4 sm:mt-6 p-3 sm:p-4 bg-blue-50 rounded-lg">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between text-xs sm:text-sm gap-2 sm:gap-0">
+              <div className="flex flex-wrap items-center gap-3 sm:gap-4">
                 <span className="text-gray-600">
                   Total Periods:{" "}
                   <span className="font-medium text-gray-900">
@@ -479,7 +587,13 @@ const AvailabilityScheduler: React.FC<Props> = ({
                   <span className="text-gray-600">
                     Timezone:{" "}
                     <span className="font-medium text-gray-900">
-                      {periods[0].timezone}
+                      <span className="hidden sm:inline">
+                        {periods[0].timezone}
+                      </span>
+                      <span className="sm:hidden">
+                        {periods[0].timezone.split("/")[1] ||
+                          periods[0].timezone}
+                      </span>
                     </span>
                   </span>
                 )}
@@ -490,7 +604,7 @@ const AvailabilityScheduler: React.FC<Props> = ({
             </div>
 
             {/* Weekly Schedule Pattern */}
-            <div className="mt-3 text-xs text-gray-600">
+            <div className="mt-2 sm:mt-3 text-xs text-gray-600">
               <span className="font-medium">Pattern:</span> Daily availability
               with {periods?.[0]?.numberOfPeriods || 0} time slots per day
               {periods?.[0]?.periods && (
@@ -533,8 +647,10 @@ const AvailabilityScheduler: React.FC<Props> = ({
               {periods?.[0]?.timezone &&
                 periods[0].timezone !== currentUserTimezone && (
                   <span className="ml-1 text-blue-600">
-                    • Times converted from {periods[0].timezone} to{" "}
-                    {currentUserTimezone}
+                    • Times converted from{" "}
+                    {periods[0].timezone.split("/")[1] || periods[0].timezone}{" "}
+                    to{" "}
+                    {currentUserTimezone.split("/")[1] || currentUserTimezone}
                   </span>
                 )}
             </div>

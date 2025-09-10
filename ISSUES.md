@@ -11,3 +11,14 @@
 3. fixed update slot period issues. **DONE**
 4. Replace "Existing" with "Period/Slot" . **DONE**
 5. fixed switched toggle color. **DONE**
+
+----------------9-------------
+
+## TIME SLOT CREATOR
+
+1. apply blue border new period **DONE**
+2. show a dropdown for select date/range
+3. show error message
+4. slot get all status
+5. change period status text and its color
+6. doctor acc will not

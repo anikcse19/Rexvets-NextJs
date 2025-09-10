@@ -687,7 +687,9 @@ export default function TimeSlotCreator({
                         className={`group relative rounded-2xl p-4 border-2 transition-all duration-300 hover:scale-[1.02] ${
                           slot.isSelected
                             ? "border-emerald-400 bg-emerald-50 shadow-lg shadow-emerald-500/20"
-                            : "border-gray-200 bg-white hover:border-gray-300 hover:shadow-md"
+                            : slot.isExisting
+                            ? "border-gray-200 bg-white hover:border-gray-300 hover:shadow-md"
+                            : "border-blue-400 bg-blue-50 hover:border-blue-500 hover:shadow-md"
                         } ${
                           !isValidSlot(slot) ? "border-red-300 bg-red-50" : ""
                         }`}
