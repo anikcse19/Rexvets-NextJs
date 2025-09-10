@@ -78,7 +78,7 @@ export default function TimeSlotCreator({
     [key: string]: boolean;
   }>({});
   const [selectAll, setSelectAll] = useState(false);
-
+  const [errorMessage, setErrorMessage] = useState("");
   // Memoize the processed existing periods to avoid recalculation
   const processedExistingPeriods = useMemo(() => {
     if (!hasExistingSlots || !existingPeriods.length) return [];

@@ -534,18 +534,18 @@ const AnimatedDateTabs: React.FC<AnimatedDateTabsProps> = ({
           })}
 
           {/* Clear Button */}
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }}>
+          <div>
             <Button
               variant="outline"
               size="sm"
               onClick={handleClear}
-              className="  absolute right-[200px] top-[94px] md:top-[65px]  flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 m-0.5 sm:m-1 rounded-md sm:rounded-lg font-medium transition-colors duration-200 border-gray-300 hover:border-gray-400 hover:bg-gray-50 text-xs sm:text-sm"
+              className=" cursor-pointer  absolute right-[200px] top-[94px] md:top-[65px]  flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 m-0.5 sm:m-1 rounded-md sm:rounded-lg font-medium transition-colors duration-200 border-gray-300 hover:border-gray-400 hover:bg-gray-50 text-xs sm:text-sm"
               aria-label="Clear and reset to initial date"
             >
               <RotateCcw className="w-3 h-3 sm:w-4 sm:h-4" />
               <span className="whitespace-nowrap">Clear</span>
             </Button>
-          </motion.div>
+          </div>
         </div>
       </div>
 

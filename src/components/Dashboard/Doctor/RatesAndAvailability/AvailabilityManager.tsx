@@ -151,20 +151,14 @@ const AvailabilityManager: React.FC = () => {
   // console.log("deferredExistingPeriods", deferredExistingPeriods);
   return (
     <div className="container mx-auto p-2 md:p-6 space-y-6">
+      {process.env.NODE_ENV !== "production" && (
+        <>
+          <p>VET ID:{user?.refId}</p>
+        </>
+      )}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="space-y-6 relative">
-          <AnimatedDateTabs
-          // onDateChange={(date) => {
-          //   const { startDate, endDate } = date;
-          //   if (user?.refId && !selectedRange) {
-          //     console.log("DATE CHANGE:", date);
-          //     setSelectedRange({
-          //       start: startDate,
-          //       end: endDate,
-          //     });
-          //   }
-          // }}
-          />
+          <AnimatedDateTabs />
           {/* <DateRangeCalendar
             selectedRange={selectedRange}
             onRangeSelect={setSelectedRange}
