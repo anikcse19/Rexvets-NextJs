@@ -41,9 +41,6 @@ import {
   addSinglePeriod,
   deleteSlotsByIds,
 } from "../services/delete-periods";
-import BulkActions from "./BulkActions";
-import OverviewPanel from "./OverviewPanel";
-import PeriodCard from "./PeriodCard";
 
 interface TimeSlotCreatorProps {
   selectedRange: DateRange | null;
