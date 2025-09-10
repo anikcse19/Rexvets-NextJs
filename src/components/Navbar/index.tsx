@@ -594,14 +594,14 @@ const Header: React.FC = () => {
                                 </div>
                                 <CollapsibleContent className="pl-4">
                                   {items.map((item) => (
-                                    <a
+                                    <Link
                                       key={item}
-                                      href="#"
+                                      href={`/${toSlug(item)}`}
                                       className="block px-4 py-4 border-b border-[#3D456B] text-white hover:text-emerald-400 hover:bg-[#002a66] text-sm transition-all duration-200"
                                       onClick={() => setMobileMenuOpen(false)}
                                     >
                                       {item}
-                                    </a>
+                                    </Link>
                                   ))}
                                 </CollapsibleContent>
                               </Collapsible>
@@ -630,14 +630,14 @@ const Header: React.FC = () => {
                                   </div>
                                   <CollapsibleContent className="pl-4">
                                     {items.map((item) => (
-                                      <a
+                                      <Link
                                         key={item}
-                                        href="#"
+                                        href={`/${toSlug(item)}`}
                                         className="block px-4 py-4 border-b text-start border-[#3D456B] text-white hover:text-emerald-400 hover:bg-[#002a66] text-sm transition-all duration-200"
                                         onClick={() => setMobileMenuOpen(false)}
                                       >
                                         {item}
-                                      </a>
+                                      </Link>
                                     ))}
                                   </CollapsibleContent>
                                 </Collapsible>

@@ -4,21 +4,28 @@ import { Calendar, PawPrint } from "lucide-react";
 import React from "react";
 
 const WelcomeSection = ({ petParentData }: { petParentData: PetParent }) => {
-  const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString("en-US", {
+  const formatDate = (dateStr?: string | null) => {
+    if (!dateStr) return "--";
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return "--"; // invalid date
+    return date.toLocaleDateString("en-US", {
       month: "short",
       day: "2-digit",
       year: "numeric",
     });
   };
 
-  const formatTime = (dateStr: string) => {
-    return new Date(dateStr).toLocaleTimeString("en-US", {
+  const formatTime = (dateStr?: string | null) => {
+    if (!dateStr) return "--";
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return "--"; // invalid date
+    return date.toLocaleTimeString("en-US", {
       hour: "numeric",
       minute: "2-digit",
       hour12: true,
     });
   };
+
   return (
     <div
       style={{
@@ -79,10 +86,15 @@ const WelcomeSection = ({ petParentData }: { petParentData: PetParent }) => {
                 <div>
                   <p className="text-sm font-semibold">Next Appointment</p>
                   <p className="text-blue-100 text-sm">
-                    {formatDate(petParentData?.appointments?.appointmentDate)}{" "}
-                    at{" "}
-                    {formatTime(petParentData?.appointments?.appointmentDate)}{" "}
-                    with Dr {petParentData?.appointments?.veterinarian?.name}
+                    {petParentData?.appointments?.appointmentDate
+                      ? `${formatDate(
+                          petParentData.appointments.appointmentDate
+                        )} at ${formatTime(
+                          petParentData.appointments.appointmentDate
+                        )} with Dr ${
+                          petParentData.appointments.veterinarian?.name ?? "--"
+                        }`
+                      : "No upcoming appointment"}
                   </p>
                 </div>
               </div>
