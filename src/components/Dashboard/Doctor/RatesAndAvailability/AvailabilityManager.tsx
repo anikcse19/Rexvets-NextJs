@@ -1,6 +1,7 @@
 "use client";
 
 import AvailabilityScheduler from "@/components/Dashboard/Doctor/RatesAndAvailability/AvailabilityScheduler";
+import AnimatedDateTabs from "@/components/shared/AnimatedDateTabs";
 import BookingNoticePeriod from "@/components/shared/BookingNoticePeriod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -124,17 +125,18 @@ const AvailabilityManager: React.FC = () => {
     }
   }, [availableSlotsApiResponse.data]);
   // Initialize with today's date when component mounts and user is available
-  useEffect(() => {
-    if (user?.refId && !selectedRange) {
-      // Use timezone-agnostic date to ensure slots are always visible
-      // regardless of the user's current timezone
-      const weekDateRange = getWeekRange();
-      setSelectedRange({
-        start: new Date(weekDateRange.start),
-        end: new Date(weekDateRange.end),
-      });
-    }
-  }, [user?.refId, selectedRange, setSelectedRange]);
+  // useEffect(() => {
+  //   if (user?.refId && !selectedRange) {
+  //     // Use timezone-agnostic date to ensure slots are always visible
+  //     // regardless of the user's current timezone
+  //     const weekDateRange = getWeekRange();
+  //     console.log("weekDateRange", weekDateRange);
+  //     setSelectedRange({
+  //       start: new Date(weekDateRange.start),
+  //       end: new Date(weekDateRange.end),
+  //     });
+  //   }
+  // }, [user?.refId, selectedRange, setSelectedRange]);
   // Memoize the existing periods to avoid recalculating on every render
   const existingPeriods = useMemo(() => {
     if (!availableSlotsApiResponse.data?.periods) return [];
@@ -149,15 +151,25 @@ const AvailabilityManager: React.FC = () => {
   // console.log("deferredExistingPeriods", deferredExistingPeriods);
   return (
     <div className="container mx-auto p-2 md:p-6 space-y-6">
-      <BookingNoticePeriod vetId={user?.refId} />
-
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="space-y-6">
-          <DateRangeCalendar
+        <div className="space-y-6 relative">
+          <AnimatedDateTabs
+          // onDateChange={(date) => {
+          //   const { startDate, endDate } = date;
+          //   if (user?.refId && !selectedRange) {
+          //     console.log("DATE CHANGE:", date);
+          //     setSelectedRange({
+          //       start: startDate,
+          //       end: endDate,
+          //     });
+          //   }
+          // }}
+          />
+          {/* <DateRangeCalendar
             selectedRange={selectedRange}
             onRangeSelect={setSelectedRange}
-          />
-          <div className=" flex items-center justify-end">
+          /> */}
+          <div className=" flex items-center justify-end absolute top-[178px] right-3 md:top-[190px] md:right-7 z-50">
             <Button
               className="  cursor-pointer"
               disabled={availableSlotsApiResponse.loading}
@@ -169,14 +181,15 @@ const AvailabilityManager: React.FC = () => {
                 : "Create Availability Slots"}
             </Button>
           </div>
-        </div>
-
-        <div>
           <AvailabilityScheduler
             data={availableSlotsApiResponse.data}
             error={availableSlotsApiResponse.error}
             loading={availableSlotsApiResponse.loading}
           />
+        </div>
+
+        <div>
+          <BookingNoticePeriod vetId={user?.refId} />
         </div>
       </div>
 
