@@ -96,7 +96,7 @@ export default function PersonalInfoSection({
         country: petParentData.country || "",
       });
     }
-  }, [petParentData, reset, isEditing]);
+  }, [petParentData, reset]);
 
   // Force re-render when localPetParentData changes
   React.useEffect(() => {
@@ -121,9 +121,9 @@ export default function PersonalInfoSection({
         }
       });
 
-      // Add profile image file
+      // Add profile image file (include filename to preserve extension)
       if (profileImageFile) {
-        formData.append("profileImage", profileImageFile);
+        formData.append("profileImage", profileImageFile, profileImageFile.name);
       }
 
       // Call the file upload API
@@ -166,8 +166,8 @@ export default function PersonalInfoSection({
       setIsEditing(false);
       toast.success("Personal information updated successfully!");
       
-      // Optional: Only refresh if needed for server-side data consistency
-      // router.refresh();
+      // Ensure the latest server data is reflected immediately
+      router.refresh();
     } catch (error) {
       console.error("Error updating personal info:", error);
       toast.error(error instanceof Error ? error.message : "Failed to update profile");
