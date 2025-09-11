@@ -35,7 +35,7 @@ interface SessionUserWithId {
 export default function MyPetsPage() {
   const { data: session } = useSession();
 
-  console.log("session", session);
+  // console.log("session", session);
   const [loading, setLoading] = useState(true);
   const [isAddPetModalOpen, setIsAddPetModalOpen] = useState(false);
   const [editingPet, setEditingPet] = useState<any>(null);
