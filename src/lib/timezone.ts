@@ -217,3 +217,256 @@ export const adjustDateRange = (
     end: endDate.format("YYYY-MM-DD"),
   };
 };
+
+// API Utility Functions for Timezone Management
+
+/**
+ * API Response types for timezone operations
+ */
+export interface TimezoneApiResponse {
+  success: boolean;
+  message: string;
+  data?: {
+    timezone: string;
+    source?: string;
+    veterinarian?: any;
+  };
+  error?: string;
+  details?: any;
+}
+
+/**
+ * Get the current timezone for the authenticated veterinarian
+ * @returns Promise<TimezoneApiResponse>
+ */
+export const getVeterinarianTimezone = async (): Promise<TimezoneApiResponse> => {
+  try {
+    const response = await fetch('/api/veterinarian/timezone', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error fetching veterinarian timezone:', error);
+    return {
+      success: false,
+      message: 'Failed to fetch timezone',
+      error: 'Network error'
+    };
+  }
+};
+
+/**
+ * Update the timezone for the authenticated veterinarian
+ * @param timezone - IANA timezone identifier (e.g., 'America/New_York')
+ * @returns Promise<TimezoneApiResponse>
+ */
+export const updateVeterinarianTimezone = async (timezone: string): Promise<TimezoneApiResponse> => {
+  try {
+    // Validate timezone before making the request
+    if (!isValidTimezone(timezone)) {
+      return {
+        success: false,
+        message: 'Invalid timezone format',
+        error: 'Timezone validation failed'
+      };
+    }
+
+    const response = await fetch('/api/veterinarian/timezone/update', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ timezone }),
+    });
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error updating veterinarian timezone:', error);
+    return {
+      success: false,
+      message: 'Failed to update timezone',
+      error: 'Network error'
+    };
+  }
+};
+
+/**
+ * Get timezone with fallback to user's browser timezone
+ * @returns Promise<string> - The timezone identifier
+ */
+export const getVeterinarianTimezoneWithFallback = async (): Promise<string> => {
+  try {
+    const response = await getVeterinarianTimezone();
+    
+    if (response.success && response.data?.timezone) {
+      return response.data.timezone;
+    }
+    
+    // Fallback to user's browser timezone
+    return getUserTimezone();
+  } catch (error) {
+    console.error('Error getting timezone with fallback:', error);
+    return getUserTimezone();
+  }
+};
+
+/**
+ * Update timezone with validation and error handling
+ * @param timezone - IANA timezone identifier
+ * @returns Promise<{ success: boolean; message: string; error?: string }>
+ */
+export const updateTimezoneWithValidation = async (timezone: string): Promise<{ success: boolean; message: string; error?: string }> => {
+  try {
+    // Validate timezone format
+    if (!timezone || typeof timezone !== 'string') {
+      return {
+        success: false,
+        message: 'Timezone is required',
+        error: 'Invalid timezone input'
+      };
+    }
+
+    // Check if timezone is valid
+    if (!isValidTimezone(timezone)) {
+      return {
+        success: false,
+        message: 'Invalid timezone format. Please use IANA timezone format (e.g., America/New_York)',
+        error: 'Invalid timezone format'
+      };
+    }
+
+    // Update timezone
+    const response = await updateVeterinarianTimezone(timezone);
+    
+    if (response.success) {
+      return {
+        success: true,
+        message: 'Timezone updated successfully'
+      };
+    } else {
+      return {
+        success: false,
+        message: response.message || 'Failed to update timezone',
+        error: response.error || 'Update failed'
+      };
+    }
+  } catch (error) {
+    console.error('Error in updateTimezoneWithValidation:', error);
+    return {
+      success: false,
+      message: 'An unexpected error occurred',
+      error: 'Validation error'
+    };
+  }
+};
+
+/**
+ * Get timezone information with detailed metadata
+ * @returns Promise<{ timezone: string; source: string; offset: string; isValid: boolean }>
+ */
+export const getTimezoneInfo = async (): Promise<{ timezone: string; source: string; offset: string; isValid: boolean }> => {
+  try {
+    const response = await getVeterinarianTimezone();
+    
+    if (response.success && response.data?.timezone) {
+      const timezone = response.data.timezone;
+      return {
+        timezone,
+        source: response.data.source || 'unknown',
+        offset: getTimezoneOffset(timezone),
+        isValid: isValidTimezone(timezone)
+      };
+    }
+    
+    // Fallback to user's browser timezone
+    const userTimezone = getUserTimezone();
+    return {
+      timezone: userTimezone,
+      source: 'browser',
+      offset: getTimezoneOffset(userTimezone),
+      isValid: isValidTimezone(userTimezone)
+    };
+  } catch (error) {
+    console.error('Error getting timezone info:', error);
+    const userTimezone = getUserTimezone();
+    return {
+      timezone: userTimezone,
+      source: 'browser',
+      offset: getTimezoneOffset(userTimezone),
+      isValid: isValidTimezone(userTimezone)
+    };
+  }
+};
+
+/**
+ * Sync timezone between Veterinarian and User models
+ * This function ensures both models have the same timezone
+ * @param timezone - IANA timezone identifier
+ * @returns Promise<{ success: boolean; message: string; error?: string }>
+ */
+export const syncTimezone = async (timezone: string): Promise<{ success: boolean; message: string; error?: string }> => {
+  try {
+    // Validate timezone first
+    if (!isValidTimezone(timezone)) {
+      return {
+        success: false,
+        message: 'Invalid timezone format',
+        error: 'Timezone validation failed'
+      };
+    }
+
+    // Update timezone (this will update both Veterinarian and User models)
+    const response = await updateVeterinarianTimezone(timezone);
+    
+    if (response.success) {
+      return {
+        success: true,
+        message: 'Timezone synchronized successfully across all models'
+      };
+    } else {
+      return {
+        success: false,
+        message: response.message || 'Failed to synchronize timezone',
+        error: response.error || 'Sync failed'
+      };
+    }
+  } catch (error) {
+    console.error('Error syncing timezone:', error);
+    return {
+      success: false,
+      message: 'An unexpected error occurred during timezone sync',
+      error: 'Sync error'
+    };
+  }
+};
+
+/**
+ * Get available timezones with their offsets for dropdown/selection
+ * @returns Array of timezone objects with value, label, and offset
+ */
+export const getAvailableTimezones = () => {
+  return getTimezones().map(tz => ({
+    ...tz,
+    isValid: isValidTimezone(tz.value)
+  }));
+};
+
+/**
+ * Format current time in veterinarian's timezone
+ * @returns Promise<string> - Formatted current time
+ */
+export const getCurrentTimeInVeterinarianTimezone = async (): Promise<string> => {
+  try {
+    const timezoneInfo = await getTimezoneInfo();
+    return getCurrentTimeInTimezone(timezoneInfo.timezone);
+  } catch (error) {
+    console.error('Error getting current time in veterinarian timezone:', error);
+    return getCurrentTimeInTimezone(getUserTimezone());
+  }
+};
