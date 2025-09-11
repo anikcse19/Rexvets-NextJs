@@ -81,7 +81,10 @@ const AvailabilityManager: React.FC = () => {
 
   const userTimezone = user?.timezone || "";
   const currentTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-
+  console.log(
+    "currentTimeZone=======timezone",
+    `${currentTimeZone} vet timezone:${user?.timezone}`
+  );
   // Timezone modal state
   const [timezoneModal, setTimezoneModal] = useState<TimezoneModalState | null>(
     null
@@ -327,6 +330,7 @@ const AvailabilityManager: React.FC = () => {
                   }
                 }}
                 selectedRange={selectedRange}
+                timezone={user?.timezone || "UTC"}
                 hasExistingSlots={hasExistingSlots}
                 existingPeriods={deferredExistingPeriods}
                 onClose={() => setIsTimePeriodOpen(false)}
