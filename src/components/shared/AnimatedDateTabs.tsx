@@ -7,7 +7,7 @@ import {
   Clock,
   RotateCcw,
 } from "lucide-react";
-import moment from "moment";
+import moment from "moment-timezone";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -83,7 +83,8 @@ const AnimatedDateTabs: React.FC<AnimatedDateTabsProps> = ({
 
   // Initialize dateRange based on the initial tab
   useEffect(() => {
-    const now = moment();
+    const tz = timezone || moment.tz.guess();
+    const now = moment.tz(tz);
     let initialRange: { from?: Date; to?: Date } | undefined;
 
     switch (initialTab) {
@@ -115,17 +116,18 @@ const AnimatedDateTabs: React.FC<AnimatedDateTabsProps> = ({
 
     if (initialRange) {
       setDateRange(initialRange);
-      // Also update the dashboard context
+      // Also update the dashboard context using the provided timezone
       setSelectedRange({
-        start: moment(initialRange.from!).format("YYYY-MM-DD"),
-        end: moment(initialRange.to!).format("YYYY-MM-DD"),
+        start: moment.tz(initialRange.from!, tz).format("YYYY-MM-DD"),
+        end: moment.tz(initialRange.to!, tz).format("YYYY-MM-DD"),
       });
     }
-  }, [initialTab, setSelectedRange]);
+  }, [initialTab, setSelectedRange, timezone]);
 
   // Memoized date calculations using moment.js
   const dateInfo = useMemo((): Record<TabType, DateInfo> => {
-    const now = moment();
+    const tz = timezone || moment.tz.guess();
+    const now = moment.tz(tz);
 
     // Helper function to safely format dates
     const safeFormat = (
@@ -190,15 +192,17 @@ const AnimatedDateTabs: React.FC<AnimatedDateTabsProps> = ({
         endDate: dateRange?.to || now.toDate(),
         displayText:
           dateRange?.from && dateRange?.to
-            ? `${moment(dateRange.from).format("MMM Do")} - ${moment(
-                dateRange.to
-              ).format("MMM Do, YYYY")}`
+            ? `${moment.tz(dateRange.from, tz).format("MMM Do")} - ${moment
+                .tz(dateRange.to, tz)
+                .format("MMM Do, YYYY")}`
             : "No range selected",
         duration:
           dateRange?.from && dateRange?.to
             ? Math.max(
                 1,
-                moment(dateRange.to).diff(moment(dateRange.from), "days") + 1
+                moment
+                  .tz(dateRange.to, tz)
+                  .diff(moment.tz(dateRange.from, tz), "days") + 1
               )
             : 1,
         dateRange: {
@@ -207,7 +211,7 @@ const AnimatedDateTabs: React.FC<AnimatedDateTabsProps> = ({
         },
       },
     };
-  }, [customDate, dateRange]);
+  }, [customDate, dateRange, timezone]);
 
   // Call onDateChange when dateInfo changes (after initialization)
   useEffect(() => {

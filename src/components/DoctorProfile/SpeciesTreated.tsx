@@ -20,7 +20,7 @@ export default function SpeciesTreated({ doctor }: { doctor: any }) {
             >
               <div>
                 <p className="font-semibold text-pink-900">{species.name}</p>
-                <p className="text-pink-700 text-sm">{species.count} treated</p>
+                <p className="text-pink-700 text-sm">{species.count} </p>
               </div>
               {/* <Badge
                 className={`${
