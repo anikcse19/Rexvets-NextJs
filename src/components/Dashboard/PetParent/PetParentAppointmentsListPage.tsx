@@ -158,7 +158,7 @@ export default function PetParentAppointmentsListPage() {
         <TabsList className="grid w-full grid-cols-2 lg:w-auto lg:grid-cols-2">
           <TabsTrigger
             value="upcoming"
-            className="flex items-center gap-2 cursor-pointer"
+            className="flex items-center gap-2 cursor-pointer bg-blue-100"
           >
             Upcoming
             <Badge
