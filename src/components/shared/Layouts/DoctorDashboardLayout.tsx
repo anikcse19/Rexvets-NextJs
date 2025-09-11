@@ -18,7 +18,8 @@ export default function DoctorDashboardLayout({
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <DashboardProvider>
+    <SessionProvider>
+      <DashboardProvider>
       <div className="flex h-screen bg-muted overflow-hidden">
         {/* Mobile sidebar overlay */}
         {sidebarOpen && (
@@ -51,6 +52,7 @@ export default function DoctorDashboardLayout({
           </main>
         </div>
       </div>
-    </DashboardProvider>
+      </DashboardProvider>
+    </SessionProvider>
   );
 }
