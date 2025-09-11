@@ -50,7 +50,7 @@ const DonationForm: React.FC<DonationFormProps> = ({ onDonationComplete }) => {
 
   const router = useRouter();
 
-  console.log("session from donation form", session, donorData);
+  // console.log("session from donation form", session, donorData);
 
   const handleAmountSelect = (amount: DonationAmount) => {
     setSelectedAmount(amount);

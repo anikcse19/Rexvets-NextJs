@@ -102,10 +102,10 @@ const Home = () => {
   // }, [permission, subscription, subscribeToPush]);
 
   const [open, setOpen] = useState(false);
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const userRole = session?.user?.role;
 
-  console.log("userrole from home page", userRole);
+  // console.log("userrole from home page", userRole);
 
   const isAppointmentSLotAvailable = async (vetId: string) => {
     if (session?.user?.role !== "veterinarian") {
@@ -136,7 +136,23 @@ const Home = () => {
     }
   }, [session]);
 
-  console.log("open from home page", open);
+  // console.log("open from home page", open);
+  
+  // Don't render session-dependent content until session is loaded
+  if (status === "loading") {
+    return (
+      <div>
+        <HeroSection />
+        <AwardsMarquee />
+        <AboutUsSection />
+        <FeaturesSection />
+        <TestimonialsSection />
+        <VirtualCareIntroSection />
+        <ChatIcon />
+      </div>
+    );
+  }
+
   return (
     <div>
       <HeroSection />

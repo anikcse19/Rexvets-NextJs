@@ -98,7 +98,7 @@ const useCountdownTimer = (targetDate: string | null) => {
 
 const VideoCallPreview: React.FC = () => {
   const { data: session } = useSession();
-  console.log("session", session?.user.role);
+  // console.log("session", session?.user.role);
   const userRole = session?.user.role as any;
   const searchParams = useSearchParams();
   const appointmentId = searchParams.get("appointmentId");
