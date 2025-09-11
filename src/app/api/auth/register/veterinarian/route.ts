@@ -157,6 +157,7 @@ export async function POST(request: NextRequest) {
         {
           error:
             "This email is already associated with an account. Please use a different email or try signing in.",
+          field: "email",
         },
         { status: 409 }
       );

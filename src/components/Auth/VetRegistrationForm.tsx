@@ -10,9 +10,9 @@ import {
   scheduleSchema,
   profileSchema,
 } from "@/lib/validation/veterinarian";
-import StepIndicator from "./VetRegistration/StepIndicator";
+// import StepIndicator from "./VetRegistration/StepIndicator";
 import BasicInfoStep from "./VetRegistration/BasicInfoStep";
-import ScheduleStep from "./VetRegistration/ScheduleStep";
+// import ScheduleStep from "./VetRegistration/ScheduleStep";
 import ProfileStep from "./VetRegistration/ProfileStep";
 
 const REGISTRATION_STEPS = [
@@ -21,8 +21,7 @@ const REGISTRATION_STEPS = [
   { title: "Profile", description: "Upload documents and signature" },
 ];
 
-// Progress storage key
-const PROGRESS_KEY = "vetRegistrationProgress";
+// Removed localStorage - using state-based approach instead
 
 export default function VetRegistrationForm() {
   const router = useRouter();
@@ -36,41 +35,24 @@ export default function VetRegistrationForm() {
   );
   const [generalError, setGeneralError] = useState<string | null>(null);
 
-  // Load saved progress on mount
+  // Initialize form - always start with step 1 and empty data
   useEffect(() => {
-    const savedProgress = localStorage.getItem(PROGRESS_KEY);
-    if (savedProgress) {
-      try {
-        const { step, data, timestamp } = JSON.parse(savedProgress);
-        // Only restore if saved within last 24 hours
-        if (Date.now() - timestamp < 24 * 60 * 60 * 1000) {
-          setFormData(data);
-          setCurrentStep(step);
-        } else {
-          localStorage.removeItem(PROGRESS_KEY);
-        }
-      } catch (error) {
-        console.warn("Failed to restore progress:", error);
-        localStorage.removeItem(PROGRESS_KEY);
-      }
-    }
+    // Clear any existing localStorage data
+    localStorage.removeItem("vetRegistrationProgress");
+    setCurrentStep(1);
+    setFormData({});
+    setErrors({});
+    setGeneralError(null);
   }, []);
 
-  // Save progress whenever form data changes
-  useEffect(() => {
-    if (Object.keys(formData).length > 0) {
-      const progress = {
-        step: currentStep,
-        data: formData,
-        timestamp: Date.now(),
-      };
-      localStorage.setItem(PROGRESS_KEY, JSON.stringify(progress));
-    }
-  }, [formData, currentStep]);
+  // Removed localStorage saving - using state-based approach
 
-  // Clear progress on successful submission
-  const clearProgress = useCallback(() => {
-    localStorage.removeItem(PROGRESS_KEY);
+  // Clear form data (for successful submission)
+  const clearFormData = useCallback(() => {
+    setFormData({});
+    setCurrentStep(1);
+    setErrors({});
+    setGeneralError(null);
   }, []);
 
   // Real-time email availability check
@@ -82,7 +64,8 @@ export default function VetRegistrationForm() {
       const response = await fetch(
         `/api/check-email?email=${encodeURIComponent(email)}`
       );
-      const isAvailable = response.ok;
+      const data = await response.json().catch(() => ({ available: false }));
+      const isAvailable = !!data?.available;
       setEmailAvailability(isAvailable);
 
       if (!isAvailable) {
@@ -136,6 +119,51 @@ export default function VetRegistrationForm() {
     return true;
   }, []);
 
+  // Extract a meaningful error message from API responses
+  const extractApiErrorMessage = useCallback(
+    (result: any, response?: Response): string => {
+      // Prefer explicit message fields from the API
+      const apiMessage =
+        result?.message ||
+        result?.error ||
+        result?.msg ||
+        result?.title ||
+        (Array.isArray(result?.errors) && result.errors[0]?.message) ||
+        (Array.isArray(result?.details) && result.details[0]?.message);
+
+      if (apiMessage) return apiMessage;
+
+      // Fallbacks by status code
+      switch (response?.status) {
+        case 400:
+          return "Invalid request. Please check your inputs and try again.";
+        case 401:
+          return "You are not authorized. Please sign in and try again.";
+        case 403:
+          return "You do not have permission to perform this action.";
+        case 404:
+          return "Requested resource was not found.";
+        case 409:
+          return "A record with the same unique field already exists.";
+        case 413:
+          return "Uploaded file is too large.";
+        case 415:
+          return "Unsupported file type. Please upload a valid format.";
+        case 422:
+          return "Validation failed. Please correct the highlighted fields.";
+        case 429:
+          return "Too many requests. Please wait a moment and try again.";
+        case 500:
+          return "Server error. Please try again later.";
+        case 503:
+          return "Service temporarily unavailable. Please try again shortly.";
+        default:
+          return "Registration failed. Please try again.";
+      }
+    },
+    []
+  );
+
   // Handle basic info step
   const handleBasicInfoNext = useCallback(
     async (data: any) => {
@@ -144,12 +172,38 @@ export default function VetRegistrationForm() {
         return;
       }
 
-      // Check email availability
-      if (data.email && data.email !== formData.email) {
-        await checkEmailAvailability(data.email);
-        if (emailAvailability === false) {
-          toast.error("Email is already registered");
+      // Check email availability - always check before proceeding
+      if (data.email) {
+        try {
+          setIsLoading(true);
+          const response = await fetch(
+            `/api/check-email?email=${encodeURIComponent(data.email)}`
+          );
+          const resp = await response.json().catch(() => ({ available: false }));
+          const isAvailable = !!resp?.available;
+          
+          if (!isAvailable) {
+            setErrors((prev) => ({
+              ...prev,
+              email: "Email is already registered",
+            }));
+            setEmailAvailability(false);
+            toast.error("Email is already registered. Please use a different email or try signing in.");
+            return;
+          } else {
+            setErrors((prev) => {
+              const newErrors = { ...prev };
+              delete newErrors.email;
+              return newErrors;
+            });
+            setEmailAvailability(true);
+          }
+        } catch (error) {
+          console.error("Email check failed:", error);
+          toast.error("Failed to verify email. Please try again.");
           return;
+        } finally {
+          setIsLoading(false);
         }
       }
 
@@ -157,7 +211,7 @@ export default function VetRegistrationForm() {
       setCurrentStep(3);
       toast.success("Basic information saved");
     },
-    [validateStep, formData.email, emailAvailability, checkEmailAvailability]
+    [validateStep]
   );
 
   // Handle schedule step
@@ -247,7 +301,7 @@ export default function VetRegistrationForm() {
           Object.fromEntries(response.headers.entries())
         );
 
-        const result = await response.json();
+        const result = await response.json().catch(() => ({}));
         console.log("Response body:", result);
 
         if (!response.ok) {
@@ -285,16 +339,20 @@ export default function VetRegistrationForm() {
               });
             }
             setErrors(newErrors);
-            toast.error("Please fix the validation errors and try again.");
+            toast.error(
+              extractApiErrorMessage(result, response) ||
+                "Please fix the validation errors and try again."
+            );
             return;
           }
 
-          // Handle other errors
-          throw new Error(result.error || "Registration failed");
+          // Map generic API error into a user-friendly message
+          const message = extractApiErrorMessage(result, response);
+          throw new Error(message);
         }
 
-        // Clear progress and show success
-        clearProgress();
+        // Clear form data and show success
+        clearFormData();
         toast.success(
           "Registration successful! Please check your email for verification."
         );
@@ -314,12 +372,16 @@ export default function VetRegistrationForm() {
         setIsSubmitting(false);
       }
     },
-    [formData, validateStep, clearProgress, router]
+    [formData, validateStep, clearFormData, router]
   );
 
   // Handle back navigation
   const handleBack = useCallback(() => {
-    setCurrentStep((prev) => Math.max(1, prev - 1));
+    // Since we skip step 2 (Schedule), go directly from step 3 to step 1
+    setCurrentStep((prev) => {
+      if (prev === 3) return 1; // Go from Profile back to Basic Info
+      return Math.max(1, prev - 1);
+    });
     setErrors({});
     setGeneralError(null);
   }, []);
@@ -356,6 +418,7 @@ export default function VetRegistrationForm() {
 
         {/* Form Steps */}
         <div className="mt-8">
+          
           {/* General Error Display */}
           {generalError && (
             <motion.div
@@ -386,6 +449,7 @@ export default function VetRegistrationForm() {
                   errors={errors}
                   isLoading={isLoading}
                   emailAvailability={emailAvailability}
+                  onEmailChange={checkEmailAvailability}
                 />
               </motion.div>
             )}
@@ -427,18 +491,6 @@ export default function VetRegistrationForm() {
           </AnimatePresence>
         </div>
 
-        {/* Progress Save Notice */}
-        {Object.keys(formData).length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mt-6 text-center"
-          >
-            <p className="text-sm text-white/70">
-              💾 Your progress is automatically saved
-            </p>
-          </motion.div>
-        )}
       </div>
     </div>
   );
