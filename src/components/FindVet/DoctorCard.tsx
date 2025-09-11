@@ -215,8 +215,7 @@ export default function DoctorCard({ doctor, viewMode }: DoctorCardProps) {
                       convertTimesToUserTimezone(
                         slot.startTime,
                         slot.endTime,
-                        slot.date,
-                        userTimezone
+                        slot.date
                       );
                     return (
                       <button

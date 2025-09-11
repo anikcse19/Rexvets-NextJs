@@ -308,7 +308,7 @@ const AvailabilityManager: React.FC = () => {
         </div>
 
         <div>
-          <BookingNoticePeriod vetId={user?.refId} />
+          <BookingNoticePeriod vetId={user?.refId} autoSave />
         </div>
       </div>
 
