@@ -354,19 +354,25 @@ export const generateAppointmentSlotsForPeriod = async (
         .clone()
         .startOf("day")
         .diff(startDate.clone().startOf("day"), "days") + 1;
-    
+
     console.log("=== SLOT CREATION DEBUG ===");
     console.log("Total days to process:", totalDays);
     console.log("Start date:", startDate.format("YYYY-MM-DD"));
     console.log("End date:", endDate.format("YYYY-MM-DD"));
-    console.log("Current date in timezone:", currentDateInTimezone.format("YYYY-MM-DD"));
-    
+    console.log(
+      "Current date in timezone:",
+      currentDateInTimezone.format("YYYY-MM-DD")
+    );
+
     for (let day = 0; day < totalDays; day++) {
       const currentDate = startDate.clone().startOf("day").add(day, "days");
       console.log(`Processing day ${day}:`, currentDate.format("YYYY-MM-DD"));
-      
+
       if (currentDate.isBefore(currentDateInTimezone)) {
-        console.log("Skipping day (in past):", currentDate.format("YYYY-MM-DD"));
+        console.log(
+          "Skipping day (in past):",
+          currentDate.format("YYYY-MM-DD")
+        );
         continue; // safety
       }
 
@@ -375,14 +381,17 @@ export const generateAppointmentSlotsForPeriod = async (
         moment(s.date).isSame(currentDate, "day")
       );
 
-      console.log(`Day ${day} - Existing slots for this day:`, existingForDay.length);
+      console.log(
+        `Day ${day} - Existing slots for this day:`,
+        existingForDay.length
+      );
       console.log(`Day ${day} - Period: ${period.start} to ${period.end}`);
       console.log(`Day ${day} - Slot duration: ${slotDuration} minutes`);
 
       let cursor = periodStart.clone();
       const endBoundary = periodEndMoment.clone();
       let slotCountForDay = 0;
-      
+
       while (
         cursor.clone().add(slotDuration, "minutes").isSameOrBefore(endBoundary)
       ) {
@@ -395,12 +404,19 @@ export const generateAppointmentSlotsForPeriod = async (
         // Skip if time already passed for today in appointment timezone
         // Only skip if it's actually today AND the slot end time has passed
         const isToday = currentDate.isSame(currentDateInTimezone, "day");
-        const timeHasPassed = isToday && isTimeInPast(slotEndStr, currentDate.toDate(), timezone);
-        
-        console.log(`Day ${day} - Slot ${slotStartStr}-${slotEndStr}: isToday=${isToday}, timeHasPassed=${timeHasPassed}`);
-        console.log(`Day ${day} - Current time in timezone: ${moment.tz(timezone).format("YYYY-MM-DD HH:mm:ss")}`);
+        const timeHasPassed =
+          isToday && isTimeInPast(slotEndStr, currentDate.toDate(), timezone);
+
+        console.log(
+          `Day ${day} - Slot ${slotStartStr}-${slotEndStr}: isToday=${isToday}, timeHasPassed=${timeHasPassed}`
+        );
+        console.log(
+          `Day ${day} - Current time in timezone: ${moment
+            .tz(timezone)
+            .format("YYYY-MM-DD HH:mm:ss")}`
+        );
         console.log(`Day ${day} - Slot end time: ${slotEndStr}`);
-        
+
         // TEMPORARILY DISABLE TIME CHECK FOR DEBUGGING
         // if (timeHasPassed) {
         //   console.log(`Day ${day} - Skipping slot ${slotStartStr}-${slotEndStr} (time passed for today)`);
@@ -423,7 +439,9 @@ export const generateAppointmentSlotsForPeriod = async (
         });
 
         if (!overlaps) {
-          console.log(`Day ${day} - Creating slot: ${slotStartStr}-${slotEndStr}`);
+          console.log(
+            `Day ${day} - Creating slot: ${slotStartStr}-${slotEndStr}`
+          );
           slotsToCreate.push({
             vetId: new Types.ObjectId(vetId),
             date: localDate,
@@ -435,13 +453,17 @@ export const generateAppointmentSlotsForPeriod = async (
           });
           slotCountForDay++;
         } else {
-          console.log(`Day ${day} - Skipping slot ${slotStartStr}-${slotEndStr} (overlaps with existing)`);
+          console.log(
+            `Day ${day} - Skipping slot ${slotStartStr}-${slotEndStr} (overlaps with existing)`
+          );
         }
 
         cursor = cursor.add(slotDuration + bufferBetweenSlots, "minutes");
       }
-      
-      console.log(`Day ${day} - Total slots created for this day: ${slotCountForDay}`);
+
+      console.log(
+        `Day ${day} - Total slots created for this day: ${slotCountForDay}`
+      );
     }
 
     if (slotsToCreate.length === 0) {
@@ -752,7 +774,10 @@ export const getAppointmentSlots = async (
     console.log("=== getAppointmentSlots DEBUG ===");
     console.log("Input dateRange:", dateRange);
     console.log("Timezone:", timezone);
-    console.log("Converted startDate:", startDate.format("YYYY-MM-DD HH:mm:ss Z"));
+    console.log(
+      "Converted startDate:",
+      startDate.format("YYYY-MM-DD HH:mm:ss Z")
+    );
     console.log("Converted endDate:", endDate.format("YYYY-MM-DD HH:mm:ss Z"));
     console.log("startDate.toDate():", startDate.toDate());
     console.log("endDate.toDate():", endDate.toDate());
@@ -771,9 +796,9 @@ export const getAppointmentSlots = async (
     };
 
     // Add timezone filter if provided
-    if (timezone) {
-      baseQuery.timezone = timezone;
-    }
+    // if (timezone) {
+    //   baseQuery.timezone = timezone;
+    // }
 
     console.log("MongoDB Query:", JSON.stringify(baseQuery, null, 2));
 

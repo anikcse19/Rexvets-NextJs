@@ -222,7 +222,9 @@ export const adjustDateRange = (
   }
 
   // Trim past portion only. If start is today, keep it. If start is in the past, shift to today.
-  const effectiveStart = inputStart.isBefore(todayStart) ? todayStart : inputStart;
+  const effectiveStart = inputStart.isBefore(todayStart)
+    ? todayStart
+    : inputStart;
 
   // Ensure end is not before effectiveStart
   const effectiveEnd = inputEnd.isBefore(effectiveStart)

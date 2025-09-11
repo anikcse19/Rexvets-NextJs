@@ -24,6 +24,7 @@ import { useDashboardContext } from "@/hooks/DashboardContext";
 import {
   getTimezoneInfo,
   getTimezoneOffset,
+  getUserTimezone,
   getVeterinarianTimezoneWithFallback,
   updateTimezoneWithValidation,
 } from "@/lib/timezone";
@@ -285,7 +286,7 @@ const AvailabilityManager: React.FC = () => {
       )}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="space-y-6 relative">
-          <AnimatedDateTabs timezone={user?.timezone || "UTC"} />
+          <AnimatedDateTabs />
 
           <div className=" flex items-center justify-end absolute top-[178px] right-3 md:top-[190px] md:right-7 z-50">
             <Button
@@ -472,7 +473,7 @@ const AvailabilityManager: React.FC = () => {
                   }
                 }}
                 selectedRange={selectedRange}
-                timezone={vetTimezone || "UTC"}
+                timezone={getUserTimezone() || "UTC"}
                 hasExistingSlots={hasExistingSlots}
                 existingPeriods={deferredExistingPeriods}
                 onClose={() => setIsTimePeriodOpen(false)}
