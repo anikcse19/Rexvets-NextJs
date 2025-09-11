@@ -741,7 +741,7 @@ export const useVideoCall = () => {
     }
   }, [isVideoEnabled]);
 
-  // Switch camera
+  // Switch camera (robust: recreate track and re-publish)
   const switchCamera = useCallback(async () => {
     if (!localVideoTrack.current || !agoraLoaded) {
       console.warn("No video track or AgoraRTC available for camera switch");
@@ -761,7 +761,7 @@ export const useVideoCall = () => {
         .getMediaStreamTrack()
         .getSettings();
       const currentDeviceId = currentSettings.deviceId;
-      let targetDeviceId = null;
+      let targetDeviceId: string | null = null;
       let newIsFrontCameraValue = isFrontCamera;
 
       const frontCameras = devices.filter(
@@ -808,21 +808,72 @@ export const useVideoCall = () => {
         return;
       }
 
-      if (targetDeviceId && targetDeviceId !== currentDeviceId) {
-        await (localVideoTrack.current as any).setDevice(targetDeviceId);
-        setIsFrontCamera(newIsFrontCameraValue);
-        setErrorMessage(null);
-      } else {
-        console.log(
-          "No suitable camera to switch to or already on desired camera."
-        );
+      if (!targetDeviceId || targetDeviceId === currentDeviceId) {
         setErrorMessage("No alternative camera to switch to.");
+        return;
+      }
+
+      // Clean up any virtual background to avoid pipeline lock
+      await cleanupVirtualBackgroundProcessor();
+
+      // Unpublish current track if joined
+      if (client.current && isJoinedRef.current && localVideoTrack.current) {
+        try {
+          await client.current.unpublish([localVideoTrack.current]);
+        } catch (e) {
+          console.warn("Unpublish before switch failed:", e);
+        }
+      }
+
+      // Stop and close current track
+      try {
+        localVideoTrack.current.stop();
+      } catch (e) {}
+      try {
+        localVideoTrack.current.close();
+      } catch (e) {}
+
+      // Create new track with target camera
+      const newTrack = await AgoraRTC.createCameraVideoTrack({
+        cameraId: targetDeviceId,
+      });
+
+      localVideoTrack.current = newTrack;
+
+      // Play new local track
+      if (localVideoRef.current) {
+        try {
+          newTrack.play(localVideoRef.current);
+        } catch (e) {
+          console.warn("Failed to play new local track:", e);
+        }
+      }
+
+      // Re-publish new track
+      if (client.current && isJoinedRef.current) {
+        try {
+          await client.current.publish([newTrack]);
+        } catch (e) {
+          console.warn("Publish new track failed:", e);
+        }
+      }
+
+      setIsFrontCamera(newIsFrontCameraValue);
+      setErrorMessage(null);
+
+      // Re-apply selected background if any
+      if (selectedBackground) {
+        try {
+          await applyVirtualBackground(selectedBackground);
+        } catch (e) {
+          console.warn("Re-applying virtual background failed:", e);
+        }
       }
     } catch (error) {
       console.error("Failed to switch camera:", error);
       setErrorMessage("Failed to switch camera. Please try again.");
     }
-  }, [isFrontCamera, agoraLoaded]);
+  }, [isFrontCamera, agoraLoaded, selectedBackground, applyVirtualBackground, cleanupVirtualBackgroundProcessor]);
 
   // End call
   const endCall = useCallback(async () => {
