@@ -6,6 +6,7 @@ import {
   throwAppError,
 } from "@/lib/utils/send.response";
 import Veterinarian from "@/models/Veterinarian";
+import moment from "moment-timezone";
 import { NextRequest } from "next/server";
 import {
   IGenerateSinglePeriod,
@@ -74,18 +75,35 @@ export const POST = async (req: NextRequest) => {
         404
       );
     }
+    if (!vet.timezone) {
+      throw new Error("Veterinarian timezone is required");
+    }
+
+    // Use veterinarian's timezone for date range conversion (same pattern as slot-summary)
+    const vetTimezone = vet.timezone || "UTC";
+
+    // Convert date range to proper Date objects with full day range in vet's timezone
+    const startDateObj = moment
+      .tz(dateRange.start, vetTimezone)
+      .startOf("day")
+      .toDate();
+    const endDateObj = moment
+      .tz(dateRange.end, vetTimezone)
+      .endOf("day")
+      .toDate();
 
     const payload: IGenerateSinglePeriod = {
       vetId,
-      dateRange: dateRange,
-      timezone: vet.timezone,
+      dateRange: {
+        start: startDateObj,
+        end: endDateObj,
+      },
+      timezone: vetTimezone,
       period,
       slotDuration,
       bufferBetweenSlots,
     };
-
     const result = await generateAppointmentSlotsForPeriod(payload);
-
     return sendResponse({
       success: true,
       message: "Single period slots created successfully",

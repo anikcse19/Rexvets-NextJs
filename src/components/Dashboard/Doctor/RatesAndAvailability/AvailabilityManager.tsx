@@ -149,6 +149,8 @@ const AvailabilityManager: React.FC = () => {
       {process.env.NODE_ENV !== "production" && (
         <>
           <p>VET ID:{user?.refId}</p>
+          <p>start time :{selectedRange?.start}</p>
+          <p>end time :{selectedRange?.end}</p>
         </>
       )}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
