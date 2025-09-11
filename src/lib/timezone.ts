@@ -1,4 +1,5 @@
 import moment from "moment-timezone";
+import { DateRange } from "./types";
 
 export const getTimezones = () => {
   return moment.tz.names().map((tz) => ({
@@ -195,5 +196,24 @@ export const getSpecificWeekRange = (
   return {
     start: startOfWeek.format("ddd MMM DD YYYY HH:mm:ss [GMT]ZZ"),
     end: endOfWeek.format("ddd MMM DD YYYY HH:mm:ss [GMT]ZZ"),
+  };
+};
+export const adjustDateRange = (
+  range: DateRange,
+  timezone: string = "Asia/Dhaka"
+): DateRange => {
+  if (!range || !range.start || !range.end || !timezone) {
+    throw Error("Invalid date range or timezone");
+  }
+  const today = moment.tz(timezone).startOf("day");
+  const startDate = moment.tz(range.start, timezone).startOf("day");
+  const endDate = moment.tz(range.end, timezone).endOf("day");
+
+  // If start < today, shift it to today
+  const effectiveStart = startDate.isBefore(today) ? today : startDate;
+
+  return {
+    start: effectiveStart.format("YYYY-MM-DD"),
+    end: endDate.format("YYYY-MM-DD"),
   };
 };

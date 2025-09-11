@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { getUserTimezone } from "@/lib/timezone";
+import { adjustDateRange, getUserTimezone } from "@/lib/timezone";
 import { convertTimesToUserTimezone } from "@/lib/timezone/index";
 import { DateRange, SlotPeriod } from "@/lib/types";
 import {
@@ -38,7 +38,8 @@ interface TimeSlotCreatorProps {
   }>;
   refetch: () => void;
   onClose?: () => void;
-  vetId?: string; // Add vetId prop for delete operations
+  vetId?: string;
+  timezone: string;
 }
 
 interface TimeSlot {
@@ -58,8 +59,10 @@ const TimeSlotCreator = ({
   onClose,
   vetId,
   refetch,
+  timezone,
 }: TimeSlotCreatorProps) => {
-  console.log("existingPeriods", existingPeriods);
+  console.log("selectedRange", selectedRange);
+
   const [slots, setSlots] = useState<TimeSlot[]>([
     {
       id: "1",
@@ -270,10 +273,14 @@ const TimeSlotCreator = ({
     }
 
     try {
+      const normalizeDates = adjustDateRange(selectedRange as any, timezone);
+      if (!normalizeDates.start || !normalizeDates.end) {
+        throw new Error("Invalid date range");
+      }
       // Use granular single-period creation to avoid date-range conflict errors
       const result = await addSinglePeriod({
         vetId,
-        dateRange: selectedRange,
+        dateRange: normalizeDates,
         period: { start: slot.startTime, end: slot.endTime },
         slotDuration: 30,
         bufferBetweenSlots: 0,
