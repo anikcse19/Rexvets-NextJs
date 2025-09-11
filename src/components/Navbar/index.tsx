@@ -350,7 +350,7 @@ const Header: React.FC = () => {
                           <Button
                             variant="ghost"
                             className={`h-10 w-10 rounded-full hover:ring-2 hover:ring-emerald-400 transition-all cursor-pointer ${
-                              session.user.role === "veterinarian" && "lg:mr-20"
+                              session.user.role === "veterinarian" && "xl:mr-20"
                             }`}
                           >
                             <div className="relative h-10 w-10">

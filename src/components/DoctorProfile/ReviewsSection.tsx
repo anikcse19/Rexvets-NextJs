@@ -9,7 +9,7 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { IReview } from "@/models";
-import { Star } from "lucide-react";
+import { MessageSquare, Star } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -58,6 +58,19 @@ export default function ReviewsSection({ doctorId }: { doctorId: string }) {
     return nums;
   }, [pages]);
 
+  // Standard empty state component
+  const EmptyReviewsState = () => (
+    <div className="flex flex-col items-center justify-center py-12 px-4">
+      <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+        <MessageSquare className="w-8 h-8 text-gray-400" />
+      </div>
+      <h3 className="text-lg font-medium text-gray-900 mb-2">No Reviews Available</h3>
+      <p className="text-sm text-gray-500 text-center max-w-sm">
+        This veterinarian hasn't received any reviews yet. Be the first to share your experience!
+      </p>
+    </div>
+  );
+
   return reviews.length > 0 ? (
     <Card className="shadow-lg border-0 bg-white">
       <CardHeader>
@@ -72,9 +85,7 @@ export default function ReviewsSection({ doctorId }: { doctorId: string }) {
             <div className="text-sm text-gray-500">Loading reviews...</div>
           )}
 
-          {!loading && reviews.length === 0 && (
-            <div className="text-sm text-gray-500">No reviews yet.</div>
-          )}
+          {!loading && reviews.length === 0 && <EmptyReviewsState />}
 
           {reviews.map((review: any) => (
             <div
@@ -173,6 +184,10 @@ export default function ReviewsSection({ doctorId }: { doctorId: string }) {
       )}
     </>
   ) : (
-    <div className="text-sm text-gray-500">No reviews yet.</div>
+    <Card className="shadow-lg border-0 bg-white">
+      <CardContent className="p-0">
+        <EmptyReviewsState />
+      </CardContent>
+    </Card>
   );
 }
