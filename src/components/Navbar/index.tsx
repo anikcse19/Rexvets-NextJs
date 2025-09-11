@@ -208,7 +208,7 @@ const Header: React.FC = () => {
           </div>
 
           {/* Desktop_Navigation */}
-          <div className="hidden lg:flex items-center justify-center space-x-10 z-[9999]">
+          <div className="hidden xl:flex items-center justify-center space-x-10 z-[9999]">
             <Link
               aria-label="Homepage"
               className="text-white hover:opacity-60 hover:text-emerald-400 font-bold transition-colors duration-300 text-center"
@@ -529,7 +529,7 @@ const Header: React.FC = () => {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="lg:hidden text-white hover:text-emerald-400"
+                  className="xl:hidden text-white hover:text-emerald-400"
                 >
                   <Menu className="h-6 w-6" />
                   <span className="sr-only">Toggle menu</span>
