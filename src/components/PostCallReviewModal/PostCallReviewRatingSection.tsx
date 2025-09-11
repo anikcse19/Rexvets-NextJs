@@ -37,7 +37,7 @@ const PostCallReviewRatingSection: React.FC<IProps> = ({
   const handleStarLeave = () => setHoveredRating(0);
 
   return (
-    <div className=" rounded-xl p-5 border border-gray-300">
+    <div className=" rounded-xl p-5 ">
       <div className="flex items-center mb-4">
         <div className="w-9 h-9  rounded-full flex items-center justify-center mr-2.5 text-white text-base">
           ⭐

@@ -873,7 +873,13 @@ export const useVideoCall = () => {
       console.error("Failed to switch camera:", error);
       setErrorMessage("Failed to switch camera. Please try again.");
     }
-  }, [isFrontCamera, agoraLoaded, selectedBackground, applyVirtualBackground, cleanupVirtualBackgroundProcessor]);
+  }, [
+    isFrontCamera,
+    agoraLoaded,
+    selectedBackground,
+    applyVirtualBackground,
+    cleanupVirtualBackgroundProcessor,
+  ]);
 
   // End call
   const endCall = useCallback(async () => {
@@ -902,7 +908,8 @@ export const useVideoCall = () => {
       if (!hasExistingReview && userRole === "pet_parent") {
         setIsOpen(true);
       } else {
-        router.replace("/");
+        const url = `/dashboard/doctor/appointments/${appointmentId}`;
+        window.location.href = url;
       }
     } catch (error) {
       console.error("Error ending call:", error);
@@ -913,6 +920,7 @@ export const useVideoCall = () => {
     }
   }, [hasExistingReview, userRole]);
   console.log("hasExistingReview", hasExistingReview);
+  console.log("USER REF ID:", user?.refId);
   // Effects
   useEffect(() => {
     (async () => {
