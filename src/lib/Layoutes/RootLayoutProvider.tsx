@@ -6,7 +6,7 @@ import React, { FC, PropsWithChildren } from "react";
 
 const RootLayoutProvider: FC<PropsWithChildren> = ({ children }) => {
   return (
-    <SessionProvider>
+    <SessionProvider refetchInterval={5 * 60} refetchOnWindowFocus={true}>
       <StateProvider>
         {children}
 
