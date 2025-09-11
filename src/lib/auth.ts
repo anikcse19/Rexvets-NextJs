@@ -205,11 +205,11 @@ export const authOptions = {
         };
       }
 
-      // Console log the session data
-      console.log("🔍 Session Data:", {
-        user: session.user,
-        expires: session.expires
-      });
+      // // Console log the session data
+      // console.log("🔍 Session Data:", {
+      //   user: session.user,
+      //   expires: session.expires
+      // });
 
       return session;
     },
@@ -291,7 +291,10 @@ export const authOptions = {
           } else {
             // Prevent new user creation through Google OAuth
             // Users must register through the proper signup process
-            console.error("Google OAuth sign-up blocked for new users:", user.email);
+            console.error(
+              "Google OAuth sign-up blocked for new users:",
+              user.email
+            );
             // Return false to trigger error redirect, NextAuth will use "AccessDenied" by default
             // We'll handle this specific case in the error page
             return false;

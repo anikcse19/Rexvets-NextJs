@@ -189,7 +189,7 @@ export async function GET() {
       success: true,
       message: "Notice period retrieved successfully",
       data: {
-        noticePeriod: veterinarian.noticePeriod || 30, // Default to 30 minutes if not set
+        noticePeriod: veterinarian.noticePeriod, // Default to 30 minutes if not set
         timezone: veterinarian.timezone,
       },
     });
@@ -204,5 +204,3 @@ export async function GET() {
     );
   }
 }
-
-
