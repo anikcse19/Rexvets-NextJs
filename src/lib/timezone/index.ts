@@ -1,4 +1,5 @@
 import moment from "moment-timezone";
+import { getUserTimezone } from "../timezone";
 
 export interface TimeConversionResult {
   formattedStartTime: string;
@@ -20,10 +21,10 @@ export function convertTimesToUserTimezone(
   slotTimezone: string = "UTC"
 ): TimeConversionResult {
   // Detect user timezone
-  const userTimeZone = moment.tz.guess();
+  const userTimeZone = getUserTimezone();
 
   // Parse the slot date and create full datetime strings in the slot's timezone
-  const slotMoment = moment.tz(slotDate, slotTimezone);
+  const slotMoment = moment.tz(slotDate);
 
   // Create the full datetime strings in the slot's timezone
   const slotStartDateTime = `${slotMoment.format(
@@ -32,10 +33,8 @@ export function convertTimesToUserTimezone(
   const slotEndDateTime = `${slotMoment.format("YYYY-MM-DD")}T${endTime}:00`;
 
   // Convert from slot timezone to user's local timezone
-  const localStart = moment
-    .tz(slotStartDateTime, slotTimezone)
-    .tz(userTimeZone);
-  const localEnd = moment.tz(slotEndDateTime, slotTimezone).tz(userTimeZone);
+  const localStart = moment.tz(slotStartDateTime).tz(userTimeZone);
+  const localEnd = moment.tz(slotEndDateTime).tz(userTimeZone);
 
   return {
     formattedStartTime: localStart.format("h:mm A"), // e.g. 11:30 PM (no leading zero)

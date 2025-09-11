@@ -313,7 +313,7 @@ const AvailabilityManager: React.FC = () => {
       </div>
 
       {/* Timezone Update Modal */}
-      <TimezoneUpdateModal
+      {/* <TimezoneUpdateModal
         isOpen={showTimezoneUpdateModal}
         onClose={handleTimezoneClose}
         onUpdate={handleTimezoneUpdate}
@@ -321,7 +321,7 @@ const AvailabilityManager: React.FC = () => {
         currentTimezone={vetTimezone}
         detectedTimezone={detectedTimezone}
         isUpdating={timezoneLoading}
-      />
+      /> */}
 
       {/* Timezone Selection Modal */}
       {timezoneModal && (

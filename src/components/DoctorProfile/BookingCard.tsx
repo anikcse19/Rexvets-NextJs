@@ -14,13 +14,13 @@ import {
   Clock,
   Loader2,
 } from "lucide-react";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { DayPicker } from "react-day-picker";
 import "react-day-picker/dist/style.css";
 import { getVetSlots } from "./service/get-vet-slots";
 import { Doctor } from "./type";
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
 
 interface Slot {
   _id: string;
@@ -332,7 +332,7 @@ export default function BookingSystem({
                         slot.startTime,
                         slot.endTime,
                         slot.date,
-                        slot.timezone || "UTC"
+                        getUserTimezone()
                       );
 
                       const isSelected =
