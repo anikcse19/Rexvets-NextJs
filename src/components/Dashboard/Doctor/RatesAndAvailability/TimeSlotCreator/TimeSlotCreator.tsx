@@ -277,23 +277,25 @@ const TimeSlotCreator = ({
       if (!normalizeDates.start || !normalizeDates.end) {
         throw new Error("Invalid date range");
       }
+      console.log("selectedRange", selectedRange);
+      console.log("normalizeDates", normalizeDates);
       // Use granular single-period creation to avoid date-range conflict errors
-      const result = await addSinglePeriod({
-        vetId,
-        dateRange: normalizeDates,
-        period: { start: slot.startTime, end: slot.endTime },
-        slotDuration: 30,
-        bufferBetweenSlots: 0,
-      });
+      // const result = await addSinglePeriod({
+      //   vetId,
+      //   dateRange: normalizeDates,
+      //   period: { start: slot.startTime, end: slot.endTime },
+      //   slotDuration: 30,
+      //   bufferBetweenSlots: 0,
+      // });
 
-      toast.success(
-        `Period saved successfully (${result.data.createdSlotsCount} slots created)`
-      );
+      // toast.success(
+      //   `Period saved successfully (${result.data.createdSlotsCount} slots created)`
+      // );
 
-      // Mark this slot as existing
-      setSlots(
-        slots.map((s) => (s.id === slotId ? { ...s, isExisting: true } : s))
-      );
+      // // Mark this slot as existing
+      // setSlots(
+      //   slots.map((s) => (s.id === slotId ? { ...s, isExisting: true } : s))
+      // );
     } catch (error: any) {
       console.error("Error saving individual period:", error);
       setErrorMessage(error.message || "Please try again.");

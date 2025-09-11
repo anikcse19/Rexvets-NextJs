@@ -25,7 +25,7 @@ import {
   getTimezoneInfo,
   getTimezoneOffset,
   getVeterinarianTimezoneWithFallback,
-  updateTimezoneWithValidation
+  updateTimezoneWithValidation,
 } from "@/lib/timezone";
 import { DateRange, SlotPeriod } from "@/lib/types";
 import { format } from "date-fns";
@@ -93,8 +93,10 @@ const AvailabilityManager: React.FC = () => {
   const [timezoneModalDismissed, setTimezoneModalDismissed] = useState(false);
   const [isClient, setIsClient] = useState(false);
   const userTimezone = user?.timezone || "";
-  const currentTimeZone = isClient ? Intl.DateTimeFormat().resolvedOptions().timeZone : "UTC";
-  
+  const currentTimeZone = isClient
+    ? Intl.DateTimeFormat().resolvedOptions().timeZone
+    : "UTC";
+
   // Only log on client side to prevent hydration issues
   useEffect(() => {
     if (isClient) {
@@ -113,10 +115,10 @@ const AvailabilityManager: React.FC = () => {
   const updateVetTimezone = async (newTimezone: string) => {
     setTimezoneLoading(true);
     setTimezoneError("");
-    
+
     try {
       const result = await updateTimezoneWithValidation(newTimezone);
-      
+
       if (result.success) {
         setVetTimezone(newTimezone);
         toast.success("Timezone updated successfully");
@@ -147,7 +149,7 @@ const AvailabilityManager: React.FC = () => {
     setShowTimezoneUpdateModal(false);
     setTimezoneModalDismissed(true);
     // Store dismissal in localStorage to remember user's choice
-    localStorage.setItem('timezone-modal-dismissed', 'true');
+    localStorage.setItem("timezone-modal-dismissed", "true");
   };
 
   // Handler for closing timezone modal
@@ -200,7 +202,7 @@ const AvailabilityManager: React.FC = () => {
 
   // Defer large arrays to avoid blocking rendering
   const deferredExistingPeriods = useDeferredValue(existingPeriods);
-  
+
   // Set client flag to prevent hydration issues
   useEffect(() => {
     setIsClient(true);
@@ -210,38 +212,40 @@ const AvailabilityManager: React.FC = () => {
   useEffect(() => {
     const getVetTimezoneFromDB = async () => {
       if (!user?.refId || !isClient) return;
-      
+
       setTimezoneLoading(true);
       setTimezoneError("");
-      
+
       try {
         const timezoneInfo = await getTimezoneInfo();
-        
+
         if (timezoneInfo.timezone) {
           setVetTimezone(timezoneInfo.timezone);
           setDetectedTimezone(currentTimeZone);
-          
+
           console.log("Veterinarian timezone loaded:", {
             timezone: timezoneInfo.timezone,
             source: timezoneInfo.source,
             offset: timezoneInfo.offset,
-            isValid: timezoneInfo.isValid
+            isValid: timezoneInfo.isValid,
           });
-          
+
           // Check if there's a difference between vet DB timezone and current browser timezone
           const isDifferent = timezoneInfo.timezone !== currentTimeZone;
-          const hasBeenDismissed = localStorage.getItem('timezone-modal-dismissed') === 'true';
-          
+          const hasBeenDismissed =
+            localStorage.getItem("timezone-modal-dismissed") === "true";
+
           if (isDifferent && !hasBeenDismissed && !timezoneModalDismissed) {
             console.log("Timezone difference detected:", {
               vetTimezone: timezoneInfo.timezone,
-              currentTimezone: currentTimeZone
+              currentTimezone: currentTimeZone,
             });
             setShowTimezoneUpdateModal(true);
           }
         } else {
           // Fallback to user's browser timezone
-          const fallbackTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+          const fallbackTimezone =
+            Intl.DateTimeFormat().resolvedOptions().timeZone;
           setVetTimezone(fallbackTimezone);
           setDetectedTimezone(fallbackTimezone);
           console.log("Using fallback timezone:", fallbackTimezone);
@@ -250,7 +254,8 @@ const AvailabilityManager: React.FC = () => {
         console.error("Error fetching veterinarian timezone:", error);
         setTimezoneError("Failed to load timezone");
         // Fallback to user's browser timezone
-        const fallbackTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        const fallbackTimezone =
+          Intl.DateTimeFormat().resolvedOptions().timeZone;
         setVetTimezone(fallbackTimezone);
         setDetectedTimezone(fallbackTimezone);
       } finally {
@@ -270,13 +275,17 @@ const AvailabilityManager: React.FC = () => {
           <p>Vet Timezone: {vetTimezone || "Loading..."}</p>
           <p>User Timezone: {userTimezone}</p>
           <p>Current Browser Timezone: {currentTimeZone}</p>
-          {timezoneError && <p className="text-red-500">Timezone Error: {timezoneError}</p>}
-          {timezoneLoading && <p className="text-blue-500">Loading timezone...</p>}
+          {timezoneError && (
+            <p className="text-red-500">Timezone Error: {timezoneError}</p>
+          )}
+          {timezoneLoading && (
+            <p className="text-blue-500">Loading timezone...</p>
+          )}
         </>
       )}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="space-y-6 relative">
-          <AnimatedDateTabs />
+          <AnimatedDateTabs timezone={user?.timezone || "UTC"} />
 
           <div className=" flex items-center justify-end absolute top-[178px] right-3 md:top-[190px] md:right-7 z-50">
             <Button

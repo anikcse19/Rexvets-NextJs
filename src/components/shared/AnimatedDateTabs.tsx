@@ -45,6 +45,7 @@ interface AnimatedDateTabsProps {
   onDateChange?: (dateInfo: DateInfo) => void;
   initialTab?: TabType;
   className?: string;
+  timezone: string;
 }
 
 const tabs: Tab[] = [
@@ -71,6 +72,7 @@ const AnimatedDateTabs: React.FC<AnimatedDateTabsProps> = ({
   onDateChange,
   initialTab = "week",
   className,
+  timezone,
 }) => {
   const [activeTab, setActiveTab] = useState<TabType>(initialTab);
   const [customDate, setCustomDate] = useState<Date | undefined>(undefined);
