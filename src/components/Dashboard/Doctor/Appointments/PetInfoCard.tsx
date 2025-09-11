@@ -14,14 +14,16 @@ import {
   Pill,
   Syringe,
   FileText,
+  Info,
 } from "lucide-react";
-import { Pet } from "@/lib/types";
+import { Appointment, Pet } from "@/lib/types";
 
 interface PetInfoCardProps {
-  pet: Pet;
+  appointment: Appointment;
 }
 
-export default function PetInfoCard({ pet }: PetInfoCardProps) {
+export default function PetInfoCard({ appointment }: PetInfoCardProps) {
+  const pet = appointment?.pet;
   const formatDate = (dateString: string) => {
     if (!dateString) return "Not available";
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -156,6 +158,35 @@ export default function PetInfoCard({ pet }: PetInfoCardProps) {
               </div>
             )}
           </div>
+
+          {appointment.concerns && appointment.concerns.length > 0 && (
+            <div className="">
+              <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-red-600" />
+                Concerns
+              </h4>
+              <div className="flex flex-wrap gap-2">
+                {appointment.concerns.map((concern, index) => (
+                  <Badge
+                    key={index}
+                    className="bg-red-100 text-red-700 border-red-300"
+                  >
+                    {concern}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {appointment.notes && (
+            <div className="">
+              <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                <Info className="w-4 h-4 text-blue-600" />
+                Additional Info
+              </h4>
+              <p>{appointment?.notes}</p>
+            </div>
+          )}
 
           {/* Allergies */}
           {pet.allergies && pet.allergies.length > 0 && (

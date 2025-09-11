@@ -348,7 +348,7 @@ export default function AppointmentDetailsPage() {
           <>
             {/* Left Column - Pet & Parent Info */}
             <div className="xl:col-span-1 space-y-6 xl:order-1 order-1">
-              <PetInfoCard pet={appointment?.pet} />
+              <PetInfoCard appointment={appointment} />
               {appointment?.petParent && (
                 <ParentInfoCard parent={appointment.petParent} />
               )}

@@ -22,6 +22,7 @@ import {
 import AddPetModal from "./Pets/AddPetModal";
 import { getPetsByParent } from "./Service/pet";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 // Mock pets data - this would come from your API
 
@@ -40,6 +41,8 @@ export default function MyPetsPage() {
   const [isAddPetModalOpen, setIsAddPetModalOpen] = useState(false);
   const [editingPet, setEditingPet] = useState<any>(null);
   const [pets, setPets] = useState<any[]>([]);
+
+  const router = useRouter();
 
   const fetchPets = async () => {
     setLoading(true); // start loading
@@ -160,6 +163,7 @@ export default function MyPetsPage() {
   const handleCloseModal = () => {
     setIsAddPetModalOpen(false);
     setEditingPet(null);
+    fetchPets();
   };
 
   return (

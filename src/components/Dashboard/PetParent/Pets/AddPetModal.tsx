@@ -92,6 +92,7 @@ export default function AddPetModal({
   React.useEffect(() => {
     if (editingPet && isOpen) {
       // Set form values
+      console.log("editing pet", editingPet);
       reset({
         name: editingPet.name,
         species: editingPet.species,
@@ -108,7 +109,18 @@ export default function AddPetModal({
 
       // Set other state
       setSelectedSpecies(editingPet.species);
-      setPetImage(editingPet.image || "");
+
+      if (editingPet.image) {
+        // 👇 use existing URL for preview
+        setPetImagePreview(editingPet.image);
+
+        // keep petImage as string (URL) for later check
+        setPetImage(editingPet.image);
+      } else {
+        setPetImage(null);
+        setPetImagePreview(null);
+      }
+
       setAllergies(editingPet.allergies || []);
       setMedicalConditions(editingPet.medicalConditions || []);
       setCurrentMedications(editingPet.currentMedications || []);
@@ -117,6 +129,14 @@ export default function AddPetModal({
 
   const watchedDOB = watch("dateOfBirth");
   const calculatedAge = watchedDOB ? calculatePetAge(watchedDOB) : null;
+
+  const watchedSpecies = watch("species");
+  const watchedBreed = watch("breed");
+  const watchedGender = watch("gender");
+  const watchedColor = watch("primaryColor");
+  const watchedSpay = watch("spayedNeutered");
+  const watchedWeightUnit = watch("weightUnit");
+  const watchedHealthStatus = watch("healthStatus");
 
   const today = new Date().toISOString().split("T")[0];
 
@@ -132,9 +152,15 @@ export default function AddPetModal({
         }
       });
 
-      formData.append("allergies", JSON.stringify(allergies));
-      formData.append("medicalConditions", JSON.stringify(medicalConditions));
-      formData.append("currentMedications", JSON.stringify(currentMedications));
+      // ✅ Append arrays properly
+      allergies.forEach((item) => formData.append("allergies", item));
+      medicalConditions.forEach((item) =>
+        formData.append("medicalConditions", item)
+      );
+      currentMedications.forEach((item) =>
+        formData.append("currentMedications", item)
+      );
+
       if (session?.user) {
         formData.append(
           "parentId",
@@ -143,29 +169,37 @@ export default function AddPetModal({
         );
       }
 
-      // Append file (if any)
-      if (petImage) {
+      // ✅ Only append if new image selected
+      if (petImage instanceof File) {
         formData.append("image", petImage);
       }
 
-      // Example API call with fetch
-      const response = await fetch("/api/pet", {
-        method: "POST",
+      // Decide API method and URL
+      const method = editingPet ? "PATCH" : "POST";
+      const url = editingPet ? `/api/pet/${editingPet._id}` : "/api/pet";
+
+      const response = await fetch(url, {
+        method,
         body: formData,
       });
 
       const result = await response.json();
       if (result.success) {
-        toast.success(result.message || "Added Pet Successfully");
+        toast.success(
+          result.message ||
+            (editingPet ? "Updated Pet Successfully" : "Added Pet Successfully")
+        );
         router.refresh();
         handleClose();
       } else {
-        toast.error(result.message || "Added Pet Failed");
+        toast.error(
+          result.message ||
+            (editingPet ? "Update Pet Failed" : "Add Pet Failed")
+        );
       }
-      // onSuccess?.(result);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "An error occurred");
-      console.error("Error registering pet:", error);
+      console.error("Error registering/updating pet:", error);
     } finally {
       setIsSubmitting(false);
     }
@@ -314,6 +348,7 @@ export default function AddPetModal({
               <div className="space-y-2">
                 <Label htmlFor="species">Species *</Label>
                 <Select
+                  value={watchedSpecies}
                   onValueChange={(value) => {
                     setValue("species", value as any);
                     setSelectedSpecies(value);
@@ -346,6 +381,7 @@ export default function AddPetModal({
               <div className="space-y-2">
                 <Label htmlFor="breed">Breed *</Label>
                 <Select
+                  value={watchedBreed}
                   onValueChange={(value) => setValue("breed", value)}
                   disabled={!selectedSpecies}
                 >
@@ -371,6 +407,7 @@ export default function AddPetModal({
               <div className="space-y-2">
                 <Label htmlFor="gender">Gender *</Label>
                 <Select
+                  value={watchedGender}
                   onValueChange={(value) =>
                     setValue("gender", value as "male" | "female")
                   }
@@ -399,6 +436,7 @@ export default function AddPetModal({
                   Primary Color *
                 </Label>
                 <Select
+                  value={watchedColor}
                   onValueChange={(value) => setValue("primaryColor", value)}
                 >
                   <SelectTrigger className="border-gray-300 focus:border-pink-500 focus:ring-pink-500">
@@ -422,6 +460,7 @@ export default function AddPetModal({
               <div className="space-y-2">
                 <Label htmlFor="spayedNeutered">Spay/Neuter Status *</Label>
                 <Select
+                  value={watchedSpay}
                   onValueChange={(value) =>
                     setValue("spayedNeutered", value as any)
                   }
@@ -474,6 +513,7 @@ export default function AddPetModal({
               <div className="space-y-2">
                 <Label htmlFor="weightUnit">Weight Unit *</Label>
                 <Select
+                  value={watchedWeightUnit}
                   onValueChange={(value) =>
                     setValue("weightUnit", value as "kg" | "lbs")
                   }
@@ -563,6 +603,7 @@ export default function AddPetModal({
                 Health Status
               </Label>
               <Select
+                value={watchedHealthStatus}
                 onValueChange={(value) =>
                   setValue(
                     "healthStatus",

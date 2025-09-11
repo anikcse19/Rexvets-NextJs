@@ -3,11 +3,12 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
-import { Pet } from "@/lib/types";
+import { Appointment, Pet } from "@/lib/types";
 import {
   AlertTriangle,
   Calendar,
   Heart,
+  Info,
   Palette,
   Pill,
   Shield,
@@ -17,49 +18,11 @@ import {
 import React from "react";
 
 interface PetCardProps {
-  pet: Pet | null | undefined;
+  appointment: Appointment;
 }
-export const PetInfoCard = ({ pet }: PetCardProps) => {
-  if (!pet) {
-    return (
-      <Card className="shadow-lg border-0 bg-white overflow-hidden">
-        <div className="bg-gradient-to-r from-pink-600 to-rose-600 p-6 text-white">
-          <div className="flex items-center gap-4">
-            <div className="bg-white/20 p-3 rounded-xl">
-              <Heart className="w-6 h-6" />
-            </div>
-            <div>
-              <CardTitle className="text-xl font-bold text-white">
-                Pet Information
-              </CardTitle>
-              <p className="text-pink-100">Your pet's complete profile</p>
-            </div>
-          </div>
-        </div>
-        <CardContent className="p-6">
-          <div className="text-center text-gray-500">
-            <p>Pet information not available</p>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  const formatDate = (dateString: string | undefined) => {
-    if (!dateString) return "Date not available";
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  };
-
-  function getInitial(name: string | undefined | null): string {
-    if (!name || typeof name !== "string" || name.length === 0) {
-      return "P";
-    }
-    return name.charAt(0).toUpperCase();
-  }
+export const PetInfoCard = ({ appointment }: PetCardProps) => {
+  console.log("apppt", appointment);
+  const pet = appointment?.pet;
 
   function calculatePetAge(dob: string | undefined) {
     if (!dob) return "Age not available";
@@ -173,6 +136,35 @@ export const PetInfoCard = ({ pet }: PetCardProps) => {
               </div>
             </div>
           </div> */}
+
+          {appointment?.concerns && appointment?.concerns?.length > 0 && (
+            <div className="">
+              <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-red-600" />
+                Concerns
+              </h4>
+              <div className="flex flex-wrap gap-2">
+                {appointment?.concerns.map((concern, index) => (
+                  <Badge
+                    key={index}
+                    className="bg-red-100 text-red-700 border-red-300"
+                  >
+                    {concern}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {appointment?.notes && (
+            <div className="">
+              <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                <Info className="w-4 h-4 text-blue-600" />
+                Additional Info
+              </h4>
+              <p>{appointment?.notes}</p>
+            </div>
+          )}
 
           {/* Allergies */}
           {pet?.allergies?.length > 0 && (

@@ -147,101 +147,108 @@ export function RequestsTable({ requests }: RequestsTableProps) {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {requests.map((request) => {
-                    const StatusIcon = statusConfig[request.status].icon;
-                    return (
-                      <TableRow key={request._id} className="hover:bg-gray-50">
-                        <TableCell className="font-medium">
-                          {request.pharmacyName}
-                        </TableCell>
-                        <TableCell>{request.phoneNumber}</TableCell>
-                        <TableCell>
-                          {request.street}
-                          <br />
-                          {request.city}, {request.state}
-                        </TableCell>
-                        <TableCell>
-                          {formatDate(request.appointment?.appointmentDate)}
-                        </TableCell>
-                        <TableCell>{formatCurrency(request.amount)}</TableCell>
-                        <TableCell>
-                          <Badge
-                            className={
-                              paymentStatusConfig[request.paymentStatus]
-                                .className
-                            }
-                          >
-                            {paymentStatusConfig[request.paymentStatus].label}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Badge
-                            className={`${
-                              statusConfig[request.status].className
-                            } flex items-center gap-1`}
-                          >
-                            <StatusIcon className="h-3 w-3" />
-                            {statusConfig[request.status].label}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>{formatDate(request.createdAt)}</TableCell>
-                      </TableRow>
-                    );
-                  })}
+                  {requests?.length > 0 &&
+                    requests?.map((request) => {
+                      const StatusIcon = statusConfig[request.status].icon;
+                      return (
+                        <TableRow
+                          key={request._id}
+                          className="hover:bg-gray-50"
+                        >
+                          <TableCell className="font-medium">
+                            {request.pharmacyName}
+                          </TableCell>
+                          <TableCell>{request.phoneNumber}</TableCell>
+                          <TableCell>
+                            {request.street}
+                            <br />
+                            {request.city}, {request.state}
+                          </TableCell>
+                          <TableCell>
+                            {formatDate(request.appointment?.appointmentDate)}
+                          </TableCell>
+                          <TableCell>
+                            {formatCurrency(request.amount)}
+                          </TableCell>
+                          <TableCell>
+                            <Badge
+                              className={
+                                paymentStatusConfig[request.paymentStatus]
+                                  .className
+                              }
+                            >
+                              {paymentStatusConfig[request.paymentStatus].label}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Badge
+                              className={`${
+                                statusConfig[request.status].className
+                              } flex items-center gap-1`}
+                            >
+                              <StatusIcon className="h-3 w-3" />
+                              {statusConfig[request.status].label}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>{formatDate(request.createdAt)}</TableCell>
+                        </TableRow>
+                      );
+                    })}
                 </TableBody>
               </Table>
             </div>
 
             {/* Mobile Card View */}
             <div className="space-y-4 md:hidden">
-              {requests.map((request) => {
-                const StatusIcon = statusConfig[request.status].icon;
-                return (
-                  <div
-                    key={request._id}
-                    className="p-4 bg-white rounded-lg shadow border space-y-2"
-                  >
-                    <div className="flex justify-between items-center">
-                      <h3 className="font-semibold text-gray-900">
-                        {request.pharmacyName}
-                      </h3>
-                      <Badge
-                        className={
-                          paymentStatusConfig[request.paymentStatus].className
-                        }
-                      >
-                        {paymentStatusConfig[request.paymentStatus].label}
-                      </Badge>
+              {requests?.length > 0 &&
+                requests?.map((request) => {
+                  const StatusIcon = statusConfig[request.status].icon;
+                  return (
+                    <div
+                      key={request._id}
+                      className="p-4 bg-white rounded-lg shadow border space-y-2"
+                    >
+                      <div className="flex justify-between items-center">
+                        <h3 className="font-semibold text-gray-900">
+                          {request.pharmacyName}
+                        </h3>
+                        <Badge
+                          className={
+                            paymentStatusConfig[request.paymentStatus].className
+                          }
+                        >
+                          {paymentStatusConfig[request.paymentStatus].label}
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-gray-600">
+                        {request.phoneNumber}
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        {request.street}, {request.city}, {request.state}
+                      </p>
+                      <p className="text-sm text-gray-700">
+                        <span className="font-medium">Appointment:</span>{" "}
+                        {formatDate(request.appointment?.appointmentDate)}
+                      </p>
+                      <p className="text-sm font-semibold text-gray-900">
+                        {formatCurrency(request.amount)}
+                      </p>
+                      <div className="flex items-center justify-between">
+                        <Badge
+                          className={`${
+                            statusConfig[request.status].className
+                          } flex items-center gap-1`}
+                        >
+                          <StatusIcon className="h-3 w-3" />
+                          {statusConfig[request.status].label}
+                        </Badge>
+                        <span className="text-xs text-gray-500">
+                          {formatDate(request.createdAt)}
+                        </span>
+                      </div>
                     </div>
-                    <p className="text-sm text-gray-600">
-                      {request.phoneNumber}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      {request.street}, {request.city}, {request.state}
-                    </p>
-                    <p className="text-sm text-gray-700">
-                      <span className="font-medium">Appointment:</span>{" "}
-                      {formatDate(request.appointment?.appointmentDate)}
-                    </p>
-                    <p className="text-sm font-semibold text-gray-900">
-                      {formatCurrency(request.amount)}
-                    </p>
-                    <div className="flex items-center justify-between">
-                      <Badge
-                        className={`${
-                          statusConfig[request.status].className
-                        } flex items-center gap-1`}
-                      >
-                        <StatusIcon className="h-3 w-3" />
-                        {statusConfig[request.status].label}
-                      </Badge>
-                      <span className="text-xs text-gray-500">
-                        {formatDate(request.createdAt)}
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
             </div>
           </>
         )}
