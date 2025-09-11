@@ -50,6 +50,9 @@ const BookingNoticePeriod: React.FC<BookingNoticePeriodProps> = ({
       }
 
       const result = await response.json();
+      if (!result.data.noticePeriod) {
+        await saveNoticePeriod(30);
+      }
       if (result.success) {
         setSelectedPeriod(result.data.noticePeriod);
         // onChange?.(result.data.noticePeriod);
