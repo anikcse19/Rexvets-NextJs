@@ -137,7 +137,7 @@ const Home = () => {
   }, [session]);
 
   // console.log("open from home page", open);
-  
+
   // Don't render session-dependent content until session is loaded
   if (status === "loading") {
     return (
@@ -164,7 +164,7 @@ const Home = () => {
       <VirtualCareIntroSection />
       <BlogPostSection />
       <TestimonialsSection />
-      {/* <VetScheduleSetupAlertModal open={open} /> */}
+      <VetScheduleSetupAlertModal open={open} />
 
       {/* Chat Icon */}
     </div>

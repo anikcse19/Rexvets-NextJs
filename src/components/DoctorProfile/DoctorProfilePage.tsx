@@ -88,7 +88,7 @@ export default function DoctorProfilePage({
     selectedSlot
   );
   return (
-    <div className="min-h-screen mt-14 bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 p-4 lg:p-6">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 p-4 lg:p-6">
       {/* Donation Modal */}
       {showForm ? (
         <div className="max-w-2xl mx-auto mt-12">
