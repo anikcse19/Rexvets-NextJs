@@ -768,7 +768,7 @@ const VideoCallControls: React.FC<VideoCallControlsProps> = ({
                         </div>
                       )}
                       
-                      <div className={`flex-1 ${isCurrentUser ? "flex justify-end" : ""}`}>
+                      <div className={`flex-1 ${isCurrentUser ? "flex flex-col items-end" : "flex flex-col items-start"}`}>
                         <div 
                           className={`rounded-lg p-3 max-w-[80%] ${isCurrentUser 
                             ? "bg-gradient-to-r from-teal-500 to-cyan-500 text-white" 
@@ -808,13 +808,14 @@ const VideoCallControls: React.FC<VideoCallControlsProps> = ({
                           ) : (
                             <p className="text-sm">{message.content}</p>
                           )}
+
                         </div>
-                        <span className="text-xs text-gray-500 mt-1 block">
-                          {new Date(message.createdAt).toLocaleTimeString("en-US", {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </span>
+                        {/* Timestamp below bubble, outside the colored box */}
+                        <div className={`mt-1 ${isCurrentUser ? "self-end" : "self-start"}`}>
+                          <span className="text-xs text-gray-500 block">
+                            {formatTime(message.createdAt)}
+                          </span>
+                        </div>
                         
                         {isCurrentUser && (
                           <div className="flex items-center justify-end gap-1 mt-1">
