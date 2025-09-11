@@ -14,14 +14,16 @@ import {
   Pill,
   Syringe,
   FileText,
+  Info,
 } from "lucide-react";
-import { Pet } from "@/lib/types";
+import { Appointment, Pet } from "@/lib/types";
 
 interface PetInfoCardProps {
-  pet: Pet;
+  appointment: Appointment;
 }
 
-export default function PetInfoCard({ pet }: PetInfoCardProps) {
+export default function PetInfoCard({ appointment }: PetInfoCardProps) {
+  const pet = appointment?.pet;
   const formatDate = (dateString: string) => {
     if (!dateString) return "Not available";
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -157,9 +159,38 @@ export default function PetInfoCard({ pet }: PetInfoCardProps) {
             )}
           </div>
 
+          {appointment.concerns && appointment.concerns.length > 0 && (
+            <div className="">
+              <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-red-600" />
+                Concerns
+              </h4>
+              <div className="flex flex-wrap gap-2">
+                {appointment.concerns.map((concern, index) => (
+                  <Badge
+                    key={index}
+                    className="bg-red-100 text-red-700 border-red-300"
+                  >
+                    {concern}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {appointment.notes && (
+            <div className="">
+              <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                <Info className="w-4 h-4 text-blue-600" />
+                Additional Info
+              </h4>
+              <p>{appointment?.notes}</p>
+            </div>
+          )}
+
           {/* Allergies */}
           {pet.allergies && pet.allergies.length > 0 && (
-            <div>
+            <div className="hidden">
               <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
                 <AlertTriangle className="w-4 h-4 text-red-600" />
                 Allergies
@@ -179,7 +210,7 @@ export default function PetInfoCard({ pet }: PetInfoCardProps) {
 
           {/* Medical Conditions */}
           {pet.medicalConditions && pet.medicalConditions.length > 0 && (
-            <div>
+            <div className="hidden">
               <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
                 <AlertTriangle className="w-4 h-4 text-orange-600" />
                 Medical Conditions
@@ -199,7 +230,7 @@ export default function PetInfoCard({ pet }: PetInfoCardProps) {
 
           {/* Current Medications */}
           {pet.currentMedications && pet.currentMedications.length > 0 && (
-            <div>
+            <div className="hidden">
               <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
                 <Pill className="w-4 h-4 text-orange-600" />
                 Current Medications
@@ -219,7 +250,7 @@ export default function PetInfoCard({ pet }: PetInfoCardProps) {
 
           {/* Health Status */}
           {pet.healthStatus && (
-            <div className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-200">
+            <div className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-200 hidden">
               <div className="flex items-center gap-3">
                 <div className="bg-green-500 text-white p-2 rounded-lg">
                   <Heart className="w-4 h-4" />

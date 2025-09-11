@@ -1,3 +1,4 @@
+import { uploadToCloudinary } from "@/lib/cloudinary";
 import { connectToDatabase } from "@/lib/mongoose";
 import {
   IErrorResponse,
@@ -63,6 +64,7 @@ export async function GET(
 }
 
 //  Update pet (partial update)
+//  Update pet (partial update with optional image upload)
 export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ petId: string }> }
@@ -83,16 +85,63 @@ export async function PATCH(
       );
     }
 
-    const body = await req.json();
+    const formData = await req.formData();
+    const imageFile = formData.get("image") as File | null;
 
-    // ✅ Update only if not deleted
+    const updateData: Record<string, any> = {};
+
+    // ✅ If a new image is uploaded
+    if (imageFile && imageFile.size > 0) {
+      const uploadResult = await uploadToCloudinary(imageFile, {
+        folder: "pets",
+        resource_type: "image",
+      });
+      updateData.image = uploadResult.secure_url;
+    }
+
+    // ✅ Handle other fields dynamically
+    const allowedFields = [
+      "name",
+      "species",
+      "breed",
+      "gender",
+      "primaryColor",
+      "spayedNeutered",
+      "weight",
+      "weightUnit",
+      "dateOfBirth",
+      "parentId",
+      "allergies",
+      "medicalConditions",
+      "currentMedications",
+      "healthStatus",
+      "emergencyContact",
+      "veterinarianNotes",
+      "lastVisit",
+      "nextVaccination",
+    ];
+
+    for (const field of allowedFields) {
+      if (formData.has(field)) {
+        if (
+          ["allergies", "medicalConditions", "currentMedications"].includes(
+            field
+          )
+        ) {
+          updateData[field] = formData.getAll(field) as string[];
+        } else if (field === "weight") {
+          updateData[field] = Number(formData.get(field));
+        } else {
+          updateData[field] = formData.get(field);
+        }
+      }
+    }
+
+    // ✅ Update the pet
     const updatedPet = await PetModel.findOneAndUpdate(
       { _id: petId, isDeleted: false },
-      body,
-      {
-        new: true,
-        runValidators: true,
-      }
+      updateData,
+      { new: true, runValidators: true }
     );
 
     if (!updatedPet) {

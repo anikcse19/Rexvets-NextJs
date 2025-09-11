@@ -314,7 +314,7 @@ const PrescriptionPDF = ({
           {veterinarian.signatureImage ? (
             <Image
               src={veterinarian.signatureImage}
-              style={{ width: 50, height: 50, backgroundColor: "red" }}
+              style={{ width: 200, height: 50, backgroundColor: "red" }}
             />
           ) : (
             <>

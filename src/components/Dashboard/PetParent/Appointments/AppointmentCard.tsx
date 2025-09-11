@@ -127,22 +127,6 @@ export default function AppointmentCard({ appointment }: AppointmentCardProps) {
           <p className="text-xs text-gray-500">Veterinarian</p>
         </div>
       </div>
-
-      {/* Notes */}
-      {appointment.notes && (
-        <div className="mt-4 p-4 rounded-2xl bg-amber-50/80 border border-amber-100">
-          <div className="flex gap-2">
-            <AlertCircle className="w-5 h-5 text-amber-600" />
-            <p className="text-sm text-amber-700">{appointment.notes}</p>
-          </div>
-        </div>
-      )}
-
-      {/* {appointment?.seenBefore && (
-        <Button className="mt-2 bg-[#1C1B36] w-full cursor-pointer">
-          See Pet History
-        </Button>
-      )} */}
     </div>
   );
 }
