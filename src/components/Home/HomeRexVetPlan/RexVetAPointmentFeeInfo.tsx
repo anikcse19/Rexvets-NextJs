@@ -72,7 +72,7 @@ const RexVetAPointmentFeeInfo: React.FC<IProps> = ({
       animate={
         hoveredCard === "per" ? "hover" : isSmallDevice ? "initial" : "tilt"
       }
-      className={`relative w-full lg:w-[75%] rounded-3xl mb-4 lg:mb-0 ${
+      className={`relative w-full lg:w-[75%] rounded-3xl mb-14 md:mb-4 lg:mb-0 ${
         hoveredCard === "per" ? "z-[100]" : "z-[2]"
       } lg:absolute lg:top-0 lg:left-0`}
     >

@@ -69,7 +69,7 @@ const RexVetPlan: React.FC = () => {
               isSmallDevice={isSmallDevice}
               hoveredCard={hoveredCard}
               setHoveredCard={setHoveredCard}
-              onClick={() => navigate.push("/findAVet")}
+              onClick={() => navigate.push("/find-a-vet")}
               perAppointmentFeatures={perAppointmentFeatures}
             />
             {/* Family Plan Card */}
