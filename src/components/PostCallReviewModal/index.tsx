@@ -171,7 +171,7 @@ const PostCallModal: React.FC<PostCallModalProps> = ({
         onClose();
         const url = `/dashboard/doctor/appointments/${appointmentDetails?._id}`;
         window.location.href = url;
-      }, 20000);
+      }, 4000);
     } catch (error: any) {
       const errorMessage = error.message || "Failed to create review";
       toast.error(errorMessage);
