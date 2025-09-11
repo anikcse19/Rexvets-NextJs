@@ -160,7 +160,7 @@ export default function BookingSystem({
 
   useEffect(() => {
     fetchVetSlots();
-  }, [selectedDate, selectedSlotDate, selectedSlotId, vetTimezone]);
+  }, [selectedDate, selectedSlotDate, selectedSlotId]);
 
   // console.log("slots", slots);
 
