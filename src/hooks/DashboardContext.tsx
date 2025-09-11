@@ -40,11 +40,6 @@ const initialApiResponseState: IAvailableApiResponseState = {
   loading: false,
 };
 
-const todayDateRange: DateRange = {
-  start: new Date(),
-  end: new Date(),
-};
-
 interface SessionUserWithRefId {
   refId: string;
   // other user properties can be added here
