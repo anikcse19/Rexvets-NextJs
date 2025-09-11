@@ -6,6 +6,7 @@ import moment from "moment";
 import React, { useState } from "react";
 
 import { useAppContext } from "@/hooks/StateContext";
+import { getUserTimezone } from "@/lib/timezone";
 import { ChevronRight, Heart, Shield, Star } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -88,7 +89,7 @@ export default function DoctorCard({ doctor, viewMode }: DoctorCardProps) {
     router.push(`/find-a-vet/${doctor.id || doctor._id}`);
   };
 
-  const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const userTimezone = getUserTimezone();
 
   return (
     <article
@@ -215,7 +216,7 @@ export default function DoctorCard({ doctor, viewMode }: DoctorCardProps) {
                         slot.startTime,
                         slot.endTime,
                         slot.date,
-                        slot.timezone || "UTC"
+                        userTimezone
                       );
                     return (
                       <button
@@ -225,7 +226,7 @@ export default function DoctorCard({ doctor, viewMode }: DoctorCardProps) {
                       >
                         <div className="w-full flex items-center">
                           <span className="w-[60%] truncate">
-                            {formatDate(slot.date, slot.timezone)}
+                            {formatDate(slot.date, userTimezone)}
                           </span>
 
                           <span className="w-[40%] truncate text-right  text-sm font-medium text-gray-800 group-hover/slot:text-gray-900">

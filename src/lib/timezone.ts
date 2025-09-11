@@ -1,5 +1,22 @@
 import moment from "moment-timezone";
 import { DateRange } from "./types";
+// Ensure moment-timezone has timezone data available in the bundle
+// Some bundlers tree-shake the data; explicitly load the packed dataset once
+try {
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore - JSON module typings may vary based on tsconfig
+  // Importing the latest packed timezone data
+  // This is safe to call multiple times; moment guards internally
+  // Note: If your tsconfig doesn't support resolveJsonModule, enable it
+  // or switch to a dynamic import as needed.
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const tzdata = require("moment-timezone/data/packed/latest.json");
+  if ((moment.tz as any)?.load && tzdata) {
+    (moment.tz as any).load(tzdata);
+  }
+} catch {
+  // Fallback: ignore if data already present or cannot be loaded in this environment
+}
 
 export const getTimezones = () => {
   return moment.tz.names().map((tz) => ({
