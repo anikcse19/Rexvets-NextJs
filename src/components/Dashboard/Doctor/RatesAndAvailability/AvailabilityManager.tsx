@@ -91,12 +91,19 @@ const AvailabilityManager: React.FC = () => {
   const [timezoneError, setTimezoneError] = useState<string>("");
   const [showTimezoneUpdateModal, setShowTimezoneUpdateModal] = useState(false);
   const [timezoneModalDismissed, setTimezoneModalDismissed] = useState(false);
+  const [isClient, setIsClient] = useState(false);
   const userTimezone = user?.timezone || "";
-  const currentTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  console.log(
-    "currentTimeZone=======timezone",
-    `${currentTimeZone} vet timezone:${user?.timezone}`
-  );
+  const currentTimeZone = isClient ? Intl.DateTimeFormat().resolvedOptions().timeZone : "UTC";
+  
+  // Only log on client side to prevent hydration issues
+  useEffect(() => {
+    if (isClient) {
+      console.log(
+        "currentTimeZone=======timezone",
+        `${currentTimeZone} vet timezone:${user?.timezone}`
+      );
+    }
+  }, [isClient, currentTimeZone, user?.timezone]);
   // Timezone modal state
   const [timezoneModal, setTimezoneModal] = useState<TimezoneModalState | null>(
     null
@@ -193,10 +200,16 @@ const AvailabilityManager: React.FC = () => {
 
   // Defer large arrays to avoid blocking rendering
   const deferredExistingPeriods = useDeferredValue(existingPeriods);
+  
+  // Set client flag to prevent hydration issues
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   // Fetch veterinarian timezone from API
   useEffect(() => {
     const getVetTimezoneFromDB = async () => {
-      if (!user?.refId) return;
+      if (!user?.refId || !isClient) return;
       
       setTimezoneLoading(true);
       setTimezoneError("");
@@ -246,10 +259,10 @@ const AvailabilityManager: React.FC = () => {
     };
 
     getVetTimezoneFromDB();
-  }, [user?.refId, currentTimeZone, timezoneModalDismissed]);
+  }, [user?.refId, currentTimeZone, timezoneModalDismissed, isClient]);
   return (
     <div className="container mx-auto p-2 md:p-6 space-y-6">
-      {process.env.NODE_ENV !== "production" && (
+      {process.env.NODE_ENV !== "production" && isClient && (
         <>
           <p>VET ID:{user?.refId}</p>
           <p>start time :{selectedRange?.start}</p>
