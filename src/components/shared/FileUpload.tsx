@@ -367,7 +367,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
             <p className="font-medium">
               {isDragOver
                 ? "Drop files here"
-                : "Click to upload or drag and drop"}
+                : " "}
             </p>
             <p className="text-xs text-gray-300 mt-1">
               {accept.includes("image/*")
@@ -423,7 +423,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
                 )}
 
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 truncate">
+                  <p className="text-sm font-medium text-gray-900 whitespace-normal break-words leading-snug">
                     {file.name || "Unknown file"}
                   </p>
                   <p className="text-xs text-gray-500">

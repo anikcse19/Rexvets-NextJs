@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/mongoose";
+import User from "@/models/User";
 import VeterinarianModel from "@/models/Veterinarian";
 import PetParentModel from "@/models/PetParent";
 
+// GET /api/check-email?email=someone@example.com
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -26,17 +28,18 @@ export async function GET(request: NextRequest) {
 
     await connectToDatabase();
 
-    // Check in both Veterinarian and PetParent collections
-    const [existingVet, existingPetParent] = await Promise.all([
+    // Check across Users and legacy collections (Veterinarian/PetParent)
+    const [existingUser, existingVet, existingPetParent] = await Promise.all([
+      User.findOne({ email, isDeleted: { $ne: true } }).select('googleId password role'),
       VeterinarianModel.findOne({ email }).select('googleId password'),
       PetParentModel.findOne({ email }).select('googleId password')
     ]);
 
-    const isAvailable = !existingVet && !existingPetParent;
-    const exists = existingVet || existingPetParent;
+    const exists: any = existingUser || existingVet || existingPetParent;
+    const isAvailable = !exists;
     
     // Check if it's a Google OAuth account (has googleId but no password)
-    const isGoogleAccount = exists && exists.googleId && !exists.password;
+    const isGoogleAccount = !!(exists && exists.googleId && !exists.password);
 
     return NextResponse.json({
       available: isAvailable,

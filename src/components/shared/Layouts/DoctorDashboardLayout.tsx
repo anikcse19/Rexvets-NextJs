@@ -40,13 +40,13 @@ export default function DoctorDashboardLayout({
         </div>
 
         {/* Main content */}
-        <div className="flex flex-col flex-1 lg:ml-0">
+        <div className="flex flex-col flex-1 min-h-0 lg:ml-0">
           <Topbar
             title={title}
             onMenuClick={() => setSidebarOpen(true)}
             sidebarOpen={sidebarOpen}
           />
-          <main className="flex-1 p-4 lg:p-6 overflow-y-auto bg-gray-50">
+          <main className="flex-1 min-h-0 p-4 lg:p-6 overflow-y-auto bg-gray-50">
             {children}
           </main>
         </div>
