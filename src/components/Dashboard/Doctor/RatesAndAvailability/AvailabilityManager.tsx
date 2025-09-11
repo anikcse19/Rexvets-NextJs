@@ -3,6 +3,7 @@
 import AvailabilityScheduler from "@/components/Dashboard/Doctor/RatesAndAvailability/AvailabilityScheduler";
 import AnimatedDateTabs from "@/components/shared/AnimatedDateTabs";
 import BookingNoticePeriod from "@/components/shared/BookingNoticePeriod";
+import TimezoneUpdateModal from "@/components/TimezoneUpdateModal";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -20,7 +21,12 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { useDashboardContext } from "@/hooks/DashboardContext";
-import { getTimezoneOffset } from "@/lib/timezone";
+import {
+  getTimezoneInfo,
+  getTimezoneOffset,
+  getVeterinarianTimezoneWithFallback,
+  updateTimezoneWithValidation
+} from "@/lib/timezone";
 import { DateRange, SlotPeriod } from "@/lib/types";
 import { format } from "date-fns";
 import { AlertTriangle, Calendar, Clock, Globe } from "lucide-react";
@@ -78,7 +84,13 @@ const AvailabilityManager: React.FC = () => {
   const { data: session } = useSession();
   const user = session?.user as SessionUserWithRefId | undefined;
   const [hasExistingSlots, setHasExistingSlots] = useState(false);
-
+  const [showTimezoneModal, setShowTimezoneModal] = useState(false);
+  const [detectedTimezone, setDetectedTimezone] = useState<string>("");
+  const [vetTimezone, setVetTimezone] = useState<string>("");
+  const [timezoneLoading, setTimezoneLoading] = useState(false);
+  const [timezoneError, setTimezoneError] = useState<string>("");
+  const [showTimezoneUpdateModal, setShowTimezoneUpdateModal] = useState(false);
+  const [timezoneModalDismissed, setTimezoneModalDismissed] = useState(false);
   const userTimezone = user?.timezone || "";
   const currentTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   console.log(
@@ -90,6 +102,52 @@ const AvailabilityManager: React.FC = () => {
     null
   );
 
+  // Function to update veterinarian timezone
+  const updateVetTimezone = async (newTimezone: string) => {
+    setTimezoneLoading(true);
+    setTimezoneError("");
+    
+    try {
+      const result = await updateTimezoneWithValidation(newTimezone);
+      
+      if (result.success) {
+        setVetTimezone(newTimezone);
+        toast.success("Timezone updated successfully");
+        console.log("Timezone updated to:", newTimezone);
+      } else {
+        setTimezoneError(result.error || "Failed to update timezone");
+        toast.error(result.message || "Failed to update timezone");
+      }
+    } catch (error) {
+      console.error("Error updating timezone:", error);
+      setTimezoneError("Failed to update timezone");
+      toast.error("Failed to update timezone");
+    } finally {
+      setTimezoneLoading(false);
+    }
+  };
+
+  // Handler for timezone update modal
+  const handleTimezoneUpdate = async () => {
+    await updateVetTimezone(detectedTimezone);
+    setShowTimezoneUpdateModal(false);
+    // Mark as dismissed for this session
+    setTimezoneModalDismissed(true);
+  };
+
+  // Handler for dismissing timezone modal
+  const handleTimezoneDismiss = () => {
+    setShowTimezoneUpdateModal(false);
+    setTimezoneModalDismissed(true);
+    // Store dismissal in localStorage to remember user's choice
+    localStorage.setItem('timezone-modal-dismissed', 'true');
+  };
+
+  // Handler for closing timezone modal
+  const handleTimezoneClose = () => {
+    setShowTimezoneUpdateModal(false);
+  };
+
   const fetchSlots = useCallback(async () => {
     if (!selectedRange || !user?.refId) {
       throw new Error("Missing required data");
@@ -99,7 +157,10 @@ const AvailabilityManager: React.FC = () => {
       const startDate = format(selectedRange.start, "yyyy-MM-dd");
       const endDate = format(selectedRange.end, "yyyy-MM-dd");
 
-      await getSlots(startDate, endDate, user.refId, userTimezone);
+      // Always use vetTimezone from DB, never use local timezone
+      const timezoneToUse = vetTimezone || "UTC";
+      console.log("Using timezone for slots:", timezoneToUse);
+      await getSlots(startDate, endDate, user.refId, timezoneToUse);
 
       const diff = getDaysBetween(selectedRange);
       console.log("Days between selected range:", diff);
@@ -109,33 +170,20 @@ const AvailabilityManager: React.FC = () => {
         description: "Please try refreshing the page or contact support.",
       });
     }
-  }, [selectedRange, user?.refId, userTimezone, getSlots]);
+  }, [selectedRange, user?.refId, vetTimezone, getSlots]);
 
   useEffect(() => {
     // Only fetch if we have both selectedRange and user refId
     if (selectedRange && user?.refId) {
       fetchSlots();
     }
-  }, [selectedRange, user?.refId, slotStatus, userTimezone, fetchSlots]);
+  }, [selectedRange, user?.refId, slotStatus, vetTimezone, fetchSlots]);
   useEffect(() => {
     if (availableSlotsApiResponse.data) {
       setHasExistingSlots(availableSlotsApiResponse.data.periods.length > 0);
     }
   }, [availableSlotsApiResponse.data]);
-  // Initialize with today's date when component mounts and user is available
-  // useEffect(() => {
-  //   if (user?.refId && !selectedRange) {
-  //     // Use timezone-agnostic date to ensure slots are always visible
-  //     // regardless of the user's current timezone
-  //     const weekDateRange = getWeekRange();
-  //     console.log("weekDateRange", weekDateRange);
-  //     setSelectedRange({
-  //       start: new Date(weekDateRange.start),
-  //       end: new Date(weekDateRange.end),
-  //     });
-  //   }
-  // }, [user?.refId, selectedRange, setSelectedRange]);
-  // Memoize the existing periods to avoid recalculating on every render
+
   const existingPeriods = useMemo(() => {
     if (!availableSlotsApiResponse.data?.periods) return [];
     return availableSlotsApiResponse.data.periods.flatMap(
@@ -145,8 +193,60 @@ const AvailabilityManager: React.FC = () => {
 
   // Defer large arrays to avoid blocking rendering
   const deferredExistingPeriods = useDeferredValue(existingPeriods);
-  console.log("availableSlotsApiResponse.data", availableSlotsApiResponse.data);
-  // console.log("deferredExistingPeriods", deferredExistingPeriods);
+  // Fetch veterinarian timezone from API
+  useEffect(() => {
+    const getVetTimezoneFromDB = async () => {
+      if (!user?.refId) return;
+      
+      setTimezoneLoading(true);
+      setTimezoneError("");
+      
+      try {
+        const timezoneInfo = await getTimezoneInfo();
+        
+        if (timezoneInfo.timezone) {
+          setVetTimezone(timezoneInfo.timezone);
+          setDetectedTimezone(currentTimeZone);
+          
+          console.log("Veterinarian timezone loaded:", {
+            timezone: timezoneInfo.timezone,
+            source: timezoneInfo.source,
+            offset: timezoneInfo.offset,
+            isValid: timezoneInfo.isValid
+          });
+          
+          // Check if there's a difference between vet DB timezone and current browser timezone
+          const isDifferent = timezoneInfo.timezone !== currentTimeZone;
+          const hasBeenDismissed = localStorage.getItem('timezone-modal-dismissed') === 'true';
+          
+          if (isDifferent && !hasBeenDismissed && !timezoneModalDismissed) {
+            console.log("Timezone difference detected:", {
+              vetTimezone: timezoneInfo.timezone,
+              currentTimezone: currentTimeZone
+            });
+            setShowTimezoneUpdateModal(true);
+          }
+        } else {
+          // Fallback to user's browser timezone
+          const fallbackTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+          setVetTimezone(fallbackTimezone);
+          setDetectedTimezone(fallbackTimezone);
+          console.log("Using fallback timezone:", fallbackTimezone);
+        }
+      } catch (error) {
+        console.error("Error fetching veterinarian timezone:", error);
+        setTimezoneError("Failed to load timezone");
+        // Fallback to user's browser timezone
+        const fallbackTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        setVetTimezone(fallbackTimezone);
+        setDetectedTimezone(fallbackTimezone);
+      } finally {
+        setTimezoneLoading(false);
+      }
+    };
+
+    getVetTimezoneFromDB();
+  }, [user?.refId, currentTimeZone, timezoneModalDismissed]);
   return (
     <div className="container mx-auto p-2 md:p-6 space-y-6">
       {process.env.NODE_ENV !== "production" && (
@@ -154,6 +254,11 @@ const AvailabilityManager: React.FC = () => {
           <p>VET ID:{user?.refId}</p>
           <p>start time :{selectedRange?.start}</p>
           <p>end time :{selectedRange?.end}</p>
+          <p>Vet Timezone: {vetTimezone || "Loading..."}</p>
+          <p>User Timezone: {userTimezone}</p>
+          <p>Current Browser Timezone: {currentTimeZone}</p>
+          {timezoneError && <p className="text-red-500">Timezone Error: {timezoneError}</p>}
+          {timezoneLoading && <p className="text-blue-500">Loading timezone...</p>}
         </>
       )}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -183,6 +288,17 @@ const AvailabilityManager: React.FC = () => {
           <BookingNoticePeriod vetId={user?.refId} />
         </div>
       </div>
+
+      {/* Timezone Update Modal */}
+      <TimezoneUpdateModal
+        isOpen={showTimezoneUpdateModal}
+        onClose={handleTimezoneClose}
+        onUpdate={handleTimezoneUpdate}
+        onDismiss={handleTimezoneDismiss}
+        currentTimezone={vetTimezone}
+        detectedTimezone={detectedTimezone}
+        isUpdating={timezoneLoading}
+      />
 
       {/* Timezone Selection Modal */}
       {timezoneModal && (
@@ -229,13 +345,15 @@ const AvailabilityManager: React.FC = () => {
                       </div>
                     </div>
                     <Button
-                      onClick={() =>
-                        timezoneModal.onConfirm(timezoneModal.userTimezone)
-                      }
+                      onClick={async () => {
+                        await updateVetTimezone(timezoneModal.userTimezone);
+                        timezoneModal.onConfirm(timezoneModal.userTimezone);
+                      }}
                       variant="outline"
                       className="border-blue-300 text-blue-700 hover:bg-blue-50"
+                      disabled={timezoneLoading}
                     >
-                      Use This
+                      {timezoneLoading ? "Updating..." : "Use This"}
                     </Button>
                   </div>
                 </CardContent>
@@ -266,13 +384,15 @@ const AvailabilityManager: React.FC = () => {
                       </div>
                     </div>
                     <Button
-                      onClick={() =>
-                        timezoneModal.onConfirm(timezoneModal.currentTimezone)
-                      }
+                      onClick={async () => {
+                        await updateVetTimezone(timezoneModal.currentTimezone);
+                        timezoneModal.onConfirm(timezoneModal.currentTimezone);
+                      }}
                       variant="outline"
                       className="border-green-300 text-green-700 hover:bg-green-50"
+                      disabled={timezoneLoading}
                     >
-                      Use This
+                      {timezoneLoading ? "Updating..." : "Use This"}
                     </Button>
                   </div>
                 </CardContent>
@@ -330,7 +450,7 @@ const AvailabilityManager: React.FC = () => {
                   }
                 }}
                 selectedRange={selectedRange}
-                timezone={user?.timezone || "UTC"}
+                timezone={vetTimezone || "UTC"}
                 hasExistingSlots={hasExistingSlots}
                 existingPeriods={deferredExistingPeriods}
                 onClose={() => setIsTimePeriodOpen(false)}
