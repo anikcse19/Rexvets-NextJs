@@ -177,6 +177,16 @@ export const authOptions = {
           refId: token.refId,
           timezone: token.timezone,
         });
+      } else {
+        // Console log the JWT token data on subsequent calls
+        console.log("🔑 JWT Token Data (Subsequent):", {
+          role: token.role,
+          id: token.id,
+          emailVerified: token.emailVerified,
+          image: token.image,
+          refId: token.refId,
+          timezone: token.timezone,
+        });
       }
 
       // Return previous token if the access token has not expired yet
@@ -195,11 +205,11 @@ export const authOptions = {
         };
       }
 
-      // // Console log the session data
-      // console.log("🔍 Session Data:", {
-      //   user: session.user,
-      //   expires: session.expires
-      // });
+      // Console log the session data
+      console.log("🔍 Session Data:", {
+        user: session.user,
+        expires: session.expires
+      });
 
       return session;
     },

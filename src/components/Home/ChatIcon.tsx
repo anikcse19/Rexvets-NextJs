@@ -27,7 +27,7 @@ type UserInfo = {
 };
 
 export default function ChatIcon() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const router = useRouter();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -80,6 +80,11 @@ export default function ChatIcon() {
       setMessages([welcomeMessage]);
     }
   }, [showChatbot, messages.length]);
+
+  // Don't render anything until session is loaded
+  if (status === "loading") {
+    return null;
+  }
 
   const handleUserInfoSubmit = (e: React.FormEvent) => {
     e.preventDefault();

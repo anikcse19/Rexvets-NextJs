@@ -66,7 +66,7 @@ const Header: React.FC = () => {
   const [visible, setVisible] = useState(true);
   const [isSLotAvailable, setIsSLotAvailable] = useState(false);
 
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
 
   // const session = {
   //   user: {
@@ -140,7 +140,7 @@ const Header: React.FC = () => {
     };
     getBadgeName();
   }, []);
-  console.log("session emergency", session);
+  // console.log("session emergency", session);
 
   const isAppointmentSLotAvailable = async (vetId: string) => {
     if (session?.user?.role !== "veterinarian") {
@@ -170,6 +170,14 @@ const Header: React.FC = () => {
       isAppointmentSLotAvailable(session?.user?.refId);
     }
   }, [session]);
+
+  // Debug session state
+  console.log("Navbar - Session status:", status, "Session data:", session);
+
+  // Force re-render when session changes
+  useEffect(() => {
+    console.log("Session changed in Navbar:", { status, session });
+  }, [status, session]);
 
   return (
     <>
