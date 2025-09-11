@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Heart } from "lucide-react";
 
 export default function SpeciesTreated({ doctor }: { doctor: any }) {
+  console.log("doctor?.treatedSpecies", doctor?.treatedSpecies);
   return (
     <Card className="shadow-lg border-0 bg-white">
       <CardHeader>
@@ -19,8 +20,7 @@ export default function SpeciesTreated({ doctor }: { doctor: any }) {
               className="flex items-center justify-between p-4 bg-gradient-to-r from-pink-50 to-rose-50 rounded-xl border border-pink-200"
             >
               <div>
-                <p className="font-semibold text-pink-900">{species.name}</p>
-                <p className="text-pink-700 text-sm">{species.count} </p>
+                <p className="font-semibold text-pink-900">{species}</p>
               </div>
               {/* <Badge
                 className={`${
