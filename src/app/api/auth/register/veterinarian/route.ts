@@ -370,7 +370,7 @@ export async function POST(request: NextRequest) {
       signature: formData.get("signature") as string,
       licenses: updatedLicenses, // Use the licenses array
       bio: "",
-      education: [],
+      education: "",
       experience: [],
       certifications: [],
       languages: ["English"],
