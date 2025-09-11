@@ -159,7 +159,7 @@ export default function PetInfoCard({ pet }: PetInfoCardProps) {
 
           {/* Allergies */}
           {pet.allergies && pet.allergies.length > 0 && (
-            <div>
+            <div className="hidden">
               <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
                 <AlertTriangle className="w-4 h-4 text-red-600" />
                 Allergies
@@ -179,7 +179,7 @@ export default function PetInfoCard({ pet }: PetInfoCardProps) {
 
           {/* Medical Conditions */}
           {pet.medicalConditions && pet.medicalConditions.length > 0 && (
-            <div>
+            <div className="hidden">
               <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
                 <AlertTriangle className="w-4 h-4 text-orange-600" />
                 Medical Conditions
@@ -199,7 +199,7 @@ export default function PetInfoCard({ pet }: PetInfoCardProps) {
 
           {/* Current Medications */}
           {pet.currentMedications && pet.currentMedications.length > 0 && (
-            <div>
+            <div className="hidden">
               <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
                 <Pill className="w-4 h-4 text-orange-600" />
                 Current Medications
@@ -219,7 +219,7 @@ export default function PetInfoCard({ pet }: PetInfoCardProps) {
 
           {/* Health Status */}
           {pet.healthStatus && (
-            <div className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-200">
+            <div className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-200 hidden">
               <div className="flex items-center gap-3">
                 <div className="bg-green-500 text-white p-2 rounded-lg">
                   <Heart className="w-4 h-4" />
