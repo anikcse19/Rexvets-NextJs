@@ -277,6 +277,8 @@ const TimeSlotCreator = ({
       if (!normalizeDates.start || !normalizeDates.end) {
         throw new Error("Invalid date range");
       }
+      console.log("selectedRange", selectedRange);
+      console.log("normalizeDates", normalizeDates);
       // Use granular single-period creation to avoid date-range conflict errors
       const result = await addSinglePeriod({
         vetId,

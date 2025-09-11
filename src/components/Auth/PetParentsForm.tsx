@@ -35,9 +35,7 @@ const petParentSchema = z
   .object({
     name: z.string().min(2, "Name must be at least 2 characters"),
     email: z.string().email("Invalid email address"),
-    phone: z
-      .string()
-      .regex(/^[\+]?[1-9][\d]{0,15}$/, "Please enter a valid phone number"),
+    phone: z.string().optional().or(z.literal("")),
     state: z.string().min(1, "Please select a state"),
     password: z.string().min(8, "Password must be at least 8 characters"),
     confirmPassword: z.string(),
@@ -368,18 +366,12 @@ export default function PetParentForm() {
                   <MapPin className="w-4 h-4" />
                   State
                 </Label>
-                <Select onValueChange={(value) => setValue("state", value)}>
-                  <SelectTrigger className="h-12 bg-white/10 border-white/20 text-white data-[placeholder]:text-white/50 focus:border-cyan-400 focus:ring-cyan-400/20 backdrop-blur-sm">
-                    <SelectValue placeholder="Select a state" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {US_STATES.map((state) => (
-                      <SelectItem key={state.value} value={state.value}>
-                        {state.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Input
+                  id="state"
+                  {...register("state")}
+                  className="h-12 bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-cyan-400 focus:ring-cyan-400/20 backdrop-blur-sm"
+                  placeholder="Enter your state"
+                />
                 {errors.state && (
                   <p className="text-sm text-red-400 mt-1">
                     {errors.state.message}

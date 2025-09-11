@@ -91,7 +91,6 @@ export default function ProfessionalInfoSection({
         ...data,
         clinic: { name: data.clinicName, address: data.clinicAddress },
         certifications,
-        licenses,
       };
       console.log("submitted data", submitData);
       const res = await fetch(`/api/veterinarian/${doctorData?._id}`, {
@@ -190,35 +189,6 @@ export default function ProfessionalInfoSection({
 
         <CardContent className="p-8">
           <div className="space-y-8">
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <Award className="w-5 h-5 text-purple-600" />
-                Medical Licenses
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {licenses?.map((lic, index) => (
-                  <div
-                    key={index}
-                    className="p-4 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl border border-purple-200 space-y-1"
-                  >
-                    <p className="text-sm text-gray-700">
-                      <strong>License Number:</strong> {lic.licenseNumber}
-                    </p>
-                    <p className="text-sm text-gray-700">
-                      <strong>DEA Number:</strong> {lic.deaNumber}
-                    </p>
-                    <p className="text-sm text-gray-700">
-                      <strong>State:</strong> {lic.state}
-                    </p>
-                    {lic.licenseFile && (
-                      <p className="text-sm text-gray-700">
-                        <strong>File:</strong> {lic.licenseFile.name}
-                      </p>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
             {/* Professional Overview */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <InfoItem
@@ -320,76 +290,6 @@ export default function ProfessionalInfoSection({
 
       <CardContent className="p-8">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <Label>Licenses</Label>
-              <Button
-                type="button"
-                onClick={addLicense}
-                variant="outline"
-                className="border-orange-300 text-orange-600 hover:bg-orange-50"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Add License
-              </Button>
-            </div>
-
-            {licenses.map((lic, index) => (
-              <div
-                key={index}
-                className="p-4 border rounded-lg space-y-3 bg-gray-50"
-              >
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label>License Number</Label>
-                    <Input
-                      value={lic.licenseNumber}
-                      onChange={(e) =>
-                        updateLicense(index, "licenseNumber", e.target.value)
-                      }
-                    />
-                  </div>
-                  <div>
-                    <Label>DEA Number</Label>
-                    <Input
-                      value={lic.deaNumber}
-                      onChange={(e) =>
-                        updateLicense(index, "deaNumber", e.target.value)
-                      }
-                    />
-                  </div>
-                  <div>
-                    <Label>State</Label>
-                    <Input
-                      value={lic.state}
-                      onChange={(e) =>
-                        updateLicense(index, "state", e.target.value)
-                      }
-                    />
-                  </div>
-                  <div>
-                    <Label>License File</Label>
-                    <Input
-                      type="file"
-                      onChange={(e) =>
-                        updateLicense(index, "licenseFile", e.target.files?.[0])
-                      }
-                    />
-                  </div>
-                </div>
-                <Button
-                  type="button"
-                  onClick={() => removeLicense(index)}
-                  variant="outline"
-                  size="sm"
-                  className="text-red-600 border-red-200 hover:bg-red-50"
-                >
-                  <Trash2 className="w-4 h-4" />
-                  Remove
-                </Button>
-              </div>
-            ))}
-          </div>
           {/* Basic Professional Info */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">

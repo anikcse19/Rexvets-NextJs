@@ -22,6 +22,7 @@ interface BasicInfoStepProps {
   errors?: Record<string, string>;
   isLoading?: boolean;
   emailAvailability?: boolean | null;
+  onEmailChange?: (email: string) => void;
 }
 
 export default function BasicInfoStep({
@@ -30,6 +31,7 @@ export default function BasicInfoStep({
   errors = {},
   isLoading = false,
   emailAvailability = null,
+  onEmailChange,
 }: BasicInfoStepProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -93,7 +95,7 @@ export default function BasicInfoStep({
                   placeholder="Dr. John"
                 />
                 {errors.firstName && (
-                  <p className="text-sm text-red-500 mt-1">
+                  <p className="text-sm text-red-400 mt-1">
                     {errors.firstName}
                   </p>
                 )}
@@ -116,7 +118,7 @@ export default function BasicInfoStep({
                   placeholder="Smith"
                 />
                 {errors.lastName && (
-                  <p className="text-sm text-red-500 mt-1">{errors.lastName}</p>
+                  <p className="text-sm text-red-400 mt-1">{errors.lastName}</p>
                 )}
               </div>
             </div>
@@ -155,7 +157,7 @@ export default function BasicInfoStep({
                   placeholder="New York"
                 />
                 {errors.city && (
-                  <p className="text-sm text-red-500 mt-1">{errors.city}</p>
+                  <p className="text-sm text-red-400 mt-1">{errors.city}</p>
                 )}
               </div>
             </div>
@@ -172,19 +174,26 @@ export default function BasicInfoStep({
                 id="email"
                 type="email"
                 value={formData.email}
-                onChange={(e) => handleInputChange("email", e.target.value)}
+                onChange={(e) => {
+                  handleInputChange("email", e.target.value);
+                  // Trigger real-time email checking
+                  if (onEmailChange && e.target.value.includes("@")) {
+                    onEmailChange(e.target.value);
+                  }
+                }}
                 className="h-12 placeholder:text-gray-500 text-gray-900 bg-white/80 border-gray-300"
                 placeholder="dr.john@example.com"
               />
               {errors.email && (
-                <p className="text-sm text-red-500 mt-1">{errors.email}</p>
+                <p className="text-sm text-red-400 mt-1">{errors.email}</p>
               )}
-              {emailAvailability === false && (
-                <p className="text-sm text-red-500 mt-1">
-                  This email is already registered
+              {isLoading && (
+                <p className="text-sm text-blue-500 mt-1">
+                  Checking email availability...
                 </p>
               )}
-              {emailAvailability === true && (
+       
+              {!isLoading && emailAvailability === true && (
                 <p className="text-sm text-green-500 mt-1">
                   Email is available
                 </p>
@@ -209,7 +218,7 @@ export default function BasicInfoStep({
                   </SelectContent>
                 </Select>
                 {errors.gender && (
-                  <p className="text-sm text-red-500 mt-1">{errors.gender}</p>
+                  <p className="text-sm text-red-400 mt-1">{errors.gender}</p>
                 )}
               </div>
               <div>
@@ -232,7 +241,7 @@ export default function BasicInfoStep({
                   </SelectContent>
                 </Select>
                 {errors.state && (
-                  <p className="text-sm text-red-500 mt-1">{errors.state}</p>
+                  <p className="text-sm text-red-400 mt-1">{errors.state}</p>
                 )}
               </div>
             </div>
@@ -272,7 +281,7 @@ export default function BasicInfoStep({
                 />
               </div>
               {(errors.countryCode || errors.phone) && (
-                <p className="text-sm text-red-500 mt-1">
+                <p className="text-sm text-red-400 mt-1">
                   {errors.countryCode || errors.phone}
                 </p>
               )}
@@ -313,7 +322,7 @@ export default function BasicInfoStep({
                   </Button>
                 </div>
                 {errors.password && (
-                  <p className="text-sm text-red-500 mt-1">{errors.password}</p>
+                  <p className="text-sm text-red-400 mt-1">{errors.password}</p>
                 )}
               </div>
 
@@ -350,7 +359,7 @@ export default function BasicInfoStep({
                   </Button>
                 </div>
                 {errors.confirmPassword && (
-                  <p className="text-sm text-red-500 mt-1">
+                  <p className="text-sm text-red-400 mt-1">
                     {errors.confirmPassword}
                   </p>
                 )}
@@ -359,10 +368,10 @@ export default function BasicInfoStep({
 
             <Button
               type="submit"
-              disabled={isLoading}
-              className="w-full h-12 text-base bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 transition-all duration-200 text-white"
+              disabled={isLoading || emailAvailability === false}
+              className="w-full h-12 text-base bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 transition-all duration-200 text-white disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isLoading ? "Processing..." : "Continue to Schedule Setup"}
+              {isLoading ? "Processing..." : emailAvailability === false ? "Email Not Available" : "Continue"}
             </Button>
           </form>
         </CardContent>

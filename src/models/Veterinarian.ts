@@ -138,7 +138,7 @@ const veterinarianSchema = new Schema<IVeterinarian>(
       type: String,
       required: [true, "Phone number is required"],
       trim: true,
-      // match: [/^[\+]?[1-9][\d]{0,15}$/, "Please enter a valid phone number"],
+  
     },
     specialization: {
       type: String,

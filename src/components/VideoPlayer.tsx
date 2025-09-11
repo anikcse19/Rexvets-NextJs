@@ -171,7 +171,7 @@ const HeroVideo = ({ shouldPause, onReady }: HeroVideoProps) => {
         mx-auto mt-0 sm:mt-4 mb-0 sm:mb-2 
         rounded-2xl sm:rounded-3xl 
         overflow-hidden shadow-lg sm:shadow-2xl
-        bg-gradient-to-br from-indigo-500 to-purple-700
+        bg-gradient-to-br from-indigo-500/0 to-purple-700/0
       "
     >
       {/* Loading Spinner */}
