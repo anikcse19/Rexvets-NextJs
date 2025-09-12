@@ -50,6 +50,7 @@ export interface IVeterinarian extends Document {
     saturday: { start: string; end: string; available: boolean };
     sunday: { start: string; end: string; available: boolean };
   };
+  status?: string;
   isActive: boolean;
   isApproved: boolean;
   approvalDate?: Date;
@@ -138,7 +139,6 @@ const veterinarianSchema = new Schema<IVeterinarian>(
       type: String,
       required: [true, "Phone number is required"],
       trim: true,
-  
     },
     specialization: {
       type: String,
@@ -338,6 +338,10 @@ const veterinarianSchema = new Schema<IVeterinarian>(
     // lastLogin: { ... },
     // loginAttempts: { ... },
     // lockUntil: { ... },
+    status: {
+      type: String,
+      default: "pending",
+    },
     isActive: {
       type: Boolean,
       default: true,

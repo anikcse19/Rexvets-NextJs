@@ -28,6 +28,7 @@ declare module "next-auth" {
       relationship: string;
     };
     timezone?: string;
+    accesslist?: string[];
   }
 
   interface Session {
@@ -61,5 +62,6 @@ declare module "next-auth/jwt" {
       relationship: string;
     };
     timezone?: string;
+    accesslist?: string[];
   }
 }

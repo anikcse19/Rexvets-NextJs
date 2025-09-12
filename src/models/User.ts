@@ -8,11 +8,13 @@ export interface IUser extends Document {
   email: string;
   password?: string;
   role: UserRole;
+  accesslist?: string[];
 
   // References to existing models
   petParentRef?: mongoose.Types.ObjectId;
   veterinarianRef?: mongoose.Types.ObjectId;
   vetTechRef?: mongoose.Types.ObjectId;
+  adminRef?: mongoose.Types.ObjectId;
 
   // Authentication & Security
   isEmailVerified: boolean;
@@ -88,6 +90,9 @@ const userSchema = new Schema<IUser>(
       required: [true, "Role is required"],
     },
 
+    accesslist: {
+      type: [String],
+    },
     // References to existing models
     petParentRef: {
       type: Schema.Types.ObjectId,
@@ -102,6 +107,11 @@ const userSchema = new Schema<IUser>(
     vetTechRef: {
       type: Schema.Types.ObjectId,
       ref: "VetTech",
+      sparse: true,
+    },
+    adminRef: {
+      type: Schema.Types.ObjectId,
+      ref: "Admin",
       sparse: true,
     },
 
