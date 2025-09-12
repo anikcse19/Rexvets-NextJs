@@ -50,13 +50,8 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const {
-      id,
-      email,
-      includePets,
-      includeTimezone,
-      includeEmergencyContact,
-    } = parsed.data as any;
+    const { id, email, includePets, includeTimezone, includeEmergencyContact } =
+      parsed.data as any;
 
     // Resolve identity: prefer explicit id/email; otherwise use authenticated session
     let resolvedFilter: Record<string, unknown> | null = null;

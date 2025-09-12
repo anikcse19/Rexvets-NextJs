@@ -9,6 +9,9 @@ const updateReviewSchema = z.object({
   rating: z.number().min(1).max(5).optional(),
   comment: z.string().min(1).max(1000).optional(),
   visible: z.boolean().optional(),
+  vetId: z.string().optional(),
+  parentId: z.string().optional(),
+  appointmentDate: z.string().optional(),
 });
 
 export async function GET(
@@ -37,7 +40,7 @@ export async function GET(
       _id: id,
       isDeleted: { $ne: true },
     })
-      .populate("doctorId", "name specialization profileImage")
+      .populate("vetId", "name specialization profileImage")
       .populate("parentId", "name profileImage");
 
     if (!review) {
@@ -123,7 +126,7 @@ export async function PUT(
 
     // Populate the updated review
     const updatedReview = await ReviewModel.findById(id)
-      .populate("doctorId", "name specialization profileImage")
+      .populate("vetId", "name specialization profileImage")
       .populate("parentId", "name profileImage");
 
     return NextResponse.json({

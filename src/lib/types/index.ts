@@ -32,6 +32,7 @@ export interface PetParent extends User {
   appointments: Appointment;
   createdAt: string; // ISO date string
   updatedAt: string; // ISO date string
+  status: string;
   __v: number;
 }
 
@@ -154,6 +155,7 @@ export interface Doctor {
   lastName: string;
   email: string;
   phoneNumber: string;
+  status: string;
   specialization: string;
   consultationFee: number;
   available: boolean;
