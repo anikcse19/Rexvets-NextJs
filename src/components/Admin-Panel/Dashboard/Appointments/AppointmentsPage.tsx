@@ -1,6 +1,9 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Card,
   CardContent,
@@ -8,25 +11,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -35,55 +19,86 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Calendar } from "@/components/ui/calendar";
+import { Input } from "@/components/ui/input";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
 import {
-  Search,
-  Filter,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { format } from "date-fns";
+import {
   Calendar as CalendarIcon,
   Clock,
-  MoreHorizontal,
-  Plus,
   Download,
-  RefreshCw,
-  Eye,
   Edit,
-  Trash2,
-  Phone,
+  Eye,
+  Filter,
   Mail,
   MapPin,
-  User,
-  Stethoscope,
+  MoreHorizontal,
   Pen,
+  Phone,
+  Plus,
+  RefreshCw,
+  Search,
+  Stethoscope,
+  Trash2,
+  User,
   Video,
 } from "lucide-react";
-import { format } from "date-fns";
-import { db } from "@/lib/firebase";
-import { collection, addDoc, getDocs } from "firebase/firestore";
-import { Skeleton } from "@/components/ui/skeleton";
-import RescheduleModal from "../../Shared/RescheduleModal";
-import Pagination from "../../Shared/Pagination";
 import { DateTime } from "luxon";
+import { useEffect, useMemo, useState } from "react";
+import Pagination from "../../Shared/Pagination";
+import RescheduleModal from "../../Shared/RescheduleModal";
 
 export interface Appointment {
-  id: string;
-  ParentName: string;
-  PetRefID?: string;
-  DoctorName: string;
-  DoctorRefID: string;
-  AppointmentDate: string;
-  AppointmentTimeUTC?: string | undefined;
-  AppointmentTime: string;
-  MoreDetails: string;
-  notes: string[];
-  PetConcerns: string[];
-  status: string;
-  contactNumber: string;
-  ParentEmail: string;
+  _id: string;
+  appointmentDate: string;
+  status?: string;
+  notes?: string;
+  concerns: string[];
+  meetingLink?: string;
+  veterinarian: {
+    _id: string;
+    name: string;
+    email: string;
+  };
+  petParent: {
+    _id: string;
+    name: string;
+    email: string;
+    phoneNumber?: string;
+  };
+  pet: {
+    _id: string;
+    name: string;
+    species?: string;
+    breed?: string;
+  };
+  feeUSD: number;
+  appointmentType?: string;
+  isFollowUp?: boolean;
+  paymentStatus?: string;
+  reminderSent?: boolean;
+  slotId: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 const AppointmentsPage = () => {
@@ -101,20 +116,16 @@ const AppointmentsPage = () => {
 
   const today = format(new Date(), "yyyy-MM-dd");
 
-  const getUsers = async () => {
+  const getAppointments = async () => {
     try {
-      const snapshot = await getDocs(collection(db, "Appointments"));
+      const response = await fetch("/api/appointments");
+      const data = await response.json();
 
-      if (snapshot.empty) {
-        console.log("No appointments found");
-        setAppointmentsData([]);
-        return;
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to fetch appointments");
       }
 
-      const appointments = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      })) as Appointment[];
+      const appointments = data.data || [];
 
       const now = new Date();
 
@@ -122,10 +133,8 @@ const AppointmentsPage = () => {
       const upcoming: Appointment[] = [];
       const past: Appointment[] = [];
 
-      appointments.forEach((apt) => {
-        const dateTime = new Date(
-          `${apt.AppointmentDate} ${apt.AppointmentTime}`
-        );
+      appointments.forEach((apt: Appointment) => {
+        const dateTime = new Date(apt.appointmentDate);
         if (dateTime >= now) {
           upcoming.push(apt);
         } else {
@@ -135,12 +144,10 @@ const AppointmentsPage = () => {
 
       // Step 2: Sort
       const sortByDateAsc = (a: Appointment, b: Appointment) =>
-        new Date(`${a.AppointmentDate} ${a.AppointmentTime}`).getTime() -
-        new Date(`${b.AppointmentDate} ${b.AppointmentTime}`).getTime();
+        new Date(a.appointmentDate).getTime() - new Date(b.appointmentDate).getTime();
 
       const sortByDateDesc = (a: Appointment, b: Appointment) =>
-        new Date(`${b.AppointmentDate} ${b.AppointmentTime}`).getTime() -
-        new Date(`${a.AppointmentDate} ${a.AppointmentTime}`).getTime();
+        new Date(b.appointmentDate).getTime() - new Date(a.appointmentDate).getTime();
 
       const sortedUpcoming = upcoming.sort(sortByDateAsc);
       const sortedPast = past.sort(sortByDateDesc);
@@ -157,7 +164,7 @@ const AppointmentsPage = () => {
   };
 
   useEffect(() => {
-    getUsers();
+    getAppointments();
   }, []);
 
   useEffect(() => {
@@ -166,35 +173,34 @@ const AppointmentsPage = () => {
 
   // Filter appointments based on search and filters
   const filteredAppointments = useMemo(() => {
-    return appointmentsData.filter((appointment: any) => {
+    return appointmentsData.filter((appointment: Appointment) => {
       const matchesSearch =
-        appointment.ParentName.toLowerCase().includes(
+        appointment.petParent.name.toLowerCase().includes(
           searchTerm.toLowerCase()
         ) ||
-        appointment.DoctorName.toLowerCase().includes(searchTerm.toLowerCase());
+        appointment.veterinarian.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        appointment.pet.name.toLowerCase().includes(searchTerm.toLowerCase());
 
-      const appointmentDateTime = new Date(
-        `${appointment.AppointmentDate} ${appointment.AppointmentTime}`
-      );
+      const appointmentDateTime = new Date(appointment.appointmentDate);
       const now = new Date();
       let derivedStatus = "Upcoming";
 
       if (appointmentDateTime < now) {
         derivedStatus =
-          appointment.status?.toLowerCase() === "complete"
+          appointment.status?.toLowerCase() === "completed"
             ? "Complete"
             : "Incomplete";
       }
       const matchesStatus =
         statusFilter === "all" ||
-        statusFilter?.toLocaleLowerCase() === derivedStatus.toLocaleLowerCase();
+        statusFilter?.toLowerCase() === derivedStatus.toLowerCase();
 
       const matchesDoctor =
-        doctorFilter === "all" || appointment.DoctorName === doctorFilter;
+        doctorFilter === "all" || appointment.veterinarian.name === doctorFilter;
 
       const matchesDate =
         !dateFilter ||
-        format(new Date(appointment.AppointmentDate), "yyyy-MM-dd") ===
+        format(new Date(appointment.appointmentDate), "yyyy-MM-dd") ===
           format(dateFilter, "yyyy-MM-dd");
 
       return matchesSearch && matchesStatus && matchesDoctor && matchesDate;
@@ -234,7 +240,7 @@ const AppointmentsPage = () => {
   };
 
   const handleRefresh = () => {
-    getUsers();
+    getAppointments();
     setIsRefreshing(true);
     setTimeout(() => setIsRefreshing(false), 1000);
   };
@@ -247,7 +253,7 @@ const AppointmentsPage = () => {
   };
 
   const uniqueDoctors = Array.from(
-    new Set(appointmentsData.map((apt: any) => apt.DoctorName))
+    new Set(appointmentsData.map((apt: Appointment) => apt.veterinarian.name))
   );
   // const uniqueTypes = Array.from(
   //   new Set(appointments.map((apt) => apt.appointmentType))
@@ -258,22 +264,18 @@ const AppointmentsPage = () => {
     setOpenModal(true);
   };
 
-  const handleMonitorClick = (appointment: any) => {
+  const handleMonitorClick = (appointment: Appointment) => {
     // Generate monitoring link based on appointment data
-    const appointmentDateTime = new Date(
-      `${appointment.AppointmentDate} ${appointment.AppointmentTime}`
-    );
+    const appointmentDateTime = new Date(appointment.appointmentDate);
     const now = new Date();
 
     // Check if appointment is currently active (within 30 minutes of start time)
     const timeDiff = Math.abs(appointmentDateTime.getTime() - now.getTime());
     const isActive = timeDiff <= 30 * 60 * 1000; // 30 minutes
 
-    if (isActive) {
-      // For active appointments, construct the monitoring link
-      const roomId = appointment.id || appointment.AppointmentRefID;
-      const monitorLink = `https://rexvet.org/VideoCall/${roomId}/monitor`;
-      window.open(monitorLink, "_blank", "noopener,noreferrer");
+    if (isActive && appointment.meetingLink) {
+      // For active appointments, use the meeting link
+      window.open(appointment.meetingLink, "_blank", "noopener,noreferrer");
     } else {
       // For future appointments, show a message
       alert(
@@ -282,22 +284,9 @@ const AppointmentsPage = () => {
     }
   };
 
-  const convertNYToLocal = (time: string, date: any) => {
-    const formatted = format(date, "yyyy-MM-dd");
-
-    const nyTime = DateTime.fromFormat(
-      `${formatted} ${time}`,
-      "yyyy-MM-dd hh:mm a",
-      {
-        zone: "America/New_York",
-      }
-    );
-
-    const userTime = nyTime.setZone(
-      Intl.DateTimeFormat().resolvedOptions().timeZone
-    );
-
-    return userTime.toFormat("hh:mm a");
+  const formatAppointmentTime = (appointmentDate: string) => {
+    const date = new Date(appointmentDate);
+    return format(date, "hh:mm a");
   };
   return (
     // <RequireAccess permission="Appointments">
@@ -339,7 +328,7 @@ const AppointmentsPage = () => {
                 <p className="text-2xl font-bold dark:text-blue-400 text-blue-600">
                   {
                     appointmentsData.filter(
-                      (apt: any) => apt.AppointmentDate === today
+                      (apt: Appointment) => format(new Date(apt.appointmentDate), "yyyy-MM-dd") === today
                     ).length
                   }
                 </p>
@@ -358,7 +347,11 @@ const AppointmentsPage = () => {
                 <p className="text-2xl font-bold dark:text-green-400 text-green-600">
                   {
                     appointmentsData.filter(
-                      (apt: any) => apt.status === "Upcoming"
+                      (apt: Appointment) => {
+                        const appointmentDateTime = new Date(apt.appointmentDate);
+                        const now = new Date();
+                        return appointmentDateTime >= now;
+                      }
                     ).length
                   }
                 </p>
@@ -377,7 +370,11 @@ const AppointmentsPage = () => {
                 <p className="text-2xl font-bold dark:text-yellow-400 text-yellow-600">
                   {
                     appointmentsData.filter(
-                      (apt: any) => apt.status === "Incomplete"
+                      (apt: Appointment) => {
+                        const appointmentDateTime = new Date(apt.appointmentDate);
+                        const now = new Date();
+                        return appointmentDateTime < now && apt.status !== "completed";
+                      }
                     ).length
                   }
                 </p>
@@ -396,7 +393,7 @@ const AppointmentsPage = () => {
                 <p className="text-2xl font-bold dark:text-emerald-400 text-emerald-600">
                   {
                     appointmentsData.filter(
-                      (apt: any) => apt.status === "completed"
+                      (apt: Appointment) => apt.status === "completed"
                     ).length
                   }
                 </p>
@@ -579,34 +576,31 @@ const AppointmentsPage = () => {
                       <TableCell className="dark:text-gray-100">
                         <div>
                           <p className="font-medium text-gray-900 dark:text-gray-100">
-                            {appointment.ParentName}
+                            {appointment.petParent.name}
                           </p>
                           <p className="text-sm text-gray-500 dark:text-gray-400">
-                            {appointment.PetRefID}
+                            {appointment.pet.name}
                           </p>
                         </div>
                       </TableCell>
                       <TableCell className="dark:text-gray-100">
                         <div>
                           <p className="font-medium text-gray-900 dark:text-gray-100">
-                            {appointment.DoctorName}
+                            {appointment.veterinarian.name}
                           </p>
                           <p className="text-sm text-gray-500 dark:text-gray-400">
-                            {appointment.DoctorRefID}
+                            {appointment.veterinarian.email}
                           </p>
                         </div>
                       </TableCell>
                       <TableCell className="dark:text-gray-100">
                         <div>
                           <p className="font-medium text-gray-900 dark:text-gray-100 whitespace-nowrap">
-                            {convertNYToLocal(
-                              appointment?.AppointmentTime,
-                              appointment?.AppointmentDate
-                            )}
+                            {formatAppointmentTime(appointment.appointmentDate)}
                           </p>
                           <p className="font-medium text-gray-900 dark:text-gray-100 whitespace-nowrap">
                             {format(
-                              new Date(appointment.AppointmentDate),
+                              new Date(appointment.appointmentDate),
                               "MMM dd, yyyy"
                             )}
                           </p>
@@ -614,15 +608,13 @@ const AppointmentsPage = () => {
                       </TableCell>
                       <TableCell className="dark:text-gray-100">
                         {(() => {
-                          const appointmentDateTime = new Date(
-                            `${appointment.AppointmentDate} ${appointment.AppointmentTime}`
-                          );
+                          const appointmentDateTime = new Date(appointment.appointmentDate);
                           const now = new Date();
                           let derivedStatus = "Upcoming";
 
                           if (appointmentDateTime < now) {
                             derivedStatus =
-                              appointment.status?.toLowerCase() === "complete"
+                              appointment.status?.toLowerCase() === "completed"
                                 ? "Complete"
                                 : "Incomplete";
                           }
@@ -633,7 +625,7 @@ const AppointmentsPage = () => {
                       <TableCell className="dark:text-gray-100">
                         <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
                           <Mail className="w-3 h-3 mr-1" />
-                          {appointment.ParentEmail}
+                          {appointment.petParent.email}
                         </div>
                       </TableCell>
                       <TableCell className="text-right dark:text-gray-100">
@@ -688,7 +680,7 @@ const AppointmentsPage = () => {
           open={openModal}
           onClose={() => {
             setOpenModal(false);
-            getUsers();
+            getAppointments();
           }}
           appointment={selectedAppointment}
         />
