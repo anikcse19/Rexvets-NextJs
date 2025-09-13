@@ -1,7 +1,7 @@
 "use client";
 
 // import { useState } from "react";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signIn, getSession } from "next-auth/react";
@@ -52,25 +52,12 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [emailModalOpen, setEmailModalOpen] = useState(false);
-  const [codeModalOpen, setCodeModalOpen] = useState(false);
   const [passwordModalOpen, setPasswordModalOpen] = useState(false);
 
-  const [email, setEmail] = useState("");
   const [resetEmail, setResetEmail] = useState("");
-  const [code, setCode] = useState("");
-  const [codeDigits, setCodeDigits] = useState<string[]>([
-    "",
-    "",
-    "",
-    "",
-    "",
-    "",
-  ]);
-  const inputRefs = useRef<Array<HTMLInputElement | null>>([]);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isSendCodeLoading, setIsSendCodeLoading] = useState(false);
-  const [isCheckVerifyLoading, setIsCheckVerifyLoading] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const router = useRouter();
 
@@ -88,6 +75,15 @@ export default function LoginPage() {
   });
 
   const rememberMe = watch("rememberMe");
+
+  // Check for password reset token in URL
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token');
+    if (token) {
+      setPasswordModalOpen(true);
+    }
+  }, []);
   // login submit
   const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
@@ -101,12 +97,28 @@ export default function LoginPage() {
       });
 
       if (result?.error) {
-        setError("Invalid email or password. Please try again.");
+        if (result.error === "EmailNotVerified") {
+          setError("Please verify your email before signing in.");
+        } else if (result.error.includes("Account is temporarily locked")) {
+          setError("Account is temporarily locked due to too many failed login attempts. Please try again later.");
+        } else if (result.error.includes("Account is deactivated")) {
+          setError("Account is deactivated. Please contact support.");
+        } else {
+          setError("Invalid email or password. Please try again.");
+        }
       } else {
         // Get the session to check user role
         const session = await getSession();
-        toast.success("Login successful! Redirecting...");
-        router.push("/dashboard");
+        
+        // Check if user has admin role
+        if (session?.user?.role !== "admin") {
+          setError("Access denied. Admin privileges required.");
+          await signIn("credentials", { redirect: false }); // Sign out the user
+          return;
+        }
+        
+        toast.success("Login successful! Redirecting to admin dashboard...");
+        router.push("/admin/overview");
       }
     } catch (error) {
       setError("An error occurred during login. Please try again.");
@@ -118,133 +130,98 @@ export default function LoginPage() {
   //  forget email submit
 
   const handleSendResetCode = async () => {
+    if (!resetEmail) {
+      toast.error("Please enter your email address.");
+      return;
+    }
+
     setIsSendCodeLoading(true);
-    const data = {
-      email: resetEmail,
-    };
-    const response = await fetch(
-      "https://rexvetsemailserver.up.railway.app/sendResetCode",
-      {
+    try {
+      const response = await fetch("/api/auth/forgot-password", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json", // <-- THIS IS IMPORTANT
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify(data),
-      }
-    );
-    const result = await response.json();
-
-    console.log("result", result);
-    setEmailModalOpen(false);
-    setCodeModalOpen(true);
-    setIsSendCodeLoading(false);
-  };
-
-  const handleChangeDigit = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    index: number
-  ) => {
-    const value = e.target.value.replace(/\D/, ""); // Only digits
-    const newDigits = [...codeDigits];
-    newDigits[index] = value;
-    setCodeDigits(newDigits);
-
-    // Auto-focus next box
-    if (value && index < 5) {
-      inputRefs.current[index + 1]?.focus();
-    }
-  };
-
-  const handleKeyDown = (
-    e: React.KeyboardEvent<HTMLInputElement>,
-    index: number
-  ) => {
-    if (e.key === "Backspace" && !codeDigits[index] && index > 0) {
-      inputRefs.current[index - 1]?.focus();
-    }
-  };
-
-  // code verify function
-
-  const handleVerifyCode = async () => {
-    const enteredCode = codeDigits.join("");
-    setIsCheckVerifyLoading(true);
-
-    if (enteredCode.length === 6) {
-      // You can verify the code here
-      console.log("Verifying code:", enteredCode);
-
-      const data = {
-        email: resetEmail,
-        code: enteredCode,
-      };
-
-      const response = await fetch(
-        "https://rexvetsemailserver.up.railway.app/verifyResetCode",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(data),
-        }
-      );
+        body: JSON.stringify({ email: resetEmail }),
+      });
 
       const result = await response.json();
 
-      if (result.error) {
-        toast.error(result.error);
+      if (result.success) {
+        toast.success("Password reset instructions sent to your email.");
+        setEmailModalOpen(false);
+        setResetEmail("");
       } else {
-        toast.success(result.message);
-        setCodeModalOpen(false);
-        setPasswordModalOpen(true);
-        setCodeDigits([]);
-        setIsCheckVerifyLoading(false);
+        toast.error(result.error || "Failed to send reset instructions.");
       }
-      // Call your backend/API to verify
-    } else {
-      toast.error("Please enter all 6 digits.");
+    } catch (error) {
+      console.error("Password reset error:", error);
+      toast.error("Failed to send reset instructions. Please try again.");
+    } finally {
+      setIsSendCodeLoading(false);
     }
   };
-  // new password set
 
+  // Password reset function - simplified since we use email links
   const handlePasswordReset = async () => {
     if (newPassword !== confirmPassword) {
       toast.error("Passwords do not match.");
       return;
     }
+
+    if (newPassword.length < 8) {
+      toast.error("Password must be at least 8 characters long.");
+      return;
+    }
+
+    // Check password strength
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/;
+    if (!passwordRegex.test(newPassword)) {
+      toast.error("Password must include uppercase, lowercase, number, and special character.");
+      return;
+    }
+
     setIsChangingPassword(true);
     try {
-      const data = {
-        email: resetEmail,
-        newPassword: newPassword,
-      };
+      // Get token from URL parameters (this would be passed from the email link)
+      const urlParams = new URLSearchParams(window.location.search);
+      const token = urlParams.get('token');
+      
+      if (!token) {
+        toast.error("Invalid reset token. Please use the link from your email.");
+        return;
+      }
 
-      const response = await fetch(
-        "https://rexvetsemailserver.up.railway.app/setNewPassword",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(data),
-        }
-      );
+      const response = await fetch("/api/auth/reset-password", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          token: token,
+          password: newPassword,
+        }),
+      });
 
       const result = await response.json();
 
-      if (result.error) {
-        toast.error(result.error);
-      } else {
-        toast.success(result.message || "Password reset successfully");
+      if (result.success) {
+        toast.success("Password reset successfully! You can now sign in.");
         setPasswordModalOpen(false);
         setResetEmail("");
         setNewPassword("");
         setConfirmPassword("");
         setIsChangingPassword(false);
+        // Redirect to sign in
+        router.push("/admin/auth/signin");
+      } else {
+        toast.error(result.error || "Failed to reset password");
       }
     } catch (error: any) {
-      toast.error(error?.data?.message || "Failed to reset password");
+      console.error("Password reset error:", error);
+      toast.error("Failed to reset password. Please try again.");
+    } finally {
+      setIsChangingPassword(false);
     }
   };
   return (
@@ -427,20 +404,20 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* email modal */}
+      {/* Forgot Password Modal */}
       <Dialog open={emailModalOpen} onOpenChange={setEmailModalOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Forgot Password</DialogTitle>
             <DialogDescription>
-              Enter your email address and we’ll send you a verification code.
+              Enter your email address and we'll send you a password reset link.
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
             <Input
               type="email"
-              placeholder="your@email.com"
+              placeholder="admin@rexvet.com"
               value={resetEmail}
               onChange={(e) => setResetEmail(e.target.value)}
             />
@@ -450,56 +427,22 @@ export default function LoginPage() {
             <Button
               className="bg-blue-700 hover:bg-blue-700"
               onClick={handleSendResetCode}
+              disabled={isSendCodeLoading}
             >
-              {isSendCodeLoading ? "Sending..." : "Send Code"}
+              {isSendCodeLoading ? "Sending..." : "Send Reset Link"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* verify code modal */}
-      <Dialog open={codeModalOpen} onOpenChange={setCodeModalOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Enter Verification Code</DialogTitle>
-            <DialogDescription>
-              We’ve sent a 6-digit verification code to your email.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="flex justify-center space-x-2 mt-4">
-            {codeDigits.map((digit, idx) => (
-              <Input
-                key={idx}
-                type="text"
-                maxLength={1}
-                value={digit}
-                onChange={(e) => handleChangeDigit(e, idx)}
-                onKeyDown={(e) => handleKeyDown(e, idx)}
-                ref={(ref) => {
-                  inputRefs.current[idx] = ref;
-                }}
-                className="w-10 h-12 text-center text-lg border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
-              />
-            ))}
-          </div>
-
-          <DialogFooter className="mt-6">
-            <Button
-              className="bg-blue-700 hover:bg-blue-700"
-              onClick={handleVerifyCode}
-            >
-              {isCheckVerifyLoading ? "Verify" : "Verifying"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* New Password Modal */}
+      {/* New Password Modal - This will be used when user clicks reset link from email */}
       <Dialog open={passwordModalOpen} onOpenChange={setPasswordModalOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Set New Password</DialogTitle>
+            <DialogDescription>
+              Enter your new password. It must be at least 8 characters with uppercase, lowercase, number, and special character.
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
@@ -508,6 +451,7 @@ export default function LoginPage() {
                 type="password"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="Enter new password"
               />
             </div>
             <div>
@@ -516,6 +460,7 @@ export default function LoginPage() {
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Confirm new password"
               />
             </div>
           </div>
@@ -523,6 +468,7 @@ export default function LoginPage() {
             <Button
               className="bg-blue-700 hover:bg-blue-700"
               onClick={handlePasswordReset}
+              disabled={isChangingPassword}
             >
               {isChangingPassword ? "Changing..." : "Reset Password"}
             </Button>
