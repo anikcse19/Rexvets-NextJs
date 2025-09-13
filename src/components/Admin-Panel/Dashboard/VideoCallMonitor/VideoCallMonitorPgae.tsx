@@ -37,30 +37,49 @@ import {
   Copy,
 } from "lucide-react";
 import { toast } from "sonner";
-import { collection, getDocs, query, orderBy, limit } from "firebase/firestore";
-import { RexVetsAppointment } from "../../lib/rexvets-api";
-import { db } from "@/lib/firebase";
+// Removed Firestore imports - now using MongoDB APIs
+import { IAppointment } from "@/models/Appointment";
 
 interface ActiveCall {
   appointmentId: string;
-  roomId: string;
+  meetingLink: string;
   parentName: string;
   doctorName: string;
+  petName: string;
   startTime: string;
   duration: string;
-  status: "active" | "connecting" | "ended";
-  accessCode: string;
+  status: "active" | "connecting" | "ended" | "scheduled";
+  appointmentType: string;
+  concerns: string[];
+  feeUSD: number;
+  paymentStatus: string;
+}
+
+interface VideoCallMetrics {
+  totalCalls: number;
+  activeCalls: number;
+  completedCalls: number;
+  averageDuration: number;
+  totalRevenue: number;
 }
 
 const VideoMonitoringDashboard = () => {
-  const [appointments, setAppointments] = useState<RexVetsAppointment[]>([]);
+  const [appointments, setAppointments] = useState<IAppointment[]>([]);
   const [activeCalls, setActiveCalls] = useState<ActiveCall[]>([]);
+  const [metrics, setMetrics] = useState<VideoCallMetrics>({
+    totalCalls: 0,
+    activeCalls: 0,
+    completedCalls: 0,
+    averageDuration: 0,
+    totalRevenue: 0,
+  });
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [dateFilter, setDateFilter] = useState("all"); // 'all', 'today', 'upcoming'
   const [selectedTab, setSelectedTab] = useState("overview");
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [selectedAppointment, setSelectedAppointment] = useState<IAppointment | null>(null);
 
   useEffect(() => {
     initializeMonitoring();
@@ -93,20 +112,9 @@ const VideoMonitoringDashboard = () => {
     const now = new Date();
     const activeCallsData: ActiveCall[] = [];
 
-    appointments.forEach((appointment: RexVetsAppointment) => {
-      if (appointment.roomId && appointment.appointmentDate) {
+    appointments.forEach((appointment: IAppointment) => {
+      if (appointment.meetingLink && appointment.appointmentDate) {
         const appointmentDate = new Date(appointment.appointmentDate);
-        const appointmentTime = appointment.appointmentTime;
-
-        // Parse appointment time (assuming format like "04:00 PM")
-        const [time, period] = appointmentTime.split(" ");
-        const [hours, minutes] = time.split(":").map(Number);
-        let hour24 = hours;
-
-        if (period === "PM" && hours !== 12) hour24 += 12;
-        if (period === "AM" && hours === 12) hour24 = 0;
-
-        appointmentDate.setHours(hour24, minutes, 0, 0);
 
         // Check if appointment is happening now (within 30 minutes before and 2 hours after start time)
         const timeDiff = now.getTime() - appointmentDate.getTime();
@@ -117,12 +125,12 @@ const VideoMonitoringDashboard = () => {
           // Calculate duration
           const durationMinutes = Math.floor(timeDiff / (1000 * 60));
           let duration = "";
-          let status: "active" | "connecting" | "ended" = "active";
+          let status: "active" | "connecting" | "ended" | "scheduled" = "active";
 
           if (timeDiff < 0) {
             // Appointment hasn't started yet
             duration = `Starts in ${Math.abs(durationMinutes)}m`;
-            status = "connecting";
+            status = "scheduled";
           } else if (durationMinutes < 1) {
             duration = "Just started";
             status = "connecting";
@@ -132,14 +140,18 @@ const VideoMonitoringDashboard = () => {
           }
 
           activeCallsData.push({
-            appointmentId: appointment.id,
-            roomId: appointment.roomId,
-            parentName: appointment.parentName,
-            doctorName: appointment.doctorName,
+            appointmentId: (appointment as any)._id,
+            meetingLink: appointment.meetingLink,
+            parentName: (appointment as any).petParent?.name || "Unknown Parent",
+            doctorName: (appointment as any).veterinarian?.name || "Unknown Doctor",
+            petName: (appointment as any).pet?.name || "Unknown Pet",
             startTime: appointmentDate.toISOString(),
             duration: duration,
             status: status,
-            accessCode: appointment.AccessCode || "N/A",
+            appointmentType: appointment.appointmentType || "General Checkup",
+            concerns: appointment.concerns || [],
+            feeUSD: appointment.feeUSD || 0,
+            paymentStatus: appointment.paymentStatus || "Unknown",
           });
         }
       }
@@ -150,102 +162,36 @@ const VideoMonitoringDashboard = () => {
 
   const loadData = async () => {
     try {
-      // Fetch appointments directly from Firestore
-      const appointmentsRef = collection(db, "Appointments");
-      const appointmentsQuery = query(
-        appointmentsRef,
-        orderBy("AppointmentDate", "desc"),
-        limit(100) // Limit to recent 100 appointments
-      );
+      // Fetch appointments from MongoDB API
+      const response = await fetch("/api/appointments?limit=1000");
+      const result = await response.json();
 
-      const appointmentsSnapshot = await getDocs(appointmentsQuery);
-      const appointmentsData: RexVetsAppointment[] = [];
+      if (result.success) {
+        setAppointments(result.data);
+        
+        // Calculate metrics
+        const totalCalls = result.data.length;
+        const activeCallsCount = result.data.filter((apt: IAppointment) => 
+          apt.meetingLink && new Date(apt.appointmentDate) <= new Date()
+        ).length;
+        const completedCalls = result.data.filter((apt: IAppointment) => 
+          apt.status === "completed"
+        ).length;
+        const totalRevenue = result.data.reduce((sum: number, apt: IAppointment) => 
+          sum + (apt.feeUSD || 0), 0
+        );
 
-      appointmentsSnapshot.forEach((doc: any) => {
-        const data = doc.data();
-        appointmentsData.push({
-          id: doc.id,
-          appointmentDate: data.AppointmentDate || "",
-          appointmentTime: data.AppointmentTime || "",
-          doctorName: data.DoctorName || "Unknown Doctor",
-          doctorEmail: data.DoctorEmail || "",
-          doctorId: data.DoctorRefID || "",
-          doctorType: data.DoctorType || "Veterinarian",
-          parentName: data.ParentName || "Unknown Parent",
-          parentEmail: data.ParentEmail || "",
-          parentId: data.ParentRefID || "",
-          petName: data.PetName || "Unknown Pet",
-          petId: data.PetRefID || "",
-          petConcerns: data.PetConcerns || [],
-          meetingLink: data.MeetingLink || "",
-          roomId: data.roomId || "", // Add roomId field
-          status: data.status || "Unknown",
-          state: data.state || "",
-          timezone: data.timezone || "",
-          createdAt: data.createdAt || null,
-          AccessCode: data.AccessCode || "",
+        setMetrics({
+          totalCalls,
+          activeCalls: activeCallsCount,
+          completedCalls,
+          averageDuration: 0, // Will be calculated from actual call data
+          totalRevenue,
         });
-      });
-
-      setAppointments(appointmentsData);
-
-      // Get active video calls from appointments that are currently happening
-      const now = new Date();
-      const activeCallsData: ActiveCall[] = [];
-
-      appointmentsData.forEach((appointment) => {
-        if (appointment.roomId && appointment.appointmentDate) {
-          const appointmentDate = new Date(appointment.appointmentDate);
-          const appointmentTime = appointment.appointmentTime;
-
-          // Parse appointment time (assuming format like "04:00 PM")
-          const [time, period] = appointmentTime.split(" ");
-          const [hours, minutes] = time.split(":").map(Number);
-          let hour24 = hours;
-
-          if (period === "PM" && hours !== 12) hour24 += 12;
-          if (period === "AM" && hours === 12) hour24 = 0;
-
-          appointmentDate.setHours(hour24, minutes, 0, 0);
-
-          // Check if appointment is happening now (within 30 minutes before and 2 hours after start time)
-          const timeDiff = now.getTime() - appointmentDate.getTime();
-          const thirtyMinutesBefore = -30 * 60 * 1000; // 30 minutes before
-          const twoHoursAfter = 2 * 60 * 60 * 1000; // 2 hours after
-
-          if (timeDiff >= thirtyMinutesBefore && timeDiff <= twoHoursAfter) {
-            // Calculate duration
-            const durationMinutes = Math.floor(timeDiff / (1000 * 60));
-            let duration = "";
-            let status: "active" | "connecting" | "ended" = "active";
-
-            if (timeDiff < 0) {
-              // Appointment hasn't started yet
-              duration = `Starts in ${Math.abs(durationMinutes)}m`;
-              status = "connecting";
-            } else if (durationMinutes < 1) {
-              duration = "Just started";
-              status = "connecting";
-            } else {
-              duration = `${durationMinutes}m`;
-              status = "active";
-            }
-
-            activeCallsData.push({
-              appointmentId: appointment.id,
-              roomId: appointment.roomId,
-              parentName: appointment.parentName,
-              doctorName: appointment.doctorName,
-              startTime: appointmentDate.toISOString(),
-              duration: duration,
-              status: status,
-              accessCode: appointment.AccessCode || "N/A",
-            });
-          }
-        }
-      });
-
-      setActiveCalls(activeCallsData);
+      } else {
+        console.error("Error fetching appointments:", result.error);
+        toast.error("Failed to load appointments");
+      }
     } catch (error) {
       console.error("Error loading monitoring data:", error);
       toast.error("Failed to load monitoring data");
@@ -260,23 +206,47 @@ const VideoMonitoringDashboard = () => {
     toast.success("Data refreshed successfully");
   };
 
-  const openMonitoringLink = (roomId: string) => {
-    if (roomId) {
-      const monitorLink = `https://rexvet.org/VideoCall/${roomId}/monitor`;
-      window.open(monitorLink, "_blank", "noopener,noreferrer");
+  const generateMonitorLink = (meetingLink: string) => {
+    if (!meetingLink) return null;
+    
+    // Extract appointmentId from the meeting link
+    const url = new URL(meetingLink);
+    const appointmentId = url.searchParams.get('appointmentId');
+    const vetId = url.searchParams.get('vetId');
+    const petId = url.searchParams.get('petId');
+    const petParentId = url.searchParams.get('petParentId');
+    
+    if (!appointmentId || !vetId) return null;
+    
+    // Generate monitoring URL with /monitor path
+    const baseUrl = window.location.origin;
+    return `${baseUrl}/VideoCall/${appointmentId}/monitor?vetId=${vetId}&petId=${petId}&petParentId=${petParentId}`;
+  };
+
+  const openVideoCall = (meetingLink: string) => {
+    if (meetingLink) {
+      window.open(meetingLink, "_blank", "noopener,noreferrer");
     } else {
-      toast.error("Room ID not available for monitoring");
+      toast.error("Meeting link not available");
     }
   };
 
-  const copyMonitoringLink = async (roomId: string) => {
+  const openMonitorCall = (meetingLink: string) => {
+    const monitorLink = generateMonitorLink(meetingLink);
+    if (monitorLink) {
+      window.open(monitorLink, "_blank", "noopener,noreferrer");
+    } else {
+      toast.error("Unable to generate monitoring link");
+    }
+  };
+
+  const copyMeetingLink = async (meetingLink: string) => {
     try {
-      if (roomId) {
-        const monitorLink = `https://rexvet.org/VideoCall/${roomId}/monitor`;
-        await navigator.clipboard.writeText(monitorLink);
-        toast.success("Monitoring link copied to clipboard");
+      if (meetingLink) {
+        await navigator.clipboard.writeText(meetingLink);
+        toast.success("Meeting link copied to clipboard");
       } else {
-        toast.error("Room ID not available for monitoring");
+        toast.error("Meeting link not available");
       }
     } catch (error) {
       console.error("Failed to copy link:", error);
@@ -284,15 +254,36 @@ const VideoMonitoringDashboard = () => {
     }
   };
 
+  const copyMonitorLink = async (meetingLink: string) => {
+    try {
+      const monitorLink = generateMonitorLink(meetingLink);
+      if (monitorLink) {
+        await navigator.clipboard.writeText(monitorLink);
+        toast.success("Monitoring link copied to clipboard");
+      } else {
+        toast.error("Unable to generate monitoring link");
+      }
+    } catch (error) {
+      console.error("Failed to copy monitoring link:", error);
+      toast.error("Failed to copy monitoring link to clipboard");
+    }
+  };
+
   const filteredAppointments = appointments
-    .filter((appointment: RexVetsAppointment) => {
-      const parentName = appointment.parentName || "";
-      const doctorName = appointment.doctorName || "";
+    .filter((appointment: IAppointment) => {
+      const parentName = (appointment as any).petParent?.name || "";
+      const doctorName = (appointment as any).veterinarian?.name || "";
+      const petName = (appointment as any).pet?.name || "";
       const searchLower = searchTerm.toLowerCase();
 
       const matchesSearch =
         parentName.toLowerCase().includes(searchLower) ||
-        doctorName.toLowerCase().includes(searchLower);
+        doctorName.toLowerCase().includes(searchLower) ||
+        petName.toLowerCase().includes(searchLower) ||
+        appointment.concerns?.some(concern => 
+          concern.toLowerCase().includes(searchLower)
+        );
+      
       const matchesStatus =
         statusFilter === "all" || appointment.status === statusFilter;
 
@@ -300,7 +291,7 @@ const VideoMonitoringDashboard = () => {
       let matchesDate = true;
       if (dateFilter !== "all") {
         const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD format
-        const appointmentDate = appointment.appointmentDate;
+        const appointmentDate = new Date(appointment.appointmentDate).toISOString().split("T")[0];
 
         if (dateFilter === "today") {
           matchesDate = appointmentDate === today;
@@ -311,7 +302,7 @@ const VideoMonitoringDashboard = () => {
 
       return matchesSearch && matchesStatus && matchesDate;
     })
-    .sort((a: RexVetsAppointment, b: RexVetsAppointment) => {
+    .sort((a: IAppointment, b: IAppointment) => {
       // Sort by appointment date in descending order (newest first)
       const dateA = new Date(a.appointmentDate);
       const dateB = new Date(b.appointmentDate);
@@ -345,19 +336,19 @@ const VideoMonitoringDashboard = () => {
         </Button>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid gap-4 md:grid-cols-4">
-        {/* <Card> */}
-        {/* <CardContent className="p-4">
+      {/* Enhanced Summary Cards */}
+      <div className="grid gap-4 md:grid-cols-2">
+        <Card className="dark:bg-slate-800">
+          <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Total Appointments</p>
-                <p className="text-2xl font-bold">{appointments.length}</p>
+                <p className="text-2xl font-bold">{metrics.totalCalls}</p>
               </div>
               <Calendar className="w-8 h-8 text-blue-600" />
             </div>
-          </CardContent> */}
-        {/* </Card> */}
+          </CardContent>
+        </Card>
         <Card className="dark:bg-slate-800">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
@@ -369,39 +360,13 @@ const VideoMonitoringDashboard = () => {
                   {
                     appointments.filter(
                       (apt) =>
-                        apt.appointmentDate ===
+                        new Date(apt.appointmentDate).toISOString().split("T")[0] ===
                         new Date().toISOString().split("T")[0]
                     ).length
                   }
                 </p>
               </div>
               <Calendar className="w-8 h-8 text-green-600" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="dark:bg-slate-800">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">With Monitoring</p>
-                <p className="text-2xl font-bold">
-                  {appointments.filter((apt) => apt.roomId).length}
-                </p>
-              </div>
-              <Video className="w-8 h-8 text-purple-600" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="dark:bg-slate-800">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">
-                  Current Schedule
-                </p>
-                <p className="text-2xl font-bold">{activeCalls.length}</p>
-              </div>
-              <Video className="w-8 h-8 text-red-600" />
             </div>
           </CardContent>
         </Card>
@@ -441,21 +406,61 @@ const VideoMonitoringDashboard = () => {
                     {activeCalls.slice(0, 5).map((call) => (
                       <div
                         key={call.appointmentId}
-                        className="flex items-center justify-between p-3 border rounded-lg"
+                        className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                       >
-                        <div>
-                          <p className="font-medium">
-                            {call.parentName || "Unknown Parent"} →{" "}
-                            {call.doctorName || "Unknown Doctor"}
-                          </p>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <div className={`w-2 h-2 rounded-full ${
+                              call.status === 'active' ? 'bg-green-500' : 
+                              call.status === 'connecting' ? 'bg-yellow-500' : 
+                              'bg-blue-500'
+                            }`}></div>
+                            <p className="font-medium">
+                              {call.parentName} → {call.doctorName}
+                            </p>
+                            <span className="text-xs text-muted-foreground">
+                              ({call.petName})
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                            <span>{call.duration}</span>
+                            <span>{call.appointmentType}</span>
+                            <span className="text-green-600 font-medium">${call.feeUSD}</span>
+                          </div>
                         </div>
-                        <Button
-                          size="sm"
-                          onClick={() => openMonitoringLink(call.roomId)}
-                        >
-                          <Eye className="h-4 w-4 mr-2" />
-                          Monitor
-                        </Button>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => copyMeetingLink(call.meetingLink)}
+                          >
+                            <Copy className="h-3 w-3 mr-1" />
+                            Copy
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => copyMonitorLink(call.meetingLink)}
+                          >
+                            <Shield className="h-3 w-3 mr-1" />
+                            Copy Monitor
+                          </Button>
+                          <Button
+                            size="sm"
+                            onClick={() => openVideoCall(call.meetingLink)}
+                          >
+                            <Video className="h-4 w-4 mr-2" />
+                            Join
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => openMonitorCall(call.meetingLink)}
+                          >
+                            <Eye className="h-4 w-4 mr-2" />
+                            Monitor
+                          </Button>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -519,49 +524,84 @@ const VideoMonitoringDashboard = () => {
                   <div className="space-y-3">
                     {filteredAppointments.map((appointment) => (
                       <div
-                        key={appointment.id}
-                        className="border rounded-lg p-3"
+                        key={(appointment as any)._id}
+                        className="border rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                       >
-                        <div className="flex items-center justify-between mb-2">
-                          <div>
-                            <p className="font-medium">
-                              {appointment.parentName || "Unknown Parent"} →{" "}
-                              {appointment.doctorName || "Unknown Doctor"}
-                            </p>
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <div className={`w-2 h-2 rounded-full ${
+                                appointment.status === 'completed' ? 'bg-green-500' : 
+                                appointment.status === 'upcoming' ? 'bg-blue-500' : 
+                                appointment.status === 'cancelled' ? 'bg-red-500' : 
+                                'bg-yellow-500'
+                              }`}></div>
+                              <p className="font-medium">
+                                {(appointment as any).petParent?.name || "Unknown Parent"} →{" "}
+                                {(appointment as any).veterinarian?.name || "Unknown Doctor"}
+                              </p>
+                              <span className="text-xs text-muted-foreground">
+                                ({(appointment as any).pet?.name || "Unknown Pet"})
+                              </span>
+                            </div>
                             <p className="text-sm text-muted-foreground">
-                              {appointment.appointmentDate} at{" "}
-                              {appointment.appointmentTime}
+                              {new Date(appointment.appointmentDate).toLocaleDateString()} at{" "}
+                              {new Date(appointment.appointmentDate).toLocaleTimeString()}
                             </p>
                           </div>
                         </div>
-                        {appointment.roomId && (
-                          <div className="mt-2 p-2 bg-gray-50 dark:bg-gray-800 rounded border">
+                        {appointment.meetingLink && (
+                          <div className="mt-3 p-3 bg-gray-50 dark:bg-gray-800 rounded border">
                             <div className="flex items-center justify-between">
                               <div className="flex-1 min-w-0">
-                                <p className="text-xs text-muted-foreground mb-1">
-                                  Monitoring Link:
-                                </p>
-                                <p className="text-xs font-mono text-blue-600 dark:text-blue-400 truncate">
-                                  {`https://rexvet.org/VideoCall/${appointment.roomId}/monitor`}
-                                </p>
+                                <div className="mb-2">
+                                  <p className="text-xs text-muted-foreground mb-1">
+                                    Monitor Link:
+                                  </p>
+                                  <p className="text-xs font-mono text-purple-600 dark:text-purple-400 truncate">
+                                    {generateMonitorLink(appointment.meetingLink!) || "Unable to generate"}
+                                  </p>
+                                </div>
+                                {appointment.concerns && appointment.concerns.length > 0 && (
+                                  <div className="mt-2">
+                                    <p className="text-xs text-muted-foreground mb-1">Concerns:</p>
+                                    <div className="flex flex-wrap gap-1">
+                                      {appointment.concerns.slice(0, 3).map((concern, idx) => (
+                                        <span key={idx} className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded">
+                                          {concern}
+                                        </span>
+                                      ))}
+                                      {appointment.concerns.length > 3 && (
+                                        <span className="text-xs text-muted-foreground">
+                                          +{appointment.concerns.length - 3} more
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+                                )}
                               </div>
                               <div className="flex items-center gap-1 ml-2 flex-shrink-0">
                                 <Button
                                   size="sm"
                                   variant="outline"
-                                  onClick={() =>
-                                    copyMonitoringLink(appointment.roomId!)
-                                  }
+                                  onClick={() => copyMonitorLink(appointment.meetingLink!)}
                                   className="h-8 w-8 p-0"
+                                  title="Copy monitoring link"
                                 >
-                                  <Copy className="h-3 w-3" />
+                                  <Shield className="h-3 w-3" />
                                 </Button>
                                 <Button
                                   size="sm"
                                   variant="outline"
-                                  onClick={() =>
-                                    openMonitoringLink(appointment.roomId!)
-                                  }
+                                  onClick={() => openVideoCall(appointment.meetingLink!)}
+                                >
+                                  <Video className="h-3 w-3 mr-1" />
+                                  Join
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  onClick={() => openMonitorCall(appointment.meetingLink!)}
                                 >
                                   <Eye className="h-3 w-3 mr-1" />
                                   Monitor
@@ -636,48 +676,83 @@ const VideoMonitoringDashboard = () => {
                   </div>
                 ) : (
                   filteredAppointments.map((appointment) => (
-                    <div key={appointment.id} className="border rounded-lg p-4">
+                    <div key={(appointment as any)._id} className="border rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
                       <div className="flex items-center justify-between mb-3">
-                        <div>
-                          <h3 className="font-medium">
-                            {appointment.parentName || "Unknown Parent"} →{" "}
-                            {appointment.doctorName || "Unknown Doctor"}
-                          </h3>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <div className={`w-2 h-2 rounded-full ${
+                              appointment.status === 'completed' ? 'bg-green-500' : 
+                              appointment.status === 'upcoming' ? 'bg-blue-500' : 
+                              appointment.status === 'cancelled' ? 'bg-red-500' : 
+                              'bg-yellow-500'
+                            }`}></div>
+                            <h3 className="font-medium">
+                              {(appointment as any).petParent?.name || "Unknown Parent"} →{" "}
+                              {(appointment as any).veterinarian?.name || "Unknown Doctor"}
+                            </h3>
+                            <span className="text-xs text-muted-foreground">
+                              ({(appointment as any).pet?.name || "Unknown Pet"})
+                            </span>
+                          </div>
                           <p className="text-sm text-muted-foreground">
-                            {appointment.appointmentDate} at{" "}
-                            {appointment.appointmentTime}
+                            {new Date(appointment.appointmentDate).toLocaleDateString()} at{" "}
+                            {new Date(appointment.appointmentDate).toLocaleTimeString()}
                           </p>
                         </div>
                       </div>
 
-                      {appointment.roomId && (
+                      {appointment.meetingLink && (
                         <div className="mt-3 p-3 bg-gray-50 dark:bg-gray-800 rounded border">
                           <div className="flex items-center justify-between">
                             <div className="flex-1 min-w-0">
-                              <p className="text-xs text-muted-foreground mb-1">
-                                Monitoring Link:
-                              </p>
-                              <p className="text-xs font-mono text-blue-600 dark:text-blue-400 truncate">
-                                {`https://rexvet.org/VideoCall/${appointment.roomId}/monitor`}
-                              </p>
+                              <div className="mb-2">
+                                <p className="text-xs text-muted-foreground mb-1">
+                                  Monitor Link:
+                                </p>
+                                <p className="text-xs font-mono text-purple-600 dark:text-purple-400 truncate">
+                                  {generateMonitorLink(appointment.meetingLink!) || "Unable to generate"}
+                                </p>
+                              </div>
+                              {appointment.concerns && appointment.concerns.length > 0 && (
+                                <div className="mt-2">
+                                  <p className="text-xs text-muted-foreground mb-1">Concerns:</p>
+                                  <div className="flex flex-wrap gap-1">
+                                    {appointment.concerns.slice(0, 3).map((concern, idx) => (
+                                      <span key={idx} className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded">
+                                        {concern}
+                                      </span>
+                                    ))}
+                                    {appointment.concerns.length > 3 && (
+                                      <span className="text-xs text-muted-foreground">
+                                        +{appointment.concerns.length - 3} more
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
                             </div>
                             <div className="flex items-center gap-1 ml-2 flex-shrink-0">
                               <Button
                                 size="sm"
                                 variant="outline"
-                                onClick={() =>
-                                  copyMonitoringLink(appointment.roomId!)
-                                }
+                                onClick={() => copyMonitorLink(appointment.meetingLink!)}
                                 className="h-8 w-8 p-0"
+                                title="Copy monitoring link"
                               >
-                                <Copy className="h-3 w-3" />
+                                <Shield className="h-3 w-3" />
                               </Button>
                               <Button
                                 size="sm"
                                 variant="outline"
-                                onClick={() =>
-                                  openMonitoringLink(appointment.roomId!)
-                                }
+                                onClick={() => openVideoCall(appointment.meetingLink!)}
+                              >
+                                <Video className="h-3 w-3 mr-1" />
+                                Join
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                onClick={() => openMonitorCall(appointment.meetingLink!)}
                               >
                                 <Eye className="h-3 w-3 mr-1" />
                                 Monitor
