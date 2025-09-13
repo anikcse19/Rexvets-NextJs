@@ -111,7 +111,7 @@ const userSchema = new Schema<IUser>(
     },
     adminRef: {
       type: Schema.Types.ObjectId,
-      ref: "Admin",
+      // ref: "Admin",
       sparse: true,
     },
 

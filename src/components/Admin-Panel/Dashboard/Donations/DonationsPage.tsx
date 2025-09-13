@@ -27,22 +27,13 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import {
-  collection,
-  getDocs,
-  addDoc,
-  serverTimestamp,
-  updateDoc,
-  doc,
-  deleteDoc,
-} from "firebase/firestore";
-import { db } from "@/lib/firebase";
+// Removed Firestore imports - now using MongoDB APIs
 import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Donation } from "@/lib/types/donation";
+import { IDonation } from "@/models/Donation";
 import Pagination from "../../Shared/Pagination";
 
 export default function DonationPage() {
@@ -72,8 +63,8 @@ export default function DonationPage() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [donations, setDonations] = useState<Donation[]>([]);
-  const [donationToDelete, setDonationToDelete] = useState<Donation | null>(
+  const [donations, setDonations] = useState<IDonation[]>([]);
+  const [donationToDelete, setDonationToDelete] = useState<IDonation | null>(
     null
   );
   const [selectedDonationId, setSelectedDonationId] = useState<string | null>(
@@ -86,27 +77,29 @@ export default function DonationPage() {
     const randomStr = Math.random().toString(36).substring(2, 8);
     return `anon_${timestamp}_${randomStr}`;
   };
-  const getDonations = async () => {
+  const getDonations = async (searchTerm = "") => {
     try {
-      const snapshot = await getDocs(collection(db, "Donations"));
-      if (snapshot.empty) {
-        console.log("No appointments found");
-        setDonations([]); // clear state if no data
-        return;
+      // Build query parameters
+      const params = new URLSearchParams({
+        limit: "1000", // Fetch all donations
+      });
+      
+      if (searchTerm) {
+        params.append("search", searchTerm);
       }
 
-      const donations = snapshot.docs.map((doc: any) => ({
-        id: doc.id,
-        ...doc.data(),
-        timestamp: doc.data().timestamp?.toDate().toISOString() ?? "",
-      })) as Donation[];
-      const sortedDonations = donations.sort(
-        (a, b) =>
-          new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-      );
-      setDonations(sortedDonations);
+      const response = await fetch(`/api/donations?${params.toString()}`);
+      const result = await response.json();
+
+      if (result.success) {
+        setDonations(result.data);
+      } else {
+        console.error("Error fetching donations:", result.error);
+        setDonations([]);
+      }
     } catch (error) {
       console.error("Error fetching donations:", error);
+      setDonations([]);
     } finally {
       setIsLoading(false);
     }
@@ -115,6 +108,15 @@ export default function DonationPage() {
   useEffect(() => {
     getDonations();
   }, []);
+
+  // Refetch donations when search filter changes
+  useEffect(() => {
+    if (filters.donor) {
+      getDonations(filters.donor);
+    } else {
+      getDonations();
+    }
+  }, [filters.donor]);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -166,26 +168,36 @@ export default function DonationPage() {
         badgeImageUrl: form.badgeImageUrl,
         donationType: form.donationType,
         donorDocumentID: generateAnonymousId(), // if needed
-        timestamp: serverTimestamp(),
       };
-      console.log("Donation data =", donationData);
-      await addDoc(collection(db, "Donations"), donationData);
-      await getDonations();
 
-      // Reset form
-      setForm({
-        donorName: "",
-        donorEmail: "",
-        donationAmount: "",
-        transactionID: "",
-        isRecurring: false,
-        status: "",
-        badgeName: "",
-        badgeImageUrl: "",
-        donationType: "",
+      const response = await fetch("/api/donations", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(donationData),
       });
 
-      setAddDialogOpen(false);
+      const result = await response.json();
+
+      if (result.success) {
+        await getDonations();
+        // Reset form
+        setForm({
+          donorName: "",
+          donorEmail: "",
+          donationAmount: "",
+          transactionID: "",
+          isRecurring: false,
+          status: "",
+          badgeName: "",
+          badgeImageUrl: "",
+          donationType: "",
+        });
+        setAddDialogOpen(false);
+      } else {
+        console.error("Failed to add donation:", result.error);
+      }
     } catch (error) {
       console.error("Failed to add donation:", error);
     }
@@ -207,46 +219,64 @@ export default function DonationPage() {
   const handleEditDonation = async () => {
     if (!selectedDonationId) return;
 
-    const donation = donations.find((d) => d.id === selectedDonationId);
+    const donation = donations.find((d) => (d as any)._id === selectedDonationId);
     if (!donation) return;
 
     try {
-      const docRef = doc(db, "Donations", donation.id);
-      await updateDoc(docRef, {
+      const updateData = {
         donorName: form.donorName,
         donorEmail: form.donorEmail,
         donationAmount: parseFloat(form.donationAmount),
         isRecurring: form.isRecurring,
         transactionID: form.transactionID,
-
         status: form.isRecurring ? "Active" : "one-time",
         badgeName: form.badgeName,
         badgeImageUrl: form.badgeImageUrl,
         donationType: form.donationType,
+      };
+
+      const response = await fetch(`/api/donations/${(donation as any)._id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updateData),
       });
 
-      await getDonations(); // Refresh UI
+      const result = await response.json();
+
+      if (result.success) {
+        await getDonations(); // Refresh UI
+        setEditDialogOpen(false);
+        setSelectedDonationId(null);
+        resetForm();
+      } else {
+        console.error("Failed to update donation:", result.error);
+      }
     } catch (error) {
       console.error("Failed to update donation:", error);
     }
-
-    setEditDialogOpen(false);
-    setSelectedDonationId(null);
-    resetForm();
   };
   const handleDeleteDonation = async () => {
     if (!donationToDelete) return;
 
     try {
-      const docRef = doc(db, "Donations", donationToDelete.id);
-      await deleteDoc(docRef);
-      await getDonations(); // Refresh UI
+      const response = await fetch(`/api/donations/${(donationToDelete as any)._id}`, {
+        method: "DELETE",
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        await getDonations(); // Refresh UI
+        setDonationToDelete(null);
+        setDeleteDialogOpen(false);
+      } else {
+        console.error("Failed to delete donation:", result.error);
+      }
     } catch (error) {
       console.error("Failed to delete donation:", error);
     }
-
-    setDonationToDelete(null);
-    setDeleteDialogOpen(false);
   };
 
   console.log(filteredDonations);
@@ -455,7 +485,7 @@ export default function DonationPage() {
                     <TableCell className="capitalize">
                       {donation?.donationType ? donation?.donationType : "N/A"}
                     </TableCell>
-                    <TableCell>${donation.transactionID}</TableCell>
+                    <TableCell>{donation.transactionID || "N/A"}</TableCell>
                     <TableCell>
                       <div>
                         <p className="font-medium dark:text-gray-100 text-gray-900 whitespace-nowrap">
@@ -472,16 +502,16 @@ export default function DonationPage() {
                       <button
                         className=" p-2"
                         onClick={() => {
-                          setSelectedDonationId(donation.id);
+                          setSelectedDonationId((donation as any)._id);
                           setForm({
                             donorName: donation.donorName,
                             donorEmail: donation.donorEmail,
-                            donationAmount: donation.donationAmount,
+                            donationAmount: donation.donationAmount.toString(),
                             isRecurring: donation.isRecurring,
-                            transactionID: donation.transactionID,
-                            status: donation?.status,
-                            badgeName: donation.badgeName,
-                            badgeImageUrl: donation.badgeImageUrl,
+                            transactionID: donation.transactionID || "",
+                            status: donation?.status || "",
+                            badgeName: (donation as any).badgeName || "",
+                            badgeImageUrl: (donation as any).badgeImageUrl || "",
                             donationType: donation.donationType,
                           });
                           setEditDialogOpen(true);
@@ -492,7 +522,7 @@ export default function DonationPage() {
 
                       <Dialog
                         open={
-                          editDialogOpen && selectedDonationId === donation.id
+                          editDialogOpen && selectedDonationId === (donation as any)._id
                         }
                         onOpenChange={(open) => {
                           setEditDialogOpen(open);
@@ -647,7 +677,7 @@ export default function DonationPage() {
                       <Dialog
                         open={
                           deleteDialogOpen &&
-                          donationToDelete?.id === donation.id
+                          (donationToDelete as any)?._id === (donation as any)._id
                         }
                         onOpenChange={(open) => {
                           if (!open) {

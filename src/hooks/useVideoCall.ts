@@ -14,7 +14,6 @@ import { toast } from "sonner";
 type CallState = "connecting" | "waiting" | "active" | "ended" | "failed";
 
 const APP_ID = config.AGORA_PUBLIC_ID;
-const CHANNEL = "testChannel";
 const IS_PUBLISHER = true;
 
 export const useVideoCall = () => {
@@ -693,9 +692,10 @@ export const useVideoCall = () => {
         await initializeLocalVideo();
       }
 
-      const token = await fetchToken(CHANNEL, uid, IS_PUBLISHER);
+      const channelName = appointmentId || "default-channel";
+      const token = await fetchToken(channelName, uid, IS_PUBLISHER);
       if (!token) throw new Error("Failed to fetch token");
-      await client.current.join(APP_ID, CHANNEL, token, uid);
+      await client.current.join(APP_ID, channelName, token, uid);
       isJoinedRef.current = true;
       if (IS_PUBLISHER && localVideoTrack.current && localAudioTrack.current) {
         await client.current.publish([
