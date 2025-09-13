@@ -42,6 +42,11 @@ export default function AppointmentConfirmation() {
     donationPaid: boolean;
     lastDonationDate?: string;
   } | null>(null);
+  const [subscriptionStatus, setSubscriptionStatus] = useState<{
+    hasRemainingAppointments: boolean;
+    remainingAppointments: number;
+    subscriptionId?: string;
+  } | null>(null);
   const [isCheckingDonation, setIsCheckingDonation] = useState(true);
   const [pets, setPets] = useState<any[]>([]);
 
@@ -51,14 +56,31 @@ export default function AppointmentConfirmation() {
   const date = searchParams.get("date");
   const time = searchParams.get("time");
   const slot = searchParams.get("slot");
+  const vetId = searchParams.get("vetId");
+  const hasExistingSubscription = searchParams.get("hasExistingSubscription");
 
-  useEffect(() => {
-    const storedDoctor = localStorage.getItem("doctorData");
-    if (storedDoctor) {
-      setVeterinarian(JSON.parse(storedDoctor));
+  const vetData = async (vetId: string) => {
+    try {
+      if (!vetId) {
+        throw new Error("Vet ID is required");
+      }
+      const res = await fetch(`/api/veterinarian/${vetId}`);
+      if (!res.ok) {
+        throw new Error("Failed to fetch doctor data");
+      }
+      const data = await res.json();
+      // console.log("veterinarian", data?.data?.veterinarian);
+      setVeterinarian(data?.data?.veterinarian);
+    } catch (error: any) {
+      toast.error(error.message || "Failed to fetch doctor data");
     }
-  }, []);
-
+  };
+  useEffect(() => {
+    if (vetId) {
+      vetData(vetId);
+    }
+  }, [vetId]);
+  console.log("vetId", vetId);
   // Check access and donation status when session is available
   useEffect(() => {
     const checkAccess = async () => {
@@ -78,6 +100,7 @@ export default function AppointmentConfirmation() {
 
           // Access granted
           setDonationStatus(data.donationStatus);
+          setSubscriptionStatus(data.subscriptionStatus);
         } catch (error) {
           console.error("Error checking access:", error);
           toast.error("Error checking access. Please try again.");
@@ -120,9 +143,15 @@ export default function AppointmentConfirmation() {
       return;
     }
 
-    // Check donation status
-    if (!donationStatus?.donationPaid) {
-      toast.error("Please make a donation first to book an appointment.");
+    // Check access - either subscription quota or donation
+    const hasAccess =
+      subscriptionStatus?.hasRemainingAppointments ||
+      donationStatus?.donationPaid;
+
+    if (!hasAccess) {
+      toast.error(
+        "No remaining appointments and donation required to book an appointment."
+      );
       window.location.href = "/donate";
       return;
     }
@@ -149,7 +178,9 @@ export default function AppointmentConfirmation() {
       const meetingLink = `https://rexvets-nextjs.vercel.app/video-call/?${encodeURIComponent(
         roomId
       )}`;
-
+      if (!veterinarian?._id) {
+        throw new Error("Veterinarian ID is required");
+      }
       const appointmentCreateData = {
         veterinarian: veterinarian?._id,
         petParent: session.user.refId,
@@ -163,6 +194,8 @@ export default function AppointmentConfirmation() {
         isFollowUp: false,
         concerns: allConcerns,
         meetingLink: meetingLink,
+        hasExistingSubscription: subscriptionStatus?.hasRemainingAppointments || false,
+        subscriptionId: subscriptionStatus?.subscriptionId,
       };
 
       const res = await fetch("/api/appointments", {
@@ -179,18 +212,20 @@ export default function AppointmentConfirmation() {
       const data = await res.json();
 
       if (data.success) {
-        // Mark donation as used
-        try {
-          await fetch("/api/pet-parent/update-donation-status", {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              petParentId: session.user.refId,
-              donationPaid: false,
-            }),
-          });
-        } catch (error) {
-          console.error("Error updating donation status:", error);
+        // Only mark donation as used if user doesn't have subscription quota
+        if (!subscriptionStatus?.hasRemainingAppointments) {
+          try {
+            await fetch("/api/pet-parent/update-donation-status", {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                petParentId: session.user.refId,
+                donationPaid: false,
+              }),
+            });
+          } catch (error) {
+            console.error("Error updating donation status:", error);
+          }
         }
 
         // Emails are sent server-side after appointment creation
@@ -213,13 +248,13 @@ export default function AppointmentConfirmation() {
     }
   };
 
-  // Show loading while checking donation status
+  // Show loading while checking access status
   if (isCheckingDonation) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Checking donation status...</p>
+          <p className="text-gray-600">Checking access status...</p>
         </div>
       </div>
     );
@@ -312,38 +347,142 @@ export default function AppointmentConfirmation() {
           </CardContent>
         </Card>
 
-        {/* Donation Status Indicator */}
+        {/* Access Status Indicator */}
         {session?.user?.refId && (
           <Card className="mb-6 border border-gray-200 shadow-lg bg-white backdrop-blur-xl">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div
-                    className={`w-4 h-4 rounded-full ${
-                      donationStatus?.donationPaid
-                        ? "bg-green-500"
-                        : "bg-red-500"
-                    }`}
-                  ></div>
-                  <div>
-                    <h3 className="font-semibold text-gray-800">
-                      Donation Status
-                    </h3>
-                    <p className="text-sm text-gray-600">
-                      {donationStatus?.donationPaid
-                        ? `Donation paid - You can book your appointment`
-                        : `No donation found - Please donate first to book an appointment`}
-                    </p>
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-3 text-xl">
+                <div className="p-2 bg-blue-600 rounded-xl">
+                  <Shield className="w-5 h-5 text-white" />
+                </div>
+                Access Status
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <div className="space-y-6">
+                {/* Subscription Status */}
+                {subscriptionStatus && (
+                  <div className="flex items-center justify-between p-4 rounded-lg border-2 border-gray-100 bg-gradient-to-r from-blue-50 to-indigo-50">
+                    <div className="flex items-center gap-4">
+                      <div className="relative">
+                        <div
+                          className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                            subscriptionStatus.hasRemainingAppointments
+                              ? "bg-green-500"
+                              : "bg-orange-500"
+                          }`}
+                        >
+                          {subscriptionStatus.hasRemainingAppointments ? (
+                            <CheckCircle className="w-4 h-4 text-white" />
+                          ) : (
+                            <Clock className="w-4 h-4 text-white" />
+                          )}
+                        </div>
+                        {subscriptionStatus.hasRemainingAppointments && (
+                          <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+                        )}
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-gray-800 text-lg">
+                          Subscription Status
+                        </h3>
+                        <p className="text-gray-600">
+                          {subscriptionStatus.hasRemainingAppointments
+                            ? `You have ${
+                                subscriptionStatus.remainingAppointments
+                              } appointment${
+                                subscriptionStatus.remainingAppointments !== 1
+                                  ? "s"
+                                  : ""
+                              } remaining in your subscription`
+                            : `No remaining appointments in your subscription`}
+                        </p>
+                        {subscriptionStatus.hasRemainingAppointments && (
+                          <p className="text-sm text-green-600 font-medium mt-1">
+                            ✓ Using subscription benefits
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    {subscriptionStatus.hasRemainingAppointments && (
+                      <div className="px-4 py-2 bg-green-100 text-green-800 rounded-full text-sm font-bold flex items-center gap-2">
+                        <Star className="w-4 h-4" />
+                        Active
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Donation Status - Only show if no subscription quota */}
+                {subscriptionStatus &&
+                  !subscriptionStatus.hasRemainingAppointments && (
+                    <div className="flex items-center justify-between p-4 rounded-lg border-2 border-gray-100 bg-gradient-to-r from-purple-50 to-pink-50">
+                      <div className="flex items-center gap-4">
+                        <div className="relative">
+                          <div
+                            className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                              donationStatus?.donationPaid
+                                ? "bg-green-500"
+                                : "bg-red-500"
+                            }`}
+                          >
+                            {donationStatus?.donationPaid ? (
+                              <Heart className="w-4 h-4 text-white" />
+                            ) : (
+                              <PawPrint className="w-4 h-4 text-white" />
+                            )}
+                          </div>
+                          {donationStatus?.donationPaid && (
+                            <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+                          )}
+                        </div>
+                        <div>
+                          <h3 className="font-bold text-gray-800 text-lg">
+                            Donation Status
+                          </h3>
+                          <p className="text-gray-600">
+                            {donationStatus?.donationPaid
+                              ? `Donation paid - You can book your appointment`
+                              : `No donation found - Please donate first to book an appointment`}
+                          </p>
+                          {donationStatus?.donationPaid && (
+                            <p className="text-sm text-green-600 font-medium mt-1">
+                              ✓ Using donation benefits
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                      {!donationStatus?.donationPaid && (
+                        <Button
+                          onClick={() => (window.location.href = "/donate")}
+                          className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 font-bold"
+                        >
+                          Donate Now
+                        </Button>
+                      )}
+                    </div>
+                  )}
+
+                {/* Access Summary */}
+                <div className="mt-4 p-4 bg-gradient-to-r from-gray-50 to-slate-50 rounded-lg border border-gray-200">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-gray-600 rounded-lg">
+                      <User className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-gray-800">
+                        Booking Access
+                      </h4>
+                      <p className="text-sm text-gray-600">
+                        {subscriptionStatus?.hasRemainingAppointments
+                          ? "You can book using your subscription"
+                          : donationStatus?.donationPaid
+                          ? "You can book using your donation"
+                          : "Please make a donation to book an appointment"}
+                      </p>
+                    </div>
                   </div>
                 </div>
-                {!donationStatus?.donationPaid && (
-                  <Button
-                    onClick={() => (window.location.href = "/donate")}
-                    className="bg-red-600 hover:bg-red-700 text-white"
-                  >
-                    Donate Now
-                  </Button>
-                )}
               </div>
             </CardContent>
           </Card>
@@ -355,7 +494,13 @@ export default function AppointmentConfirmation() {
             <div className="absolute inset-0 bg-blue-600 rounded-2xl blur-xl opacity-30 animate-pulse"></div>
             <Button
               onClick={completeAppointment}
-              disabled={isProcessing || !donationStatus?.donationPaid}
+              disabled={
+                isProcessing ||
+                !(
+                  subscriptionStatus?.hasRemainingAppointments ||
+                  donationStatus?.donationPaid
+                )
+              }
               size="lg"
               className="relative px-12 py-6 cursor-pointer bg-blue-600 hover:bg-blue-700 text-white font-bold text-xl rounded-2xl shadow-2xl transform transition-all duration-300 hover:scale-110 hover:shadow-3xl border-0 disabled:bg-gray-400 disabled:cursor-not-allowed disabled:transform-none"
             >
@@ -376,7 +521,11 @@ export default function AppointmentConfirmation() {
             </Button>
           </div>
           <p className="text-gray-600 mt-4 text-sm">
-            Your appointment will be confirmed instantly
+            {subscriptionStatus?.hasRemainingAppointments
+              ? "Your appointment will be booked using your subscription"
+              : donationStatus?.donationPaid
+              ? "Your appointment will be booked using your donation"
+              : "Please make a donation to book an appointment"}
           </p>
         </div>
       </div>

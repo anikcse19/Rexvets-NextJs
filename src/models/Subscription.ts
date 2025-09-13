@@ -30,9 +30,9 @@ export interface ISubscription extends Document {
   resubscriptionCount: number; // Number of times re-subscribed (0 for original, 1+ for re-subscriptions)
 
   // Stripe Integration Fields
-  stripeSubscriptionId: string; // Stripe subscription ID
-  stripeCustomerId: string; // Stripe customer ID
-
+  stripeCustomerId: string; // Stripe subscription ID
+  paymentIntentId: string; // Stripe customer ID
+  transactionID?: string; // Stripe payment intent ID
   // Metadata
   metadata?: Record<string, unknown>;
 
@@ -133,19 +133,22 @@ const subscriptionSchema = new Schema<ISubscription>(
     },
 
     // Stripe Integration Fields
-    stripeSubscriptionId: {
-      type: String,
-      required: true,
-      trim: true,
-      index: true,
-    },
     stripeCustomerId: {
       type: String,
       required: true,
       trim: true,
       index: true,
     },
-
+    paymentIntentId: {
+      type: String,
+      required: true,
+      trim: true,
+      index: true,
+    },
+    transactionID: {
+      type: String,
+      index: true,
+    },
     metadata: {
       type: Schema.Types.Mixed,
     },
