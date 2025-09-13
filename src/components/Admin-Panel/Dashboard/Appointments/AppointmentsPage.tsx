@@ -133,6 +133,9 @@ const AppointmentsPage = () => {
 
       const appointments = result.data as Appointment[];
       
+      console.log("Fetched appointments:", appointments.length);
+      console.log("Sample appointment:", appointments[0]);
+      
       if (!appointments || appointments.length === 0) {
         console.log("No appointments found");
         setAppointmentsData([]);
@@ -358,9 +361,13 @@ const AppointmentsPage = () => {
                 </p>
                 <p className="text-2xl font-bold dark:text-blue-400 text-blue-600">
                   {
-                    appointmentsData.filter(
-                      (apt: Appointment) => format(new Date(apt.appointmentDate), "yyyy-MM-dd") === today
-                    ).length
+                    (() => {
+                      const todayAppointments = appointmentsData.filter(
+                        (apt: Appointment) => format(new Date(apt.appointmentDate), "yyyy-MM-dd") === today
+                      );
+                      console.log("Today's appointments:", todayAppointments.length, "for date:", today);
+                      return todayAppointments.length;
+                    })()
                   }
                 </p>
               </div>
@@ -377,13 +384,17 @@ const AppointmentsPage = () => {
                 </p>
                 <p className="text-2xl font-bold dark:text-green-400 text-green-600">
                   {
-                    appointmentsData.filter(
-                      (apt: Appointment) => {
-                        const appointmentDateTime = new Date(apt.appointmentDate);
-                        const now = new Date();
-                        return appointmentDateTime >= now;
-                      }
-                    ).length
+                    (() => {
+                      const upcomingAppointments = appointmentsData.filter(
+                        (apt: Appointment) => {
+                          const appointmentDateTime = new Date(apt.appointmentDate);
+                          const now = new Date();
+                          return appointmentDateTime >= now && apt.status !== "cancelled";
+                        }
+                      );
+                      console.log("Upcoming appointments:", upcomingAppointments.length);
+                      return upcomingAppointments.length;
+                    })()
                   }
                 </p>
               </div>
@@ -400,13 +411,17 @@ const AppointmentsPage = () => {
                 </p>
                 <p className="text-2xl font-bold dark:text-yellow-400 text-yellow-600">
                   {
-                    appointmentsData.filter(
-                      (apt: Appointment) => {
-                        const appointmentDateTime = new Date(apt.appointmentDate);
-                        const now = new Date();
-                        return appointmentDateTime < now && apt.status !== "completed";
-                      }
-                    ).length
+                    (() => {
+                      const incompleteAppointments = appointmentsData.filter(
+                        (apt: Appointment) => {
+                          const appointmentDateTime = new Date(apt.appointmentDate);
+                          const now = new Date();
+                          return appointmentDateTime < now && apt.status !== "completed" && apt.status !== "cancelled";
+                        }
+                      );
+                      console.log("Incomplete appointments:", incompleteAppointments.length);
+                      return incompleteAppointments.length;
+                    })()
                   }
                 </p>
               </div>
@@ -423,9 +438,13 @@ const AppointmentsPage = () => {
                 </p>
                 <p className="text-2xl font-bold dark:text-emerald-400 text-emerald-600">
                   {
-                    appointmentsData.filter(
-                      (apt: Appointment) => apt.status === "completed"
-                    ).length
+                    (() => {
+                      const completedAppointments = appointmentsData.filter(
+                        (apt: Appointment) => apt.status === "completed"
+                      );
+                      console.log("Completed appointments:", completedAppointments.length);
+                      return completedAppointments.length;
+                    })()
                   }
                 </p>
               </div>
