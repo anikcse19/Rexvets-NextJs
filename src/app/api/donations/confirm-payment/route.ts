@@ -163,9 +163,6 @@ export async function POST(request: NextRequest) {
         );
         // Validate required fields from donation and session user
 
-        if (!donation.subscriptionId) {
-          throw new Error("Missing Stripe subscription id on donation");
-        }
         if (!donation.stripeCustomerId) {
           throw new Error("Missing Stripe customer id on donation");
         }
@@ -175,18 +172,28 @@ export async function POST(request: NextRequest) {
           calendarYear: currentYear,
         }).session(sessionDb);
         if (!isSubsExist) {
-          const createSubsInputParams: CreateSubscriptionInput = {
-            petParentId: petParent?._id?.toString(),
-            subscriptionId: donation.subscriptionId,
-            donationId: donation._id.toString(),
-            stripeSubscriptionId: donation.subscriptionId,
+          const createSubsInputParams = {
+            petParent: petParent?._id, // Use ObjectId, not string
+            subscriptionId: donation.subscriptionId || donation.transactionID, // Use transactionID as fallback since subscriptionId is null
+            donationId: donation._id,
+            subscriptionAmount: donation.donationAmount, // Required field
+            startDate: new Date(),
+            endDate: new Date(new Date().setFullYear(new Date().getFullYear() + 1)), // 1 year from now
+            maxAppointments: 4, // Required field
+            remainingAppointments: 4, // Required field
+            appointmentIds: [], // Required field
+            isActive: true, // Required field
+            calendarYear: new Date().getFullYear(), // Required field
+            isResubscription: false, // Required field
+            resubscriptionCount: 0, // Required field
             stripeCustomerId: donation.stripeCustomerId,
+            paymentIntentId: donation.paymentIntentId, // Required field
+            transactionID: donation.transactionID,
             metadata: {
               createdFrom: "confirm-payment",
               donationType: donation.donationType,
               actorId: user?.id,
             },
-            startDate: new Date(),
           };
           await SubscriptionModel.create([createSubsInputParams], {
             session: sessionDb,
