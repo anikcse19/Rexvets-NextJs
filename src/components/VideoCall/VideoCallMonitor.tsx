@@ -25,10 +25,11 @@ const VideoCallMonitor: React.FC = () => {
   const [hasRemoteVideo, setHasRemoteVideo] = useState(false);
   const [hasRemoteAudio, setHasRemoteAudio] = useState(false);
   const [callStartTime, setCallStartTime] = useState<Date | null>(null);
+  const [participants, setParticipants] = useState<any[]>([]);
 
   const router = useRouter();
   const clientRef = useRef<any>(null);
-  const remoteVideoRef = useRef<HTMLDivElement>(null);
+  const remoteVideoRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
   const durationIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Agora configuration
@@ -41,14 +42,14 @@ const VideoCallMonitor: React.FC = () => {
     
     try {
       setIsLoading(true);
-      const response = await fetch(`/api/monitoring/appointments/${appointmentId}`);
+      const response = await fetch(`/api/video-call/${appointmentId}`);
       
       if (!response.ok) {
         throw new Error("Failed to fetch appointment details");
       }
       
       const data = await response.json();
-      setAppointmentDetails(data);
+      setAppointmentDetails(data?.data);
     } catch (error) {
       console.error("Error fetching appointment details:", error);
       toast.error("Failed to load appointment details");
@@ -116,27 +117,35 @@ const VideoCallMonitor: React.FC = () => {
       const existingUsers = client.remoteUsers;
       console.log("Existing users in channel:", existingUsers.length);
       
+      const newParticipants: any[] = [];
       for (const user of existingUsers) {
         if (user.hasVideo) {
           setHasRemoteVideo(true);
           setParticipantCount(prev => prev + 1);
+          newParticipants.push(user);
           
-          if (user.videoTrack && remoteVideoRef.current) {
-            console.log("Playing existing video track for user:", user.uid, "to element:", remoteVideoRef.current);
-            user.videoTrack.play(remoteVideoRef.current);
-          } else {
-            console.log("Cannot play existing video track:", {
-              hasVideoTrack: !!user.videoTrack,
-              hasVideoElement: !!remoteVideoRef.current,
-              userId: user.uid
-            });
+          // Subscribe to video track
+          await client.subscribe(user, "video");
+          
+          if (user.videoTrack) {
+            // Create a unique video element for this participant
+            const videoElement = document.createElement("div");
+            videoElement.id = `video-${user.uid}`;
+            videoElement.className = "w-full h-full";
+            remoteVideoRefs.current[user.uid] = videoElement;
+            
+            console.log("Playing existing video track for user:", user.uid);
+            user.videoTrack.play(videoElement);
           }
         }
         
         if (user.hasAudio) {
           setHasRemoteAudio(true);
+          await client.subscribe(user, "audio");
         }
       }
+      
+      setParticipants(newParticipants);
 
       // Set up event listeners
       client.on("user-published", async (user: any, mediaType: "video" | "audio") => {
@@ -149,16 +158,19 @@ const VideoCallMonitor: React.FC = () => {
           // Subscribe to the user's video track
           await client.subscribe(user, mediaType);
           
+          // Add participant to state
+          setParticipants(prev => [...prev, user]);
+          
           // Play the video track
-          if (user.videoTrack && remoteVideoRef.current) {
-            console.log("Playing video track for user:", user.uid, "to element:", remoteVideoRef.current);
-            user.videoTrack.play(remoteVideoRef.current);
-          } else {
-            console.log("Cannot play video track:", {
-              hasVideoTrack: !!user.videoTrack,
-              hasVideoElement: !!remoteVideoRef.current,
-              userId: user.uid
-            });
+          if (user.videoTrack) {
+            // Create a unique video element for this participant
+            const videoElement = document.createElement("div");
+            videoElement.id = `video-${user.uid}`;
+            videoElement.className = "w-full h-full";
+            remoteVideoRefs.current[user.uid] = videoElement;
+            
+            console.log("Playing video track for user:", user.uid);
+            user.videoTrack.play(videoElement);
           }
         }
         
@@ -174,6 +186,14 @@ const VideoCallMonitor: React.FC = () => {
         if (mediaType === "video") {
           setHasRemoteVideo(false);
           setParticipantCount(prev => Math.max(0, prev - 1));
+          setParticipants(prev => prev.filter(p => p.uid !== user.uid));
+          
+          // Remove video element
+          const videoElement = document.getElementById(`video-${user.uid}`);
+          if (videoElement) {
+            videoElement.remove();
+          }
+          delete remoteVideoRefs.current[user.uid];
         }
         
         if (mediaType === "audio") {
@@ -184,6 +204,14 @@ const VideoCallMonitor: React.FC = () => {
       client.on("user-left", (user: any) => {
         console.log("User left:", user.uid);
         setParticipantCount(prev => Math.max(0, prev - 1));
+        setParticipants(prev => prev.filter(p => p.uid !== user.uid));
+        
+        // Remove video element
+        const videoElement = document.getElementById(`video-${user.uid}`);
+        if (videoElement) {
+          videoElement.remove();
+        }
+        delete remoteVideoRefs.current[user.uid];
       });
 
       // Start call duration timer
@@ -219,6 +247,16 @@ const VideoCallMonitor: React.FC = () => {
       setParticipantCount(0);
       setHasRemoteVideo(false);
       setHasRemoteAudio(false);
+      setParticipants([]);
+      
+      // Clean up video elements
+      Object.keys(remoteVideoRefs.current).forEach(uid => {
+        const videoElement = document.getElementById(`video-${uid}`);
+        if (videoElement) {
+          videoElement.remove();
+        }
+      });
+      remoteVideoRefs.current = {};
       
       toast.success("Monitoring ended");
       router.push("/admin-panel/dashboard");
@@ -240,6 +278,16 @@ const VideoCallMonitor: React.FC = () => {
     }
   }, [appointmentDetails]);
 
+  // Handle video element mounting
+  useEffect(() => {
+    participants.forEach(participant => {
+      const videoElement = document.getElementById(`video-${participant.uid}`);
+      if (videoElement && participant.videoTrack) {
+        participant.videoTrack.play(videoElement);
+      }
+    });
+  }, [participants]);
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
@@ -249,6 +297,13 @@ const VideoCallMonitor: React.FC = () => {
       if (clientRef.current) {
         clientRef.current.leave();
       }
+      // Clean up video elements
+      Object.keys(remoteVideoRefs.current).forEach(uid => {
+        const videoElement = document.getElementById(`video-${uid}`);
+        if (videoElement) {
+          videoElement.remove();
+        }
+      });
     };
   }, []);
 
@@ -330,12 +385,31 @@ const VideoCallMonitor: React.FC = () => {
             <div className="bg-black/40 backdrop-blur-sm rounded-2xl border border-purple-500/20 overflow-hidden">
               {/* Video Display */}
               <div className="relative aspect-video bg-black">
-                <div 
-                  ref={remoteVideoRef}
-                  className="w-full h-full"
-                  style={{ minHeight: '300px' }}
-                />
-                {!hasRemoteVideo && (
+                {participants.length > 0 ? (
+                  <div className="w-full h-full flex">
+                    {participants.map((participant, index) => (
+                      <div 
+                        key={participant.uid}
+                        className={`relative bg-gray-800 ${
+                          participants.length === 1 
+                            ? 'w-full' 
+                            : participants.length === 2 
+                            ? 'w-1/2' 
+                            : 'w-1/2'
+                        }`}
+                        style={{ minHeight: '300px' }}
+                      >
+                        <div 
+                          id={`video-${participant.uid}`}
+                          className="w-full h-full"
+                        />
+                        <div className="absolute bottom-2 left-2 bg-black/60 text-white px-2 py-1 rounded text-sm">
+                          Participant {index + 1}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
                   <div className="absolute inset-0 flex items-center justify-center">
                     <div className="text-center">
                       <Video className="w-16 h-16 text-purple-400 mx-auto mb-4" />

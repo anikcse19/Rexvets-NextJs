@@ -9,15 +9,44 @@ const protectedRoutes = [
   "/api/test",
 ];
 
+const adminRoutes = [
+  "/admin",
+];
+
 export default withAuth(
   function middleware(req) {
     const { pathname } = req.nextUrl;
+    const token = (req as any).nextauth?.token;
 
-    // Only run middleware on protected routes
+    // Check admin routes first
+    if (adminRoutes.some((route) => pathname.startsWith(route))) {
+      if (!token) {
+        // Redirect to login if no token with redirect parameter
+        const signInUrl = new URL("/auth/signin", req.url);
+        signInUrl.searchParams.set("redirect", pathname);
+        return NextResponse.redirect(signInUrl);
+      }
+
+      // Check if user has admin role
+      if (token.role !== "admin") {
+        // Redirect non-admin users to home page
+        return NextResponse.redirect(new URL("/", req.url));
+      }
+
+      // Serialize user into headers (so API routes can access)
+      const userData = {
+        id: token.id,
+        role: token.role,
+        email: token.email,
+      };
+
+      const res = NextResponse.next();
+      res.headers.set("user", JSON.stringify(userData));
+      return res;
+    }
+
+    // Handle other protected routes
     if (protectedRoutes.some((route) => pathname.startsWith(route))) {
-      // The token is available in req.nextauth.token
-      const token = (req as any).nextauth?.token;
-
       if (!token) {
         // Redirect to login if no token
         return NextResponse.redirect(new URL("/auth/signin", req.url));
@@ -41,6 +70,11 @@ export default withAuth(
     callbacks: {
       authorized: ({ token, req }) => {
         const { pathname } = req.nextUrl;
+
+        // Allow access to admin routes only if user has admin role
+        if (adminRoutes.some((route) => pathname.startsWith(route))) {
+          return !!(token && token.role === "admin");
+        }
 
         // Allow access to protected routes only if user has a token
         if (protectedRoutes.some((route) => pathname.startsWith(route))) {

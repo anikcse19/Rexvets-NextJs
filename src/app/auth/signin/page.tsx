@@ -34,6 +34,7 @@ export default function SignInPage() {
 
   console.log("redirect to", redirect);
 
+
   useEffect(() => {
     const handlePopState = () => {
       window.location.replace("/"); // send them home
@@ -58,10 +59,16 @@ export default function SignInPage() {
       });
 
       if (result?.ok) {
-        if (redirect !== "/") {
-          localStorage.setItem("showForm", JSON.stringify(true));
+        // If redirect is to admin overview, redirect immediately
+        if (redirect === "/admin/overview") {
+          window.location.href = "/admin/overview";
+        } else {
+          // For other users, use the original redirect logic
+          if (redirect !== "/") {
+            localStorage.setItem("showForm", JSON.stringify(true));
+          }
+          router.push(redirect);
         }
-        router.push(redirect);
       } else {
         // Handle different error cases
         if (result?.error === "CredentialsSignin") {
@@ -117,12 +124,24 @@ export default function SignInPage() {
     setGoogleLoading(true);
     setError(""); // Clear previous errors
     try {
-      if (redirect !== "/") {
-        localStorage.setItem("showForm", JSON.stringify(true));
-      }
-      await signIn("google", {
-        callbackUrl: redirect || "/",
+      const result = await signIn("google", {
+        redirect: false,
       });
+      
+      if (result?.ok) {
+        // If redirect is to admin overview, redirect immediately
+        if (redirect === "/admin/overview") {
+          window.location.href = "/admin/overview";
+        } else {
+          // For other users, use the original redirect logic
+          if (redirect !== "/") {
+            localStorage.setItem("showForm", JSON.stringify(true));
+          }
+          router.push(redirect);
+        }
+      } else {
+        setError("Google sign-in failed. Please try again.");
+      }
     } catch {
       setError("Google sign-in failed. Please try again.");
     } finally {
