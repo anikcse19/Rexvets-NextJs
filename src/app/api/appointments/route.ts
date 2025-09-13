@@ -21,6 +21,7 @@ import { AppointmentSlot, SlotStatus } from "@/models/AppointmentSlot";
 import DonationModel from "@/models/Donation";
 import { PetModel } from "@/models/Pet";
 import PetParent from "@/models/PetParent";
+import { SubscriptionModel } from "@/models/Subscription";
 import User from "@/models/User";
 import "@/models/Veterinarian";
 import moment from "moment-timezone";
@@ -51,6 +52,8 @@ const appointmentSchema = z.object({
     message: "Invalid slot ID",
   }),
   concerns: z.array(z.string()).min(1, "At least one concern is required"),
+  hasExistingSubscription: z.boolean().optional(),
+  subscriptionId: z.string().optional(),
 });
 // This is the appointment creation route
 export async function POST(req: NextRequest) {
@@ -81,6 +84,7 @@ export async function POST(req: NextRequest) {
       parsed.error.issues.forEach((e) => {
         if (e.path[0]) errors[e.path[0].toString()] = e.message;
       });
+      console.log("errors", errors);
       const errResp: IErrorResponse = {
         success: false,
         message: "Validation failed",
@@ -237,6 +241,29 @@ export async function POST(req: NextRequest) {
     await newAppointment.save({ validateBeforeSave: true, session: sessionDb });
     existingSlot.status = SlotStatus.BOOKED;
     await existingSlot.save({ validateBeforeSave: false, session: sessionDb });
+
+    // Decrease subscription quota if hasExistingSubscription is true
+    if (parsed.data.hasExistingSubscription && parsed.data.subscriptionId) {
+      try {
+        const subscription = await SubscriptionModel.findOne({
+          _id: parsed.data.subscriptionId,
+          petParent: new Types.ObjectId(petParent),
+          isActive: true,
+        }).session(sessionDb);
+
+        if (subscription && subscription.remainingAppointments > 0) {
+          subscription.remainingAppointments -= 1;
+          subscription.appointmentIds.push(newAppointment._id);
+          await subscription.save({ validateBeforeSave: false, session: sessionDb });
+          console.log(`Decreased subscription quota for ${petParent}. Remaining: ${subscription.remainingAppointments}`);
+        } else {
+          console.warn(`No active subscription found or quota exhausted for ${petParent}`);
+        }
+      } catch (subscriptionError) {
+        console.error("Error updating subscription quota:", subscriptionError);
+        // Don't fail the appointment creation if subscription update fails
+      }
+    }
     // Fire-and-forget confirmation emails with donation receipt PDF (do not block response)
     (async () => {
       try {

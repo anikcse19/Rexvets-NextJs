@@ -6,6 +6,7 @@ import Link from "next/link";
 import React, { useEffect, useState } from "react";
 
 import { useAppContext } from "@/hooks/StateContext";
+import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import DonationFormWrapper from "../Donation/DonationFormWrapper";
@@ -31,12 +32,14 @@ export default function DoctorProfilePage({
   const [selectedDate, setSelectedDate] = useState("2025-01-16");
   const [selectedSlot, setSelectedSlot] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
+  const [hasExistingSubscription, setHasExistingSubscription] = useState(false);
   const [showForm, setShowForm] = useState<boolean>(() => {
     if (typeof window === "undefined") return false; // SSR safe
     const stored = localStorage.getItem("showForm");
     return stored ? JSON.parse(stored) : false;
   });
-
+  const { data: session } = useSession();
+  const user = session?.user;
   const router = useRouter();
 
   useEffect(() => {
@@ -52,7 +55,7 @@ export default function DoctorProfilePage({
   }, []);
 
   const handleDonationComplete = (amount: number) => {
-    localStorage.setItem("doctorData", JSON.stringify(doctorData));
+    // localStorage.setItem("doctorData", JSON.stringify(doctorData));
     console.log("Donation completed:", amount);
 
     console.log(
@@ -70,7 +73,9 @@ export default function DoctorProfilePage({
         "&time=" +
         selectedTime +
         "&slot=" +
-        selectedSlot
+        selectedSlot +
+        "&vetId=" +
+        doctorData._id
     );
     toast.success("Donation successful! Thank you for your support.");
 
@@ -87,6 +92,30 @@ export default function DoctorProfilePage({
     "slot",
     selectedSlot
   );
+  useEffect(() => {
+    const checkSubscriptionQuota = async () => {
+      if (!user?.refId) {
+        return;
+      }
+      try {
+        const res = await fetch(
+          `/api/subscription/check-subscription-quota?petParentId=${user?.refId}`
+        );
+        if (!res.ok) {
+          const error = await res.json();
+          throw new Error(
+            error.message || "Failed to check subscription quota"
+          );
+        }
+        const data = await res.json();
+        setHasExistingSubscription(data.data.hasQuota);
+      } catch (error) {
+        console.error("Error checking subscription quota:", error);
+      }
+    };
+    checkSubscriptionQuota();
+  }, [user?.refId, user]);
+  console.log("hasExistingSubscription", hasExistingSubscription);
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 p-4 lg:p-6">
       {/* Donation Modal */}
@@ -136,11 +165,18 @@ export default function DoctorProfilePage({
                 doctorName={doctorData?.name}
                 doctorData={doctorData}
                 onConfirm={(date: string, time: string, slot: string) => {
-                  console.log(`Booking appointment for ${date} at ${time}`);
-                  setShowForm(true);
-                  setSelectedDate(date);
-                  setSelectedSlot(slot);
-                  setSelectedTime(time);
+                  if (!hasExistingSubscription) {
+                    console.log(`Booking appointment for ${date} at ${time}`);
+                    setShowForm(true);
+                    setSelectedDate(date);
+                    setSelectedSlot(slot);
+                    setSelectedTime(time);
+                    return;
+                  } else {
+                    router.push(
+                      `/appointment-confirmation?date=${date}&time=${time}&slot=${slot}&vetId=${doctorData._id}&hasExistingSubscription=${hasExistingSubscription}`
+                    );
+                  }
                 }}
               />
             </div>
