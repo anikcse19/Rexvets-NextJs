@@ -1,11 +1,12 @@
 import AdminDashboardLayout from "@/components/Admin-Panel/Layout/AdminDashboardLayout";
+import AdminSessionManager from "@/components/Admin-Panel/AdminSessionManager";
 import React from "react";
 
 const layout = ({ children }: { children: React.ReactNode }) => {
   return (
-    <div>
+    <AdminSessionManager>
       <AdminDashboardLayout>{children}</AdminDashboardLayout>
-    </div>
+    </AdminSessionManager>
   );
 };
 

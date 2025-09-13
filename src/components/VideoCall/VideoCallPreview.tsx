@@ -188,7 +188,7 @@ const VideoCallPreview: React.FC = () => {
 
     setIsLoading(true);
     try {
-      const res = await fetch(`/api/appointments/${appointmentId}`);
+      const res = await fetch(`/api/video-call/${appointmentId}`);
       if (!res.ok) {
         const error = await res.json();
         throw new Error(error.message || "Failed to fetch appointment details");

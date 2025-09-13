@@ -132,6 +132,8 @@ export const authOptions = {
                 ? (user as any).veterinarianRef?.toString()
                 : (user as any).role === "vetTech"
                 ? (user as any).vetTechRef?.toString()
+                : (user as any).role === "moderator"
+                ? (user as any)._id?.toString()
                 : (user as any).adminRef?.toString(),
           } as any;
         } catch (error) {
@@ -297,6 +299,8 @@ export const authOptions = {
                 ? existingUser.adminRef?.toString()
                 : existingUser.role === "veterinarian"
                 ? existingUser.veterinarianRef?.toString()
+                : existingUser.role === "moderator"
+                ? existingUser._id?.toString() // Moderators use their own ID as refId
                 : existingUser.vetTechRef?.toString();
           } else {
             // Prevent new user creation through Google OAuth

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,8 +31,29 @@ export default function SignInPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirect = searchParams.get("redirect") || "/";
+  const { data: session, status } = useSession();
 
   console.log("redirect to", redirect);
+
+  // Redirect already authenticated users
+  useEffect(() => {
+    if (status === "authenticated" && session?.user) {
+      const userRole = session.user.role;
+      console.log("Already authenticated, user role:", userRole);
+      
+      if (userRole === "admin" || userRole === "moderator") {
+        console.log("Redirecting authenticated admin/moderator to /admin/overview");
+        router.push("/admin/overview");
+      } else if (redirect !== "/") {
+        console.log("Redirecting authenticated user to:", redirect);
+        router.push(redirect);
+      } else {
+        console.log("Redirecting authenticated user to home");
+        router.push("/");
+      }
+    }
+  }, [session, status, router, redirect]);
+
 
   useEffect(() => {
     const handlePopState = () => {
@@ -58,10 +79,11 @@ export default function SignInPage() {
       });
 
       if (result?.ok) {
-        if (redirect !== "/") {
-          localStorage.setItem("showForm", JSON.stringify(true));
-        }
-        router.push(redirect);
+        console.log("Sign-in successful, redirecting...");
+        // Use the redirect parameter or default to admin overview
+        const targetUrl = redirect || "/admin/overview";
+        console.log("Redirecting to:", targetUrl);
+        window.location.href = targetUrl;
       } else {
         // Handle different error cases
         if (result?.error === "CredentialsSignin") {
@@ -117,12 +139,19 @@ export default function SignInPage() {
     setGoogleLoading(true);
     setError(""); // Clear previous errors
     try {
-      if (redirect !== "/") {
-        localStorage.setItem("showForm", JSON.stringify(true));
-      }
-      await signIn("google", {
-        callbackUrl: redirect || "/",
+      const result = await signIn("google", {
+        redirect: false,
       });
+      
+      if (result?.ok) {
+        console.log("Google sign-in successful, redirecting...");
+        // Use the redirect parameter or default to admin overview
+        const targetUrl = redirect || "/admin/overview";
+        console.log("Redirecting to:", targetUrl);
+        window.location.href = targetUrl;
+      } else {
+        setError("Google sign-in failed. Please try again.");
+      }
     } catch {
       setError("Google sign-in failed. Please try again.");
     } finally {
