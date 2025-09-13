@@ -21,7 +21,7 @@ export {
   AppointmentModel,
   AppointmentStatus,
   AppointmentType,
-  PaymentStatus
+  PaymentStatus,
 } from "./Appointment";
 export type { IAppointment } from "./Appointment";
 
@@ -50,14 +50,12 @@ export type { IDoctor, IDoctorDocument } from "./Doctor";
 
 export { MessageModel } from "./Message";
 
-export { AppointmentChatModel, AppointmentMessageModel } from "./AppointmentChat";
+export {
+  AppointmentChatModel,
+  AppointmentMessageModel,
+} from "./AppointmentChat";
 export type { IAppointmentChat, IAppointmentMessage } from "./AppointmentChat";
 
 // Notifications
 export { default as NotificationModel, NotificationType } from "./Notification";
 export type { INotification, INotificationModel } from "./Notification";
-
-// Subscription
-export { default as SubscriptionModel } from "./Subscription";
-export type { ISubscription, ISubscriptionModel } from "./Subscription";
-

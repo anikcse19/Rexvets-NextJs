@@ -78,17 +78,17 @@ const SuccessState: React.FC<{ onClose: () => void }> = ({ onClose }) => (
       <div className="absolute -inset-3 bg-gradient-to-r from-emerald-300 to-teal-400 rounded-full opacity-30 animate-ping"></div>
     </div>
 
-    <h3 className="text-4xl font-bold text-slate-800 mb-4">
-      Review Submitted!
-    </h3>
-    <p className="text-slate-600 text-lg mb-8 max-w-md leading-relaxed">
+    <h3 className="text-4xl font-bold text-white mb-4">Review Submitted!</h3>
+    <p className="text-slate-100 text-lg mb-8 max-w-md leading-relaxed">
       Thank you for your valuable feedback. Your review helps other pet parents
       make informed decisions.
     </p>
 
     <div className="flex items-center gap-3 text-emerald-700 bg-emerald-50 px-6 py-3 rounded-full border border-emerald-200">
       <div className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce"></div>
-      <span className="text-sm font-medium">Redirecting to home page...</span>
+      <span className="text-sm font-medium">
+        Redirecting to Appointment Details page...
+      </span>
     </div>
   </div>
 );
@@ -169,8 +169,9 @@ const PostCallModal: React.FC<PostCallModalProps> = ({
       // Close modal and redirect to home after successful review
       setTimeout(() => {
         onClose();
-        router.push("/");
-      }, 2000);
+        const url = `/dashboard/doctor/appointments/${appointmentDetails?._id}`;
+        window.location.href = url;
+      }, 4000);
     } catch (error: any) {
       const errorMessage = error.message || "Failed to create review";
       toast.error(errorMessage);
@@ -208,7 +209,7 @@ const PostCallModal: React.FC<PostCallModalProps> = ({
         {/* Main Content */}
         <div className="flex-1 overflow-y-auto ">
           <div className="max-w-6xl mx-auto p-6">
-            <div className=" border-b border-slate-200 shadow-sm">
+            <div className=" border-b border-slate-200 shadow-sm mb-3">
               <PostCallReviewHeaderSection onClose={onClose} />
             </div>
             {/* Welcome Section */}
@@ -229,7 +230,7 @@ const PostCallModal: React.FC<PostCallModalProps> = ({
             </div>
 
             {/* Main Review Form */}
-            <div className=" rounded-2xl shadow-lg border border-slate-200 p-8 mb-6">
+            <div className=" rounded-2xl shadow-lg  p-8 mb-6">
               <div className="grid md:grid-cols-2 gap-8">
                 {/* Left Column - Rating & Review */}
                 <div className="space-y-6">
@@ -261,7 +262,7 @@ const PostCallModal: React.FC<PostCallModalProps> = ({
                     <h3 className="text-xl font-semibold text-slate-100 mb-4">
                       Leave a Google Review
                     </h3>
-                    <div className=" rounded-xl p-6 border border-gray-100">
+                    <div className=" rounded-xl p-6 ">
                       <PostCallModalReviewGoogleReviewSection />
                     </div>
                   </div>
