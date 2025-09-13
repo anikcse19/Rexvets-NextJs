@@ -6,9 +6,10 @@ export interface CreateSubscriptionInput {
   petParentId: string;
   subscriptionId: string;
   donationId: string;
-  stripeSubscriptionId: string;
   stripeCustomerId: string;
+  paymentIntentId: string;
   startDate?: Date;
+  transactionID?: string;
   metadata?: Record<string, unknown>;
 }
 
@@ -76,8 +77,9 @@ const createSubscriptionDocument = (
   calendarYear: input.calendarYear,
   isResubscription: false,
   resubscriptionCount: 0,
-  stripeSubscriptionId: input.stripeSubscriptionId,
   stripeCustomerId: input.stripeCustomerId,
+  paymentIntentId: input.paymentIntentId,
+  transactionID: input.transactionID,
   metadata: input.metadata,
 });
 
@@ -94,9 +96,10 @@ export const createSubscription = async (
     petParentId,
     subscriptionId,
     donationId,
-    stripeSubscriptionId,
     stripeCustomerId,
+    paymentIntentId,
     startDate = new Date(),
+    transactionID,
     metadata,
   } = input;
 
@@ -120,9 +123,10 @@ export const createSubscription = async (
     petParentId,
     subscriptionId,
     donationId,
-    stripeSubscriptionId,
     stripeCustomerId,
+    paymentIntentId,
     startDate,
+    transactionID,
     metadata,
     calendarYear,
     endDate,
@@ -146,9 +150,10 @@ export const createSubscriptionWithSession = async (
     petParentId,
     subscriptionId,
     donationId,
-    stripeSubscriptionId,
     stripeCustomerId,
+    paymentIntentId,
     startDate = new Date(),
+    transactionID,
     metadata,
   } = input;
 
@@ -174,9 +179,10 @@ export const createSubscriptionWithSession = async (
     petParentId,
     subscriptionId,
     donationId,
-    stripeSubscriptionId,
     stripeCustomerId,
+    paymentIntentId,
     startDate,
+    transactionID,
     metadata,
     calendarYear,
     endDate,
