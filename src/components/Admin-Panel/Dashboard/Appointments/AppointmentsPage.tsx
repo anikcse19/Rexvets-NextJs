@@ -41,6 +41,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import moment from "moment-timezone";
+
 import { format } from "date-fns";
 import {
   Calendar as CalendarIcon,
@@ -108,6 +110,13 @@ const AppointmentsPage = () => {
   const [dateFilter, setDateFilter] = useState<Date | undefined>(undefined);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [appointmentsData, setAppointmentsData] = useState<Appointment[]>([]);
+  const [statsData, setStatsData] = useState({
+    totalToday: 0,
+    upcoming: 0,
+    incomplete: 0,
+    completed: 0,
+  });
+  console.log("dateFilter", dateFilter);
   const itemsPerPage = 10;
   const [currentPage, setCurrentPage] = useState(1);
   const [openModal, setOpenModal] = useState(false);
@@ -144,10 +153,12 @@ const AppointmentsPage = () => {
 
       // Step 2: Sort
       const sortByDateAsc = (a: Appointment, b: Appointment) =>
-        new Date(a.appointmentDate).getTime() - new Date(b.appointmentDate).getTime();
+        new Date(a.appointmentDate).getTime() -
+        new Date(b.appointmentDate).getTime();
 
       const sortByDateDesc = (a: Appointment, b: Appointment) =>
-        new Date(b.appointmentDate).getTime() - new Date(a.appointmentDate).getTime();
+        new Date(b.appointmentDate).getTime() -
+        new Date(a.appointmentDate).getTime();
 
       const sortedUpcoming = upcoming.sort(sortByDateAsc);
       const sortedPast = past.sort(sortByDateDesc);
@@ -163,8 +174,35 @@ const AppointmentsPage = () => {
     }
   };
 
+  const getStats = async () => {
+    try {
+      const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      const startDate = moment
+        .tz(dateFilter, timezone)
+        .startOf("day")
+        .format("YYYY-MM-DD HH:mm:ss");
+      const endDate = moment
+        .tz(dateFilter, timezone)
+        .endOf("day")
+        .format("YYYY-MM-DD HH:mm:ss");
+      const response = await fetch(
+        `/api/appointments/stats?timezone=${timezone}&startDate=${startDate}&endDate=${endDate}`
+      );
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to fetch stats");
+      }
+
+      setStatsData(data.data);
+    } catch (error) {
+      console.error("Error fetching stats:", error);
+    }
+  };
+
   useEffect(() => {
     getAppointments();
+    getStats();
   }, []);
 
   useEffect(() => {
@@ -175,10 +213,12 @@ const AppointmentsPage = () => {
   const filteredAppointments = useMemo(() => {
     return appointmentsData.filter((appointment: Appointment) => {
       const matchesSearch =
-        appointment.petParent.name.toLowerCase().includes(
-          searchTerm.toLowerCase()
-        ) ||
-        appointment.veterinarian.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        appointment.petParent.name
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
+        appointment.veterinarian.name
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
         appointment.pet.name.toLowerCase().includes(searchTerm.toLowerCase());
 
       const appointmentDateTime = new Date(appointment.appointmentDate);
@@ -196,7 +236,8 @@ const AppointmentsPage = () => {
         statusFilter?.toLowerCase() === derivedStatus.toLowerCase();
 
       const matchesDoctor =
-        doctorFilter === "all" || appointment.veterinarian.name === doctorFilter;
+        doctorFilter === "all" ||
+        appointment.veterinarian.name === doctorFilter;
 
       const matchesDate =
         !dateFilter ||
@@ -241,6 +282,7 @@ const AppointmentsPage = () => {
 
   const handleRefresh = () => {
     getAppointments();
+    getStats();
     setIsRefreshing(true);
     setTimeout(() => setIsRefreshing(false), 1000);
   };
@@ -326,11 +368,7 @@ const AppointmentsPage = () => {
                   Total Today
                 </p>
                 <p className="text-2xl font-bold dark:text-blue-400 text-blue-600">
-                  {
-                    appointmentsData.filter(
-                      (apt: Appointment) => format(new Date(apt.appointmentDate), "yyyy-MM-dd") === today
-                    ).length
-                  }
+                  {statsData.totalToday}
                 </p>
               </div>
               <CalendarIcon className="w-8 h-8 dark:text-blue-400 text-blue-600" />
@@ -345,15 +383,7 @@ const AppointmentsPage = () => {
                   Upcoming
                 </p>
                 <p className="text-2xl font-bold dark:text-green-400 text-green-600">
-                  {
-                    appointmentsData.filter(
-                      (apt: Appointment) => {
-                        const appointmentDateTime = new Date(apt.appointmentDate);
-                        const now = new Date();
-                        return appointmentDateTime >= now;
-                      }
-                    ).length
-                  }
+                  {statsData.upcoming}
                 </p>
               </div>
               <User className="w-8 h-8 dark:text-green-400 text-green-600" />
@@ -368,15 +398,7 @@ const AppointmentsPage = () => {
                   Incomplete
                 </p>
                 <p className="text-2xl font-bold dark:text-yellow-400 text-yellow-600">
-                  {
-                    appointmentsData.filter(
-                      (apt: Appointment) => {
-                        const appointmentDateTime = new Date(apt.appointmentDate);
-                        const now = new Date();
-                        return appointmentDateTime < now && apt.status !== "completed";
-                      }
-                    ).length
-                  }
+                  {statsData.incomplete}
                 </p>
               </div>
               <Clock className="w-8 h-8 dark:text-yellow-400 text-yellow-600" />
@@ -391,11 +413,7 @@ const AppointmentsPage = () => {
                   Completed
                 </p>
                 <p className="text-2xl font-bold dark:text-emerald-400 text-emerald-600">
-                  {
-                    appointmentsData.filter(
-                      (apt: Appointment) => apt.status === "completed"
-                    ).length
-                  }
+                  {statsData.completed}
                 </p>
               </div>
               <Stethoscope className="w-8 h-8 dark:text-emerald-400 text-emerald-600" />
@@ -608,7 +626,9 @@ const AppointmentsPage = () => {
                       </TableCell>
                       <TableCell className="dark:text-gray-100">
                         {(() => {
-                          const appointmentDateTime = new Date(appointment.appointmentDate);
+                          const appointmentDateTime = new Date(
+                            appointment.appointmentDate
+                          );
                           const now = new Date();
                           let derivedStatus = "Upcoming";
 
@@ -681,6 +701,7 @@ const AppointmentsPage = () => {
           onClose={() => {
             setOpenModal(false);
             getAppointments();
+            getStats();
           }}
           appointment={selectedAppointment}
         />
