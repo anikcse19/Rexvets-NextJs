@@ -661,7 +661,7 @@ const VideoCallPreview: React.FC = () => {
               <div className="relative">
                 <div className="bg-black rounded-3xl overflow-hidden shadow-2xl border border-white/20">
                   {!hasInitializedCamera ? (
-                    <div className="aspect-video w-full flex flex-col items-center justify-center bg-gradient-to-br from-gray-900 to-black">
+                    <div className="aspect-video w-full flex flex-col py-5 items-center justify-center bg-gradient-to-br from-gray-900 to-black">
                       <div className="w-20 h-20 bg-white/10 rounded-full flex items-center justify-center mb-6">
                         <Video className="w-10 h-10 text-white/50" />
                       </div>
