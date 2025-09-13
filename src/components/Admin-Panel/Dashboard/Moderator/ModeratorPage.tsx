@@ -23,17 +23,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Plus } from "lucide-react";
-import {
-  addDoc,
-  collection,
-  deleteDoc,
-  doc,
-  getDocs,
-  query,
-  updateDoc,
-  where,
-} from "firebase/firestore";
-import { db } from "@/lib/firebase";
 
 const adminMenus = [
   "Dashboard",
@@ -48,28 +37,27 @@ const adminMenus = [
 ];
 
 type Moderator = {
-  Id: number;
-  docId: string;
-  Name: string;
-  Email: string;
-  Password: string;
-  Phone: string;
-  AccessList: string[];
+  _id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  accesslist: string[];
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 };
 
 export default function AdminModeratorsPage() {
   const [moderators, setModerators] = useState<Moderator[]>([]);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [form, setForm] = useState<Omit<Moderator, "Id">>({
-    Name: "",
-    docId: "",
-    Email: "",
-    Password: "",
-    Phone: "",
-    AccessList: ["Dashboard"],
+  const [form, setForm] = useState<Omit<Moderator, "_id" | "isActive" | "createdAt" | "updatedAt">>({
+    name: "",
+    email: "",
+    phone: "",
+    accesslist: ["Dashboard"],
   });
-  const [selectedModeratorId, setSelectedModeratorId] = useState<number | null>(
+  const [selectedModeratorId, setSelectedModeratorId] = useState<string | null>(
     null
   );
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -81,26 +69,12 @@ export default function AdminModeratorsPage() {
 
   const fetchModerators = async () => {
     try {
-      const q = query(
-        collection(db, "Users"),
-        where("Role", "==", "moderator")
-      );
-      const snapshot = await getDocs(q);
-
-      const mods: Moderator[] = snapshot.docs.map((doc, idx) => {
-        const data = doc.data();
-        return {
-          Id: idx + 1,
-          docId: doc.id,
-          Name: data.Name,
-          Email: data.Email,
-          Password: data.Password || "",
-          Phone: data.Phone,
-          AccessList: data.AccessList || [],
-        };
-      });
-
-      setModerators(mods);
+      const response = await fetch("/api/admin/moderators");
+      if (!response.ok) {
+        throw new Error("Failed to fetch moderators");
+      }
+      const data = await response.json();
+      setModerators(data.moderators || []);
     } catch (error) {
       console.error("Failed to fetch moderators:", error);
     }
@@ -113,29 +87,32 @@ export default function AdminModeratorsPage() {
   const handleAddModerator = async () => {
     setIsCreateAccessLoading(true);
     try {
-      const newMod = {
-        Name: form.Name,
-        Email: form.Email,
-        Password: form.Password,
-        Phone: form.Phone,
-        Role: "moderator",
-        AccessList: form.AccessList,
-      };
+      const response = await fetch("/api/admin/moderators", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: form.name,
+          email: form.email,
+          phone: form.phone,
+          accesslist: form.accesslist,
+        }),
+      });
 
-      // Add to Firestore
-      await addDoc(collection(db, "Users"), newMod);
+      if (!response.ok) {
+        throw new Error("Failed to create moderator");
+      }
 
       // Refresh local list
       await fetchModerators();
 
       // Reset form and close
       setForm({
-        Name: "",
-        Email: "",
-        docId: "",
-        Password: "",
-        Phone: "",
-        AccessList: [],
+        name: "",
+        email: "",
+        phone: "",
+        accesslist: ["Dashboard"],
       });
       setAddDialogOpen(false);
     } catch (error) {
@@ -148,16 +125,20 @@ export default function AdminModeratorsPage() {
   const handleEditAccessList = async () => {
     setIsUpdateLoading(true);
     if (selectedModeratorId !== null) {
-      const moderator = moderators.find(
-        (mod) => mod.Id === selectedModeratorId
-      );
-      if (!moderator) return;
-
       try {
-        const docRef = doc(db, "Users", moderator.docId);
-        await updateDoc(docRef, {
-          AccessList: form.AccessList,
+        const response = await fetch(`/api/admin/moderators/${selectedModeratorId}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            accesslist: form.accesslist,
+          }),
         });
+
+        if (!response.ok) {
+          throw new Error("Failed to update moderator access list");
+        }
 
         // Refresh list from DB
         await fetchModerators();
@@ -171,20 +152,23 @@ export default function AdminModeratorsPage() {
     setEditDialogOpen(false);
     setSelectedModeratorId(null);
     setForm({
-      Name: "",
-      Email: "",
-      Password: "",
-      docId: "",
-      Phone: "",
-      AccessList: [],
+      name: "",
+      email: "",
+      phone: "",
+      accesslist: ["Dashboard"],
     });
   };
 
   const handleDeleteModerator = async () => {
     if (moderatorToDelete) {
       try {
-        const docRef = doc(db, "Users", moderatorToDelete.docId);
-        await deleteDoc(docRef);
+        const response = await fetch(`/api/admin/moderators/${moderatorToDelete._id}`, {
+          method: "DELETE",
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to delete moderator");
+        }
 
         // Refresh list from DB
         await fetchModerators();
@@ -220,27 +204,20 @@ export default function AdminModeratorsPage() {
             <div className="space-y-4">
               <Input
                 placeholder="Full Name"
-                value={form.Name}
-                onChange={(e) => setForm({ ...form, Name: e.target.value })}
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
                 className="dark:bg-slate-800"
               />
               <Input
                 placeholder="Email"
-                value={form.Email}
-                onChange={(e) => setForm({ ...form, Email: e.target.value })}
-                className="dark:bg-slate-800"
-              />
-              <Input
-                placeholder="Password"
-                type="password"
-                value={form.Password}
-                onChange={(e) => setForm({ ...form, Password: e.target.value })}
+                value={form.email}
+                onChange={(e) => setForm({ ...form, email: e.target.value })}
                 className="dark:bg-slate-800"
               />
               <Input
                 placeholder="Phone"
-                value={form.Phone}
-                onChange={(e) => setForm({ ...form, Phone: e.target.value })}
+                value={form.phone}
+                onChange={(e) => setForm({ ...form, phone: e.target.value })}
                 className="dark:bg-slate-800"
               />
               <Separator />
@@ -249,17 +226,17 @@ export default function AdminModeratorsPage() {
                 {adminMenus.map((menu) => (
                   <label key={menu} className="flex gap-2 items-center">
                     <Checkbox
-                      checked={form.AccessList.includes(menu)}
+                      checked={form.accesslist.includes(menu)}
                       onCheckedChange={(checked) => {
                         if (checked) {
                           setForm({
                             ...form,
-                            AccessList: [...form.AccessList, menu],
+                            accesslist: [...form.accesslist, menu],
                           });
                         } else {
                           setForm({
                             ...form,
-                            AccessList: form.AccessList.filter(
+                            accesslist: form.accesslist.filter(
                               (item) => item !== menu
                             ),
                           });
@@ -307,32 +284,30 @@ export default function AdminModeratorsPage() {
                 </TableRow>
               ) : (
                 moderators.map((mod, index) => (
-                  <TableRow key={mod.Id} className="dark:hover:bg-slate-700">
+                  <TableRow key={mod._id} className="dark:hover:bg-slate-700">
                     <TableCell>{index + 1}</TableCell>
-                    <TableCell>{mod.Name}</TableCell>
-                    <TableCell>{mod.Email}</TableCell>
-                    <TableCell>{mod.Phone}</TableCell>
+                    <TableCell>{mod.name}</TableCell>
+                    <TableCell>{mod.email}</TableCell>
+                    <TableCell>{mod.phone || "N/A"}</TableCell>
                     <TableCell>
                       <ul className="text-sm list-disc pl-4">
-                        {mod.AccessList.map((item) => (
+                        {mod.accesslist.map((item) => (
                           <li key={item}>{item}</li>
                         ))}
                       </ul>
                     </TableCell>
                     <TableCell className="text-right space-x-2">
                       <Dialog
-                        open={editDialogOpen && selectedModeratorId === mod.Id}
+                        open={editDialogOpen && selectedModeratorId === mod._id}
                         onOpenChange={(open) => {
                           setEditDialogOpen(open);
                           if (!open) {
                             setSelectedModeratorId(null);
                             setForm({
-                              Name: "",
-                              Email: "",
-                              docId: "",
-                              Password: "",
-                              Phone: "",
-                              AccessList: [],
+                              name: "",
+                              email: "",
+                              phone: "",
+                              accesslist: ["Dashboard"],
                             });
                           }
                         }}
@@ -343,14 +318,12 @@ export default function AdminModeratorsPage() {
                             variant="outline"
                             size="sm"
                             onClick={() => {
-                              setSelectedModeratorId(mod.Id);
+                              setSelectedModeratorId(mod._id);
                               setForm({
-                                Name: mod.Name,
-                                docId: mod.docId,
-                                Email: mod.Email,
-                                Phone: mod.Phone,
-                                Password: mod.Password,
-                                AccessList: mod.AccessList,
+                                name: mod.name,
+                                email: mod.email,
+                                phone: mod.phone || "",
+                                accesslist: mod.accesslist,
                               });
                               setEditDialogOpen(true);
                             }}
@@ -373,20 +346,20 @@ export default function AdminModeratorsPage() {
                                   className="flex gap-2 items-center"
                                 >
                                   <Checkbox
-                                    checked={form.AccessList.includes(menu)}
+                                    checked={form.accesslist.includes(menu)}
                                     onCheckedChange={(checked) => {
                                       if (checked) {
                                         setForm({
                                           ...form,
-                                          AccessList: [
-                                            ...form.AccessList,
+                                          accesslist: [
+                                            ...form.accesslist,
                                             menu,
                                           ],
                                         });
                                       } else {
                                         setForm({
                                           ...form,
-                                          AccessList: form.AccessList.filter(
+                                          accesslist: form.accesslist.filter(
                                             (item) => item !== menu
                                           ),
                                         });
@@ -410,7 +383,7 @@ export default function AdminModeratorsPage() {
                       </Dialog>
                       <Dialog
                         open={
-                          deleteDialogOpen && moderatorToDelete?.Id === mod.Id
+                          deleteDialogOpen && moderatorToDelete?._id === mod._id
                         }
                         onOpenChange={(open) => {
                           if (!open) {
@@ -436,7 +409,7 @@ export default function AdminModeratorsPage() {
                             <DialogTitle>Delete Moderator</DialogTitle>
                             <DialogDescription>
                               Are you sure you want to delete moderator{" "}
-                              <strong>{mod.Name}</strong>? This action cannot be
+                              <strong>{mod.name}</strong>? This action cannot be
                               undone.
                             </DialogDescription>
                           </DialogHeader>
