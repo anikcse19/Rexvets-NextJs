@@ -1,12 +1,13 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { formatTimeToUserTimezone, getUserTimezone } from "@/lib/timezone";
 import { Appointment } from "@/lib/types";
 import { AlertCircle, Calendar, Clock } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 interface AppointmentCardProps {
   appointment: Appointment;
@@ -15,12 +16,19 @@ interface AppointmentCardProps {
 export default function AppointmentCard({ appointment }: AppointmentCardProps) {
   const { data: session } = useSession();
   const router = useRouter();
+  const [userTimezone, setUserTimezone] = useState<string>("UTC");
+
+  useEffect(() => {
+    setUserTimezone(getUserTimezone());
+  }, []);
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       weekday: "short",
       month: "short",
       day: "numeric",
       year: "numeric",
+      timeZone: userTimezone,
     });
   };
 
@@ -28,17 +36,19 @@ export default function AppointmentCard({ appointment }: AppointmentCardProps) {
     return new Date(dateString).toLocaleString("en-US", {
       dateStyle: "medium",
       timeStyle: "short",
+      timeZone: userTimezone,
     });
   };
 
   function formatTime(dateString: string): string {
     const date = new Date(dateString);
-
-    return date.toLocaleTimeString([], {
+    const timeString = date.toLocaleTimeString("en-US", {
       hour: "2-digit",
       minute: "2-digit",
-      hour12: true, // ensures 12-hour format
+      hour12: false,
+      timeZone: userTimezone,
     });
+    return formatTimeToUserTimezone(timeString, userTimezone);
   }
 
   const isSeenBefore = appointment?.pet?.seenBy?.includes(
@@ -111,7 +121,7 @@ export default function AppointmentCard({ appointment }: AppointmentCardProps) {
           <p className="font-semibold">
             {formatTime(appointment?.appointmentDate)}
           </p>
-          <span className="text-xs text-gray-500">Local Time</span>
+          <span className="text-xs text-gray-500">{userTimezone}</span>
         </div>
       </div>
 
