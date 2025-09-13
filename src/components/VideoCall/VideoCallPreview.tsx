@@ -7,6 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { getUserTimezone } from "@/lib/timezone";
 import { convertTimesToUserTimezone } from "@/lib/timezone/index";
 import { IAppointment } from "@/models";
 import {
@@ -37,7 +38,10 @@ import Webcam from "react-webcam";
 import { toast } from "sonner";
 
 // Custom hook for countdown timer
-const useCountdownTimer = (targetDate: string | null) => {
+const useCountdownTimer = (
+  targetDate: string | null,
+  timezone: string = "UTC"
+) => {
   const [timeLeft, setTimeLeft] = useState<{
     days: number;
     hours: number;
@@ -59,29 +63,57 @@ const useCountdownTimer = (targetDate: string | null) => {
     if (!targetDate) return;
 
     const updateTimer = () => {
-      const now = moment();
-      const target = moment(targetDate);
-      const diff = target.diff(now);
+      try {
+        const now = moment.tz(timezone);
+        const target = moment.tz(targetDate, timezone);
+        const diff = target.diff(now);
 
-      if (diff <= 0) {
+        if (diff <= 0) {
+          setTimeLeft({
+            days: 0,
+            hours: 0,
+            minutes: 0,
+            seconds: 0,
+            isExpired: true,
+          });
+          return;
+        }
+
+        const duration = moment.duration(diff);
         setTimeLeft({
-          days: 0,
-          hours: 0,
-          minutes: 0,
-          seconds: 0,
-          isExpired: true,
+          days: Math.floor(duration.asDays()),
+          hours: duration.hours(),
+          minutes: duration.minutes(),
+          seconds: duration.seconds(),
+          isExpired: false,
         });
-        return;
-      }
+      } catch (error) {
+        console.error("Error in countdown timer:", error);
+        // Fallback to UTC if timezone conversion fails
+        const now = moment.utc();
+        const target = moment.utc(targetDate);
+        const diff = target.diff(now);
 
-      const duration = moment.duration(diff);
-      setTimeLeft({
-        days: Math.floor(duration.asDays()),
-        hours: duration.hours(),
-        minutes: duration.minutes(),
-        seconds: duration.seconds(),
-        isExpired: false,
-      });
+        if (diff <= 0) {
+          setTimeLeft({
+            days: 0,
+            hours: 0,
+            minutes: 0,
+            seconds: 0,
+            isExpired: true,
+          });
+          return;
+        }
+
+        const duration = moment.duration(diff);
+        setTimeLeft({
+          days: Math.floor(duration.asDays()),
+          hours: duration.hours(),
+          minutes: duration.minutes(),
+          seconds: duration.seconds(),
+          isExpired: false,
+        });
+      }
     };
 
     // Update immediately
@@ -91,7 +123,7 @@ const useCountdownTimer = (targetDate: string | null) => {
     const interval = setInterval(updateTimer, 1000);
 
     return () => clearInterval(interval);
-  }, [targetDate]);
+  }, [targetDate, timezone]);
 
   return timeLeft;
 };
@@ -105,7 +137,8 @@ const VideoCallPreview: React.FC = () => {
   const vetId = searchParams.get("vetId");
   const petId = searchParams.get("petId");
   const petParentId = searchParams.get("petParentId");
-
+  const userTimezone = getUserTimezone();
+  console.log("userTimezone", userTimezone);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const [isVideoEnabled, setIsVideoEnabled] = useState(false);
@@ -120,7 +153,8 @@ const VideoCallPreview: React.FC = () => {
 
   // Use countdown timer hook
   const timeLeft = useCountdownTimer(
-    appointmentDetails?.appointmentDate?.toString() || null
+    appointmentDetails?.appointmentDate?.toString() || null,
+    userTimezone
   );
 
   // Check if appointment is more than 30 minutes away
@@ -129,10 +163,23 @@ const VideoCallPreview: React.FC = () => {
     if (typeof window === "undefined") return false;
 
     if (!appointmentDetails?.appointmentDate) return false;
-    const now = moment();
-    const appointmentTime = moment(appointmentDetails.appointmentDate);
-    const diffInMinutes = appointmentTime.diff(now, "minutes");
-    return diffInMinutes > 30;
+
+    try {
+      const now = moment.tz(userTimezone);
+      const appointmentTime = moment.tz(
+        appointmentDetails.appointmentDate,
+        userTimezone
+      );
+      const diffInMinutes = appointmentTime.diff(now, "minutes");
+      return diffInMinutes > 30;
+    } catch (error) {
+      console.error("Error checking appointment time:", error);
+      // Fallback to UTC comparison
+      const now = moment.utc();
+      const appointmentTime = moment.utc(appointmentDetails.appointmentDate);
+      const diffInMinutes = appointmentTime.diff(now, "minutes");
+      return diffInMinutes > 30;
+    }
   };
 
   const getAppointmentDetails = async () => {
@@ -231,31 +278,28 @@ const VideoCallPreview: React.FC = () => {
     }
   }, [appointmentId, vetId, petId, petParentId]);
   // console.log("PET INFO:", petInfo);
-  // Format appointment date using convertTimesToUserTimezone
+  // Format appointment date using moment timezone with userTimezone
   const formatAppointmentDateTime = () => {
     // Only run on client side
     if (typeof window === "undefined") return { date: "", time: "" };
 
     if (!appointmentDetails?.appointmentDate) return { date: "", time: "" };
 
-    const appointmentDate = moment(appointmentDetails.appointmentDate);
-    const dateStr = appointmentDate.format("YYYY-MM-DD");
-    const timeStr = appointmentDate.format("HH:mm");
-
     try {
-      const { formattedDate, formattedStartTime } = convertTimesToUserTimezone(
-        timeStr,
-        timeStr, // Using same time for start and end since we only need the start time
-        dateStr,
-        "UTC" // Assuming appointmentDate is stored in UTC
+      // Convert appointment date to user's timezone
+      const appointmentDate = moment.tz(
+        appointmentDetails.appointmentDate,
+        userTimezone
       );
 
       return {
-        date: moment(formattedDate).format("dddd, MMMM DD, YYYY"),
-        time: formattedStartTime,
+        date: appointmentDate.format("dddd, MMMM DD, YYYY"),
+        time: appointmentDate.format("h:mm A"),
       };
     } catch (error) {
-      // Fallback to direct formatting if timezone conversion fails
+      console.error("Error formatting appointment date:", error);
+      // Fallback to UTC if timezone conversion fails
+      const appointmentDate = moment.utc(appointmentDetails.appointmentDate);
       return {
         date: appointmentDate.format("dddd, MMMM DD, YYYY"),
         time: appointmentDate.format("h:mm A"),
@@ -617,7 +661,7 @@ const VideoCallPreview: React.FC = () => {
               <div className="relative">
                 <div className="bg-black rounded-3xl overflow-hidden shadow-2xl border border-white/20">
                   {!hasInitializedCamera ? (
-                    <div className="aspect-video w-full flex flex-col items-center justify-center bg-gradient-to-br from-gray-900 to-black">
+                    <div className="aspect-video w-full flex flex-col py-5 items-center justify-center bg-gradient-to-br from-gray-900 to-black">
                       <div className="w-20 h-20 bg-white/10 rounded-full flex items-center justify-center mb-6">
                         <Video className="w-10 h-10 text-white/50" />
                       </div>

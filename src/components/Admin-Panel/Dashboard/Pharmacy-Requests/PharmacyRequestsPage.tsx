@@ -1,7 +1,20 @@
 "use client";
-import React, { useEffect, useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -10,50 +23,49 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectTrigger,
-  SelectContent,
-  SelectValue,
-  SelectItem,
-} from "@/components/ui/select";
-import {
-  collection,
-  doc,
-  getDocs,
-  getFirestore,
-  orderBy,
-  query,
-  updateDoc,
-} from "firebase/firestore";
-import { db } from "@/lib/firebase";
-import { Loader2, FileText, ChevronDown } from "lucide-react";
+import { ChevronDown, FileText, Loader2 } from "lucide-react";
+import React, { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import Pagination from "../../Shared/Pagination";
 // import { FaRegFilePdf } from "react-icons/fa6";
 
 interface PharmacyRequest {
-  id: string;
-  ParentName: string;
-  ParentEmail: string;
-  PharmacyName: string;
-  PharmacyAddress: string;
-  PharmacyCity: string;
-  PharmacyState: string;
-  amount: number;
-  status: string;
-  prescriptionPDF: string;
-  created_at: string;
-  PaymentMethod?: {
-    id: string;
+  _id: string;
+  pharmacyName: string;
+  phoneNumber: string;
+  street: string;
+  city: string;
+  state: string;
+  appointment: {
+    _id: string;
+    petParent: {
+      _id: string;
+      name: string;
+      email: string;
+    };
+    pet: {
+      _id: string;
+      name: string;
+    };
+    appointmentDate: string;
   };
+  petParentId: {
+    _id: string;
+    name: string;
+    email: string;
+  };
+  appointmentDate?: string;
+  status: "pending" | "approved" | "rejected" | "completed";
+  paymentStatus: "unpaid" | "paid" | "refunded";
+  amount: number;
+  transactionID?: string;
+  paymentIntentId?: string;
+  stripeCustomerId?: string;
+  metadata?: Record<string, any>;
+  timestamp?: string;
+  createdAt: string;
+  updatedAt: string;
+  isDeleted: boolean;
 }
 
 export default function PharmacyRequestsPage() {
@@ -73,48 +85,83 @@ export default function PharmacyRequestsPage() {
 
   const fetchRequests = async () => {
     setLoading(true);
-    const q = query(
-      collection(db, "TransferPharmacyRequest"),
-      orderBy("created_at", "desc")
-    );
-    const snapshot = await getDocs(q);
-    const data = snapshot.docs.map(
-      (doc) => ({ id: doc.id, ...doc.data() } as PharmacyRequest)
-    );
-    setRequests(data);
-    setFilteredRequests(data);
-    setLoading(false);
+    try {
+      const response = await fetch('/api/pharmacy-transfer');
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch pharmacy requests');
+      }
+
+      const result = await response.json();
+      
+      if (!result.success) {
+        throw new Error(result.message || 'Failed to fetch pharmacy requests');
+      }
+
+      const data = result.data as PharmacyRequest[];
+      console.log("Fetched pharmacy requests:", data.length);
+      console.log("Sample request:", data[0]);
+      console.log("PetParentId structure:", data[0]?.petParentId);
+      console.log("Appointment structure:", data[0]?.appointment);
+      
+      setRequests(data);
+      setFilteredRequests(data);
+    } catch (error) {
+      console.error("Error fetching pharmacy requests:", error);
+      toast.error("Failed to fetch pharmacy requests");
+      setRequests([]);
+      setFilteredRequests([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleAccept = async (request: PharmacyRequest) => {
     try {
-      setIsAcceptedLoading({ id: request.id, loading: true });
-      const docRef = doc(db, "TransferPharmacyRequest", request.id);
-      await updateDoc(docRef, { status: "accepted" });
+      setIsAcceptedLoading({ id: request._id, loading: true });
+      
+      // Update status via API
+      const response = await fetch('/api/pharmacy-transfer', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: request._id, status: 'approved' })
+      });
 
-      fetchRequests();
-      toast.success("Request accepted and email sent successfully");
+      if (!response.ok) {
+        throw new Error('Failed to update request status');
+      }
 
+      const result = await response.json();
+      if (!result.success) {
+        throw new Error(result.message || 'Failed to update request status');
+      }
+
+      // Refresh the requests list
+      await fetchRequests();
+      toast.success("Request approved and email sent successfully");
+
+      // Send email notification
       await fetch(
         "https://rexvetsemailserver.up.railway.app/sendRequestAccpetedEmail",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            to: request.ParentEmail,
-            name: request.ParentName,
-            transactionId: request.PaymentMethod?.id,
-            amount: request.amount,
-            pharmacyName: request.PharmacyName,
-            pharmacyAddress: request.PharmacyAddress,
-            pharmacyCity: request.PharmacyCity,
-            pharmacyState: request.PharmacyState,
-            date: new Date(request.created_at).toLocaleDateString(),
+            to: request.petParentId?.email || '',
+            name: request.petParentId?.name || '',
+            transactionId: request.transactionID || '',
+            amount: request.amount || 0,
+            pharmacyName: request.pharmacyName || '',
+            pharmacyAddress: request.street || '',
+            pharmacyCity: request.city || '',
+            pharmacyState: request.state || '',
+            date: request.createdAt ? new Date(request.createdAt).toLocaleDateString() : '',
           }),
         }
       );
     } catch (error) {
       console.error("Error accepting request:", error);
+      toast.error("Failed to approve request");
     } finally {
       setIsAcceptedLoading({ id: "", loading: false });
     }
@@ -129,9 +176,11 @@ export default function PharmacyRequestsPage() {
     if (search) {
       filtered = filtered.filter(
         (r) =>
-          r.ParentName.toLowerCase().includes(search.toLowerCase()) ||
-          r.ParentEmail.toLowerCase().includes(search.toLowerCase()) ||
-          r.PharmacyName.toLowerCase().includes(search.toLowerCase())
+          (r.petParentId?.name || '').toLowerCase().includes(search.toLowerCase()) ||
+          (r.petParentId?.email || '').toLowerCase().includes(search.toLowerCase()) ||
+          (r.pharmacyName || '').toLowerCase().includes(search.toLowerCase()) ||
+          (r.city || '').toLowerCase().includes(search.toLowerCase()) ||
+          (r.state || '').toLowerCase().includes(search.toLowerCase())
       );
     }
     if (statusFilter !== "all") {
@@ -157,7 +206,7 @@ export default function PharmacyRequestsPage() {
         <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-6">
           <Input
             type="text"
-            placeholder="Search by name, email, or pharmacy"
+            placeholder="Search by name, email, pharmacy, city, or state"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full sm:w-1/2 dark:bg-gray-700 dark:border-slate-600"
@@ -172,7 +221,9 @@ export default function PharmacyRequestsPage() {
             <SelectContent className="dark:bg-gray-700 dark:border-slate-600 ">
               <SelectItem value="all">All</SelectItem>
               <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="accepted">Accepted</SelectItem>
+              <SelectItem value="approved">Approved</SelectItem>
+              <SelectItem value="rejected">Rejected</SelectItem>
+              <SelectItem value="completed">Completed</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -199,62 +250,40 @@ export default function PharmacyRequestsPage() {
               </TableRow>
             ) : (
               paginatedRequests.map((req) => (
-                <TableRow key={req.id}>
-                  <TableCell>{req.ParentName}</TableCell>
-                  <TableCell>{req.ParentEmail}</TableCell>
-                  <TableCell>{req.PharmacyName}</TableCell>
-                  <TableCell>${req.amount.toFixed(2)}</TableCell>
+                <TableRow key={req._id}>
+                  <TableCell>{req.petParentId?.name || 'N/A'}</TableCell>
+                  <TableCell>{req.petParentId?.email || 'N/A'}</TableCell>
+                  <TableCell>
+                    <div>
+                      <div className="font-medium">{req.pharmacyName || 'N/A'}</div>
+                      <div className="text-sm text-gray-500">
+                        {req.street || ''}, {req.city || ''}, {req.state || ''}
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell>${(req.amount || 0).toFixed(2)}</TableCell>
                   <TableCell>
                     <span
                       className={`px-2 py-1 rounded text-sm font-medium capitalize ${
                         req.status === "pending"
                           ? "bg-yellow-100 text-yellow-700"
-                          : "bg-green-100 text-green-700"
+                          : req.status === "approved"
+                          ? "bg-green-100 text-green-700"
+                          : req.status === "rejected"
+                          ? "bg-red-100 text-red-700"
+                          : "bg-blue-100 text-blue-700"
                       }`}
                     >
-                      {req.status}
+                      {req.status || 'unknown'}
                     </span>
                   </TableCell>
                   <TableCell>
-                    {Array.isArray(req.prescriptionPDF) &&
-                    req.prescriptionPDF.length > 0 ? (
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            size="sm"
-                            className="bg-[#dee8fa] border-[#002366] border-2 text-[#002366] gap-2 hover:text-white hover:bg-[#1a3a80]"
-                          >
-                            Available Prescriptions
-                            <ChevronDown className="w-4 h-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent className="dark:bg-gray-700 dark:border-slate-600 space-y-1 p-2">
-                          {req.prescriptionPDF.map((pdfUrl, index) => (
-                            <DropdownMenuItem
-                              key={index}
-                              asChild
-                              className="py-0 px-2 cursor-pointer hover:outline-none" // remove default padding for cleaner look
-                            >
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="w-full flex justify-between items-center gap-2"
-                                onClick={() => window.open(pdfUrl)}
-                              >
-                                Download Prescription {index + 1}
-                                <FileText className="w-4 h-4" />
-                              </Button>
-                            </DropdownMenuItem>
-                          ))}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    ) : (
-                      <>Not Available</>
-                    )}
+                    {/* Note: Prescription PDFs would need to be added to the model if needed */}
+                    <span className="text-gray-500">Not Available</span>
                   </TableCell>
 
                   <TableCell>
-                    {new Date(req.created_at).toLocaleString()}
+                    {req.createdAt ? new Date(req.createdAt).toLocaleString() : 'N/A'}
                   </TableCell>
                   <TableCell>
                     {req.status === "pending" ? (
@@ -263,10 +292,10 @@ export default function PharmacyRequestsPage() {
                         className="bg-[#002366] text-white hover:bg-[#1a3a80]"
                         onClick={() => handleAccept(req)}
                       >
-                        {isAcceptedLoading.id === req.id ? (
+                        {isAcceptedLoading.id === req._id ? (
                           <Loader2 className="animate-spin w-4 h-4" />
                         ) : (
-                          "Accept"
+                          "Approve"
                         )}
                       </Button>
                     ) : (
