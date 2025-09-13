@@ -4,8 +4,8 @@ import VeterinarianModel from "@/models/Veterinarian";
 import mongoose from "mongoose";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-
-
+import "@/models/Veterinarian";
+import "@/models/PetParent";
 
 // Validation schema for creating a review
 const createReviewSchema = z.object({
@@ -39,7 +39,7 @@ async function updateVeterinarianReviewStats(
   vetId: mongoose.Types.ObjectId,
   incrementReviewCount: number = 0,
   reviewId?: mongoose.Types.ObjectId,
-  operation: 'add' | 'remove' | 'update' = 'update'
+  operation: "add" | "remove" | "update" = "update"
 ) {
   try {
     // Check if veterinarian exists
@@ -50,8 +50,10 @@ async function updateVeterinarianReviewStats(
     }
 
     // Get updated review statistics for this veterinarian
-    const reviewStats = await (ReviewModel as IReviewModel).getReviewStats(vetId);
-    
+    const reviewStats = await (ReviewModel as IReviewModel).getReviewStats(
+      vetId
+    );
+
     // Prepare update object
     const updateData: any = {
       averageRating: reviewStats.averageRating,
@@ -65,19 +67,15 @@ async function updateVeterinarianReviewStats(
 
     // Handle reviews array updates
     if (reviewId) {
-      if (operation === 'add') {
+      if (operation === "add") {
         updateData.$push = { reviews: reviewId };
-      } else if (operation === 'remove') {
+      } else if (operation === "remove") {
         updateData.$pull = { reviews: reviewId };
       }
     }
 
     // Update the veterinarian
-    await VeterinarianModel.findByIdAndUpdate(
-      vetId,
-      updateData,
-      { new: true }
-    );
+    await VeterinarianModel.findByIdAndUpdate(vetId, updateData, { new: true });
 
     return true;
   } catch (error) {
@@ -240,7 +238,7 @@ export async function POST(request: NextRequest) {
 
     // Update Veterinarian model with new review statistics
     try {
-      await updateVeterinarianReviewStats(doctorObjectId, 1, review._id, 'add');
+      await updateVeterinarianReviewStats(doctorObjectId, 1, review._id, "add");
     } catch (updateError) {
       console.error("Error updating veterinarian review stats:", updateError);
       // Don't fail the review creation if stats update fails
@@ -546,7 +544,9 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Soft delete the review
-    const deletedReview = await (ReviewModel as IReviewModel).softDelete(review._id);
+    const deletedReview = await (ReviewModel as IReviewModel).softDelete(
+      review._id
+    );
     if (!deletedReview) {
       return NextResponse.json(
         {
@@ -561,7 +561,12 @@ export async function DELETE(request: NextRequest) {
 
     // Update Veterinarian model with recalculated review statistics
     try {
-      await updateVeterinarianReviewStats(review.vetId, -1, review._id, 'remove');
+      await updateVeterinarianReviewStats(
+        review.vetId,
+        -1,
+        review._id,
+        "remove"
+      );
     } catch (updateError) {
       console.error("Error updating veterinarian review stats:", updateError);
     }

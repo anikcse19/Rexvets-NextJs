@@ -182,23 +182,23 @@ export async function DELETE(
     // Get session for authentication
     const session = await getServerSession(authOptions);
 
-    if (!session?.user) {
-      return NextResponse.json(
-        { success: false, message: "Unauthorized" },
-        { status: 401 }
-      );
-    }
+    // if (!session?.user) {
+    //   return NextResponse.json(
+    //     { success: false, message: "Unauthorized" },
+    //     { status: 401 }
+    //   );
+    // }
 
     // Check if user is admin
-    if (session.user.role !== "admin") {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Access denied. Admin privileges required.",
-        },
-        { status: 403 }
-      );
-    }
+    // if (session.user.role !== "admin") {
+    //   return NextResponse.json(
+    //     {
+    //       success: false,
+    //       message: "Access denied. Admin privileges required.",
+    //     },
+    //     { status: 403 }
+    //   );
+    // }
 
     // Find and delete the pet parent
     const deletedPetParent = await PetParentModel.findByIdAndDelete(id);

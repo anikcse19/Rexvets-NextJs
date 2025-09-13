@@ -15,6 +15,7 @@ export interface IPetParent extends Document {
   isActive: boolean;
   // Soft delete flag
   isDeleted?: boolean;
+  status?: "active" | "inactive";
 
   // Additional profile fields
   firstName?: string;
@@ -102,6 +103,10 @@ const petParentSchema = new Schema<IPetParent>(
         return !this.googleId;
       },
       trim: true,
+    },
+    status: {
+      type: String,
+      default: "inactive",
     },
     gender: {
       type: String,

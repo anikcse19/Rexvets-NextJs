@@ -124,12 +124,15 @@ export const authOptions = {
             image: fullUserData?.profileImage || (user as any).profileImage,
             role: (user as any).role,
             timezone: (user as any)?.timezone,
+            accesslist: (user as any)?.accesslist,
             refId:
               (user as any).role === "pet_parent"
                 ? (user as any).petParentRef?.toString()
                 : (user as any).role === "veterinarian"
                 ? (user as any).veterinarianRef?.toString()
-                : (user as any).vetTechRef?.toString(),
+                : (user as any).role === "vetTech"
+                ? (user as any).vetTechRef?.toString()
+                : (user as any).adminRef?.toString(),
           } as any;
         } catch (error) {
           console.error("Authentication error:", error);
@@ -167,6 +170,7 @@ export const authOptions = {
         token.image = user.image;
         token.refId = user.refId;
         token.timezone = user.timezone;
+        token.accesslist = user.accesslist;
 
         // Console log the JWT token data on initial sign in
         console.log("🔑 JWT Token Data (Initial Sign In):", {
@@ -176,6 +180,7 @@ export const authOptions = {
           image: token.image,
           refId: token.refId,
           timezone: token.timezone,
+          accesslist: token.accesslist,
         });
       } else {
         // Console log the JWT token data on subsequent calls
@@ -186,6 +191,7 @@ export const authOptions = {
           image: token.image,
           refId: token.refId,
           timezone: token.timezone,
+          accesslist: token.accesslist,
         });
       }
 
@@ -202,6 +208,7 @@ export const authOptions = {
           image: token.image as string,
           refId: token.refId as string,
           timezone: token.timezone as string,
+          accesslist: token.accesslist as string[],
         };
       }
 
@@ -274,6 +281,7 @@ export const authOptions = {
             user.name = existingUser.name;
             user.image = existingUser.profileImage;
             user.timezone = existingUser?.timezone;
+            user.accesslist = existingUser?.accesslist;
 
             // Add reference to veterinarian profile if user is a veterinarian
             if (
@@ -285,6 +293,8 @@ export const authOptions = {
             user.refId =
               existingUser.role === "pet_parent"
                 ? existingUser.petParentRef?.toString()
+                : existingUser.role === "admin"
+                ? existingUser.adminRef?.toString()
                 : existingUser.role === "veterinarian"
                 ? existingUser.veterinarianRef?.toString()
                 : existingUser.vetTechRef?.toString();
