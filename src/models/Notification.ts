@@ -6,6 +6,7 @@ export enum NotificationType {
   NEW_DONATION = "NEW_DONATION",
   NEW_MESSAGE = "NEW_MESSAGE",
   NEW_APPOINTMENT = "NEW_APPOINTMENT",
+  NEW_SIGNUP = "NEW_SIGNUP",
 }
 
 export interface INotification {
