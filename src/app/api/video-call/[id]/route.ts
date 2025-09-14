@@ -51,7 +51,7 @@ export async function GET(
     }
 
     // Check if appointment has a meeting link (required for video calls)
-    if (!appointment.meetingLink) {
+    if (!appointment || !(appointment as any).meetingLink) {
       return throwAppError(
         {
           success: false,
