@@ -14,6 +14,7 @@ import {
   pharmacyRequestAcceptedTemplate,
   messageToDoctorTemplate,
   messageToParentTemplate,
+  generateAdminReplyEmail,
 } from "./emailTemplates";
 
 // Email configuration
@@ -31,7 +32,6 @@ const emailConfig = {
 const createTransporter = () => {
   return nodemailer.createTransport(emailConfig);
 };
-
 
 // Email templates
 const createEmailVerificationTemplate = (
@@ -230,7 +230,10 @@ export async function sendEmailVerification(
     const transporter = createTransporter();
     const verificationUrl = `${process.env.NEXTAUTH_URL}/auth/verify-email?token=${token}`;
     const displayName = isDoctor ? `Dr. ${name}` : name;
-    const htmlContent = createEmailVerificationTemplate(displayName, verificationUrl);
+    const htmlContent = createEmailVerificationTemplate(
+      displayName,
+      verificationUrl
+    );
 
     const mailOptions = {
       from: `"RexVet" <${process.env.EMAIL_USER}>`,
@@ -283,6 +286,58 @@ export async function sendPasswordReset(
   }
 }
 
+export async function sendHelpAskingReplyFromAdmin({
+  name,
+  email,
+  subject,
+  details,
+  status,
+  reply,
+}: {
+  name: string;
+  email: string;
+  subject: string;
+  details: string;
+  status: string;
+  reply: string;
+}): Promise<void> {
+  try {
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+      console.log("Email service not configured. Using development mode.");
+      console.log(
+        `Would send email to ${name} (${email}) regarding "${subject}", status: ${status}`
+      );
+      return;
+    }
+
+    const transporter = nodemailer.createTransport({
+      service: "gmail", // or your email service
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+
+    const messageContent = generateAdminReplyEmail({
+      name,
+      subject,
+      details,
+      status,
+      reply,
+    });
+
+    await transporter.sendMail({
+      from: `"RexVet" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: "Update on Your Help Request",
+      text: messageContent,
+    });
+
+    console.log(`Email sent to ${name} (${email}) successfully.`);
+  } catch (error) {
+    console.error("Failed to send help request email:", error);
+  }
+}
 // Test email configuration
 
 // Appointment confirmation email templates
@@ -628,26 +683,32 @@ export async function sendWelcomeEmail(
 ): Promise<void> {
   try {
     console.log("[WELCOME] Attempting to send welcome email to:", email);
-    
+
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
       console.log("[WELCOME] Dev mode. Would send to:", email);
-      console.log("[WELCOME] EMAIL_USER:", process.env.EMAIL_USER ? "SET" : "NOT SET");
-      console.log("[WELCOME] EMAIL_PASS:", process.env.EMAIL_PASS ? "SET" : "NOT SET");
+      console.log(
+        "[WELCOME] EMAIL_USER:",
+        process.env.EMAIL_USER ? "SET" : "NOT SET"
+      );
+      console.log(
+        "[WELCOME] EMAIL_PASS:",
+        process.env.EMAIL_PASS ? "SET" : "NOT SET"
+      );
       return;
     }
-    
+
     const transporter = createTransporter();
     const html = welcomeEmailTemplate(name);
-    
+
     console.log("[WELCOME] Sending email with template length:", html.length);
-    
+
     const mailOptions = {
       from: `"RexVet" <${process.env.EMAIL_USER}>`,
       to: email,
       subject: "Welcome to Rex Vet",
       html,
     };
-    
+
     const info = await transporter.sendMail(mailOptions);
     console.log("[WELCOME] Welcome email sent successfully:", info.messageId);
   } catch (err) {
@@ -763,8 +824,16 @@ export async function sendChatNotificationEmail(params: {
     }
     const transporter = createTransporter();
     const html = isToDoctor
-      ? messageToDoctorTemplate({ doctorName: recipientName, parentName: senderName, appointmentId })
-      : messageToParentTemplate({ parentName: recipientName, doctorName: senderName, appointmentId });
+      ? messageToDoctorTemplate({
+          doctorName: recipientName,
+          parentName: senderName,
+          appointmentId,
+        })
+      : messageToParentTemplate({
+          parentName: recipientName,
+          doctorName: senderName,
+          appointmentId,
+        });
 
     await transporter.sendMail({
       from: `"RexVet" <${process.env.EMAIL_USER}>`,
@@ -776,5 +845,3 @@ export async function sendChatNotificationEmail(params: {
     console.error("Failed to send chat notification email:", err);
   }
 }
-
-

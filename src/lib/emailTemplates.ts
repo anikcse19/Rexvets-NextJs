@@ -475,7 +475,6 @@ export function helpRequestEmailTemplate({
     </div>`;
 }
 
-
 // Chat notification email – to parent
 interface ChatToParentParams {
   parentName: string;
@@ -927,3 +926,31 @@ export const messageToDoctorTemplate = ({
   </body>
   </html>`;
 };
+
+export function generateAdminReplyEmail({
+  name,
+  subject,
+  details,
+  status,
+  reply,
+}: {
+  name: string;
+  subject: string;
+  details: string;
+  status: string;
+  reply: string;
+}) {
+  return `Hello ${name},
+
+We have received your request regarding "${subject}".
+Details: ${details}
+Your request status is now: ${status}.
+
+${details}.
+
+Thank you for reaching out.
+
+Best regards,
+Admin Team
+`;
+}

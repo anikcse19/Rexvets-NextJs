@@ -48,6 +48,8 @@ import {
 import { db } from "@/lib/firebase";
 import { EmailRequest, HelpTicket } from "@/lib/types/support";
 import { toast } from "sonner";
+import { format } from "date-fns";
+import { sendHelpAskingReplyFromAdmin } from "@/lib/email";
 
 type HelpInfoEmail = {
   id: string;
@@ -81,7 +83,7 @@ const getStatusBadge = (status: string) => {
           Pending
         </Badge>
       );
-    case "replied":
+    case "in-progress":
       return (
         <Badge
           variant="outline"
@@ -137,15 +139,22 @@ export default function HelpManagement() {
   const timeout = setTimeout(() => controller.abort(), 100000);
 
   const fetchHelpInfo = async () => {
-    setLoading(true);
-    const q = query(collection(db, "HelpInfo"), orderBy("createdAt", "desc"));
-    const snapshot = await getDocs(q);
-    const data = snapshot.docs.map(
-      (doc) => ({ id: doc.id, ...doc.data() } as HelpTicket)
-    );
-    setTickets(data);
+    try {
+      setLoading(true);
+      const res = await fetch("/api/help");
 
-    setLoading(false);
+      if (!res.ok) {
+        throw new Error();
+      }
+
+      const data = await res.json();
+
+      setTickets(data?.data?.helpRequests);
+    } catch (error: any) {
+      toast.error(error?.data?.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const fetchEmailThreads = async () => {
@@ -220,15 +229,17 @@ export default function HelpManagement() {
 
   const filteredTickets = tickets.filter((ticket) => {
     const matchesSearch =
-      ticket.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      ticket.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       ticket.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      ticket.emailAddress.toLowerCase().includes(searchTerm.toLowerCase());
+      ticket.email.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesStatus =
       statusFilter === "all"
         ? true
         : statusFilter === "pending"
-        ? !ticket.status || ticket.status === "" // <-- No status means "pending"
+        ? !ticket.status ||
+          ticket.status === "" ||
+          ticket.status?.toLowerCase() === "pending"
         : ticket?.status?.toLowerCase() === statusFilter;
 
     return matchesSearch && matchesStatus;
@@ -244,76 +255,87 @@ export default function HelpManagement() {
     }
   };
 
+  async function updateHelpRequest(
+    id: string,
+    status: "pending" | "in-progress" | "resolved",
+    reply: string
+  ) {
+    const res = await fetch("/api/help/update-status", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, status, reply }),
+    });
+
+    const data = await res.json();
+    console.log(data, "help reply data");
+  }
+
   const handleReply = async () => {
     if (!selectedTicket || !replyMessage.trim()) {
       toast.error("Please enter a reply message.");
       return;
     }
 
+    console.log("selected ticket", selectedTicket);
+
     setIsLoading(true);
 
     try {
-      const emailData: EmailRequest = {
-        to: selectedTicket.emailAddress,
-        subject: replySubject || `Re: ${selectedTicket.subject}`,
-        message: replyMessage,
-        originalTicket: selectedTicket,
-        isFirstReply,
-      };
-
-      const response = await fetch(
-        // "https://rexvetsemailserver.up.railway.app/sendHelpAskingReply",
-        "http://localhost:5000/sendHelpAskingReply",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(emailData),
-        }
-      );
-
-      if (response.ok) {
-        // Update ticket status to 'replied'
-        setTickets((prev) =>
-          prev.map((ticket) =>
-            ticket.id === selectedTicket.id
-              ? { ...ticket, state: "replied" }
-              : ticket
-          )
-        );
-
-        const result = await response.json();
-        toast.success("Reply sent successfully!");
-
-        const repliedData = {
-          queryId: selectedTicket.id,
-          sender: "admin",
-          senderEmail: "support@rexvets.com",
-          sentAt: new Date(),
-          messageId: result?.data?.messageId,
-          inReplyTo: selectedTicket?.inReplyTo || null, // 👈 NEW FIELD
-          to: selectedTicket?.emailAddress,
-          subject: replySubject || `Re: ${selectedTicket.subject}`,
-          message: replyMessage,
-          threadId: selectedTicket.id, // 👈 store thread ID
-        };
-
-        const ticketRef = doc(db, "HelpInfo", selectedTicket.id);
-        await updateDoc(ticketRef, { status: "replied" });
-        fetchHelpInfo();
-
-        handleSaveAdminReplyOnDB(repliedData);
-
-        setReplyMessage("");
-        setReplySubject("");
-        setIsDialogOpen(false);
-        setSelectedTicket(null);
-        fetchEmailThreads();
-        fetchEmailReplies();
-      } else {
-        throw new Error("Failed to send email");
-      }
+      await updateHelpRequest(selectedTicket?._id, "in-progress", replyMessage);
+      // const emailData: EmailRequest = {
+      //   to: selectedTicket.emailAddress,
+      //   subject: replySubject || `Re: ${selectedTicket.subject}`,
+      //   message: replyMessage,
+      //   originalTicket: selectedTicket,
+      //   isFirstReply,
+      // };
+      // const response = await fetch(
+      //   // "https://rexvetsemailserver.up.railway.app/sendHelpAskingReply",
+      //   "http://localhost:5000/sendHelpAskingReply",
+      //   {
+      //     method: "POST",
+      //     headers: {
+      //       "Content-Type": "application/json",
+      //     },
+      //     body: JSON.stringify(emailData),
+      //   }
+      // );
+      // if (response.ok) {
+      //   // Update ticket status to 'replied'
+      //   setTickets((prev) =>
+      //     prev.map((ticket) =>
+      //       ticket.id === selectedTicket.id
+      //         ? { ...ticket, state: "replied" }
+      //         : ticket
+      //     )
+      //   );
+      //   const result = await response.json();
+      toast.success("Reply sent successfully!");
+      //   const repliedData = {
+      //     queryId: selectedTicket.id,
+      //     sender: "admin",
+      //     senderEmail: "support@rexvets.com",
+      //     sentAt: new Date(),
+      //     messageId: result?.data?.messageId,
+      //     inReplyTo: selectedTicket?.inReplyTo || null, // 👈 NEW FIELD
+      //     to: selectedTicket?.emailAddress,
+      //     subject: replySubject || `Re: ${selectedTicket.subject}`,
+      //     message: replyMessage,
+      //     threadId: selectedTicket.id, // 👈 store thread ID
+      //   };
+      //   const ticketRef = doc(db, "HelpInfo", selectedTicket.id);
+      //   await updateDoc(ticketRef, { status: "replied" });
+      fetchHelpInfo();
+      //   handleSaveAdminReplyOnDB(repliedData);
+      setReplyMessage("");
+      setReplySubject("");
+      setIsDialogOpen(false);
+      setSelectedTicket(null);
+      //   fetchEmailThreads();
+      //   fetchEmailReplies();
+      // } else {
+      //   throw new Error("Failed to send email");
+      // }
     } catch (error) {
       toast("Failed to send reply. Please try again.");
     } finally {
@@ -371,7 +393,7 @@ export default function HelpManagement() {
             <SelectContent className="dark:bg-gray-700 dark:border-slate-600">
               <SelectItem value="all">All Status</SelectItem>
               <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="replied">Replied</SelectItem>
+              <SelectItem value="in-progress">Replied</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -436,15 +458,18 @@ export default function HelpManagement() {
                         </div>
                         <div>
                           <div className="font-medium text-gray-900 dark:text-gray-200 text-sm md:text-base">
-                            {ticket.fullName}
+                            {ticket.name}
                           </div>
                           <div className="text-sm text-gray-500 dark:text-gray-200 flex items-center gap-1">
                             <Mail className="w-3 h-3" />
-                            {ticket.emailAddress}
+                            {ticket.email}
                           </div>
                           <div className="text-xs text-gray-400 dark:text-gray-200 flex items-center gap-1 mt-1">
-                            <Badge variant="secondary" className="text-xs">
-                              {ticket.userType}
+                            <Badge
+                              variant="secondary"
+                              className="text-xs capitalize"
+                            >
+                              {ticket.role.replace("_", " ")}
                             </Badge>
                           </div>
                         </div>
@@ -458,9 +483,9 @@ export default function HelpManagement() {
                     <td className="py-4 px-4">
                       <div
                         className="text-gray-600 max-w-xs truncate dark:text-gray-200"
-                        title={ticket.message}
+                        title={ticket.details}
                       >
-                        {ticket.message}
+                        {ticket.details}
                       </div>
                     </td>
 
@@ -468,7 +493,7 @@ export default function HelpManagement() {
                       {getStatusBadge(ticket.status)}
                     </td>
                     <td className="py-4 px-4">
-                      {ticket.status == "replied" ? (
+                      {ticket.status == "in-progress" ? (
                         <>-</>
                       ) : (
                         <Button
@@ -498,7 +523,7 @@ export default function HelpManagement() {
         </CardContent>
       </Card>
 
-      <Card className="mt-10 dark:bg-slate-800 bg-gray-100">
+      {/* <Card className="mt-10 dark:bg-slate-800 bg-gray-100">
         <CardHeader>
           <div className="flex justify-between items-center">
             <CardTitle className="flex items-center gap-2 text-sm md:text-lg">
@@ -588,7 +613,6 @@ export default function HelpManagement() {
                     )}
                   </div>
 
-                  {/* Optional: reply again */}
                   <div className="flex justify-end mt-4 p-2">
                     <Button
                       onClick={() => {
@@ -620,7 +644,7 @@ export default function HelpManagement() {
             </div>
           )}
         </CardContent>
-      </Card>
+      </Card> */}
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-2xl dark:bg-slate-800">
@@ -631,10 +655,8 @@ export default function HelpManagement() {
             </DialogTitle>
             <DialogDescription>
               Sending reply to{" "}
-              <span className="font-medium">{selectedTicket?.fullName}</span> at{" "}
-              <span className="font-medium">
-                {selectedTicket?.emailAddress}
-              </span>
+              <span className="font-medium">{selectedTicket?.name}</span> at{" "}
+              <span className="font-medium">{selectedTicket?.email}</span>
             </DialogDescription>
           </DialogHeader>
 
@@ -645,15 +667,12 @@ export default function HelpManagement() {
                   Original Message:
                 </h4>
                 <p className="text-gray-700 text-sm dark:text-gray-200">
-                  {selectedTicket.message}
+                  {selectedTicket.details}
                 </p>
                 <div className="flex items-center gap-4 mt-3 text-xs text-gray-500 dark:text-gray-200">
                   <span>Subject: {selectedTicket.subject}</span>
                   <span>
-                    Date:{" "}
-                    {new Date(
-                      selectedTicket.createdAt?.toDate?.()
-                    ).toLocaleString()}
+                    Date: {format(selectedTicket.createdAt, "yyyy-mm-dd")}
                   </span>
                 </div>
               </div>
