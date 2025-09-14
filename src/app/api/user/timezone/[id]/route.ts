@@ -126,6 +126,37 @@ export const PATCH = async (
       return throwAppError(errResponse, 400);
     }
 
+      // For admin and moderator roles, we only update the User model directly
+    if (currentUser.role === "admin" || currentUser.role === "moderator") {
+      const updatedUser = await User.findByIdAndUpdate(
+        new Types.ObjectId(id),
+        { $set: { timezone: newTimezone } },
+        { new: true, runValidators: true, select: "_id timezone role" }
+      );
+
+      if (!updatedUser) {
+        const errResponse: IErrorResponse = {
+          success: false,
+          message: "Failed to update user timezone",
+          errorCode: "UPDATE_FAILED",
+          errors: null,
+        };
+        return throwAppError(errResponse, 500);
+      }
+
+      const responseFormat: ISendResponse<any> = {
+        statusCode: 200,
+        success: true,
+        message: "Timezone updated successfully",
+        data: {
+          timezone: updatedUser.timezone,
+          updated: true,
+          role: updatedUser.role,
+        },
+      };
+      return sendResponse(responseFormat);
+    }
+
     // Perform atomic updates using mongoose session
     const dbSession = await mongoose.startSession();
     let domainUpdateOk = false;

@@ -55,7 +55,7 @@ const AdminSessionManager: React.FC<AdminSessionManagerProps> = ({ children }) =
   }
 
   // Show loading spinner while redirecting
-  if (status === "unauthenticated" || (status === "authenticated" && session?.user?.role !== "admin")) {
+  if (status === "unauthenticated" || (status === "authenticated" && !["admin", "moderator"].includes(session?.user?.role || ""))) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">

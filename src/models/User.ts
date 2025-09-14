@@ -244,9 +244,11 @@ userSchema.pre("save", async function (next) {
 userSchema.methods.comparePassword = async function (
   candidatePassword: string
 ): Promise<boolean> {
-  if (!this.password) return false;
+  if (!this.password) {
+    return false;
+  }
   const bcrypt = await import("bcryptjs");
-  return bcrypt.compare(candidatePassword, this.password);
+  return await bcrypt.compare(candidatePassword, this.password);
 };
 
 userSchema.methods.generateEmailVerificationToken = function (): string {
