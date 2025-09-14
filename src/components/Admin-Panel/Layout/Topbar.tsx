@@ -156,7 +156,7 @@ const Topbar = ({ onMenuClick }: TopbarProps) => {
     const unsubscribeDonations = onSnapshot(donationsQuery, (snapshot) => {
       snapshot.docChanges().forEach((change) => {
         const data = change.doc.data();
-        console.log("donation change data = ", data);
+      
         if (change.type === "added" || change.type === "modified") {
           setNotifications((prev) => {
             const updated = [

@@ -121,7 +121,7 @@ export default function DoctorProfilePage({
       {/* Donation Modal */}
       {showForm ? (
         <div className="max-w-2xl mx-auto mt-12">
-          <DonationFormWrapper onDonationComplete={handleDonationComplete} />
+          <DonationFormWrapper onDonationComplete={handleDonationComplete} donationType="booking" />
         </div>
       ) : (
         <div className="max-w-[1366px] mx-auto space-y-8">
