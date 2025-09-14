@@ -1,5 +1,5 @@
 import { connectToDatabase } from "@/lib/mongoose";
-import { VeterinarianModel } from "@/models";
+import { VeterinarianModel, AppointmentModel } from "@/models";
 import { AppointmentSlot } from "@/models/AppointmentSlot";
 import moment from "moment-timezone";
 import { NextRequest, NextResponse } from "next/server";
@@ -51,6 +51,7 @@ export async function GET(req: NextRequest) {
       searchParams.get("yearsOfExperience") || ""
     ).trim();
     const noticePeriod = searchParams.get("noticePeriod");
+    const skipSlotFilter = searchParams.get("skipSlotFilter") === "true";
 
     const filter: Record<string, any> = {
       // Temporarily removed filters to debug
@@ -185,18 +186,60 @@ export async function GET(req: NextRequest) {
       })
     );
 
+    // Get appointment counts for all veterinarians
+    const vetIds = veterinarians.map((vet: any) => vet._id);
+    const appointmentCounts = await AppointmentModel.aggregate([
+      {
+        $match: {
+          veterinarian: { $in: vetIds },
+          isDeleted: false
+        }
+      },
+      {
+        $group: {
+          _id: "$veterinarian",
+          appointmentCount: { $sum: 1 },
+          completedAppointments: {
+            $sum: { $cond: [{ $eq: ["$status", "completed"] }, 1, 0] }
+          }
+        }
+      }
+    ]);
+
+    // Create a map for quick lookup
+    const appointmentCountMap = new Map();
+    appointmentCounts.forEach((count) => {
+      appointmentCountMap.set(count._id.toString(), {
+        totalAppointments: count.appointmentCount,
+        completedAppointments: count.completedAppointments
+      });
+    });
+
     const items = veterinarians
       .map((vet: any) => {
         const s = slotByVet.get(vet._id.toString());
+        const appointmentData = appointmentCountMap.get(vet._id.toString()) || {
+          totalAppointments: 0,
+          completedAppointments: 0
+        };
+        
         return {
           ...vet,
           todaysCount: s?.todaysCount || 0,
           nextAvailableSlots: s?.nextAvailableSlots || [],
+          appointments: Array(appointmentData.totalAppointments).fill(null), // Create array for length
+          appointmentCount: appointmentData.totalAppointments,
+          completedAppointments: appointmentData.completedAppointments
         };
       })
-      .filter(
-        (v: any) => v.todaysCount > 0 || (v.nextAvailableSlots || []).length > 0
-      );
+      .filter((v: any) => {
+        // Skip slot filtering if skipSlotFilter is true
+        if (skipSlotFilter) {
+          return true;
+        }
+        // Original slot filtering logic
+        return v.todaysCount > 0 || (v.nextAvailableSlots || []).length > 0;
+      });
 
     // Get total count for pagination
     const total = await VeterinarianModel.countDocuments(filter);

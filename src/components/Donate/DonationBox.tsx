@@ -17,10 +17,12 @@ interface DonationData {
 
 interface DonationComponentProps {
   onDonate?: (data: DonationData) => void;
+  donationType?: "donation" | "booking";
 }
 
 export default function DonationComponent({
   onDonate,
+  donationType = "donation",
 }: DonationComponentProps = {}) {
   const searchParams = useSearchParams();
   const amountParam = Number(searchParams.get("amount"));
@@ -158,7 +160,7 @@ export default function DonationComponent({
           donationAmount: finalAmount * 100, // Convert to cents
           donorName: effectiveName || "Anonymous Donor",
           donorEmail: effectiveEmail,
-          donationType: "donation",
+          donationType: donationType,
           isRecurring,
         }),
       });

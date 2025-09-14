@@ -11,6 +11,7 @@ import React, { useEffect, useState } from "react";
 
 interface DonationFormProps {
   onDonationComplete: (amount: number) => void;
+  donationType?: "donation" | "booking";
 }
 
 /**
@@ -29,7 +30,7 @@ interface DonationFormProps {
  * - confirmCardPayment: Confirms payment with payment method
  * - Subscriptions: For recurring payments with dynamic pricing
  */
-const DonationForm: React.FC<DonationFormProps> = ({ onDonationComplete }) => {
+const DonationForm: React.FC<DonationFormProps> = ({ onDonationComplete, donationType = "donation" }) => {
   const stripe = useStripe();
   const elements = useElements();
   const { data: session } = useSession();
@@ -140,7 +141,7 @@ const DonationForm: React.FC<DonationFormProps> = ({ onDonationComplete }) => {
           donationAmount: amount * 100, // Convert to cents
           donorName: donorData.name,
           donorEmail: donorData.email,
-          donationType: "donation",
+          donationType: donationType,
           isRecurring,
         }),
       });
