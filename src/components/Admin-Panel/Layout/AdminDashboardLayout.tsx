@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import clsx from "clsx"; // optional, for conditional classnames
 import { useState } from "react";
 import AdminTopBar from "./AdminTopBar";

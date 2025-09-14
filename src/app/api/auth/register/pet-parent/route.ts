@@ -1,10 +1,12 @@
-import { NextRequest, NextResponse } from "next/server";
+import { createOrUpdateUserAuth, linkUserToModel } from "@/lib/auth-helpers";
+import { sendEmailVerification } from "@/lib/email";
 import { connectToDatabase } from "@/lib/mongoose";
+import { NotificationType } from "@/models/Notification";
 import PetParentModel from "@/models/PetParent";
 import UserModel from "@/models/User";
-import { createOrUpdateUserAuth, linkUserToModel } from "@/lib/auth-helpers";
+import { createAdminNotification } from "@/services/notificationService";
+import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { sendEmailVerification } from "@/lib/email";
 
 // Validation schema for pet parent registration
 const petParentRegistrationSchema = z.object({
@@ -197,6 +199,29 @@ export async function POST(request: NextRequest) {
       } catch {
         // Don't fail the registration if email fails
         // User can request email verification later
+      }
+
+      // Create notification for all admin users about new pet parent signup
+      try {
+        await createAdminNotification({
+          type: NotificationType.NEW_SIGNUP,
+          title: "New Pet Parent Registration",
+          body: `A new pet parent named ${petParent.name} has registered on RexVet.`,
+          subTitle: "Pet Parent Signup",
+          data: {
+            petParentId: petParent._id.toString(),
+            petParentName: petParent.name,
+            petParentEmail: petParent.email,
+            registrationType: "pet_parent",
+          },
+        });
+        console.log("Admin notification created for new pet parent signup");
+      } catch (notificationError) {
+        console.error(
+          "Failed to create admin notification:",
+          notificationError
+        );
+        // Don't fail the registration if notification fails
       }
 
       // Return success response (without sensitive data)

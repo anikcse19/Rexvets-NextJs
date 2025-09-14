@@ -1,6 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/mongoose";
 import { DonationModel } from "@/models";
+import { NotificationType } from "@/models/Notification";
+import { createAdminNotification } from "@/services/notificationService";
+import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 // Validation schemas
@@ -108,6 +110,28 @@ export async function POST(request: NextRequest) {
       ...validatedData,
       timestamp: new Date(),
     });
+
+    // Create notification for all admin users about new donation
+    try {
+      await createAdminNotification({
+        type: NotificationType.NEW_DONATION,
+        title: "New Donation Received",
+        body: `A new $${donation.donationAmount} donation has been received from ${donation.donorName}.`,
+        subTitle: "Donation Alert",
+        data: {
+          donationId: donation._id.toString(),
+          donorName: donation.donorName,
+          donorEmail: donation.donorEmail,
+          donationAmount: donation.donationAmount,
+          donationType: donation.donationType,
+          isRecurring: donation.isRecurring,
+        },
+      });
+      console.log("Admin notification created for new donation");
+    } catch (notificationError) {
+      console.error("Failed to create admin notification:", notificationError);
+      // Don't fail the donation creation if notification fails
+    }
 
     return NextResponse.json({
       success: true,

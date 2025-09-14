@@ -1,6 +1,6 @@
 import { connectToDatabase } from "@/lib/mongoose";
 import type { INotification } from "@/models";
-import { NotificationModel, NotificationType } from "@/models";
+import { NotificationModel, NotificationType, UserModel } from "@/models";
 import type { FilterQuery, UpdateQuery } from "mongoose";
 
 // Create
@@ -74,5 +74,35 @@ export async function markAllReadForRecipient(recipientId: string) {
   return { success: true } as const;
 }
 
+// Create notification for all admin users
+export async function createAdminNotification(payload: {
+  type: NotificationType;
+  title: string;
+  body?: string;
+  subTitle?: string;
+  data?: Record<string, unknown>;
+}) {
+  await connectToDatabase();
+  
+  // Get all admin users
+  const adminUsers = await UserModel.find({ role: "admin" }).select("_id").lean();
+  
+  if (adminUsers.length === 0) {
+    console.warn("No admin users found to send notification to");
+    return [];
+  }
+  
+  // Create notification for each admin user
+  const notifications = adminUsers.map(admin => ({
+    ...payload,
+    recipientId: admin._id,
+    isRead: false,
+  }));
+  
+  const createdNotifications = await NotificationModel.insertMany(notifications);
+  return createdNotifications;
+}
+
 export { NotificationType };
 export type { INotification };
+

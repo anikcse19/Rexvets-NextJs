@@ -1,11 +1,13 @@
-import { NextRequest, NextResponse } from "next/server";
-import { connectToDatabase } from "@/lib/mongoose";
-import VeterinarianModel from "@/models/Veterinarian";
-import UserModel from "@/models/User";
 import { createOrUpdateUserAuth, linkUserToModel } from "@/lib/auth-helpers";
-import { veterinarianProfileSchema } from "@/lib/validation/veterinarian";
 import { uploadToCloudinary, validateFile } from "@/lib/cloudinary";
 import { sendEmailVerification } from "@/lib/email";
+import { connectToDatabase } from "@/lib/mongoose";
+import { veterinarianProfileSchema } from "@/lib/validation/veterinarian";
+import { NotificationType } from "@/models/Notification";
+import UserModel from "@/models/User";
+import VeterinarianModel from "@/models/Veterinarian";
+import { createAdminNotification } from "@/services/notificationService";
+import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 export async function POST(request: NextRequest) {
@@ -453,6 +455,29 @@ export async function POST(request: NextRequest) {
       } catch (emailError) {
         console.error("Failed to send verification email:", emailError);
         // Don't fail the registration if email fails
+      }
+
+      // Create notification for all admin users about new veterinarian signup
+      try {
+        await createAdminNotification({
+          type: NotificationType.NEW_SIGNUP,
+          title: "New Veterinarian Registration",
+          body: `A new veterinarian named ${veterinarian.name} has registered on RexVet.`,
+          subTitle: "Veterinarian Signup",
+          data: {
+            veterinarianId: veterinarian._id.toString(),
+            veterinarianName: veterinarian.name,
+            veterinarianEmail: veterinarian.email,
+            registrationType: "veterinarian",
+          },
+        });
+        console.log("Admin notification created for new veterinarian signup");
+      } catch (notificationError) {
+        console.error(
+          "Failed to create admin notification:",
+          notificationError
+        );
+        // Don't fail the registration if notification fails
       }
 
       return NextResponse.json(
