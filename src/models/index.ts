@@ -42,8 +42,6 @@ export type { IDataAssessmentPlan } from "./DataAssessmentPlan";
 export { BlockListModel } from "./BlockList";
 export type { IBlockList } from "./BlockList";
 
-export { ChatConversation } from "./ChatConversation";
-export type { IChatBotMessage, IChatConversation } from "./ChatConversation";
 
 export { DoctorModel } from "./Doctor";
 export type { IDoctor, IDoctorDocument } from "./Doctor";

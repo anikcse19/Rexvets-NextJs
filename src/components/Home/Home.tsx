@@ -8,7 +8,6 @@ import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
 import LazyLoad from "../LazyLoad";
 import VetScheduleSetupAlertModal from "../shared/VetScheduleSetupAlertModal";
-import ChatIcon from "./ChatIcon";
 
 const Skeleton = () => (
   <div className="w-full h-56 bg-gray-100 animate-pulse rounded-lg" />
@@ -148,7 +147,6 @@ const Home = () => {
         <FeaturesSection />
         <TestimonialsSection />
         <VirtualCareIntroSection />
-        <ChatIcon />
       </div>
     );
   }

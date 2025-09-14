@@ -134,13 +134,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ moderator: moderatorData, success: true });
   } catch (error) {
     console.error("Error creating moderator:", error);
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
     console.error("Error details:", {
-      message: error.message,
-      stack: error.stack,
-      name: error.name
+      message: errorMessage,
+      stack: error instanceof Error ? error.stack : undefined,
+      name: error instanceof Error ? error.name : undefined
     });
     return NextResponse.json(
-      { error: "Failed to create moderator", details: error.message },
+      { error: "Failed to create moderator", details: errorMessage },
       { status: 500 }
     );
   }
