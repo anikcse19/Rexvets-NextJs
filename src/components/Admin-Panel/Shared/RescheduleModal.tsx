@@ -43,8 +43,28 @@ export default function RescheduleModal({
 
       const res = await getVetSlots(vetId, startDate, endDate);
       if (res?.success) {
-        // sort slots by date then by start time
-        const sorted = [...res.data].sort((a, b) => {
+        // Filter out past slots and sort by date then by start time
+        const now = new Date();
+        const filteredSlots = res.data.filter((slot: any) => {
+          const slotDate = new Date(slot.formattedDate);
+          const slotDateTime = new Date(
+            `${slot.formattedDate}T${slot.formattedStartTime}:00`
+          );
+
+          // Filter out past dates
+          if (slotDate < now) {
+            return false;
+          }
+
+          // If it's today, filter out past times
+          if (slotDate.toDateString() === now.toDateString()) {
+            return slotDateTime > now;
+          }
+
+          return true;
+        });
+
+        const sorted = [...filteredSlots].sort((a, b) => {
           const dateCompare = compareAsc(
             new Date(a.formattedDate),
             new Date(b.formattedDate)
@@ -65,23 +85,156 @@ export default function RescheduleModal({
     }
   };
 
-  const handlRescheduleAppointment = async () => {
+  const handleRescheduleAppointment = async () => {
     if (!selectedSlot) return toast.error("Please select a slot first");
+
+    // Validate appointment object
+    if (!appointment) {
+      toast.error("Appointment data is missing. Please refresh and try again.");
+      return;
+    }
+
+    // Try multiple possible field names for appointment ID
+    const appointmentId =
+      appointment.id || appointment._id || appointment.appointmentId;
+    if (!appointmentId) {
+      toast.error("Invalid appointment ID. Please refresh and try again.");
+      console.error("No appointment ID found in:", Object.keys(appointment));
+      return;
+    }
+
+    // Validate that the appointment ID looks like a valid MongoDB ObjectId
+    if (!/^[0-9a-fA-F]{24}$/.test(appointmentId)) {
+      toast.error(
+        "Invalid appointment ID format. Please refresh and try again."
+      );
+      console.error("Invalid appointment ID format:", appointmentId);
+      return;
+    }
+
+    // Validate that the slot ID looks like a valid MongoDB ObjectId
+    if (!selectedSlot._id || !/^[0-9a-fA-F]{24}$/.test(selectedSlot._id)) {
+      toast.error("Invalid slot selection. Please choose a different slot.");
+      console.error("Invalid slot ID format:", selectedSlot._id);
+      console.error("Selected slot object:", selectedSlot);
+      return;
+    }
+
+    // Additional validation for slot object
+    if (!selectedSlot.formattedDate || !selectedSlot.formattedStartTime) {
+      toast.error("Invalid slot data. Please choose a different slot.");
+      console.error("Slot missing required fields:", {
+        hasFormattedDate: !!selectedSlot.formattedDate,
+        hasFormattedStartTime: !!selectedSlot.formattedStartTime,
+        slotObject: selectedSlot,
+      });
+      return;
+    }
 
     setIsConfirmLoading(true);
     try {
       const payload = {
-        appointment,
+        appointmentId: appointmentId,
         selectedSlot: selectedSlot._id,
       };
-      console.log("payload", payload);
+      console.log("Reschedule payload:", payload);
+      console.log("Appointment object:", appointment);
+      console.log("Appointment object keys:", Object.keys(appointment));
+      console.log("Selected slot:", selectedSlot);
+      console.log("Selected slot keys:", Object.keys(selectedSlot));
+      console.log("Appointment ID type:", typeof appointmentId, appointmentId);
+      console.log("Slot ID type:", typeof selectedSlot._id, selectedSlot._id);
 
-      // toast.success("Appointment rescheduled successfully");
-      // setSelectedSlot(null);
-      // onClose();
-    } catch (err) {
-      console.error(err);
-      toast.error("Failed to reschedule appointment");
+      // Additional validation - check if the appointment has the expected structure
+      if (
+        !appointment.veterinarian ||
+        !appointment.petParent ||
+        !appointment.pet
+      ) {
+        console.error("Appointment missing required fields:", {
+          hasVeterinarian: !!appointment.veterinarian,
+          hasPetParent: !!appointment.petParent,
+          hasPet: !!appointment.pet,
+        });
+      }
+
+      const response = await fetch("/api/appointment/reschedule-appointment", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const result = await response.json();
+      console.log("API Response:", result);
+      console.log("Response Status:", response.status);
+
+      if (!response.ok) {
+        // Handle different error types with smart messages
+        let errorMessage = "Failed to reschedule appointment";
+
+        if (result.errorCode === "PAST_DATE_SLOT") {
+          errorMessage =
+            "Cannot reschedule to a past date. Please select a future date.";
+        } else if (result.errorCode === "PAST_TIME_SLOT") {
+          errorMessage =
+            "Cannot reschedule to a time that has already passed. Please select a future time.";
+        } else if (result.errorCode === "SLOT_NOT_AVAILABLE") {
+          errorMessage =
+            "The selected slot is no longer available. Please choose another slot.";
+        } else if (result.errorCode === "APPOINTMENT_NOT_FOUND") {
+          errorMessage = "Appointment not found. Please refresh and try again.";
+        } else if (result.errorCode === "VALIDATION_ERROR") {
+          // Handle validation errors with specific field messages
+          if (result.errors) {
+            const errorFields = Object.keys(result.errors);
+            console.log("Validation errors:", result.errors);
+
+            if (errorFields.includes("appointmentId")) {
+              errorMessage = `Invalid appointment ID: ${result.errors.appointmentId}`;
+            } else if (errorFields.includes("selectedSlot")) {
+              errorMessage = `Invalid slot selection: ${result.errors.selectedSlot}`;
+            } else {
+              // Show all validation errors
+              const errorDetails = Object.entries(result.errors)
+                .map(([field, message]) => `${field}: ${message}`)
+                .join(", ");
+              errorMessage = `Validation failed: ${errorDetails}`;
+            }
+          } else {
+            errorMessage =
+              result.message ||
+              "Validation failed. Please check your selection.";
+          }
+        } else if (result.message) {
+          errorMessage = result.message;
+        }
+
+        throw new Error(errorMessage);
+      }
+
+      if (result.success) {
+        toast.success("Appointment rescheduled successfully");
+        setSelectedSlot(null);
+        onClose();
+      } else {
+        throw new Error(result.message || "Failed to reschedule appointment");
+      }
+    } catch (err: any) {
+      console.error("Reschedule error:", err);
+
+      // Handle different types of errors
+      let errorMessage = "Failed to reschedule appointment. Please try again.";
+
+      if (err.name === "TypeError" && err.message.includes("fetch")) {
+        errorMessage =
+          "Network error. Please check your connection and try again.";
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+
+      toast.error(errorMessage);
     } finally {
       setIsConfirmLoading(false);
     }
@@ -260,7 +413,7 @@ export default function RescheduleModal({
             Cancel
           </Button>
           <Button
-            onClick={handlRescheduleAppointment}
+            onClick={handleRescheduleAppointment}
             disabled={!selectedSlot || isConfirmLoading || isLoadingSlots}
           >
             {isConfirmLoading ? "Rescheduling..." : "Confirm"}
