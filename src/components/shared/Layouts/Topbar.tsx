@@ -289,7 +289,7 @@ TopbarProps) {
         </Button>
 
         {/* Announcements Button */}
-        {session?.user?.refId && session?.user?.role && (
+        {/* {session?.user?.refId && session?.user?.role && (
           <Button
             variant="ghost"
             size="sm"
@@ -300,7 +300,7 @@ TopbarProps) {
               {announcements?.length || 0}
             </Badge>
           </Button>
-        )}
+        )} */}
 
         {session?.user?.id && session?.user?.role && (
           <AnnouncementsDrawer
