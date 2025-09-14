@@ -10,12 +10,25 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import pusherClient from "@/lib/pusherClient";
-import { Bell, Menu, MessageCircle } from "lucide-react";
+import { Bell, Menu, MessageCircle, Mic2 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
 import AnnouncementsDrawer from "../AnnouncementDrawer";
 import SystemNotification, { INotification } from "../SystemNotification";
+
+interface Announcement {
+  _id: string;
+  kind: string;
+  title: string;
+  details: string;
+  createdAt: string;
+  reactions: Array<{
+    user: string;
+    role: string;
+    value: "positive" | "negative" | "neutral";
+  }>;
+}
 
 interface TopbarProps {
   title?: string;
@@ -33,6 +46,7 @@ TopbarProps) {
   const [messageNotifications, setMessageNotifications] = useState<
     INotification[]
   >([]);
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const [isNotifications, setIsNotifications] = useState(false);
@@ -93,6 +107,32 @@ TopbarProps) {
       setMessageNotifications(data?.data || []);
     } catch (error: any) {
       toast.error(error?.message || "Failed to fetch message notifications");
+    }
+  };
+
+  const getAnnouncements = async () => {
+    try {
+      console.log("getAnnouncements called");
+      if (!session?.user?.id) return;
+      const res = await fetch("/api/announcement", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      if (!res.ok) {
+        const error = await res.json();
+        console.error("Failed to fetch announcements", error);
+        throw new Error(error?.message);
+      }
+      const data = await res.json();
+      console.log("Announcements fetched:", data);
+      if (data.success) {
+        setAnnouncements(data.data || []);
+        console.log("Announcements state updated:", data.data);
+      }
+    } catch (error: any) {
+      console.error("Failed to fetch announcements:", error);
     }
   };
 
@@ -172,12 +212,14 @@ TopbarProps) {
     if (session) {
       getNotifications();
       getMessageNotifications();
+      getAnnouncements();
 
       // subscribe for realtime notifications
       const channel = pusherClient.subscribe(`user-${session.user.id}`);
       const refresh = () => {
         getNotifications();
         getMessageNotifications();
+        getAnnouncements();
       };
       channel.bind("new-notification", refresh);
       return () => {
@@ -187,6 +229,7 @@ TopbarProps) {
     }
   }, [session]);
   console.log("notifications", notifications);
+  console.log("announcements", announcements);
   return (
     <header className="h-16 lg:h-20 bg-[#1C1B36] border-b border-slate-800 flex items-center justify-between px-4 lg:px-6 text-white shadow-sm">
       <div className="flex items-center gap-4">
@@ -245,10 +288,26 @@ TopbarProps) {
           </Badge>
         </Button>
 
+        {/* Announcements Button */}
         {session?.user?.refId && session?.user?.role && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="relative cursor-pointer text-white hover:bg-slate-700"
+          >
+            <Mic2 className="w-5 h-5" />
+            <Badge className="absolute -top-1 -right-1 w-5 h-5 p-0 flex items-center justify-center bg-green-500 text-white text-xs">
+              {announcements?.length || 0}
+            </Badge>
+          </Button>
+        )}
+
+        {session?.user?.id && session?.user?.role && (
           <AnnouncementsDrawer
-            userId={session.user.refId}
+            userId={session.user.id}
             role={session.user.role}
+            announcements={announcements}
+            refetch={getAnnouncements}
           />
         )}
 

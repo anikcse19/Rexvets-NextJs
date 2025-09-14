@@ -1,84 +1,68 @@
-import { NextRequest, NextResponse } from "next/server";
+import { authOptions } from "@/lib/auth";
 import { connectToDatabase } from "@/lib/mongoose";
 import { AnnouncementModel } from "@/models/Announcement";
-import { Types } from "mongoose";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { NextRequest, NextResponse } from "next/server";
 
 export async function PUT(
   req: NextRequest,
-  { params }: any
+  { params }: { params: Promise<{ id: string }> }
 ) {
   await connectToDatabase();
   try {
     const session = await getServerSession(authOptions);
-    const role = session?.user?.role;
-    const userId = session?.user?.refId;
-
-    if (!Types.ObjectId.isValid(params.id))
+    
+    if (!session?.user?.id) {
       return NextResponse.json(
-        { success: false, message: "Invalid id" },
-        { status: 400 }
+        { success: false, message: "Unauthorized" },
+        { status: 401 }
       );
+    }
 
+    const { id } = await params;
     const { value } = await req.json();
-    if (!["positive", "negative", "neutral"].includes(value))
+
+    console.log("Reaction API - User:", session.user.id, "Role:", session.user.role, "Value:", value);
+
+    if (!value || !["positive", "negative", "neutral"].includes(value)) {
       return NextResponse.json(
         { success: false, message: "Invalid reaction value" },
         { status: 400 }
       );
+    }
 
-    const now = new Date();
-    const base = await AnnouncementModel.findOne({
-      _id: params.id,
-      isDeleted: false,
-      audience: { $in: [role] },
-      $and: [
-        { $or: [{ publishedAt: null }, { publishedAt: { $lte: now } }] },
-        { $or: [{ expiresAt: null }, { expiresAt: { $gt: now } }] },
-      ],
-    }).select({ _id: 1 });
-
-    if (!base)
+    const announcement = await AnnouncementModel.findById(id);
+    
+    if (!announcement) {
       return NextResponse.json(
-        { success: false, message: "Not found" },
+        { success: false, message: "Announcement not found" },
         { status: 404 }
       );
+    }
 
-    const updated = await AnnouncementModel.findOneAndUpdate(
-      {
-        _id: params.id,
-        "reactions.user": new Types.ObjectId(userId),
-        "reactions.role": role,
-      },
-      {
-        $set: {
-          "reactions.$.value": value,
-          "reactions.$.reactedAt": new Date(),
-        },
-      },
-      { new: true }
+    // Remove existing reaction from this user
+    announcement.reactions = announcement.reactions.filter(
+      (reaction: any) => 
+        !(reaction.user.toString() === session.user.id && reaction.role === session.user.role)
     );
 
-    if (updated) return NextResponse.json({ success: true, data: updated });
+    // Add new reaction
+    announcement.reactions.push({
+      user: session.user.id,
+      role: session.user.role,
+      value: value,
+      reactedAt: new Date(),
+    });
 
-    const pushed = await AnnouncementModel.findByIdAndUpdate(
-      params.id,
-      {
-        $push: {
-          reactions: {
-            user: new Types.ObjectId(userId),
-            role,
-            value,
-            reactedAt: new Date(),
-          },
-        },
-      },
-      { new: true }
-    );
+    await announcement.save();
 
-    return NextResponse.json({ success: true, data: pushed });
+    return NextResponse.json({ 
+      success: true, 
+      message: "Reaction updated successfully",
+      data: announcement 
+    });
   } catch (err: any) {
+    console.error("Error updating reaction:", err);
     return NextResponse.json(
       { success: false, message: err.message },
       { status: 400 }
