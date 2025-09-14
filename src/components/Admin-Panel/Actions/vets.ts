@@ -35,3 +35,19 @@ export async function updateTechnicianStatus(
     return { success: false, error };
   }
 }
+
+export async function getVetSlots(
+  vetId: string,
+  startDate: string,
+  endDate: string
+) {
+  try {
+    const res = await fetch(
+      `/api/appointments/booking/slot/${vetId}?limit=1000&status=available&startDate=${startDate}&endDate=${endDate}`
+    );
+    return await res.json();
+  } catch (error) {
+    console.error("Failed to update status:", error);
+    return { success: false };
+  }
+}

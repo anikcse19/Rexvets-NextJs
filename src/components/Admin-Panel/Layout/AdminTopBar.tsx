@@ -57,28 +57,29 @@ const AdminTopBar = ({ onMenuClick }: TopbarProps) => {
       setLoading(true);
       // Fetch both types of notifications
       const [donationResponse, signupResponse] = await Promise.all([
-        fetch('/api/notifications?type=NEW_DONATION&limit=25'),
-        fetch('/api/notifications?type=NEW_SIGNUP&limit=25')
+        fetch("/api/notifications?type=NEW_DONATION&limit=25"),
+        fetch("/api/notifications?type=NEW_SIGNUP&limit=25"),
       ]);
-      
+
       const [donationResult, signupResult] = await Promise.all([
         donationResponse.json(),
-        signupResponse.json()
+        signupResponse.json(),
       ]);
-      
+
       const allNotifications = [
         ...(donationResult.success ? donationResult.data || [] : []),
-        ...(signupResult.success ? signupResult.data || [] : [])
+        ...(signupResult.success ? signupResult.data || [] : []),
       ];
-      
+
       // Sort by creation date (newest first)
-      allNotifications.sort((a, b) => 
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      allNotifications.sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       );
-      
+
       setNotifications(allNotifications);
     } catch (error) {
-      console.error('Error fetching notifications:', error);
+      console.error("Error fetching notifications:", error);
     } finally {
       setLoading(false);
     }
@@ -87,20 +88,22 @@ const AdminTopBar = ({ onMenuClick }: TopbarProps) => {
   const markAsRead = async (notification: Notification) => {
     try {
       const response = await fetch(`/api/notifications/${notification._id}`, {
-        method: 'PATCH',
+        method: "PATCH",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ isRead: true }),
       });
 
       if (response.ok) {
         setNotifications((prev) =>
-          prev.map((n) => (n._id === notification._id ? { ...n, isRead: true } : n))
+          prev.map((n) =>
+            n._id === notification._id ? { ...n, isRead: true } : n
+          )
         );
       }
     } catch (error) {
-      console.error('Error marking notification as read:', error);
+      console.error("Error marking notification as read:", error);
     }
   };
 
@@ -112,10 +115,10 @@ const AdminTopBar = ({ onMenuClick }: TopbarProps) => {
 
       if (unreadIds.length === 0) return;
 
-      const response = await fetch('/api/notifications/mark-all-read', {
-        method: 'PATCH',
+      const response = await fetch("/api/notifications/mark-all-read", {
+        method: "PATCH",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ notificationIds: unreadIds }),
       });
@@ -124,16 +127,16 @@ const AdminTopBar = ({ onMenuClick }: TopbarProps) => {
         setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
       }
     } catch (error) {
-      console.error('Error marking all notifications as read:', error);
+      console.error("Error marking all notifications as read:", error);
     }
   };
 
   useEffect(() => {
     fetchNotifications();
-    
+
     // Set up polling to fetch notifications every 30 seconds
     const interval = setInterval(fetchNotifications, 30000);
-    
+
     return () => clearInterval(interval);
   }, []);
 
@@ -189,7 +192,9 @@ const AdminTopBar = ({ onMenuClick }: TopbarProps) => {
               <DropdownMenuSeparator />
 
               {loading ? (
-                <p className="text-sm text-gray-500 p-4">Loading notifications...</p>
+                <p className="text-sm text-gray-500 p-4">
+                  Loading notifications...
+                </p>
               ) : notifications.length === 0 ? (
                 <p className="text-sm text-gray-500 p-4">No notifications</p>
               ) : (
