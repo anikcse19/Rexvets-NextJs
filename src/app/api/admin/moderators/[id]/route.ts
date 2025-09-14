@@ -8,7 +8,7 @@ import mongoose from "mongoose";
 // PUT /api/admin/moderators/[id] - Update moderator access list
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -17,7 +17,7 @@ export async function PUT(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { id } = params;
+    const { id } = await params;
     const { accesslist } = await request.json();
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -78,7 +78,7 @@ export async function PUT(
 // DELETE /api/admin/moderators/[id] - Delete moderator (soft delete)
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -87,7 +87,7 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { id } = params;
+    const { id } = await params;
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return NextResponse.json({ error: "Invalid moderator ID" }, { status: 400 });

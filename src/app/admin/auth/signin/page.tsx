@@ -1,12 +1,8 @@
-import LoginPage from "@/components/Admin-Panel/Auth/SignInForm";
-import React from "react";
+import { redirect } from "next/navigation";
 
 const page = () => {
-  return (
-    <div>
-      <LoginPage></LoginPage>
-    </div>
-  );
+  // Redirect to central signin page
+  redirect("/auth/signin");
 };
 
 export default page;
