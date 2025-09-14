@@ -11,9 +11,6 @@ importers:
       '@emailjs/browser':
         specifier: ^4.4.1
         version: 4.4.1
-      '@google/generative-ai':
-        specifier: ^0.24.1
-        version: 0.24.1
       '@hookform/resolvers':
         specifier: ^5.2.1
         version: 5.2.1(react-hook-form@7.62.0(react@19.1.0))
@@ -161,9 +158,6 @@ importers:
       nodemailer:
         specifier: ^7.0.5
         version: 7.0.5
-      openai:
-        specifier: ^5.13.1
-        version: 5.13.1(ws@8.18.3)(zod@4.0.17)
       pusher:
         specifier: ^5.2.0
         version: 5.2.0
@@ -1236,10 +1230,6 @@ packages:
 
   '@floating-ui/utils@0.2.10':
     resolution: {integrity: sha512-aGTxbpbg8/b5JfU1HXSrbH3wXZuLPJcNEcZQFMxLs3oSzgtVu6nFPkbbGGUvBcUjKV2YyB9Wxxabo+HEH9tcRQ==}
-
-  '@google/generative-ai@0.24.1':
-    resolution: {integrity: sha512-MqO+MLfM6kjxcKoy0p1wRzG3b4ZZXtPI+z2IE26UogS2Cm/XHO+7gGRBh6gcJsOiIVoH93UwKvW4HdgiOZCy9Q==}
-    engines: {node: '>=18.0.0'}
 
   '@grpc/grpc-js@1.9.15':
     resolution: {integrity: sha512-nqE7Hc0AzI+euzUwDAy0aY5hCp10r734gMGRdU+qOPX0XSceI2ULrcXB5U2xSc5VkWwalCj4M7GzCAygZl2KoQ==}
@@ -4818,18 +4808,6 @@ packages:
     resolution: {integrity: sha512-VXJjc87FScF88uafS3JllDgvAm+c/Slfz06lorj2uAY34rlUu0Nt+v8wreiImcrgAjjIHp1rXpTDlLOGw29WwQ==}
     engines: {node: '>=18'}
 
-  openai@5.13.1:
-    resolution: {integrity: sha512-Jty97Apw40znKSlXZL2YDap1U2eN9NfXbqm/Rj1rExeOLEnhwezpKQ+v43kIqojavUgm30SR3iuvGlNEBR+AFg==}
-    hasBin: true
-    peerDependencies:
-      ws: ^8.18.0
-      zod: ^3.23.8
-    peerDependenciesMeta:
-      ws:
-        optional: true
-      zod:
-        optional: true
-
   opener@1.5.2:
     resolution: {integrity: sha512-ur5UIdyw5Y7yEj9wLzhqXiy6GZ3Mwx0yGI+5sMn2r0N0v3cKJvUmFH5yPP+WXh9e0xfyzyJX95D8l088DNFj7A==}
     hasBin: true
@@ -6007,18 +5985,6 @@ packages:
     peerDependencies:
       bufferutil: ^4.0.1
       utf-8-validate: ^5.0.2
-    peerDependenciesMeta:
-      bufferutil:
-        optional: true
-      utf-8-validate:
-        optional: true
-
-  ws@8.18.3:
-    resolution: {integrity: sha512-PEIGCY5tSlUt50cqyMXfCzX+oOPqN0vuGqWzbcJ2xvnkzkq46oOpz7dQaTDBdfICb4N14+GARUDw2XV2N4tvzg==}
-    engines: {node: '>=10.0.0'}
-    peerDependencies:
-      bufferutil: ^4.0.1
-      utf-8-validate: '>=5.0.2'
     peerDependenciesMeta:
       bufferutil:
         optional: true
@@ -7561,8 +7527,6 @@ snapshots:
       react-dom: 19.1.0(react@19.1.0)
 
   '@floating-ui/utils@0.2.10': {}
-
-  '@google/generative-ai@0.24.1': {}
 
   '@grpc/grpc-js@1.9.15':
     dependencies:
@@ -11417,11 +11381,6 @@ snapshots:
     dependencies:
       mimic-function: 5.0.1
 
-  openai@5.13.1(ws@8.18.3)(zod@4.0.17):
-    optionalDependencies:
-      ws: 8.18.3
-      zod: 4.0.17
-
   opener@1.5.2: {}
 
   openid-client@5.7.1:
@@ -12819,9 +12778,6 @@ snapshots:
   wrappy@1.0.2: {}
 
   ws@7.5.10: {}
-
-  ws@8.18.3:
-    optional: true
 
   y18n@5.0.8: {}
 
