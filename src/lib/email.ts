@@ -338,6 +338,7 @@ export async function sendHelpAskingReplyFromAdmin({
     console.error("Failed to send help request email:", error);
   }
 }
+
 // Test email configuration
 
 // Appointment confirmation email templates

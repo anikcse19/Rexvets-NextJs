@@ -396,8 +396,8 @@ export const pharmacyRequestAcceptedTemplate = ({
 }) => {
   return `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #eee; border-radius: 8px; overflow: hidden;">
-  <div style="background-color: #c5f1fc; padding: 0; text-align: center; width: 100%;">
-    <img src="https://res.cloudinary.com/di6zff0rd/image/upload/v1748961858/emailtemp1_sv6jxx.jpg" alt="Top Banner" style="display: block; height: auto; border: 0; width: 100%;" />
+  <div style="background-color: #002366; padding: 10px; text-align: center;">
+    <img src="https://res.cloudinary.com/di6zff0rd/image/upload/v1747926532/Logo_debjuj.png" alt="Rex Vet Logo" width="150" style="display: block; margin: 0 auto;" />
   </div>
   <div style="padding: 30px;">
     <h2 style="color: #002366;">Hi ${name},</h2>

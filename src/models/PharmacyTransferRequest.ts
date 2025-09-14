@@ -9,6 +9,7 @@ export interface IPharmacyTransferRequest extends Document {
   state: string;
   appointment: Types.ObjectId;
   petParentId: Types.ObjectId;
+  prescriptions: string[];
   appointmentDate?: Date;
   status: "pending" | "approved" | "rejected" | "completed";
   createdAt: Date;
@@ -47,6 +48,10 @@ const PharmacyTransferRequestSchema = new Schema<IPharmacyTransferRequest>(
     state: {
       type: String,
       required: [true, "State is required"],
+    },
+    prescriptions: {
+      type: [String],
+      ref: "Prescription",
     },
     appointment: {
       type: Schema.Types.ObjectId,
