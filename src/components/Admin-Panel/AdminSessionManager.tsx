@@ -26,9 +26,16 @@ const AdminSessionManager: React.FC<AdminSessionManagerProps> = ({ children }) =
     }
 
     if (status === "authenticated" && session?.user) {
-      // Check if user has admin role
-      if (session.user.role !== "admin") {
-        // User is not an admin, redirect to home
+      const { role } = session.user;
+
+      // If role is still undefined, wait until it's populated
+      if (!role) {
+        return;
+      }
+
+      // Allow both admin and moderator roles
+      if (!["admin", "moderator"].includes(role)) {
+        // User does not have sufficient privileges, redirect to home
         router.push("/");
         return;
       }
