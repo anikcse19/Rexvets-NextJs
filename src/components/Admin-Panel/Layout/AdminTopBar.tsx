@@ -29,7 +29,7 @@ interface Notification {
   subTitle?: string;
   recipientId: string;
   actorId?: string;
-  data?: Record<string, unknown>;
+  data?: Record<string, any>;
   isRead: boolean;
   createdAt: string;
   updatedAt: string;
@@ -134,10 +134,10 @@ const AdminTopBar = ({ onMenuClick }: TopbarProps) => {
   useEffect(() => {
     fetchNotifications();
 
-    // Set up polling to fetch notifications every 30 seconds
-    const interval = setInterval(fetchNotifications, 30000);
+    // // Set up polling to fetch notifications every 30 seconds
+    // const interval = setInterval(fetchNotifications, 30000);
 
-    return () => clearInterval(interval);
+    // return () => clearInterval(interval);
   }, []);
 
   const unreadCount = notifications.filter((n) => !n.isRead).length;
@@ -198,39 +198,57 @@ const AdminTopBar = ({ onMenuClick }: TopbarProps) => {
               ) : notifications.length === 0 ? (
                 <p className="text-sm text-gray-500 p-4">No notifications</p>
               ) : (
-                notifications.map((notification) => (
-                  <div
-                    key={notification._id}
-                    className={`px-4 py-3 transition-colors duration-200 border-b last:border-b-0 dark:border-slate-700 ${
-                      !notification.isRead
-                        ? "bg-slate-100 dark:bg-slate-700"
-                        : "hover:bg-slate-50 dark:hover:bg-slate-700/40"
-                    }`}
-                  >
-                    <p className="text-sm font-medium text-gray-800 dark:text-gray-100">
-                      {notification.title}
-                    </p>
-                    {notification.body && (
-                      <p className="text-xs text-gray-600 dark:text-gray-300 mt-1">
-                        {notification.body}
+                notifications?.map((notification) => {
+              
+                  const isNotificationDonation =
+                    notification?.type === NotificationType.NEW_DONATION;
+                  return (
+                    <div
+                      key={notification._id}
+                      className={`px-4 py-3 transition-colors duration-200 border-b last:border-b-0 dark:border-slate-700 ${
+                        !notification?.isRead
+                          ? "bg-slate-100 dark:bg-slate-700"
+                          : "hover:bg-slate-50 dark:hover:bg-slate-700/40"
+                      }`}
+                    >
+                      {!isNotificationDonation ? (
+                        <>
+                          <p className="text-sm font-medium text-gray-800 dark:text-gray-100">
+                            {notification?.title}
+                          </p>
+                          {notification.body && (
+                            <p className="text-xs text-gray-600 dark:text-gray-300 mt-1">
+                              {notification.body}
+                            </p>
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          <p>
+                            A new ${notification?.data?.donationAmount} donation
+                            has come from
+                            {notification?.data?.donorName || "----"}
+                          </p>
+                        </>
+                      )}
+
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        {formatDistanceToNow(new Date(notification.createdAt), {
+                          addSuffix: true,
+                        })}
                       </p>
-                    )}
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                      {formatDistanceToNow(new Date(notification.createdAt), {
-                        addSuffix: true,
-                      })}
-                    </p>
-                    {!notification.isRead && (
-                      <Button
-                        variant="link"
-                        className="text-xs text-blue-600 hover:underline p-0 mt-1"
-                        onClick={() => markAsRead(notification)}
-                      >
-                        Mark as read
-                      </Button>
-                    )}
-                  </div>
-                ))
+                      {!notification.isRead && (
+                        <Button
+                          variant="link"
+                          className="text-xs text-blue-600 hover:underline p-0 mt-1"
+                          onClick={() => markAsRead(notification)}
+                        >
+                          Mark as read
+                        </Button>
+                      )}
+                    </div>
+                  );
+                })
               )}
             </DropdownMenuContent>
           </DropdownMenu>
