@@ -20,6 +20,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
+import LoadingSpinner from "@/components/ui/loading-spinner";
 import {
   Popover,
   PopoverContent,
@@ -119,23 +120,23 @@ const AppointmentsPage = () => {
   const fetchAppointments = async () => {
     try {
       setIsDataLoading(true);
-      const response = await fetch('/api/appointments?limit=1000'); // Fetch all appointments
-      
+      const response = await fetch("/api/appointments?limit=1000"); // Fetch all appointments
+
       if (!response.ok) {
-        throw new Error('Failed to fetch appointments');
+        throw new Error("Failed to fetch appointments");
       }
 
       const result = await response.json();
-      
+
       if (!result.success) {
-        throw new Error(result.message || 'Failed to fetch appointments');
+        throw new Error(result.message || "Failed to fetch appointments");
       }
 
       const appointments = result.data as Appointment[];
-      
+
       console.log("Fetched appointments:", appointments.length);
       console.log("Sample appointment:", appointments[0]);
-      
+
       if (!appointments || appointments.length === 0) {
         console.log("No appointments found");
         setAppointmentsData([]);
@@ -159,10 +160,12 @@ const AppointmentsPage = () => {
 
       // Step 2: Sort
       const sortByDateAsc = (a: Appointment, b: Appointment) =>
-        new Date(a.appointmentDate).getTime() - new Date(b.appointmentDate).getTime();
+        new Date(a.appointmentDate).getTime() -
+        new Date(b.appointmentDate).getTime();
 
       const sortByDateDesc = (a: Appointment, b: Appointment) =>
-        new Date(b.appointmentDate).getTime() - new Date(a.appointmentDate).getTime();
+        new Date(b.appointmentDate).getTime() -
+        new Date(a.appointmentDate).getTime();
 
       const sortedUpcoming = upcoming.sort(sortByDateAsc);
       const sortedPast = past.sort(sortByDateDesc);
@@ -191,10 +194,12 @@ const AppointmentsPage = () => {
   const filteredAppointments = useMemo(() => {
     return appointmentsData.filter((appointment: Appointment) => {
       const matchesSearch =
-        appointment.petParent.name.toLowerCase().includes(
-          searchTerm.toLowerCase()
-        ) ||
-        appointment.veterinarian.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        appointment.petParent.name
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
+        appointment.veterinarian.name
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
         appointment.pet.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         appointment._id.toLowerCase().includes(searchTerm.toLowerCase());
 
@@ -213,7 +218,8 @@ const AppointmentsPage = () => {
         statusFilter?.toLowerCase() === derivedStatus.toLowerCase();
 
       const matchesDoctor =
-        doctorFilter === "all" || appointment.veterinarian.name === doctorFilter;
+        doctorFilter === "all" ||
+        appointment.veterinarian.name === doctorFilter;
 
       const matchesDate =
         !dateFilter ||
@@ -256,10 +262,13 @@ const AppointmentsPage = () => {
     );
   };
 
-  const handleRefresh = () => {
-    fetchAppointments();
+  const handleRefresh = async () => {
     setIsRefreshing(true);
-    setTimeout(() => setIsRefreshing(false), 1000);
+    try {
+      await fetchAppointments();
+    } finally {
+      setIsRefreshing(false);
+    }
   };
 
   const clearFilters = () => {
@@ -322,6 +331,23 @@ const AppointmentsPage = () => {
 
     return userTime.toFormat("hh:mm a");
   };
+  // Show full-page loader while data is being fetched
+  if (isDataLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+        <LoadingSpinner size="lg" />
+        <div className="text-center">
+          <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
+            Loading Appointments
+          </h3>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            Please wait while we fetch your appointment data...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     // <RequireAccess permission="Appointments">
     <div className="space-y-6">
@@ -360,15 +386,26 @@ const AppointmentsPage = () => {
                   Total Today
                 </p>
                 <p className="text-2xl font-bold dark:text-blue-400 text-blue-600">
-                  {
+                  {isRefreshing ? (
+                    <LoadingSpinner size="sm" />
+                  ) : (
                     (() => {
                       const todayAppointments = appointmentsData.filter(
-                        (apt: Appointment) => format(new Date(apt.appointmentDate), "yyyy-MM-dd") === today
+                        (apt: Appointment) =>
+                          format(
+                            new Date(apt.appointmentDate),
+                            "yyyy-MM-dd"
+                          ) === today
                       );
-                      console.log("Today's appointments:", todayAppointments.length, "for date:", today);
+                      console.log(
+                        "Today's appointments:",
+                        todayAppointments.length,
+                        "for date:",
+                        today
+                      );
                       return todayAppointments.length;
                     })()
-                  }
+                  )}
                 </p>
               </div>
               <CalendarIcon className="w-8 h-8 dark:text-blue-400 text-blue-600" />
@@ -383,19 +420,29 @@ const AppointmentsPage = () => {
                   Upcoming
                 </p>
                 <p className="text-2xl font-bold dark:text-green-400 text-green-600">
-                  {
+                  {isRefreshing ? (
+                    <LoadingSpinner size="sm" />
+                  ) : (
                     (() => {
                       const upcomingAppointments = appointmentsData.filter(
                         (apt: Appointment) => {
-                          const appointmentDateTime = new Date(apt.appointmentDate);
+                          const appointmentDateTime = new Date(
+                            apt.appointmentDate
+                          );
                           const now = new Date();
-                          return appointmentDateTime >= now && apt.status !== "cancelled";
+                          return (
+                            appointmentDateTime >= now &&
+                            apt.status !== "cancelled"
+                          );
                         }
                       );
-                      console.log("Upcoming appointments:", upcomingAppointments.length);
+                      console.log(
+                        "Upcoming appointments:",
+                        upcomingAppointments.length
+                      );
                       return upcomingAppointments.length;
                     })()
-                  }
+                  )}
                 </p>
               </div>
               <User className="w-8 h-8 dark:text-green-400 text-green-600" />
@@ -410,19 +457,30 @@ const AppointmentsPage = () => {
                   Incomplete
                 </p>
                 <p className="text-2xl font-bold dark:text-yellow-400 text-yellow-600">
-                  {
+                  {isRefreshing ? (
+                    <LoadingSpinner size="sm" />
+                  ) : (
                     (() => {
                       const incompleteAppointments = appointmentsData.filter(
                         (apt: Appointment) => {
-                          const appointmentDateTime = new Date(apt.appointmentDate);
+                          const appointmentDateTime = new Date(
+                            apt.appointmentDate
+                          );
                           const now = new Date();
-                          return appointmentDateTime < now && apt.status !== "completed" && apt.status !== "cancelled";
+                          return (
+                            appointmentDateTime < now &&
+                            apt.status !== "completed" &&
+                            apt.status !== "cancelled"
+                          );
                         }
                       );
-                      console.log("Incomplete appointments:", incompleteAppointments.length);
+                      console.log(
+                        "Incomplete appointments:",
+                        incompleteAppointments.length
+                      );
                       return incompleteAppointments.length;
                     })()
-                  }
+                  )}
                 </p>
               </div>
               <Clock className="w-8 h-8 dark:text-yellow-400 text-yellow-600" />
@@ -437,15 +495,20 @@ const AppointmentsPage = () => {
                   Completed
                 </p>
                 <p className="text-2xl font-bold dark:text-emerald-400 text-emerald-600">
-                  {
+                  {isRefreshing ? (
+                    <LoadingSpinner size="sm" />
+                  ) : (
                     (() => {
                       const completedAppointments = appointmentsData.filter(
                         (apt: Appointment) => apt.status === "completed"
                       );
-                      console.log("Completed appointments:", completedAppointments.length);
+                      console.log(
+                        "Completed appointments:",
+                        completedAppointments.length
+                      );
                       return completedAppointments.length;
                     })()
-                  }
+                  )}
                 </p>
               </div>
               <Stethoscope className="w-8 h-8 dark:text-emerald-400 text-emerald-600" />
@@ -615,7 +678,7 @@ const AppointmentsPage = () => {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  paginatedAppointments.map((appointment, index) => (
+                  paginatedAppointments?.map((appointment, index) => (
                     <TableRow
                       key={index}
                       className="hover:bg-gray-50 dark:hover:bg-gray-700"
@@ -658,7 +721,9 @@ const AppointmentsPage = () => {
                       </TableCell>
                       <TableCell className="dark:text-gray-100">
                         {(() => {
-                          const appointmentDateTime = new Date(appointment.appointmentDate);
+                          const appointmentDateTime = new Date(
+                            appointment.appointmentDate
+                          );
                           const now = new Date();
                           let derivedStatus = "Upcoming";
 
@@ -728,9 +793,15 @@ const AppointmentsPage = () => {
       {selectedAppointment && (
         <RescheduleModal
           open={openModal}
-          onClose={() => {
+          onClose={async () => {
             setOpenModal(false);
-            fetchAppointments();
+            setSelectedAppointment(null);
+            setIsRefreshing(true);
+            try {
+              await fetchAppointments();
+            } finally {
+              setIsRefreshing(false);
+            }
           }}
           appointment={selectedAppointment}
         />

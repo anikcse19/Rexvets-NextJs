@@ -7,6 +7,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import LoadingSpinner from "@/components/ui/loading-spinner";
+import { getUserTimezone } from "@/lib/timezone";
+import { convertTimesToUserTimezone } from "@/lib/timezone/index";
 import { addMonths, compareAsc, format, parse } from "date-fns";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -333,6 +335,14 @@ export default function RescheduleModal({
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   {groupedSlots[date].map((slot: any) => {
                     const isSelected = selectedSlot?._id === slot._id;
+                    const { formattedStartTime, formattedEndTime } =
+                      convertTimesToUserTimezone(
+                        slot.startTime,
+                        slot.endTime,
+                        slot.date,
+                        getUserTimezone()
+                      );
+
                     return (
                       <button
                         key={slot._id}
@@ -343,8 +353,9 @@ export default function RescheduleModal({
                             : "bg-white dark:bg-slate-700"
                         }`}
                       >
-                        {to12Hr(slot.formattedStartTime)} -{" "}
-                        {to12Hr(slot.formattedEndTime)}
+                        {formattedStartTime} - {formattedEndTime}
+                        {/* {to12Hr(slot.formattedStartTime)} -{" "}
+                        {to12Hr(slot.formattedEndTime)} */}
                       </button>
                     );
                   })}
