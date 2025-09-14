@@ -50,6 +50,7 @@ import { EmailRequest, HelpTicket } from "@/lib/types/support";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { sendHelpAskingReplyFromAdmin } from "@/lib/email";
+import RequireAccess from "../../Shared/RequireAccess";
 
 type HelpInfoEmail = {
   id: string;
@@ -364,166 +365,166 @@ export default function HelpManagement() {
   };
 
   return (
-    // <RequireAccess permission="Support">
-    <div className="">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-10">
-        <div>
-          <h1 className="text-xl md:text-3xl font-bold text-gray-900 dark:text-yellow-100">
-            Help & Support Management
-          </h1>
-          <p className="text-gray-600 dark:text-white mt-1">
-            Manage customer support tickets and send replies
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="relative">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-            <Input
-              placeholder="Search tickets..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 w-40 md:w-64 dark:bg-gray-700 dark:border-slate-600"
-            />
+    <RequireAccess permission="Support">
+      <div className="">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-10">
+          <div>
+            <h1 className="text-xl md:text-3xl font-bold text-gray-900 dark:text-yellow-100">
+              Help & Support Management
+            </h1>
+            <p className="text-gray-600 dark:text-white mt-1">
+              Manage customer support tickets and send replies
+            </p>
           </div>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-32 dark:bg-gray-700 dark:border-slate-600">
-              <Filter className="w-4 h-4 mr-2" />
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent className="dark:bg-gray-700 dark:border-slate-600">
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="in-progress">Replied</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      <Card className="dark:bg-slate-800 bg-gray-100">
-        <CardHeader>
-          <div className="flex justify-between">
-            <CardTitle className="flex items-center gap-2 text-sm md:text-lg">
-              <MessageSquare className="w-5 h-5" />
-              Support Tickets ({filteredTickets.length})
-            </CardTitle>
-            <div className="flex items-center space-x-3">
-              <Button
-                variant="outline"
-                onClick={handleRefresh}
-                disabled={isRefreshing}
-                className="dark:bg-gray-700 dark:border-slate-600"
-              >
-                <RefreshCw
-                  className={`w-4 h-4 mr-2 ${
-                    isRefreshing ? "animate-spin" : ""
-                  }`}
-                />
-                Refresh
-              </Button>
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Search tickets..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 w-40 md:w-64 dark:bg-gray-700 dark:border-slate-600"
+              />
             </div>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-32 dark:bg-gray-700 dark:border-slate-600">
+                <Filter className="w-4 h-4 mr-2" />
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="dark:bg-gray-700 dark:border-slate-600">
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="in-progress">Replied</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-gray-200">
-                  <th className="text-left py-3 px-4 font-medium text-gray-700 dark:text-gray-200">
-                    Customer
-                  </th>
-                  <th className="text-left py-3 px-4 font-medium text-gray-700 dark:text-gray-200">
-                    Subject
-                  </th>
-                  <th className="text-left py-3 px-4 font-medium text-gray-700 dark:text-gray-200">
-                    Message
-                  </th>
-                  <th className="text-left py-3 px-4 font-medium text-gray-700 dark:text-gray-200">
-                    Status
-                  </th>
-                  <th className="text-left py-3 px-4 font-medium text-gray-700 dark:text-gray-200">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredTickets.map((ticket, index) => (
-                  <tr
-                    key={ticket.id}
-                    className={`border-b border-gray-100 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors `}
-                  >
-                    <td className="py-4 px-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                          <User className="w-5 h-5 text-white" />
-                        </div>
-                        <div>
-                          <div className="font-medium text-gray-900 dark:text-gray-200 text-sm md:text-base">
-                            {ticket.name}
-                          </div>
-                          <div className="text-sm text-gray-500 dark:text-gray-200 flex items-center gap-1">
-                            <Mail className="w-3 h-3" />
-                            {ticket.email}
-                          </div>
-                          <div className="text-xs text-gray-400 dark:text-gray-200 flex items-center gap-1 mt-1">
-                            <Badge
-                              variant="secondary"
-                              className="text-xs capitalize"
-                            >
-                              {ticket.role.replace("_", " ")}
-                            </Badge>
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="py-4 px-4">
-                      <div className="font-medium text-gray-900 dark:text-gray-200 truncate max-w-sm">
-                        {ticket.subject}
-                      </div>
-                    </td>
-                    <td className="py-4 px-4">
-                      <div
-                        className="text-gray-600 max-w-xs truncate dark:text-gray-200"
-                        title={ticket.details}
-                      >
-                        {ticket.details}
-                      </div>
-                    </td>
+        </div>
 
-                    <td className="py-4 px-4">
-                      {getStatusBadge(ticket.status)}
-                    </td>
-                    <td className="py-4 px-4">
-                      {ticket.status == "in-progress" ? (
-                        <>-</>
-                      ) : (
-                        <Button
-                          onClick={() => {
-                            openReplyModal(ticket);
-                            setIsFirstReply(true);
-                          }}
-                          size="sm"
-                          className="bg-blue-600 hover:bg-blue-700 text-white"
-                        >
-                          <Mail className="w-4 h-4 mr-2" />
-                          Reply
-                        </Button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            {filteredTickets.length === 0 && (
-              <div className="text-center py-12">
-                <MessageSquare className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500">No support tickets found.</p>
+        <Card className="dark:bg-slate-800 bg-gray-100">
+          <CardHeader>
+            <div className="flex justify-between">
+              <CardTitle className="flex items-center gap-2 text-sm md:text-lg">
+                <MessageSquare className="w-5 h-5" />
+                Support Tickets ({filteredTickets.length})
+              </CardTitle>
+              <div className="flex items-center space-x-3">
+                <Button
+                  variant="outline"
+                  onClick={handleRefresh}
+                  disabled={isRefreshing}
+                  className="dark:bg-gray-700 dark:border-slate-600"
+                >
+                  <RefreshCw
+                    className={`w-4 h-4 mr-2 ${
+                      isRefreshing ? "animate-spin" : ""
+                    }`}
+                  />
+                  Refresh
+                </Button>
               </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-gray-200">
+                    <th className="text-left py-3 px-4 font-medium text-gray-700 dark:text-gray-200">
+                      Customer
+                    </th>
+                    <th className="text-left py-3 px-4 font-medium text-gray-700 dark:text-gray-200">
+                      Subject
+                    </th>
+                    <th className="text-left py-3 px-4 font-medium text-gray-700 dark:text-gray-200">
+                      Message
+                    </th>
+                    <th className="text-left py-3 px-4 font-medium text-gray-700 dark:text-gray-200">
+                      Status
+                    </th>
+                    <th className="text-left py-3 px-4 font-medium text-gray-700 dark:text-gray-200">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredTickets.map((ticket, index) => (
+                    <tr
+                      key={ticket.id}
+                      className={`border-b border-gray-100 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors `}
+                    >
+                      <td className="py-4 px-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                            <User className="w-5 h-5 text-white" />
+                          </div>
+                          <div>
+                            <div className="font-medium text-gray-900 dark:text-gray-200 text-sm md:text-base">
+                              {ticket.name}
+                            </div>
+                            <div className="text-sm text-gray-500 dark:text-gray-200 flex items-center gap-1">
+                              <Mail className="w-3 h-3" />
+                              {ticket.email}
+                            </div>
+                            <div className="text-xs text-gray-400 dark:text-gray-200 flex items-center gap-1 mt-1">
+                              <Badge
+                                variant="secondary"
+                                className="text-xs capitalize"
+                              >
+                                {ticket.role.replace("_", " ")}
+                              </Badge>
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="py-4 px-4">
+                        <div className="font-medium text-gray-900 dark:text-gray-200 truncate max-w-sm">
+                          {ticket.subject}
+                        </div>
+                      </td>
+                      <td className="py-4 px-4">
+                        <div
+                          className="text-gray-600 max-w-xs truncate dark:text-gray-200"
+                          title={ticket.details}
+                        >
+                          {ticket.details}
+                        </div>
+                      </td>
 
-      {/* <Card className="mt-10 dark:bg-slate-800 bg-gray-100">
+                      <td className="py-4 px-4">
+                        {getStatusBadge(ticket.status)}
+                      </td>
+                      <td className="py-4 px-4">
+                        {ticket.status == "in-progress" ? (
+                          <>-</>
+                        ) : (
+                          <Button
+                            onClick={() => {
+                              openReplyModal(ticket);
+                              setIsFirstReply(true);
+                            }}
+                            size="sm"
+                            className="bg-blue-600 hover:bg-blue-700 text-white"
+                          >
+                            <Mail className="w-4 h-4 mr-2" />
+                            Reply
+                          </Button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {filteredTickets.length === 0 && (
+                <div className="text-center py-12">
+                  <MessageSquare className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                  <p className="text-gray-500">No support tickets found.</p>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* <Card className="mt-10 dark:bg-slate-800 bg-gray-100">
         <CardHeader>
           <div className="flex justify-between items-center">
             <CardTitle className="flex items-center gap-2 text-sm md:text-lg">
@@ -646,97 +647,97 @@ export default function HelpManagement() {
         </CardContent>
       </Card> */}
 
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-2xl dark:bg-slate-800">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Send className="w-5 h-5" />
-              Reply to Support Ticket
-            </DialogTitle>
-            <DialogDescription>
-              Sending reply to{" "}
-              <span className="font-medium">{selectedTicket?.name}</span> at{" "}
-              <span className="font-medium">{selectedTicket?.email}</span>
-            </DialogDescription>
-          </DialogHeader>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogContent className="max-w-2xl dark:bg-slate-800">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Send className="w-5 h-5" />
+                Reply to Support Ticket
+              </DialogTitle>
+              <DialogDescription>
+                Sending reply to{" "}
+                <span className="font-medium">{selectedTicket?.name}</span> at{" "}
+                <span className="font-medium">{selectedTicket?.email}</span>
+              </DialogDescription>
+            </DialogHeader>
 
-          {selectedTicket && (
-            <div className="space-y-6">
-              <div className="bg-gray-50 dark:bg-slate-700 p-4 rounded-lg border">
-                <h4 className="font-medium text-gray-900 dark:text-gray-200 mb-2">
-                  Original Message:
-                </h4>
-                <p className="text-gray-700 text-sm dark:text-gray-200">
-                  {selectedTicket.details}
-                </p>
-                <div className="flex items-center gap-4 mt-3 text-xs text-gray-500 dark:text-gray-200">
-                  <span>Subject: {selectedTicket.subject}</span>
-                  <span>
-                    Date: {format(selectedTicket.createdAt, "yyyy-mm-dd")}
-                  </span>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="reply-subject">Reply Subject</Label>
-                  <Input
-                    id="reply-subject"
-                    value={replySubject}
-                    onChange={(e) => setReplySubject(e.target.value)}
-                    placeholder="Enter reply subject..."
-                    className="mt-1 dark:bg-slate-900"
-                  />
+            {selectedTicket && (
+              <div className="space-y-6">
+                <div className="bg-gray-50 dark:bg-slate-700 p-4 rounded-lg border">
+                  <h4 className="font-medium text-gray-900 dark:text-gray-200 mb-2">
+                    Original Message:
+                  </h4>
+                  <p className="text-gray-700 text-sm dark:text-gray-200">
+                    {selectedTicket.details}
+                  </p>
+                  <div className="flex items-center gap-4 mt-3 text-xs text-gray-500 dark:text-gray-200">
+                    <span>Subject: {selectedTicket.subject}</span>
+                    <span>
+                      Date: {format(selectedTicket.createdAt, "yyyy-mm-dd")}
+                    </span>
+                  </div>
                 </div>
 
-                <div>
-                  <Label htmlFor="reply-message">Your Reply</Label>
-                  <Textarea
-                    id="reply-message"
-                    value={replyMessage}
-                    onChange={(e) => setReplyMessage(e.target.value)}
-                    placeholder="Type your reply here..."
-                    rows={8}
-                    className="mt-1 resize-none dark:bg-slate-900"
-                  />
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="reply-subject">Reply Subject</Label>
+                    <Input
+                      id="reply-subject"
+                      value={replySubject}
+                      onChange={(e) => setReplySubject(e.target.value)}
+                      placeholder="Enter reply subject..."
+                      className="mt-1 dark:bg-slate-900"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="reply-message">Your Reply</Label>
+                    <Textarea
+                      id="reply-message"
+                      value={replyMessage}
+                      onChange={(e) => setReplyMessage(e.target.value)}
+                      placeholder="Type your reply here..."
+                      rows={8}
+                      className="mt-1 resize-none dark:bg-slate-900"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-3 pt-4 border-t">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setIsDialogOpen(false);
+                      setReplyMessage("");
+                      setReplySubject("");
+                    }}
+                    disabled={isLoading}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handleReply}
+                    disabled={isLoading || !replyMessage.trim()}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    {isLoading ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        Sending...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-4 h-4 mr-2" />
+                        Send Reply
+                      </>
+                    )}
+                  </Button>
                 </div>
               </div>
-
-              <div className="flex justify-end gap-3 pt-4 border-t">
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setIsDialogOpen(false);
-                    setReplyMessage("");
-                    setReplySubject("");
-                  }}
-                  disabled={isLoading}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={handleReply}
-                  disabled={isLoading || !replyMessage.trim()}
-                  className="bg-blue-600 hover:bg-blue-700"
-                >
-                  {isLoading ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Sending...
-                    </>
-                  ) : (
-                    <>
-                      <Send className="w-4 h-4 mr-2" />
-                      Send Reply
-                    </>
-                  )}
-                </Button>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-    </div>
-    // </RequireAccess>
+            )}
+          </DialogContent>
+        </Dialog>
+      </div>
+    </RequireAccess>
   );
 }

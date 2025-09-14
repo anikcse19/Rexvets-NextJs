@@ -66,6 +66,7 @@ import { DateTime } from "luxon";
 import { useEffect, useMemo, useState } from "react";
 import Pagination from "../../Shared/Pagination";
 import RescheduleModal from "../../Shared/RescheduleModal";
+import RequireAccess from "../../Shared/RequireAccess";
 
 export interface Appointment {
   _id: string;
@@ -119,23 +120,23 @@ const AppointmentsPage = () => {
   const fetchAppointments = async () => {
     try {
       setIsDataLoading(true);
-      const response = await fetch('/api/appointments?limit=1000'); // Fetch all appointments
-      
+      const response = await fetch("/api/appointments?limit=1000"); // Fetch all appointments
+
       if (!response.ok) {
-        throw new Error('Failed to fetch appointments');
+        throw new Error("Failed to fetch appointments");
       }
 
       const result = await response.json();
-      
+
       if (!result.success) {
-        throw new Error(result.message || 'Failed to fetch appointments');
+        throw new Error(result.message || "Failed to fetch appointments");
       }
 
       const appointments = result.data as Appointment[];
-      
+
       console.log("Fetched appointments:", appointments.length);
       console.log("Sample appointment:", appointments[0]);
-      
+
       if (!appointments || appointments.length === 0) {
         console.log("No appointments found");
         setAppointmentsData([]);
@@ -159,10 +160,12 @@ const AppointmentsPage = () => {
 
       // Step 2: Sort
       const sortByDateAsc = (a: Appointment, b: Appointment) =>
-        new Date(a.appointmentDate).getTime() - new Date(b.appointmentDate).getTime();
+        new Date(a.appointmentDate).getTime() -
+        new Date(b.appointmentDate).getTime();
 
       const sortByDateDesc = (a: Appointment, b: Appointment) =>
-        new Date(b.appointmentDate).getTime() - new Date(a.appointmentDate).getTime();
+        new Date(b.appointmentDate).getTime() -
+        new Date(a.appointmentDate).getTime();
 
       const sortedUpcoming = upcoming.sort(sortByDateAsc);
       const sortedPast = past.sort(sortByDateDesc);
@@ -191,10 +194,12 @@ const AppointmentsPage = () => {
   const filteredAppointments = useMemo(() => {
     return appointmentsData.filter((appointment: Appointment) => {
       const matchesSearch =
-        appointment.petParent.name.toLowerCase().includes(
-          searchTerm.toLowerCase()
-        ) ||
-        appointment.veterinarian.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        appointment.petParent.name
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
+        appointment.veterinarian.name
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
         appointment.pet.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         appointment._id.toLowerCase().includes(searchTerm.toLowerCase());
 
@@ -213,7 +218,8 @@ const AppointmentsPage = () => {
         statusFilter?.toLowerCase() === derivedStatus.toLowerCase();
 
       const matchesDoctor =
-        doctorFilter === "all" || appointment.veterinarian.name === doctorFilter;
+        doctorFilter === "all" ||
+        appointment.veterinarian.name === doctorFilter;
 
       const matchesDate =
         !dateFilter ||
@@ -323,180 +329,201 @@ const AppointmentsPage = () => {
     return userTime.toFormat("hh:mm a");
   };
   return (
-    // <RequireAccess permission="Appointments">
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-yellow-100">
-            Appointments
-          </h1>
-          <p className="text-gray-600 mt-1 dark:text-blue-100">
-            Manage and track all patient appointments
-          </p>
+    <RequireAccess permission="Appointments">
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-yellow-100">
+              Appointments
+            </h1>
+            <p className="text-gray-600 mt-1 dark:text-blue-100">
+              Manage and track all patient appointments
+            </p>
+          </div>
+          <div className="flex items-center space-x-3">
+            <Button
+              variant="outline"
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+              className="dark:bg-gray-700 dark:border-slate-600"
+            >
+              <RefreshCw
+                className={`w-4 h-4 mr-2 ${isRefreshing ? "animate-spin" : ""}`}
+              />
+              Refresh
+            </Button>
+          </div>
         </div>
-        <div className="flex items-center space-x-3">
-          <Button
-            variant="outline"
-            onClick={handleRefresh}
-            disabled={isRefreshing}
-            className="dark:bg-gray-700 dark:border-slate-600"
-          >
-            <RefreshCw
-              className={`w-4 h-4 mr-2 ${isRefreshing ? "animate-spin" : ""}`}
-            />
-            Refresh
-          </Button>
-        </div>
-      </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card className="dark:bg-[#293549] bg-gray-100">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm dark:text-white text-gray-600">
-                  Total Today
-                </p>
-                <p className="text-2xl font-bold dark:text-blue-400 text-blue-600">
-                  {
-                    (() => {
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Card className="dark:bg-[#293549] bg-gray-100">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm dark:text-white text-gray-600">
+                    Total Today
+                  </p>
+                  <p className="text-2xl font-bold dark:text-blue-400 text-blue-600">
+                    {(() => {
                       const todayAppointments = appointmentsData.filter(
-                        (apt: Appointment) => format(new Date(apt.appointmentDate), "yyyy-MM-dd") === today
+                        (apt: Appointment) =>
+                          format(
+                            new Date(apt.appointmentDate),
+                            "yyyy-MM-dd"
+                          ) === today
                       );
-                      console.log("Today's appointments:", todayAppointments.length, "for date:", today);
+                      console.log(
+                        "Today's appointments:",
+                        todayAppointments.length,
+                        "for date:",
+                        today
+                      );
                       return todayAppointments.length;
-                    })()
-                  }
-                </p>
+                    })()}
+                  </p>
+                </div>
+                <CalendarIcon className="w-8 h-8 dark:text-blue-400 text-blue-600" />
               </div>
-              <CalendarIcon className="w-8 h-8 dark:text-blue-400 text-blue-600" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="dark:bg-[#293549] bg-gray-100">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm dark:text-white text-gray-600">
-                  Upcoming
-                </p>
-                <p className="text-2xl font-bold dark:text-green-400 text-green-600">
-                  {
-                    (() => {
+            </CardContent>
+          </Card>
+          <Card className="dark:bg-[#293549] bg-gray-100">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm dark:text-white text-gray-600">
+                    Upcoming
+                  </p>
+                  <p className="text-2xl font-bold dark:text-green-400 text-green-600">
+                    {(() => {
                       const upcomingAppointments = appointmentsData.filter(
                         (apt: Appointment) => {
-                          const appointmentDateTime = new Date(apt.appointmentDate);
+                          const appointmentDateTime = new Date(
+                            apt.appointmentDate
+                          );
                           const now = new Date();
-                          return appointmentDateTime >= now && apt.status !== "cancelled";
+                          return (
+                            appointmentDateTime >= now &&
+                            apt.status !== "cancelled"
+                          );
                         }
                       );
-                      console.log("Upcoming appointments:", upcomingAppointments.length);
+                      console.log(
+                        "Upcoming appointments:",
+                        upcomingAppointments.length
+                      );
                       return upcomingAppointments.length;
-                    })()
-                  }
-                </p>
+                    })()}
+                  </p>
+                </div>
+                <User className="w-8 h-8 dark:text-green-400 text-green-600" />
               </div>
-              <User className="w-8 h-8 dark:text-green-400 text-green-600" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="dark:bg-[#293549] bg-gray-100">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm dark:text-white text-gray-600">
-                  Incomplete
-                </p>
-                <p className="text-2xl font-bold dark:text-yellow-400 text-yellow-600">
-                  {
-                    (() => {
+            </CardContent>
+          </Card>
+          <Card className="dark:bg-[#293549] bg-gray-100">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm dark:text-white text-gray-600">
+                    Incomplete
+                  </p>
+                  <p className="text-2xl font-bold dark:text-yellow-400 text-yellow-600">
+                    {(() => {
                       const incompleteAppointments = appointmentsData.filter(
                         (apt: Appointment) => {
-                          const appointmentDateTime = new Date(apt.appointmentDate);
+                          const appointmentDateTime = new Date(
+                            apt.appointmentDate
+                          );
                           const now = new Date();
-                          return appointmentDateTime < now && apt.status !== "completed" && apt.status !== "cancelled";
+                          return (
+                            appointmentDateTime < now &&
+                            apt.status !== "completed" &&
+                            apt.status !== "cancelled"
+                          );
                         }
                       );
-                      console.log("Incomplete appointments:", incompleteAppointments.length);
+                      console.log(
+                        "Incomplete appointments:",
+                        incompleteAppointments.length
+                      );
                       return incompleteAppointments.length;
-                    })()
-                  }
-                </p>
+                    })()}
+                  </p>
+                </div>
+                <Clock className="w-8 h-8 dark:text-yellow-400 text-yellow-600" />
               </div>
-              <Clock className="w-8 h-8 dark:text-yellow-400 text-yellow-600" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="dark:bg-[#293549] bg-gray-100">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm dark:text-white text-gray-600">
-                  Completed
-                </p>
-                <p className="text-2xl font-bold dark:text-emerald-400 text-emerald-600">
-                  {
-                    (() => {
+            </CardContent>
+          </Card>
+          <Card className="dark:bg-[#293549] bg-gray-100">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm dark:text-white text-gray-600">
+                    Completed
+                  </p>
+                  <p className="text-2xl font-bold dark:text-emerald-400 text-emerald-600">
+                    {(() => {
                       const completedAppointments = appointmentsData.filter(
                         (apt: Appointment) => apt.status === "completed"
                       );
-                      console.log("Completed appointments:", completedAppointments.length);
+                      console.log(
+                        "Completed appointments:",
+                        completedAppointments.length
+                      );
                       return completedAppointments.length;
-                    })()
-                  }
-                </p>
+                    })()}
+                  </p>
+                </div>
+                <Stethoscope className="w-8 h-8 dark:text-emerald-400 text-emerald-600" />
               </div>
-              <Stethoscope className="w-8 h-8 dark:text-emerald-400 text-emerald-600" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            </CardContent>
+          </Card>
+        </div>
 
-      {/* Filters and Search */}
-      <Card className="dark:bg-[#293549] bg-gray-100">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <Filter className="w-5 h-5" />
-              Filters & Search
-            </CardTitle>
-            <Button variant="ghost" size="sm" onClick={clearFilters}>
-              Clear All
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-4">
-            {/* Search */}
-            <div className="lg:col-span-2">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-white h-4 w-4 " />
-                <Input
-                  placeholder="Search patients, doctors, or appointment ID..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 dark:text-white dark:placeholder:text-gray-200 dark:bg-gray-700 dark:border-slate-600"
-                />
+        {/* Filters and Search */}
+        <Card className="dark:bg-[#293549] bg-gray-100">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <Filter className="w-5 h-5" />
+                Filters & Search
+              </CardTitle>
+              <Button variant="ghost" size="sm" onClick={clearFilters}>
+                Clear All
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-4">
+              {/* Search */}
+              <div className="lg:col-span-2">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-white h-4 w-4 " />
+                  <Input
+                    placeholder="Search patients, doctors, or appointment ID..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10 dark:text-white dark:placeholder:text-gray-200 dark:bg-gray-700 dark:border-slate-600"
+                  />
+                </div>
               </div>
-            </div>
 
-            {/* Status Filter */}
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="dark:bg-gray-700 dark:border-slate-600">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent className="dark:bg-gray-700 dark:border-slate-600">
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="Incomplete">Incomplete</SelectItem>
-                <SelectItem value="Upcoming">Upcoming</SelectItem>
-                <SelectItem value="complete">Completed</SelectItem>
-              </SelectContent>
-            </Select>
+              {/* Status Filter */}
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="dark:bg-gray-700 dark:border-slate-600">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent className="dark:bg-gray-700 dark:border-slate-600">
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="Incomplete">Incomplete</SelectItem>
+                  <SelectItem value="Upcoming">Upcoming</SelectItem>
+                  <SelectItem value="complete">Completed</SelectItem>
+                </SelectContent>
+              </Select>
 
-            {/* Type Filter */}
-            {/* <Select value={typeFilter} onValueChange={setTypeFilter}>
+              {/* Type Filter */}
+              {/* <Select value={typeFilter} onValueChange={setTypeFilter}>
               <SelectTrigger className="dark:bg-slate-900">
                 <SelectValue placeholder="Type" />
               </SelectTrigger>
@@ -510,233 +537,242 @@ const AppointmentsPage = () => {
               </SelectContent>
             </Select> */}
 
-            {/* Doctor Filter */}
-            <Select value={doctorFilter} onValueChange={setDoctorFilter}>
-              <SelectTrigger className="dark:bg-gray-700 dark:border-slate-600">
-                <SelectValue placeholder="Doctor" />
-              </SelectTrigger>
-              <SelectContent className="dark:bg-gray-700 dark:border-slate-600">
-                <SelectItem value="all">All Doctors</SelectItem>
-                {uniqueDoctors.map((doctor) => (
-                  <SelectItem key={doctor} value={doctor}>
-                    {doctor}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              {/* Doctor Filter */}
+              <Select value={doctorFilter} onValueChange={setDoctorFilter}>
+                <SelectTrigger className="dark:bg-gray-700 dark:border-slate-600">
+                  <SelectValue placeholder="Doctor" />
+                </SelectTrigger>
+                <SelectContent className="dark:bg-gray-700 dark:border-slate-600">
+                  <SelectItem value="all">All Doctors</SelectItem>
+                  {uniqueDoctors.map((doctor) => (
+                    <SelectItem key={doctor} value={doctor}>
+                      {doctor}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
 
-            {/* Date Filter */}
-            <Popover>
-              <PopoverTrigger
-                className="dark:bg-gray-700 dark:border-slate-600"
-                asChild
-              >
-                <Button
-                  variant="outline"
-                  className="justify-start text-left font-normal"
+              {/* Date Filter */}
+              <Popover>
+                <PopoverTrigger
+                  className="dark:bg-gray-700 dark:border-slate-600"
+                  asChild
                 >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {dateFilter
-                    ? format(dateFilter, "MMM dd, yyyy")
-                    : "Select date"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent
-                className="w-auto p-0 dark:bg-slate-900"
-                align="start"
-              >
-                <Calendar
-                  mode="single"
-                  selected={dateFilter}
-                  onSelect={setDateFilter}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Appointments Table */}
-      <Card className="dark:bg-[#293549] bg-gray-100">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>Appointments List</CardTitle>
-              <CardDescription className="mt-1 dark:text-gray-100">
-                Showing 10 of {appointmentsData.length} appointments
-              </CardDescription>
+                  <Button
+                    variant="outline"
+                    className="justify-start text-left font-normal"
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {dateFilter
+                      ? format(dateFilter, "MMM dd, yyyy")
+                      : "Select date"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent
+                  className="w-auto p-0 dark:bg-slate-900"
+                  align="start"
+                >
+                  <Calendar
+                    mode="single"
+                    selected={dateFilter}
+                    onSelect={setDateFilter}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow className="dark:text-gray-100">
-                  <TableHead className="dark:text-gray-200">SL</TableHead>
-                  <TableHead className="dark:text-gray-200">Patient</TableHead>
-                  <TableHead className="dark:text-gray-200">Doctor</TableHead>
-                  <TableHead className="dark:text-gray-200">
-                    Date & Time
-                  </TableHead>
-                  <TableHead className="dark:text-gray-200">Status</TableHead>
-                  <TableHead className="dark:text-gray-200">Contact</TableHead>
-                  <TableHead className="text-right dark:text-gray-200">
-                    Actions
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {isDataLoading ? (
-                  <>
-                    {Array.from({ length: 5 }).map((_, idx) => (
-                      <TableRow key={idx}>
-                        {Array.from({ length: 7 }).map((_, cellIdx) => (
-                          <TableCell key={cellIdx}>
-                            <Skeleton className="h-5 w-full" />
-                          </TableCell>
-                        ))}
-                      </TableRow>
-                    ))}
-                  </>
-                ) : filteredAppointments.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={7}>
-                      <div className="flex flex-col items-center py-12">
-                        <CalendarIcon className="h-12 w-12 text-gray-400 dark:text-gray-500" />
-                        <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">
-                          No appointments found
-                        </h3>
-                        <p className="mt-1 text-sm text-gray-500 dark:text-gray-200">
-                          Try adjusting your search or filter criteria.
-                        </p>
-                      </div>
-                    </TableCell>
+          </CardContent>
+        </Card>
+
+        {/* Appointments Table */}
+        <Card className="dark:bg-[#293549] bg-gray-100">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Appointments List</CardTitle>
+                <CardDescription className="mt-1 dark:text-gray-100">
+                  Showing 10 of {appointmentsData.length} appointments
+                </CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow className="dark:text-gray-100">
+                    <TableHead className="dark:text-gray-200">SL</TableHead>
+                    <TableHead className="dark:text-gray-200">
+                      Patient
+                    </TableHead>
+                    <TableHead className="dark:text-gray-200">Doctor</TableHead>
+                    <TableHead className="dark:text-gray-200">
+                      Date & Time
+                    </TableHead>
+                    <TableHead className="dark:text-gray-200">Status</TableHead>
+                    <TableHead className="dark:text-gray-200">
+                      Contact
+                    </TableHead>
+                    <TableHead className="text-right dark:text-gray-200">
+                      Actions
+                    </TableHead>
                   </TableRow>
-                ) : (
-                  paginatedAppointments.map((appointment, index) => (
-                    <TableRow
-                      key={index}
-                      className="hover:bg-gray-50 dark:hover:bg-gray-700"
-                    >
-                      <TableCell className="dark:text-gray-100">
-                        {(currentPage - 1) * itemsPerPage + index + 1}
-                      </TableCell>
-                      <TableCell className="dark:text-gray-100">
-                        <div>
-                          <p className="font-medium text-gray-900 dark:text-gray-100">
-                            {appointment.petParent.name}
-                          </p>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">
-                            {appointment.pet.name}
-                          </p>
-                        </div>
-                      </TableCell>
-                      <TableCell className="dark:text-gray-100">
-                        <div>
-                          <p className="font-medium text-gray-900 dark:text-gray-100">
-                            {appointment.veterinarian.name}
-                          </p>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">
-                            {appointment.veterinarian.email}
+                </TableHeader>
+                <TableBody>
+                  {isDataLoading ? (
+                    <>
+                      {Array.from({ length: 5 }).map((_, idx) => (
+                        <TableRow key={idx}>
+                          {Array.from({ length: 7 }).map((_, cellIdx) => (
+                            <TableCell key={cellIdx}>
+                              <Skeleton className="h-5 w-full bg-gray-200" />
+                            </TableCell>
+                          ))}
+                        </TableRow>
+                      ))}
+                    </>
+                  ) : filteredAppointments.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={7}>
+                        <div className="flex flex-col items-center py-12">
+                          <CalendarIcon className="h-12 w-12 text-gray-400 dark:text-gray-500" />
+                          <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">
+                            No appointments found
+                          </h3>
+                          <p className="mt-1 text-sm text-gray-500 dark:text-gray-200">
+                            Try adjusting your search or filter criteria.
                           </p>
                         </div>
-                      </TableCell>
-                      <TableCell className="dark:text-gray-100">
-                        <div>
-                          <p className="font-medium text-gray-900 dark:text-gray-100 whitespace-nowrap">
-                            {convertNYToLocal(appointment.appointmentDate)}
-                          </p>
-                          <p className="font-medium text-gray-900 dark:text-gray-100 whitespace-nowrap">
-                            {format(
-                              new Date(appointment.appointmentDate),
-                              "MMM dd, yyyy"
-                            )}
-                          </p>
-                        </div>
-                      </TableCell>
-                      <TableCell className="dark:text-gray-100">
-                        {(() => {
-                          const appointmentDateTime = new Date(appointment.appointmentDate);
-                          const now = new Date();
-                          let derivedStatus = "Upcoming";
-
-                          if (appointmentDateTime < now) {
-                            derivedStatus =
-                              appointment.status?.toLowerCase() === "completed"
-                                ? "Complete"
-                                : "Incomplete";
-                          }
-
-                          return getStatusBadge(derivedStatus);
-                        })()}
-                      </TableCell>
-                      <TableCell className="dark:text-gray-100">
-                        <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
-                          <Mail className="w-3 h-3 mr-1" />
-                          {appointment.petParent.email}
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right dark:text-gray-100">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              className="h-8 w-8 p-0 dark:text-gray-100"
-                            >
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent
-                            align="end"
-                            className="dark:bg-gray-800 dark:text-gray-100"
-                          >
-                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <DropdownMenuItem
-                              onClick={() => handleRescheduleClick(appointment)}
-                              className="dark:hover:bg-gray-700"
-                            >
-                              <Pen className="mr-2 h-4 w-4" />
-                              Reschedule
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => handleMonitorClick(appointment)}
-                              className="dark:hover:bg-gray-700"
-                            >
-                              <Video className="mr-2 h-4 w-4" />
-                              Monitor Call
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
                       </TableCell>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
-          <Pagination
-            totalItems={filteredAppointments.length}
-            itemsPerPage={itemsPerPage}
-            currentPage={currentPage}
-            onPageChange={setCurrentPage}
+                  ) : (
+                    paginatedAppointments.map((appointment, index) => (
+                      <TableRow
+                        key={index}
+                        className="hover:bg-gray-50 dark:hover:bg-gray-700"
+                      >
+                        <TableCell className="dark:text-gray-100">
+                          {(currentPage - 1) * itemsPerPage + index + 1}
+                        </TableCell>
+                        <TableCell className="dark:text-gray-100">
+                          <div>
+                            <p className="font-medium text-gray-900 dark:text-gray-100">
+                              {appointment.petParent.name}
+                            </p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                              {appointment.pet.name}
+                            </p>
+                          </div>
+                        </TableCell>
+                        <TableCell className="dark:text-gray-100">
+                          <div>
+                            <p className="font-medium text-gray-900 dark:text-gray-100">
+                              {appointment.veterinarian.name}
+                            </p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                              {appointment.veterinarian.email}
+                            </p>
+                          </div>
+                        </TableCell>
+                        <TableCell className="dark:text-gray-100">
+                          <div>
+                            <p className="font-medium text-gray-900 dark:text-gray-100 whitespace-nowrap">
+                              {convertNYToLocal(appointment.appointmentDate)}
+                            </p>
+                            <p className="font-medium text-gray-900 dark:text-gray-100 whitespace-nowrap">
+                              {format(
+                                new Date(appointment.appointmentDate),
+                                "MMM dd, yyyy"
+                              )}
+                            </p>
+                          </div>
+                        </TableCell>
+                        <TableCell className="dark:text-gray-100">
+                          {(() => {
+                            const appointmentDateTime = new Date(
+                              appointment.appointmentDate
+                            );
+                            const now = new Date();
+                            let derivedStatus = "Upcoming";
+
+                            if (appointmentDateTime < now) {
+                              derivedStatus =
+                                appointment.status?.toLowerCase() ===
+                                "completed"
+                                  ? "Complete"
+                                  : "Incomplete";
+                            }
+
+                            return getStatusBadge(derivedStatus);
+                          })()}
+                        </TableCell>
+                        <TableCell className="dark:text-gray-100">
+                          <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
+                            <Mail className="w-3 h-3 mr-1" />
+                            {appointment.petParent.email}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right dark:text-gray-100">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                className="h-8 w-8 p-0 dark:text-gray-100"
+                              >
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent
+                              align="end"
+                              className="dark:bg-gray-800 dark:text-gray-100"
+                            >
+                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  handleRescheduleClick(appointment)
+                                }
+                                className="dark:hover:bg-gray-700"
+                              >
+                                <Pen className="mr-2 h-4 w-4" />
+                                Reschedule
+                              </DropdownMenuItem>
+                              {/* <DropdownMenuItem
+                                onClick={() => handleMonitorClick(appointment)}
+                                className="dark:hover:bg-gray-700"
+                              >
+                                <Video className="mr-2 h-4 w-4" />
+                                Monitor Call
+                              </DropdownMenuItem> */}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+            <Pagination
+              totalItems={filteredAppointments.length}
+              itemsPerPage={itemsPerPage}
+              currentPage={currentPage}
+              onPageChange={setCurrentPage}
+            />
+          </CardContent>
+        </Card>
+        {/* Modal */}
+        {selectedAppointment && (
+          <RescheduleModal
+            open={openModal}
+            onClose={() => {
+              setOpenModal(false);
+              fetchAppointments();
+            }}
+            appointment={selectedAppointment}
           />
-        </CardContent>
-      </Card>
-      {/* Modal */}
-      {selectedAppointment && (
-        <RescheduleModal
-          open={openModal}
-          onClose={() => {
-            setOpenModal(false);
-            fetchAppointments();
-          }}
-          appointment={selectedAppointment}
-        />
-      )}
-    </div>
-    // </RequireAccess>
+        )}
+      </div>
+    </RequireAccess>
   );
 };
 

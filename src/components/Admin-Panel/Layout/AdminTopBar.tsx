@@ -259,12 +259,13 @@ const AdminTopBar = ({ onMenuClick }: TopbarProps) => {
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
-                className="relative h-10 w-10 rounded-full"
+                className="relative h-10 w-10 rounded-full shadow-2xl"
               >
                 <Avatar className="h-10 w-10">
                   <AvatarImage
-                    src="https://images.pexels.com/photos/5452201/pexels-photo-5452201.jpeg"
+                    src="https://cdn-icons-png.flaticon.com/512/9322/9322133.png"
                     alt="Dr. Admin"
+                    className="object-cover"
                   />
                   <AvatarFallback>
                     {session?.user?.name
