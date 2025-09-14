@@ -4,6 +4,7 @@ import { AppointmentModel } from "@/models/Appointment";
 import { PetHistoryModel } from "@/models/PetHistory";
 import { PetModel } from "@/models/Pet";
 import mongoose from "mongoose";
+import "@/models/Veterinarian";
 
 export async function PATCH(req: NextRequest) {
   await connectToDatabase();

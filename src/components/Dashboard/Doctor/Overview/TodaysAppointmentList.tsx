@@ -2,6 +2,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Appointment } from "@/lib/types";
 import { Calendar, CalendarX2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import React from "react";
 
 const TodaysAppointmentList = ({
@@ -10,6 +11,7 @@ const TodaysAppointmentList = ({
   todaysAppointmentList: Appointment[];
 }) => {
   console.log("todaysAppointmentList", todaysAppointmentList);
+  const router = useRouter();
 
   const formatDateTime = (dateString: string) => {
     return new Date(dateString).toLocaleString("en-US", {
@@ -48,8 +50,13 @@ const TodaysAppointmentList = ({
           ) : (
             todaysAppointmentList?.map((appointment, index) => (
               <div
+                onClick={() =>
+                  router.push(
+                    `/dashboard/doctor/appointments/${appointment?._id}`
+                  )
+                }
                 key={index}
-                className="flex items-center gap-4 p-4 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors"
+                className="flex items-center gap-4 p-4 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer"
               >
                 <div className="flex-shrink-0">
                   <div

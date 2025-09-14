@@ -146,6 +146,13 @@ body {
   scrollbar-width: none; /* Firefox */
 }
 
+Button {
+  cursor: pointer;
+}
+
+button {
+  cursor: pointer;
+}
 @layer base {
   * {
     @apply border-border outline-ring/50;
