@@ -2,14 +2,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import {
-  collection,
-  getDocs,
-  doc,
-  getDoc,
-  query,
-  where,
-} from "firebase/firestore";
-import {
   Card,
   CardContent,
   CardDescription,
@@ -47,9 +39,7 @@ import {
   Heart,
   Stethoscope,
 } from "lucide-react";
-// import { Appointment } from "../appoinments/list/page";
 import { useTheme } from "next-themes";
-import { db } from "@/lib/firebase";
 import { Appointment } from "@/lib/types";
 
 const AdminOverviewPage = () => {
@@ -58,57 +48,146 @@ const AdminOverviewPage = () => {
   const [donations, setDonations] = useState<any[]>([]);
   const [reviews, setReviews] = useState<any[]>([]);
   const [doctorsData, setDoctorsData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const { theme } = useTheme();
 
   const isDark = theme === "dark";
+  
   const fetchParents = async () => {
-    const snapshot = await getDocs(collection(db, "Parents"));
-    const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-    setParents(data);
+    try {
+      const response = await fetch('/api/pet-parents?limit=1000');
+      const result = await response.json();
+      if (result.success) {
+        setParents(result.data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching parents:', error);
+    }
   };
+  
   const fetchAppoinments = async () => {
-    const snapshot = await getDocs(collection(db, "Appointments"));
-    const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-    setAppoinments(data);
+    try {
+      const response = await fetch('/api/appointments?limit=1000');
+      const result = await response.json();
+      if (result.success) {
+        setAppoinments(result.data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching appointments:', error);
+    }
   };
+  
   const fetchDonations = async () => {
-    const snapshot = await getDocs(collection(db, "Donations"));
-    const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-    setDonations(data);
+    try {
+      const response = await fetch('/api/donations?limit=1000');
+      const result = await response.json();
+      if (result.success) {
+        setDonations(result.data || []);
+        console.log("Donations data:", result.data);
+        
+        // Log unique donation types
+        const uniqueTypes = [...new Set(result.data?.map((d: any) => d.donationType))];
+        console.log("Unique donation types:", uniqueTypes);
+      }
+    } catch (error) {
+      console.error('Error fetching donations:', error);
+    }
   };
+  
   const fetchReviews = async () => {
-    const snapshot = await getDocs(collection(db, "Reviews"));
-    const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-    setReviews(data);
+    try {
+      const response = await fetch('/api/reviews?limit=1000');
+      const result = await response.json();
+      if (result.success) {
+        setReviews(result.data?.reviews || []);
+      }
+    } catch (error) {
+      console.error('Error fetching reviews:', error);
+    }
   };
+  
   const fetchDoctors = async () => {
-    const snapshot = await getDocs(
-      collection(db, "Doctors", "Veterinarian", "Veterinarian")
-    );
-    const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-    setDoctorsData(data);
+    try {
+      // First, let's get all veterinarians without any filters to see what's in the database
+      const response = await fetch('/api/veterinarian?limit=1000&skipSlotFilter=true');
+      const result = await response.json();
+      console.log("result = doctors data (all veterinarians)", result);
+      
+      if (result.success && result.data) {
+        console.log("Total veterinarians found:", result.data.length);
+        
+        // Log the approval status of all veterinarians
+        result.data.forEach((vet: any, index: number) => {
+          console.log(`Vet ${index + 1}: ${vet.name}, isApproved: ${vet.isApproved}, isActive: ${vet.isActive}`);
+        });
+        
+        // Filter for approved ones
+        const approvedDoctors = result.data.filter((doc: any) => doc.isApproved === true);
+        console.log("Approved veterinarians:", approvedDoctors.length);
+        
+        // For admin dashboard, let's show all veterinarians regardless of approval status
+        // but prioritize approved ones
+        const allDoctors = result.data.sort((a: any, b: any) => {
+          // Approved first, then by rating
+          if (a.isApproved !== b.isApproved) {
+            return b.isApproved - a.isApproved;
+          }
+          return (b.averageRating || 0) - (a.averageRating || 0);
+        });
+        
+        setDoctorsData(allDoctors);
+        console.log("doctors data set:", allDoctors.length, "veterinarians");
+      } else {
+        console.log("No veterinarians found in database or API issue");
+        setDoctorsData([]);
+      }
+    } catch (error) {
+      console.error('Error fetching veterinarians:', error);
+      setDoctorsData([]);
+    }
   };
 
-  console.log("parents =", appoinments);
   useEffect(() => {
-    fetchParents();
-    fetchAppoinments();
-    fetchDonations();
-    fetchReviews();
-    fetchDoctors();
+    const fetchAllData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        await Promise.all([
+          fetchParents(),
+          fetchAppoinments(),
+          fetchDonations(),
+          fetchReviews(),
+          fetchDoctors(),
+        ]);
+      } catch (err) {
+        setError('Failed to load dashboard data');
+        console.error('Error fetching dashboard data:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAllData();
   }, []);
 
-  // Top doctors
-  const sortedDoctors = doctorsData
-    .filter((doc) => doc.Approved === "yes")
+  // Top doctors - show all veterinarians but prioritize approved ones
+  const sortedDoctors = (doctorsData || [])
     .sort((a, b) => {
-      const aAppointments = a.Appointments?.length || 0;
-      const bAppointments = b.Appointments?.length || 0;
+      // First sort by approval status (approved first)
+      if (a.isApproved !== b.isApproved) {
+        return b.isApproved - a.isApproved;
+      }
+      
+      // Then by number of appointments
+      const aAppointments = a.appointmentCount || a.appointments?.length || 0;
+      const bAppointments = b.appointmentCount || b.appointments?.length || 0;
 
       if (bAppointments !== aAppointments) {
         return bAppointments - aAppointments; // more appointments first
       }
 
+      // Finally by rating
       const aRating = a.averageRating || 0;
       const bRating = b.averageRating || 0;
 
@@ -117,15 +196,15 @@ const AdminOverviewPage = () => {
 
   // Get today's date in 'YYYY-MM-DD' format
   const today = new Date();
-  const todayData = appoinments.filter(
-    (item) => item.AppointmentDate === today.toISOString().split("T")[0]
+  const todayData = (appoinments || []).filter(
+    (item) => item.appointmentDate === today.toISOString().split("T")[0]
   );
   // find current months donation
   const currentMonth = today.getMonth(); // 0 = Jan, 6 = July
   const currentYear = today.getFullYear();
 
-  const currentMonthDonations = donations.filter((item) => {
-    const donationDate = new Date(item.timestamp.seconds * 1000);
+  const currentMonthDonations = (donations || []).filter((item) => {
+    const donationDate = new Date(item.timestamp);
     return (
       donationDate.getFullYear() === currentYear &&
       donationDate.getMonth() === currentMonth
@@ -136,34 +215,48 @@ const AdminOverviewPage = () => {
   const totalDonationAmount = currentMonthDonations.reduce((sum, item) => {
     return sum + Number(item.donationAmount);
   }, 0);
-  //  calsulate donation type percentage
-  const filtered = donations.filter((item) => {
-    const date = new Date(item.timestamp.seconds * 1000);
-    const isThisMonth =
-      date.getFullYear() === currentYear && date.getMonth() === currentMonth;
-    const isKnownType =
-      item.donationType === "donation" || item.donationType === "booking";
-    return isThisMonth && isKnownType;
+  // Calculate donation type distribution for current month
+  const currentMonthDonationsFiltered = (donations || []).filter((item) => {
+    const date = new Date(item.timestamp);
+    return (
+      date.getFullYear() === currentYear &&
+      date.getMonth() === currentMonth &&
+      item.donationType // Only include items with donationType
+    );
   });
 
-  // Step 2: Count known types
-  let bookingCount = 0;
-  let donationCount = 0;
-
-  filtered.forEach((item) => {
-    if (item.donationType === "booking") bookingCount++;
-    else if (item.donationType === "donation") donationCount++;
+  // Count donations by type
+  const donationTypeCounts: { [key: string]: number } = {};
+  currentMonthDonationsFiltered.forEach((item) => {
+    const type = item.donationType || 'unknown';
+    donationTypeCounts[type] = (donationTypeCounts[type] || 0) + 1;
   });
 
-  const total = bookingCount + donationCount;
+  const totalDonations = currentMonthDonationsFiltered.length;
 
-  // Step 3: Calculate percentages
-  const bookingPercentage =
-    total > 0 ? ((bookingCount / total) * 100).toFixed(2) : "0";
-  const donationPercentage =
-    total > 0 ? ((donationCount / total) * 100).toFixed(2) : "0%";
+  // Create appointment types array dynamically
+  const appointmentTypes = Object.entries(donationTypeCounts).map(([type, count]) => {
+    const percentage = totalDonations > 0 ? ((count / totalDonations) * 100).toFixed(2) : "0";
+    return {
+      name: type.charAt(0).toUpperCase() + type.slice(1), // Capitalize first letter
+      value: parseFloat(percentage),
+      color: type === 'donation' ? '#10B981' : type === 'booking' ? '#3B82F6' : '#6B7280'
+    };
+  });
+
+  // If no donations this month, show a default message
+  if (appointmentTypes.length === 0) {
+    appointmentTypes.push({
+      name: "No donations this month",
+      value: 100,
+      color: '#E5E7EB'
+    });
+  }
+
+  console.log("Donation type counts:", donationTypeCounts);
+  console.log("Appointment types for chart:", appointmentTypes);
   // review count
-  const validRatings = reviews
+  const validRatings = (reviews || [])
     .map((item) => item.rating)
     .filter((rating) => rating !== null && typeof rating === "number");
 
@@ -174,14 +267,6 @@ const AdminOverviewPage = () => {
         validRatings.length
       : 0;
 
-  const appointmentTypes = [
-    { name: "Booking", value: parseFloat(bookingPercentage), color: "#3B82F6" },
-    {
-      name: "Donation",
-      value: parseFloat(donationPercentage),
-      color: "#10B981",
-    },
-  ];
 
   const startOfWeek = new Date(today);
   startOfWeek.setDate(today.getDate() - ((today.getDay() + 6) % 7)); // Monday
@@ -214,8 +299,8 @@ const AdminOverviewPage = () => {
   };
 
   // Step 4: Process appointments
-  appoinments.forEach((appt) => {
-    const date = new Date(appt.AppointmentDate);
+  (appoinments || []).forEach((appt) => {
+    const date = new Date(appt.appointmentDate);
     if (date >= startOfWeek && date <= endOfWeek) {
       const index = jsDayToIndex[date.getDay()];
       weeklyAppointments[index].appointments++;
@@ -342,6 +427,38 @@ const AdminOverviewPage = () => {
     return `${days} day${days !== 1 ? "s" : ""} ago`;
   }
 
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600 dark:text-gray-300">Loading dashboard data...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="text-red-500 text-6xl mb-4">⚠️</div>
+            <p className="text-red-600 dark:text-red-400 text-lg">{error}</p>
+            <button 
+              onClick={() => window.location.reload()} 
+              className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 ">
       {/* Header */}
@@ -371,7 +488,7 @@ const AdminOverviewPage = () => {
                   Total Parents
                 </p>
                 <p className="text-3xl font-bold dark:text-white text-gray-900 mt-2">
-                  {parents.length}
+                  {parents?.length || 0}
                 </p>
               </div>
               <div className={`bg-blue-100 p-3 rounded-lg`}>
@@ -388,7 +505,7 @@ const AdminOverviewPage = () => {
                   Appoinments today
                 </p>
                 <p className="text-3xl font-bold dark:text-white text-gray-900 mt-2">
-                  {todayData.length}
+                  {todayData?.length || 0}
                 </p>
               </div>
               <div className={`bg-green-50 p-3 rounded-lg`}>
@@ -405,7 +522,7 @@ const AdminOverviewPage = () => {
                   Monthly Donations
                 </p>
                 <p className="text-3xl font-bold dark:text-white text-gray-900 mt-2">
-                  ${totalDonationAmount}
+                  ${totalDonationAmount || 0}
                 </p>
               </div>
               <div className={`bg-green-50 p-3 rounded-lg`}>
@@ -448,35 +565,38 @@ const AdminOverviewPage = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4 ">
-              {sortedDoctors?.slice(0, 4).map((doctor) => (
+              {sortedDoctors?.slice(0, 4).map((doctor, index) => (
                 <div
-                  key={doctor.id}
+                  key={doctor._id || doctor.id || `doctor-${index}`}
                   className="flex items-center gap-3 p-3 bg-gray-100 dark:bg-slate-800 rounded-lg"
                 >
                   <img
-                    src={doctor.profilePictureURL}
-                    alt={`${doctor.FirstName} ${doctor.LastName}`}
+                    src={doctor.profileImage || '/images/default-avatar.png'}
+                    alt={doctor.name}
                     className="w-12 h-12 rounded-full object-cover border border-gray-300"
                   />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium dark:text-white text-gray-900 truncate">
-                      Dr. {doctor.FirstName} {doctor.LastName},{" "}
-                      {doctor.PostNominalLetters}
+                      Dr. {doctor.name}
                     </p>
                     <p className="text-xs dark:text-gray-100 text-gray-500">
-                      with {doctor?.DocType}
+                      {doctor.specialization}
                     </p>
+                    {!doctor.isApproved && (
+                      <Badge variant="outline" className="text-xs mt-1">
+                        Pending Approval
+                      </Badge>
+                    )}
                   </div>
                   <div className="text-right">
                     <p className="text-sm dark:text-gray-100 text-gray-800">
-                      {" "}
-                      {doctor?.Appointments?.length} Appointments
+                      {doctor?.appointmentCount || doctor?.appointments?.length || 0} Appointments
                     </p>
                     <Badge
                       variant="secondary"
                       className="bg-yellow-500 hover:bg-yellow-500 text-white text-xs"
                     >
-                      {doctor?.averageRating ? doctor.averageRating : 0}/5
+                      {doctor?.averageRating ? doctor.averageRating.toFixed(1) : 0}/5
                     </Badge>
                   </div>
                 </div>
@@ -639,7 +759,7 @@ const AdminOverviewPage = () => {
 
       {/* Patient Flow Chart */}
       <Card className="border-0 shadow-sm bg-gray-100 dark:bg-[#293549]">
-        <CardHeader>
+        {/* <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Heart className="w-5 h-5 text-red-600" />
             Daily Patient Flow
@@ -647,7 +767,7 @@ const AdminOverviewPage = () => {
           <CardDescription className={isDark ? "text-gray-100" : ""}>
             Patient visits throughout the day
           </CardDescription>
-        </CardHeader>
+        </CardHeader> */}
         {/* <CardContent>
           <ResponsiveContainer width="100%" height={250}>
             <LineChart data={patientFlow}>

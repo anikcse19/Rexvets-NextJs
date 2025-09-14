@@ -250,7 +250,7 @@ export default function FindVetPage({
           <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
             <div>
               <h1 className="text-3xl lg:text-4xl font-bold mb-4">
-                Find Your Perfect Veterinarian
+                Find Your Veterinarian
               </h1>
               <p className="text-blue-100 text-lg mb-6">
                 Connect with experienced veterinarians for expert pet care services
