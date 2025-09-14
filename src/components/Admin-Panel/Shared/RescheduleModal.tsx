@@ -10,10 +10,6 @@ import LoadingSpinner from "@/components/ui/loading-spinner";
 import { addMonths, compareAsc, format, parse } from "date-fns";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import {
-  createNewBookedSlot,
-  saveRescheduledAppointment,
-} from "../Actions/apointment";
 import { getVetSlots } from "../Actions/vets";
 
 export default function RescheduleModal({
