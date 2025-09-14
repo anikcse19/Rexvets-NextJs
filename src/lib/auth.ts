@@ -70,6 +70,14 @@ export const authOptions = {
             return null;
           }
 
+          console.log("User found for auth:", {
+            email: user.email,
+            role: user.role,
+            isActive: user.isActive,
+            isEmailVerified: user.isEmailVerified,
+            hasPassword: !!user.password
+          });
+
           // Check if user exists but has no password (Google OAuth user)
           if (!user.password && user.googleId) {
             console.error(
@@ -96,9 +104,9 @@ export const authOptions = {
           // Verify password
           const isPasswordValid = await user.comparePassword(password);
           if (!isPasswordValid) {
+            console.error("Invalid password for user:", email);
             // Increment login attempts
             await user.incrementLoginAttempts();
-            console.error("Invalid password for user:", email);
             return null;
           }
 
