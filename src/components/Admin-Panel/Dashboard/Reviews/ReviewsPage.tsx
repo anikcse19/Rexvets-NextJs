@@ -65,6 +65,7 @@ import {
   updateReview,
   updateReviewStatus,
 } from "../../Actions/reviews";
+import RequireAccess from "../../Shared/RequireAccess";
 
 export default function AdminReviewsPage() {
   const [reviews, setReviews] = useState<Reviews[]>([]);
@@ -310,577 +311,581 @@ export default function AdminReviewsPage() {
   console.log("reviews", reviews);
 
   return (
-    // <RequireAccess permission="Reviews">
-    <div className="lg:p-6 space-y-6">
-      <Card className="dark:bg-slate-800 bg-gray-100">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle>Filter Reviews</CardTitle>
-            {filters.reviewer ||
-              (filters.visibility && (
-                <Button
-                  className="dark:bg-gray-700 dark:border-slate-600"
-                  variant="outline"
-                  onClick={() =>
-                    setFilters({ reviewer: "", reviewed: "", visibility: "" })
-                  }
-                >
-                  Clear
-                </Button>
-              ))}
-          </div>
-        </CardHeader>
-        <CardContent className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Input
-            className="dark:bg-gray-700 dark:border-slate-600"
-            placeholder="Search reviewer"
-            value={filters.reviewer}
-            onChange={(e) =>
-              setFilters({ ...filters, reviewer: e.target.value })
-            }
-          />
-
-          <Select
-            onValueChange={(value) =>
-              setFilters({ ...filters, visibility: value })
-            }
-            value={filters.visibility}
-          >
-            <SelectTrigger className="dark:bg-gray-700 dark:border-slate-600">
-              <SelectValue placeholder="Select Visibility" />
-            </SelectTrigger>
-            <SelectContent className="dark:bg-gray-700 dark:border-slate-600">
-              <SelectItem value="shown">Shown</SelectItem>
-              <SelectItem value="hidden">Hidden</SelectItem>
-            </SelectContent>
-          </Select>
-        </CardContent>
-      </Card>
-
-      <Card className="dark:bg-slate-800 bg-gray-100">
-        <CardHeader>
-          <div className="flex items-center justify-between w-full">
-            <div>
-              <CardTitle className="text-xl font-semibold">
-                Pet Parent Reviews Management
-              </CardTitle>
-              <p className="text-sm text-muted-foreground">
-                Approve or hide reviews submitted by pet parents for vets or
-                products.
-              </p>
+    <RequireAccess permission="Reviews">
+      <div className="lg:p-6 space-y-6">
+        <Card className="dark:bg-slate-800 bg-gray-100">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle>Filter Reviews</CardTitle>
+              {filters.reviewer ||
+                (filters.visibility && (
+                  <Button
+                    className="dark:bg-gray-700 dark:border-slate-600"
+                    variant="outline"
+                    onClick={() =>
+                      setFilters({ reviewer: "", reviewed: "", visibility: "" })
+                    }
+                  >
+                    Clear
+                  </Button>
+                ))}
             </div>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <Input
+              className="dark:bg-gray-700 dark:border-slate-600"
+              placeholder="Search reviewer"
+              value={filters.reviewer}
+              onChange={(e) =>
+                setFilters({ ...filters, reviewer: e.target.value })
+              }
+            />
 
-            {/* Add review modal */}
-            <Button
-              className="!dark:bg-slate-900 !dark:text-white !bg-[#81d8d0] !text-black !hover:bg-[#63a8a1]"
-              onClick={() => setAddDialogOpen(true)}
+            <Select
+              onValueChange={(value) =>
+                setFilters({ ...filters, visibility: value })
+              }
+              value={filters.visibility}
             >
-              Add Review
-            </Button>
+              <SelectTrigger className="dark:bg-gray-700 dark:border-slate-600">
+                <SelectValue placeholder="Select Visibility" />
+              </SelectTrigger>
+              <SelectContent className="dark:bg-gray-700 dark:border-slate-600">
+                <SelectItem value="shown">Shown</SelectItem>
+                <SelectItem value="hidden">Hidden</SelectItem>
+              </SelectContent>
+            </Select>
+          </CardContent>
+        </Card>
 
-            <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
-              <DialogContent className="dark:bg-slate-800 dark:border-slate-600">
-                <DialogHeader>
-                  <DialogTitle>Add Review</DialogTitle>
-                  <DialogDescription>Submit a new review.</DialogDescription>
-                </DialogHeader>
+        <Card className="dark:bg-slate-800 bg-gray-100">
+          <CardHeader>
+            <div className="flex items-center justify-between w-full">
+              <div>
+                <CardTitle className="text-xl font-semibold">
+                  Pet Parent Reviews Management
+                </CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  Approve or hide reviews submitted by pet parents for vets or
+                  products.
+                </p>
+              </div>
 
-                <div className="space-y-4">
-                  {/* Doctor Select */}
+              {/* Add review modal */}
+              <Button
+                className="!dark:bg-slate-900 !dark:text-white !bg-[#81d8d0] !text-black !hover:bg-[#63a8a1]"
+                onClick={() => setAddDialogOpen(true)}
+              >
+                Add Review
+              </Button>
+
+              <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
+                <DialogContent className="dark:bg-slate-800 dark:border-slate-600">
+                  <DialogHeader>
+                    <DialogTitle>Add Review</DialogTitle>
+                    <DialogDescription>Submit a new review.</DialogDescription>
+                  </DialogHeader>
+
                   <div className="space-y-4">
-                    <Label>Reviewed</Label>
-                    <Select
-                      onValueChange={(value) => {
-                        const selected = doctorsData.find(
-                          (doc) => doc._id === value
-                        );
-                        if (selected) {
-                          setForm({
-                            ...form,
-                            doctorName: `${selected.firstName} ${selected.lastName}`,
-                            doctorId: selected._id,
-                          });
-                        }
-                      }}
-                    >
-                      <SelectTrigger className="dark:bg-gray-700 dark:border-slate-600 w-full">
-                        <SelectValue placeholder="Select Doctor" />
-                      </SelectTrigger>
-                      <SelectContent className="dark:bg-gray-700 dark:border-slate-600">
-                        {doctorsData.map((doc) => (
-                          <SelectItem key={doc._id} value={doc._id}>
-                            {doc.firstName} {doc.lastName}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Reviewer Select */}
-                  <div className="space-y-4">
-                    <Label>Reviewer</Label>
-                    <Select
-                      onValueChange={(value) => {
-                        const selected = parents.find((p) => p._id === value);
-                        if (selected) {
-                          setForm({
-                            ...form,
-                            parentId: selected._id,
-                            parentName: selected.Name,
-                          });
-                        }
-                      }}
-                    >
-                      <SelectTrigger className="dark:bg-gray-700 dark:border-slate-600 w-full">
-                        <SelectValue placeholder="Select Parent" />
-                      </SelectTrigger>
-                      <SelectContent className="dark:bg-gray-700 dark:border-slate-600">
-                        {parents.map((p) => (
-                          <SelectItem key={p._id} value={p._id}>
-                            {p.name} {p._id}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Review Text */}
-                  <div>
-                    <Textarea
-                      className="dark:bg-gray-700 dark:border-slate-600"
-                      placeholder="Write review..."
-                      value={form.reviewText}
-                      onChange={(e) =>
-                        setForm({ ...form, reviewText: e.target.value })
-                      }
-                    />
-                  </div>
-
-                  {/* Rating Select */}
-                  <div>
-                    <Select
-                      value={form.rating}
-                      onValueChange={(value) =>
-                        setForm({ ...form, rating: value })
-                      }
-                    >
-                      <SelectTrigger className="dark:bg-gray-700 dark:border-slate-600 w-full">
-                        <SelectValue placeholder="Select Rating" />
-                      </SelectTrigger>
-                      <SelectContent className="dark:bg-gray-700 dark:border-slate-600">
-                        {[1, 2, 3, 4, 5].map((n) => (
-                          <SelectItem key={n} value={n.toString()}>
-                            {n} Star{n > 1 ? "s" : ""}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Date Picker */}
-                  <div className="space-y-4">
-                    <Label>Appointment Date</Label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant={"outline"}
-                          className={cn(
-                            "w-full justify-start text-left font-normal dark:bg-gray-700 dark:border-slate-600",
-                            !form.appointmentDate && "text-muted-foreground"
-                          )}
-                        >
-                          {form.appointmentDate
-                            ? format(form.appointmentDate, "PPP")
-                            : "Pick a date"}
-                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent
-                        className="w-auto p-0 dark:bg-slate-800 dark:border-slate-600"
-                        align="start"
+                    {/* Doctor Select */}
+                    <div className="space-y-4">
+                      <Label>Reviewed</Label>
+                      <Select
+                        onValueChange={(value) => {
+                          const selected = doctorsData.find(
+                            (doc) => doc._id === value
+                          );
+                          if (selected) {
+                            setForm({
+                              ...form,
+                              doctorName: `${selected.firstName} ${selected.lastName}`,
+                              doctorId: selected._id,
+                            });
+                          }
+                        }}
                       >
-                        <Calendar
-                          mode="single"
-                          selected={form.appointmentDate}
-                          onSelect={(date) => {
-                            setForm({ ...form, appointmentDate: date });
-                          }}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
+                        <SelectTrigger className="dark:bg-gray-700 dark:border-slate-600 w-full">
+                          <SelectValue placeholder="Select Doctor" />
+                        </SelectTrigger>
+                        <SelectContent className="dark:bg-gray-700 dark:border-slate-600">
+                          {doctorsData.map((doc) => (
+                            <SelectItem key={doc._id} value={doc._id}>
+                              {doc.firstName} {doc.lastName}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-                  {/* Submit Button */}
-                  <div>
-                    <Button
-                      className="w-full bg-blue-700 hover:bg-blue-800 text-white"
-                      onClick={handleAddReview}
-                    >
-                      Submit Review
-                    </Button>
+                    {/* Reviewer Select */}
+                    <div className="space-y-4">
+                      <Label>Reviewer</Label>
+                      <Select
+                        onValueChange={(value) => {
+                          const selected = parents.find((p) => p._id === value);
+                          if (selected) {
+                            setForm({
+                              ...form,
+                              parentId: selected._id,
+                              parentName: selected.Name,
+                            });
+                          }
+                        }}
+                      >
+                        <SelectTrigger className="dark:bg-gray-700 dark:border-slate-600 w-full">
+                          <SelectValue placeholder="Select Parent" />
+                        </SelectTrigger>
+                        <SelectContent className="dark:bg-gray-700 dark:border-slate-600">
+                          {parents.map((p) => (
+                            <SelectItem key={p._id} value={p._id}>
+                              {p.name} {p._id}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Review Text */}
+                    <div>
+                      <Textarea
+                        className="dark:bg-gray-700 dark:border-slate-600"
+                        placeholder="Write review..."
+                        value={form.reviewText}
+                        onChange={(e) =>
+                          setForm({ ...form, reviewText: e.target.value })
+                        }
+                      />
+                    </div>
+
+                    {/* Rating Select */}
+                    <div>
+                      <Select
+                        value={form.rating}
+                        onValueChange={(value) =>
+                          setForm({ ...form, rating: value })
+                        }
+                      >
+                        <SelectTrigger className="dark:bg-gray-700 dark:border-slate-600 w-full">
+                          <SelectValue placeholder="Select Rating" />
+                        </SelectTrigger>
+                        <SelectContent className="dark:bg-gray-700 dark:border-slate-600">
+                          {[1, 2, 3, 4, 5].map((n) => (
+                            <SelectItem key={n} value={n.toString()}>
+                              {n} Star{n > 1 ? "s" : ""}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Date Picker */}
+                    <div className="space-y-4">
+                      <Label>Appointment Date</Label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant={"outline"}
+                            className={cn(
+                              "w-full justify-start text-left font-normal dark:bg-gray-700 dark:border-slate-600",
+                              !form.appointmentDate && "text-muted-foreground"
+                            )}
+                          >
+                            {form.appointmentDate
+                              ? format(form.appointmentDate, "PPP")
+                              : "Pick a date"}
+                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent
+                          className="w-auto p-0 dark:bg-slate-800 dark:border-slate-600"
+                          align="start"
+                        >
+                          <Calendar
+                            mode="single"
+                            selected={form.appointmentDate}
+                            onSelect={(date) => {
+                              setForm({ ...form, appointmentDate: date });
+                            }}
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+
+                    {/* Submit Button */}
+                    <div>
+                      <Button
+                        className="w-full bg-blue-700 hover:bg-blue-800 text-white"
+                        onClick={handleAddReview}
+                      >
+                        Submit Review
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              </DialogContent>
-            </Dialog>
-          </div>
-        </CardHeader>
-        <Separator />
-        <CardContent className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>#</TableHead>
-                <TableHead>Reviewer</TableHead>
-                <TableHead>Reviewed</TableHead>
-                <TableHead>Rating</TableHead>
-                <TableHead>Comment</TableHead>
-                <TableHead>Created At</TableHead>
-                <TableHead>Visible</TableHead>
-                <TableHead className="text-right">Action</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading &&
-                Array.from({ length: 5 }).map((_, index) => (
-                  <TableRow key={index}>
-                    <TableCell>
-                      <Skeleton className="h-6 w-8" />
-                    </TableCell>
-                    <TableCell>
-                      <Skeleton className="h-6 w-32" />
-                    </TableCell>
-                    <TableCell>
-                      <Skeleton className="h-6 w-32" />
-                    </TableCell>
-                    <TableCell>
-                      <Skeleton className="h-6 w-20" />
-                    </TableCell>
-                    <TableCell>
-                      <Skeleton className="h-6 w-48" />
-                    </TableCell>
-                    <TableCell>
-                      <Skeleton className="h-6 w-32" />
-                    </TableCell>
-                    <TableCell>
-                      <Skeleton className="h-6 w-16" />
+                </DialogContent>
+              </Dialog>
+            </div>
+          </CardHeader>
+          <Separator />
+          <CardContent className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>#</TableHead>
+                  <TableHead>Reviewer</TableHead>
+                  <TableHead>Reviewed</TableHead>
+                  <TableHead>Rating</TableHead>
+                  <TableHead>Comment</TableHead>
+                  <TableHead>Created At</TableHead>
+                  <TableHead>Visible</TableHead>
+                  <TableHead className="text-right">Action</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {isLoading &&
+                  Array.from({ length: 5 }).map((_, index) => (
+                    <TableRow key={index}>
+                      <TableCell>
+                        <Skeleton className="h-6 w-8" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-6 w-32" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-6 w-32" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-6 w-20" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-6 w-48" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-6 w-32" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-6 w-16" />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                {paginatedReviews?.length <= 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center">
+                      No reviews found
                     </TableCell>
                   </TableRow>
-                ))}
-              {paginatedReviews?.length <= 0 ? (
-                <TableRow>
-                  <TableCell colSpan={7} className="text-center">
-                    No reviews found
-                  </TableCell>
-                </TableRow>
-              ) : (
-                paginatedReviews.map((review, index) => (
-                  <TableRow key={index}>
-                    <TableCell>
-                      {(currentPage - 1) * itemsPerPage + index + 1}
-                    </TableCell>
-                    <TableCell>{review?.vetId?.name}</TableCell>
-                    <TableCell>{review?.parentId?.name}</TableCell>
+                ) : (
+                  paginatedReviews.map((review, index) => (
+                    <TableRow key={index}>
+                      <TableCell>
+                        {(currentPage - 1) * itemsPerPage + index + 1}
+                      </TableCell>
+                      <TableCell>{review?.vetId?.name}</TableCell>
+                      <TableCell>{review?.parentId?.name}</TableCell>
 
-                    <TableCell>
-                      <Badge variant="outline">
-                        {review.rating ? review.rating : 5} / 5
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="max-w-xs truncate">
-                      {review?.comment}
-                    </TableCell>
-                    <TableCell>
-                      {review?.createdAt ? (
-                        <div>
-                          <p className="font-medium dark:text-gray-100 text-gray-900 whitespace-nowrap">
-                            {format(
-                              new Date(review?.createdAt),
-                              "MMM dd, yyyy"
-                            )}{" "}
-                            <br />
-                            {format(new Date(review?.createdAt), "hh:mm a")}
-                          </p>
-                        </div>
-                      ) : (
-                        <></>
-                      )}
-
-                      {/* {review.appointmentDate} */}
-                    </TableCell>
-                    <TableCell>
-                      <Switch
-                        checked={review.visible}
-                        onCheckedChange={() => toggleVisibility(review._id)}
-                        className={cn(
-                          "data-[state=checked]:bg-blue-600 data-[state=unchecked]:bg-gray-400",
-                          "dark:data-[state=checked]:bg-green-600 dark:data-[state=unchecked]:bg-slate-400"
-                        )}
-                      />
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Dialog
-                        open={editDialogOpen && selectedReviewId === review._id}
-                        onOpenChange={(open) => {
-                          setEditDialogOpen(open);
-                          if (!open) {
-                            setSelectedReviewId(null);
-                            resetForm();
-                          }
-                        }}
-                      >
-                        <DialogTrigger className="mr-2" asChild>
-                          <Button
-                            variant="outline"
-                            className="dark:bg-gray-700 dark:border-slate-600"
-                            size="sm"
-                            onClick={() => {
-                              setSelectedReviewId(review._id);
-                              setForm({
-                                doctorId: review?.vetId?._id,
-                                doctorName: review.doctorName,
-                                parentId: review?.parentId?._id,
-                                parentName: review.parentName,
-                                reviewText: review.comment,
-                                rating: review.rating.toString(),
-                                visible: review.visible,
-                                appointmentDate: review.appointmentDate
-                                  ? new Date(review.appointmentDate)
-                                  : undefined,
-                              });
-                              setEditDialogOpen(true);
-                            }}
-                          >
-                            Edit
-                          </Button>
-                        </DialogTrigger>
-
-                        <DialogContent className="dark:bg-slate-800 dark:border-slate-600">
-                          <DialogHeader>
-                            <DialogTitle>Edit Review</DialogTitle>
-                            <DialogDescription>
-                              Update the selected review details.
-                            </DialogDescription>
-                          </DialogHeader>
-                          <div className="space-y-4">
-                            {/* Doctor Selector */}
-                            <div className="space-y-4">
-                              <Label>Reviewed</Label>
-                              <Select
-                                value={form.doctorId}
-                                onValueChange={(value) => {
-                                  const selected = doctorsData.find(
-                                    (doc) => doc._id === value
-                                  );
-                                  if (selected) {
-                                    setForm({
-                                      ...form,
-                                      doctorName: `${selected.firstName} ${selected.lastName}`,
-                                      doctorId: selected._id,
-                                    });
-                                  }
-                                }}
-                              >
-                                <SelectTrigger className="dark:bg-gray-700 dark:border-slate-600 w-full">
-                                  <SelectValue placeholder="Select Doctor" />
-                                </SelectTrigger>
-                                <SelectContent className="dark:bg-gray-700 dark:border-slate-600">
-                                  {doctorsData.map((doc) => (
-                                    <SelectItem key={doc._id} value={doc._id}>
-                                      {doc.firstName} {doc.lastName}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-
-                            {/* Reviewer Selector */}
-                            <div className="space-y-4">
-                              <Label>Reviewer</Label>
-                              <Select
-                                value={form.parentId}
-                                onValueChange={(value) => {
-                                  const selected = parents.find(
-                                    (p) => p._id === value
-                                  );
-                                  if (selected) {
-                                    setForm({
-                                      ...form,
-                                      parentId: selected._id,
-                                      parentName: selected.name,
-                                    });
-                                  }
-                                }}
-                              >
-                                <SelectTrigger className="dark:bg-gray-700 dark:border-slate-600 w-full">
-                                  <SelectValue placeholder="Select Parent" />
-                                </SelectTrigger>
-                                <SelectContent className="dark:bg-gray-700 dark:border-slate-600">
-                                  {parents.map((p) => (
-                                    <SelectItem key={p._id} value={p._id}>
-                                      {p.name}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-
-                            {/* Review Textarea */}
-                            <div>
-                              <Textarea
-                                className="dark:bg-gray-700 dark:border-slate-600"
-                                placeholder="Write review..."
-                                value={form.reviewText}
-                                onChange={(e) =>
-                                  setForm({
-                                    ...form,
-                                    reviewText: e.target.value,
-                                  })
-                                }
-                              />
-                            </div>
-
-                            {/* Rating Select */}
-                            <div className="space-y-4">
-                              <Label>Rating</Label>
-                              <Select
-                                value={form.rating}
-                                onValueChange={(value) =>
-                                  setForm({ ...form, rating: value })
-                                }
-                              >
-                                <SelectTrigger className="dark:bg-gray-700 dark:border-slate-600 w-full">
-                                  <SelectValue placeholder="Select Rating" />
-                                </SelectTrigger>
-                                <SelectContent className="dark:bg-gray-700 dark:border-slate-600">
-                                  {[1, 2, 3, 4, 5].map((n) => (
-                                    <SelectItem key={n} value={n.toString()}>
-                                      {n} Star{n > 1 ? "s" : ""}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-
-                            {/* Appointment Date Picker */}
-                            <div className="space-y-4">
-                              <Label>Appointment Date</Label>
-                              <Popover>
-                                <PopoverTrigger asChild>
-                                  <Button
-                                    variant="outline"
-                                    className={cn(
-                                      "w-full justify-start text-left font-normal dark:bg-gray-700 dark:border-slate-600",
-                                      !form.appointmentDate &&
-                                        "text-muted-foreground"
-                                    )}
-                                  >
-                                    {form.appointmentDate
-                                      ? format(form.appointmentDate, "PPP")
-                                      : "Pick a date"}
-                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                  </Button>
-                                </PopoverTrigger>
-                                <PopoverContent
-                                  className="w-auto p-0 dark:bg-gray-700 dark:border-slate-600"
-                                  align="start"
-                                >
-                                  <Calendar
-                                    className="dark:bg-gray-700 dark:border-slate-600"
-                                    mode="single"
-                                    selected={form.appointmentDate}
-                                    onSelect={(date) =>
-                                      setForm({
-                                        ...form,
-                                        appointmentDate: date,
-                                      })
-                                    }
-                                    initialFocus
-                                  />
-                                </PopoverContent>
-                              </Popover>
-                            </div>
-
-                            {/* Submit Button */}
-                            <div>
-                              <Button
-                                className="w-full bg-blue-700 hover:bg-blue-800 text-white"
-                                onClick={handleUpdateReview}
-                              >
-                                Update Review
-                              </Button>
-                            </div>
+                      <TableCell>
+                        <Badge variant="outline">
+                          {review.rating ? review.rating : 5} / 5
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="max-w-xs truncate">
+                        {review?.comment}
+                      </TableCell>
+                      <TableCell>
+                        {review?.createdAt ? (
+                          <div>
+                            <p className="font-medium dark:text-gray-100 text-gray-900 whitespace-nowrap">
+                              {format(
+                                new Date(review?.createdAt),
+                                "MMM dd, yyyy"
+                              )}{" "}
+                              <br />
+                              {format(new Date(review?.createdAt), "hh:mm a")}
+                            </p>
                           </div>
-                        </DialogContent>
-                      </Dialog>
+                        ) : (
+                          <></>
+                        )}
 
-                      <Dialog
-                        open={
-                          deleteDialogOpen && reviewToDelete?._id === review._id
-                        }
-                        onOpenChange={(open) => {
-                          if (!open) {
-                            setDeleteDialogOpen(false);
-                            setReviewToDelete(null);
+                        {/* {review.appointmentDate} */}
+                      </TableCell>
+                      <TableCell>
+                        <Switch
+                          checked={review.visible}
+                          onCheckedChange={() => toggleVisibility(review._id)}
+                          className={cn(
+                            "data-[state=checked]:bg-blue-600 data-[state=unchecked]:bg-gray-400",
+                            "dark:data-[state=checked]:bg-green-600 dark:data-[state=unchecked]:bg-slate-400"
+                          )}
+                        />
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Dialog
+                          open={
+                            editDialogOpen && selectedReviewId === review._id
                           }
-                        }}
-                      >
-                        <DialogTrigger asChild>
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={() => {
-                              setReviewToDelete(review);
-                              setDeleteDialogOpen(true);
-                            }}
-                          >
-                            Delete
-                          </Button>
-                        </DialogTrigger>
-
-                        <DialogContent className="dark:bg-slate-800 dark:border-slate-600">
-                          <DialogHeader>
-                            <DialogTitle>Delete Review</DialogTitle>
-                            <DialogDescription>
-                              Are you sure you want to delete this review for{" "}
-                              <strong>{review.doctorName}</strong>?
-                            </DialogDescription>
-                          </DialogHeader>
-                          <div className="flex justify-end gap-2 mt-4">
+                          onOpenChange={(open) => {
+                            setEditDialogOpen(open);
+                            if (!open) {
+                              setSelectedReviewId(null);
+                              resetForm();
+                            }
+                          }}
+                        >
+                          <DialogTrigger className="mr-2" asChild>
                             <Button
                               variant="outline"
                               className="dark:bg-gray-700 dark:border-slate-600"
+                              size="sm"
                               onClick={() => {
-                                setDeleteDialogOpen(false);
-                                setReviewToDelete(null);
+                                setSelectedReviewId(review._id);
+                                setForm({
+                                  doctorId: review?.vetId?._id,
+                                  doctorName: review.doctorName,
+                                  parentId: review?.parentId?._id,
+                                  parentName: review.parentName,
+                                  reviewText: review.comment,
+                                  rating: review.rating.toString(),
+                                  visible: review.visible,
+                                  appointmentDate: review.appointmentDate
+                                    ? new Date(review.appointmentDate)
+                                    : undefined,
+                                });
+                                setEditDialogOpen(true);
                               }}
                             >
-                              Cancel
+                              Edit
                             </Button>
+                          </DialogTrigger>
+
+                          <DialogContent className="dark:bg-slate-800 dark:border-slate-600">
+                            <DialogHeader>
+                              <DialogTitle>Edit Review</DialogTitle>
+                              <DialogDescription>
+                                Update the selected review details.
+                              </DialogDescription>
+                            </DialogHeader>
+                            <div className="space-y-4">
+                              {/* Doctor Selector */}
+                              <div className="space-y-4">
+                                <Label>Reviewed</Label>
+                                <Select
+                                  value={form.doctorId}
+                                  onValueChange={(value) => {
+                                    const selected = doctorsData.find(
+                                      (doc) => doc._id === value
+                                    );
+                                    if (selected) {
+                                      setForm({
+                                        ...form,
+                                        doctorName: `${selected.firstName} ${selected.lastName}`,
+                                        doctorId: selected._id,
+                                      });
+                                    }
+                                  }}
+                                >
+                                  <SelectTrigger className="dark:bg-gray-700 dark:border-slate-600 w-full">
+                                    <SelectValue placeholder="Select Doctor" />
+                                  </SelectTrigger>
+                                  <SelectContent className="dark:bg-gray-700 dark:border-slate-600">
+                                    {doctorsData.map((doc) => (
+                                      <SelectItem key={doc._id} value={doc._id}>
+                                        {doc.firstName} {doc.lastName}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+
+                              {/* Reviewer Selector */}
+                              <div className="space-y-4">
+                                <Label>Reviewer</Label>
+                                <Select
+                                  value={form.parentId}
+                                  onValueChange={(value) => {
+                                    const selected = parents.find(
+                                      (p) => p._id === value
+                                    );
+                                    if (selected) {
+                                      setForm({
+                                        ...form,
+                                        parentId: selected._id,
+                                        parentName: selected.name,
+                                      });
+                                    }
+                                  }}
+                                >
+                                  <SelectTrigger className="dark:bg-gray-700 dark:border-slate-600 w-full">
+                                    <SelectValue placeholder="Select Parent" />
+                                  </SelectTrigger>
+                                  <SelectContent className="dark:bg-gray-700 dark:border-slate-600">
+                                    {parents.map((p) => (
+                                      <SelectItem key={p._id} value={p._id}>
+                                        {p.name}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+
+                              {/* Review Textarea */}
+                              <div>
+                                <Textarea
+                                  className="dark:bg-gray-700 dark:border-slate-600"
+                                  placeholder="Write review..."
+                                  value={form.reviewText}
+                                  onChange={(e) =>
+                                    setForm({
+                                      ...form,
+                                      reviewText: e.target.value,
+                                    })
+                                  }
+                                />
+                              </div>
+
+                              {/* Rating Select */}
+                              <div className="space-y-4">
+                                <Label>Rating</Label>
+                                <Select
+                                  value={form.rating}
+                                  onValueChange={(value) =>
+                                    setForm({ ...form, rating: value })
+                                  }
+                                >
+                                  <SelectTrigger className="dark:bg-gray-700 dark:border-slate-600 w-full">
+                                    <SelectValue placeholder="Select Rating" />
+                                  </SelectTrigger>
+                                  <SelectContent className="dark:bg-gray-700 dark:border-slate-600">
+                                    {[1, 2, 3, 4, 5].map((n) => (
+                                      <SelectItem key={n} value={n.toString()}>
+                                        {n} Star{n > 1 ? "s" : ""}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+
+                              {/* Appointment Date Picker */}
+                              <div className="space-y-4">
+                                <Label>Appointment Date</Label>
+                                <Popover>
+                                  <PopoverTrigger asChild>
+                                    <Button
+                                      variant="outline"
+                                      className={cn(
+                                        "w-full justify-start text-left font-normal dark:bg-gray-700 dark:border-slate-600",
+                                        !form.appointmentDate &&
+                                          "text-muted-foreground"
+                                      )}
+                                    >
+                                      {form.appointmentDate
+                                        ? format(form.appointmentDate, "PPP")
+                                        : "Pick a date"}
+                                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                    </Button>
+                                  </PopoverTrigger>
+                                  <PopoverContent
+                                    className="w-auto p-0 dark:bg-gray-700 dark:border-slate-600"
+                                    align="start"
+                                  >
+                                    <Calendar
+                                      className="dark:bg-gray-700 dark:border-slate-600"
+                                      mode="single"
+                                      selected={form.appointmentDate}
+                                      onSelect={(date) =>
+                                        setForm({
+                                          ...form,
+                                          appointmentDate: date,
+                                        })
+                                      }
+                                      initialFocus
+                                    />
+                                  </PopoverContent>
+                                </Popover>
+                              </div>
+
+                              {/* Submit Button */}
+                              <div>
+                                <Button
+                                  className="w-full bg-blue-700 hover:bg-blue-800 text-white"
+                                  onClick={handleUpdateReview}
+                                >
+                                  Update Review
+                                </Button>
+                              </div>
+                            </div>
+                          </DialogContent>
+                        </Dialog>
+
+                        <Dialog
+                          open={
+                            deleteDialogOpen &&
+                            reviewToDelete?._id === review._id
+                          }
+                          onOpenChange={(open) => {
+                            if (!open) {
+                              setDeleteDialogOpen(false);
+                              setReviewToDelete(null);
+                            }
+                          }}
+                        >
+                          <DialogTrigger asChild>
                             <Button
                               variant="destructive"
-                              onClick={handleDeleteReview}
+                              size="sm"
+                              onClick={() => {
+                                setReviewToDelete(review);
+                                setDeleteDialogOpen(true);
+                              }}
                             >
-                              Confirm Delete
+                              Delete
                             </Button>
-                          </div>
-                        </DialogContent>
-                      </Dialog>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-          <Pagination
-            totalItems={filteredReviews.length}
-            itemsPerPage={itemsPerPage}
-            currentPage={currentPage}
-            onPageChange={setCurrentPage}
-          />
-        </CardContent>
-      </Card>
-    </div>
-    // </RequireAccess>
+                          </DialogTrigger>
+
+                          <DialogContent className="dark:bg-slate-800 dark:border-slate-600">
+                            <DialogHeader>
+                              <DialogTitle>Delete Review</DialogTitle>
+                              <DialogDescription>
+                                Are you sure you want to delete this review for{" "}
+                                <strong>{review.doctorName}</strong>?
+                              </DialogDescription>
+                            </DialogHeader>
+                            <div className="flex justify-end gap-2 mt-4">
+                              <Button
+                                variant="outline"
+                                className="dark:bg-gray-700 dark:border-slate-600"
+                                onClick={() => {
+                                  setDeleteDialogOpen(false);
+                                  setReviewToDelete(null);
+                                }}
+                              >
+                                Cancel
+                              </Button>
+                              <Button
+                                variant="destructive"
+                                onClick={handleDeleteReview}
+                              >
+                                Confirm Delete
+                              </Button>
+                            </div>
+                          </DialogContent>
+                        </Dialog>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+            <Pagination
+              totalItems={filteredReviews.length}
+              itemsPerPage={itemsPerPage}
+              currentPage={currentPage}
+              onPageChange={setCurrentPage}
+            />
+          </CardContent>
+        </Card>
+      </div>
+      //{" "}
+    </RequireAccess>
   );
 }

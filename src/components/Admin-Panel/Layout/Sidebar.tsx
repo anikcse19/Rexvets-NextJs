@@ -48,10 +48,8 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
   const [expandedItems, setExpandedItems] = useState<string[]>(["doctors"]);
   const { data: session, status } = useSession();
   const accessList = session?.user?.accesslist || [];
-  // const role = session?.user?.role || [];
-  const role = "admin";
-
-  const accesslist = [];
+  const role = session?.user?.role || "";
+  // const role = "admin";
 
   const toggleExpanded = (item: string) => {
     setExpandedItems((prev) =>
