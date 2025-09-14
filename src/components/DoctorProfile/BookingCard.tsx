@@ -203,6 +203,25 @@ export default function BookingSystem({
     "slot",
     selectedSlot
   );
+  function formatDateToDayMonth(dateString: string): string {
+    if (!dateString) return "";
+
+    const date = parseISO(dateString);
+    const day = format(date, "d");
+    const month = format(date, "MMMM");
+
+    // Add ordinal suffix (st, nd, rd, th)
+    const suffix =
+      day.endsWith("1") && day !== "11"
+        ? "st"
+        : day.endsWith("2") && day !== "12"
+        ? "nd"
+        : day.endsWith("3") && day !== "13"
+        ? "rd"
+        : "th";
+
+    return `${day}${suffix} ${month}`;
+  }
   return (
     <Card className="shadow-xl rounded-md p-0 border-0 bg-white sticky top-6">
       <div className="bg-gradient-to-r from-green-600 to-emerald-600 p-6 text-white">
@@ -372,10 +391,17 @@ export default function BookingSystem({
                               isSelected ? "text-blue-600" : "text-gray-600"
                             }`}
                           >
-                            <p className="text-sm font-medium">
-                              {formattedStartTime}
+                            <p className="block md:hidden">
+                              {formatDateToDayMonth(formattedDate)}
                             </p>
-                            <p className="text-xs">to {formattedEndTime}</p>
+                            <div className="flex flex-row md:flex-col items-center justify-center gap-2 md:gap-0">
+                              <p className="text-sm font-medium inline">
+                                {formattedStartTime}{" "}
+                              </p>
+                              <p className="text-xs inline">
+                                to {formattedEndTime}
+                              </p>
+                            </div>
                           </div>
                         </button>
                       );

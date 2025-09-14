@@ -20,7 +20,7 @@ export default function AdminDashboardLayout({
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 z-20 bg-black bg-opacity-50 lg:hidden"
+          className="fixed inset-0 z-20  bg-opacity-50 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}

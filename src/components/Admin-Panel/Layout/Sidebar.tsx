@@ -48,10 +48,8 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
   const [expandedItems, setExpandedItems] = useState<string[]>(["doctors"]);
   const { data: session, status } = useSession();
   const accessList = session?.user?.accesslist || [];
-  // const role = session?.user?.role || [];
-  const role = "admin";
-
-  const accesslist = [];
+  const role = session?.user?.role || "";
+  // const role = "admin";
 
   const toggleExpanded = (item: string) => {
     setExpandedItems((prev) =>
@@ -68,14 +66,14 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
     {
       title: "Appointments",
       icon: Calendar,
-      href: "/admin/appointments",
-      children: [
-        { title: "All Appointments", href: "/admin/appointments/list" },
-        {
-          title: "Reschedule Appointments",
-          href: "/admin/appointments/reschedule-appointments/list",
-        },
-      ],
+      href: "/admin/appointments/list",
+      // children: [
+      //   { title: "All Appointments", href: "/admin/appointments/list" },
+      //   {
+      //     title: "Reschedule Appointments",
+      //     href: "/admin/appointments/reschedule-appointments/list",
+      //   },
+      // ],
     },
     {
       title: "Doctors",
@@ -224,9 +222,9 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
       >
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-blue-200">
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center justify-center space-x-2 w-full">
             <div className=" rounded-lg flex items-center justify-center">
-              <Image width={120} height={120} src={Logo} alt="LogoWhite" />
+              <Image width={150} height={150} src={Logo} alt="LogoWhite" />
             </div>
           </div>
           <Button

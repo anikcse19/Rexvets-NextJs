@@ -51,6 +51,7 @@ TopbarProps) {
   const [open, setOpen] = useState(false);
   const [isNotifications, setIsNotifications] = useState(false);
   const [isMessages, setIsMessages] = useState(false);
+
   const getNotifications = async () => {
     try {
       if (!session?.user?.id) return;
