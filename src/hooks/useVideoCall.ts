@@ -200,7 +200,7 @@ export const useVideoCall = () => {
     setIsLoading(true);
     setHasError(false);
     try {
-      const res = await fetch(`/api/appointments/${appointmentId}`);
+      const res = await fetch(`/api/video-call/${appointmentId}`);
       if (!res.ok) {
         const error = await res.json();
         throw new Error(error.message || "Failed to fetch appointment details");
@@ -208,8 +208,8 @@ export const useVideoCall = () => {
       const data = await res.json();
       setAppointmentDetails(data?.data);
 
-      // Check for existing review after getting appointment details
-      if (data?.data?.veterinarian && data?.data?.petParent) {
+      // Check for existing review after getting appointment details (only if user is logged in)
+      if (user?.id && data?.data?.veterinarian && data?.data?.petParent) {
         const vet_id = extractId(data.data.veterinarian);
         const parent_id = extractId(data.data.petParent);
 
@@ -237,6 +237,8 @@ export const useVideoCall = () => {
   const fetchMyProfile = async () => {
     try {
       if (!user?.id) {
+        // If user is not logged in, set profile info to null and return
+        setProfileInfo(null);
         return;
       }
       const res = await fetch(`/api/user/profile`);
@@ -247,8 +249,12 @@ export const useVideoCall = () => {
       const data = await res.json();
       setProfileInfo(data.data);
     } catch (error: any) {
-      toast.error(error.message || "Failed to fetch my profile");
+      // Don't show error toast for unauthenticated users
+      if (user?.id) {
+        toast.error(error.message || "Failed to fetch my profile");
+      }
       console.error("Error fetching my profile:", error);
+      setProfileInfo(null);
     }
   };
 

@@ -1,7 +1,7 @@
 import crypto from "crypto";
 import mongoose, { Document, Model, Schema } from "mongoose";
 
-export type UserRole = "pet_parent" | "veterinarian" | "technician" | "admin";
+export type UserRole = "pet_parent" | "veterinarian" | "technician" | "admin" | "moderator";
 
 export interface IUser extends Document {
   // Authentication fields only
@@ -40,6 +40,7 @@ export interface IUser extends Document {
   // Common fields for session
   name?: string;
   profileImage?: string;
+  phone?: string;
   fcmTokens: {
     web?: string;
     mobile?: string;
@@ -86,7 +87,7 @@ const userSchema = new Schema<IUser>(
     },
     role: {
       type: String,
-      enum: ["pet_parent", "veterinarian", "technician", "admin"],
+      enum: ["pet_parent", "veterinarian", "technician", "admin", "moderator"],
       required: [true, "Role is required"],
     },
 
@@ -188,6 +189,10 @@ const userSchema = new Schema<IUser>(
       trim: true,
     },
     profileImage: {
+      type: String,
+      trim: true,
+    },
+    phone: {
       type: String,
       trim: true,
     },
