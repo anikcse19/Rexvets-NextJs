@@ -95,9 +95,9 @@ notificationSchema.index({ recipientId: 1, isRead: 1, createdAt: -1 });
 notificationSchema.index({ type: 1, createdAt: -1 });
 
 // Delete cached model to force recreation with new enum values
-if (mongoose.models.Notification) {
-  delete mongoose.models.Notification;
-}
+// if (mongoose.models.Notification) {
+//   delete mongoose.models.Notification;
+// }
 
 const NotificationModel = mongoose.model<INotification, INotificationModel>(
   "Notification",
