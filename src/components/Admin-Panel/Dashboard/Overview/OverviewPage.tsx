@@ -196,9 +196,30 @@ const AdminOverviewPage = () => {
 
   // Get today's date in 'YYYY-MM-DD' format
   const today = new Date();
-  const todayData = (appoinments || []).filter(
-    (item) => item.appointmentDate === today.toISOString().split("T")[0]
-  );
+  const todayString = today.toISOString().split("T")[0];
+  
+  // Debug logging
+  console.log("Today's date string:", todayString);
+  console.log("Current timezone offset:", new Date().getTimezoneOffset());
+  console.log("Sample appointment dates:", (appoinments || []).slice(0, 3).map(apt => ({
+    appointmentDate: apt.appointmentDate,
+    appointmentDateType: typeof apt.appointmentDate,
+    appointmentDateString: new Date(apt.appointmentDate).toISOString().split("T")[0],
+    appointmentDateLocal: new Date(apt.appointmentDate).toLocaleDateString(),
+    appointmentDateUTC: new Date(apt.appointmentDate).toUTCString()
+  })));
+  
+  const todayData = (appoinments || []).filter((item) => {
+    // Handle both Date objects and ISO strings
+    const appointmentDate = new Date(item.appointmentDate);
+    const appointmentDateString = appointmentDate.toISOString().split("T")[0];
+    return appointmentDateString === todayString;
+  });
+  
+  // Debug logging for today's appointments
+  console.log("Total appointments:", (appoinments || []).length);
+  console.log("Today's appointments count:", todayData.length);
+  console.log("Today's appointments:", todayData);
   // find current months donation
   const currentMonth = today.getMonth(); // 0 = Jan, 6 = July
   const currentYear = today.getFullYear();
