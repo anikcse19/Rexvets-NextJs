@@ -625,7 +625,7 @@ const AppointmentsPage = () => {
                         <TableRow key={idx}>
                           {Array.from({ length: 7 }).map((_, cellIdx) => (
                             <TableCell key={cellIdx}>
-                              <Skeleton className="h-5 w-full" />
+                              <Skeleton className="h-5 w-full bg-gray-200" />
                             </TableCell>
                           ))}
                         </TableRow>
@@ -736,13 +736,13 @@ const AppointmentsPage = () => {
                                 <Pen className="mr-2 h-4 w-4" />
                                 Reschedule
                               </DropdownMenuItem>
-                              <DropdownMenuItem
+                              {/* <DropdownMenuItem
                                 onClick={() => handleMonitorClick(appointment)}
                                 className="dark:hover:bg-gray-700"
                               >
                                 <Video className="mr-2 h-4 w-4" />
                                 Monitor Call
-                              </DropdownMenuItem>
+                              </DropdownMenuItem> */}
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </TableCell>

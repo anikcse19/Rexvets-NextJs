@@ -66,14 +66,14 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
     {
       title: "Appointments",
       icon: Calendar,
-      href: "/admin/appointments",
-      children: [
-        { title: "All Appointments", href: "/admin/appointments/list" },
-        {
-          title: "Reschedule Appointments",
-          href: "/admin/appointments/reschedule-appointments/list",
-        },
-      ],
+      href: "/admin/appointments/list",
+      // children: [
+      //   { title: "All Appointments", href: "/admin/appointments/list" },
+      //   {
+      //     title: "Reschedule Appointments",
+      //     href: "/admin/appointments/reschedule-appointments/list",
+      //   },
+      // ],
     },
     {
       title: "Doctors",

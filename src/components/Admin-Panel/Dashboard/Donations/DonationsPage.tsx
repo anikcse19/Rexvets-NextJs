@@ -450,25 +450,25 @@ export default function DonationPage() {
                   Array.from({ length: 5 }).map((_, index) => (
                     <TableRow key={index}>
                       <TableCell>
-                        <Skeleton className="h-6 w-8" />
+                        <Skeleton className="h-6 w-8 bg-gray-200" />
                       </TableCell>
                       <TableCell>
-                        <Skeleton className="h-6 w-32" />
+                        <Skeleton className="h-6 w-32 bg-gray-200" />
                       </TableCell>
                       <TableCell>
-                        <Skeleton className="h-6 w-32" />
+                        <Skeleton className="h-6 w-32 bg-gray-200" />
                       </TableCell>
                       <TableCell>
-                        <Skeleton className="h-6 w-20" />
+                        <Skeleton className="h-6 w-20 bg-gray-200" />
                       </TableCell>
                       <TableCell>
-                        <Skeleton className="h-6 w-48" />
+                        <Skeleton className="h-6 w-48 bg-gray-200" />
                       </TableCell>
                       <TableCell>
-                        <Skeleton className="h-6 w-32" />
+                        <Skeleton className="h-6 w-32 bg-gray-200" />
                       </TableCell>
                       <TableCell>
-                        <Skeleton className="h-6 w-16" />
+                        <Skeleton className="h-6 w-16 bg-gray-200" />
                       </TableCell>
                     </TableRow>
                   ))}

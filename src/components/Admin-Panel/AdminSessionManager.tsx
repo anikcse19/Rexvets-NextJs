@@ -9,7 +9,9 @@ interface AdminSessionManagerProps {
   children: ReactNode;
 }
 
-const AdminSessionManager: React.FC<AdminSessionManagerProps> = ({ children }) => {
+const AdminSessionManager: React.FC<AdminSessionManagerProps> = ({
+  children,
+}) => {
   const { data: session, status } = useSession();
   const router = useRouter();
 
@@ -46,7 +48,7 @@ const AdminSessionManager: React.FC<AdminSessionManagerProps> = ({ children }) =
   if (status === "loading") {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
+        <div className="text-center flex flex-col justify-center items-center">
           <LoadingSpinner size="lg" />
           <p className="mt-4 text-gray-600">Verifying admin access...</p>
         </div>
@@ -55,7 +57,11 @@ const AdminSessionManager: React.FC<AdminSessionManagerProps> = ({ children }) =
   }
 
   // Show loading spinner while redirecting
-  if (status === "unauthenticated" || (status === "authenticated" && !["admin", "moderator"].includes(session?.user?.role || ""))) {
+  if (
+    status === "unauthenticated" ||
+    (status === "authenticated" &&
+      !["admin", "moderator"].includes(session?.user?.role || ""))
+  ) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
