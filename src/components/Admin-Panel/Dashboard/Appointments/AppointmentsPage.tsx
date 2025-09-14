@@ -42,6 +42,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { formatTimeToUserTimezone, getUserTimezone } from "@/lib/timezone";
 import { format } from "date-fns";
 import {
   Calendar as CalendarIcon,
@@ -115,7 +116,9 @@ const AppointmentsPage = () => {
   const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
   const [isDataLoading, setIsDataLoading] = useState<boolean>(true);
 
-  const today = format(new Date(), "yyyy-MM-dd");
+  const today = new Intl.DateTimeFormat("en-CA", {
+    timeZone: getUserTimezone(),
+  }).format(new Date());
 
   const fetchAppointments = async () => {
     try {
@@ -149,9 +152,23 @@ const AppointmentsPage = () => {
       const upcoming: Appointment[] = [];
       const past: Appointment[] = [];
 
+      const userTimezone = getUserTimezone();
+
       appointments.forEach((apt) => {
         const appointmentDateTime = new Date(apt.appointmentDate);
-        if (appointmentDateTime >= now) {
+        const now = new Date();
+
+        // Convert both dates to user's timezone for comparison
+        const appointmentInUserTz = new Date(
+          appointmentDateTime.toLocaleString("en-US", {
+            timeZone: userTimezone,
+          })
+        );
+        const nowInUserTz = new Date(
+          now.toLocaleString("en-US", { timeZone: userTimezone })
+        );
+
+        if (appointmentInUserTz >= nowInUserTz) {
           upcoming.push(apt);
         } else {
           past.push(apt);
@@ -203,11 +220,21 @@ const AppointmentsPage = () => {
         appointment.pet.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         appointment._id.toLowerCase().includes(searchTerm.toLowerCase());
 
+      const userTimezone = getUserTimezone();
       const appointmentDateTime = new Date(appointment.appointmentDate);
       const now = new Date();
+
+      // Convert both dates to user's timezone for comparison
+      const appointmentInUserTz = new Date(
+        appointmentDateTime.toLocaleString("en-US", { timeZone: userTimezone })
+      );
+      const nowInUserTz = new Date(
+        now.toLocaleString("en-US", { timeZone: userTimezone })
+      );
+
       let derivedStatus = "Upcoming";
 
-      if (appointmentDateTime < now) {
+      if (appointmentInUserTz < nowInUserTz) {
         derivedStatus =
           appointment.status?.toLowerCase() === "completed"
             ? "Complete"
@@ -223,8 +250,12 @@ const AppointmentsPage = () => {
 
       const matchesDate =
         !dateFilter ||
-        format(new Date(appointment.appointmentDate), "yyyy-MM-dd") ===
-          format(dateFilter, "yyyy-MM-dd");
+        new Intl.DateTimeFormat("en-CA", {
+          timeZone: getUserTimezone(),
+        }).format(new Date(appointment.appointmentDate)) ===
+          new Intl.DateTimeFormat("en-CA", {
+            timeZone: getUserTimezone(),
+          }).format(dateFilter);
 
       return matchesSearch && matchesStatus && matchesDoctor && matchesDate;
     });
@@ -314,22 +345,23 @@ const AppointmentsPage = () => {
 
   const convertNYToLocal = (appointmentDate: string) => {
     const appointmentDateTime = new Date(appointmentDate);
-    const formatted = format(appointmentDateTime, "yyyy-MM-dd");
-    const time = format(appointmentDateTime, "hh:mm a");
+    const time = format(appointmentDateTime, "HH:mm");
 
-    const nyTime = DateTime.fromFormat(
-      `${formatted} ${time}`,
-      "yyyy-MM-dd hh:mm a",
-      {
-        zone: "America/New_York",
-      }
-    );
+    // Use the timezone utility function to format time for user's timezone
+    return formatTimeToUserTimezone(time, getUserTimezone());
+  };
 
-    const userTime = nyTime.setZone(
-      Intl.DateTimeFormat().resolvedOptions().timeZone
-    );
+  const formatAppointmentDate = (appointmentDate: string) => {
+    const userTimezone = getUserTimezone();
+    const appointmentDateTime = new Date(appointmentDate);
 
-    return userTime.toFormat("hh:mm a");
+    // Format date in user's timezone
+    return new Intl.DateTimeFormat("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "2-digit",
+      timeZone: userTimezone,
+    }).format(appointmentDateTime);
   };
   // Show full-page loader while data is being fetched
   if (isDataLoading) {
@@ -347,7 +379,7 @@ const AppointmentsPage = () => {
       </div>
     );
   }
-
+  console.log("appointmentsData", appointmentsData);
   return (
     // <RequireAccess permission="Appointments">
     <div className="space-y-6">
@@ -391,11 +423,15 @@ const AppointmentsPage = () => {
                   ) : (
                     (() => {
                       const todayAppointments = appointmentsData.filter(
-                        (apt: Appointment) =>
-                          format(
-                            new Date(apt.appointmentDate),
-                            "yyyy-MM-dd"
-                          ) === today
+                        (apt: Appointment) => {
+                          const appointmentDate = new Intl.DateTimeFormat(
+                            "en-CA",
+                            {
+                              timeZone: getUserTimezone(),
+                            }
+                          ).format(new Date(apt.appointmentDate));
+                          return appointmentDate === today;
+                        }
                       );
                       console.log(
                         "Today's appointments:",
@@ -426,12 +462,26 @@ const AppointmentsPage = () => {
                     (() => {
                       const upcomingAppointments = appointmentsData.filter(
                         (apt: Appointment) => {
+                          const userTimezone = getUserTimezone();
                           const appointmentDateTime = new Date(
                             apt.appointmentDate
                           );
                           const now = new Date();
+
+                          // Convert both dates to user's timezone for comparison
+                          const appointmentInUserTz = new Date(
+                            appointmentDateTime.toLocaleString("en-US", {
+                              timeZone: userTimezone,
+                            })
+                          );
+                          const nowInUserTz = new Date(
+                            now.toLocaleString("en-US", {
+                              timeZone: userTimezone,
+                            })
+                          );
+
                           return (
-                            appointmentDateTime >= now &&
+                            appointmentInUserTz >= nowInUserTz &&
                             apt.status !== "cancelled"
                           );
                         }
@@ -463,12 +513,26 @@ const AppointmentsPage = () => {
                     (() => {
                       const incompleteAppointments = appointmentsData.filter(
                         (apt: Appointment) => {
+                          const userTimezone = getUserTimezone();
                           const appointmentDateTime = new Date(
                             apt.appointmentDate
                           );
                           const now = new Date();
+
+                          // Convert both dates to user's timezone for comparison
+                          const appointmentInUserTz = new Date(
+                            appointmentDateTime.toLocaleString("en-US", {
+                              timeZone: userTimezone,
+                            })
+                          );
+                          const nowInUserTz = new Date(
+                            now.toLocaleString("en-US", {
+                              timeZone: userTimezone,
+                            })
+                          );
+
                           return (
-                            appointmentDateTime < now &&
+                            appointmentInUserTz < nowInUserTz &&
                             apt.status !== "completed" &&
                             apt.status !== "cancelled"
                           );
@@ -712,22 +776,33 @@ const AppointmentsPage = () => {
                             {convertNYToLocal(appointment.appointmentDate)}
                           </p>
                           <p className="font-medium text-gray-900 dark:text-gray-100 whitespace-nowrap">
-                            {format(
-                              new Date(appointment.appointmentDate),
-                              "MMM dd, yyyy"
-                            )}
+                            {formatAppointmentDate(appointment.appointmentDate)}
                           </p>
                         </div>
                       </TableCell>
                       <TableCell className="dark:text-gray-100">
                         {(() => {
+                          const userTimezone = getUserTimezone();
                           const appointmentDateTime = new Date(
                             appointment.appointmentDate
                           );
                           const now = new Date();
+
+                          // Convert both dates to user's timezone for comparison
+                          const appointmentInUserTz = new Date(
+                            appointmentDateTime.toLocaleString("en-US", {
+                              timeZone: userTimezone,
+                            })
+                          );
+                          const nowInUserTz = new Date(
+                            now.toLocaleString("en-US", {
+                              timeZone: userTimezone,
+                            })
+                          );
+
                           let derivedStatus = "Upcoming";
 
-                          if (appointmentDateTime < now) {
+                          if (appointmentInUserTz < nowInUserTz) {
                             derivedStatus =
                               appointment.status?.toLowerCase() === "completed"
                                 ? "Complete"
