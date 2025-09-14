@@ -123,6 +123,7 @@ export const DashboardProvider: React.FC<DashboardProviderProps> = ({
         return;
       }
       try {
+        console.log(startDate, endDate, "vet slotsss date");
         // const timezoneParam = timezone ? `&timezone=${encodeURIComponent(timezone)}` : '';
         const apiUrl = `/api/appointments/slots/slot-summary/${refId}?startDate=${startDate}&endDate=${endDate}&status=${SlotStatus.ALL}`;
         console.log("Fetching from API:", apiUrl);
