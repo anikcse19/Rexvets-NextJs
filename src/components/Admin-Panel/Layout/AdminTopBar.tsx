@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -10,31 +10,36 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Bell, Menu, LogOut, Sun, Moon } from "lucide-react";
-import { signOut } from "next-auth/react";
-import { useTheme } from "next-themes";
-import { useSession } from "next-auth/react";
-
-import {
-  collection,
-  onSnapshot,
-  query,
-  orderBy,
-  updateDoc,
-  doc,
-} from "firebase/firestore";
+import { NotificationType } from "@/models/Notification";
 import { formatDistanceToNow } from "date-fns";
-import { db } from "@/lib/firebase";
+import { Bell, LogOut, Menu, Moon, Sun } from "lucide-react";
+import { signOut, useSession } from "next-auth/react";
+import { useTheme } from "next-themes";
+import { useEffect, useState } from "react";
 
 interface TopbarProps {
   onMenuClick: () => void;
 }
 
-const Topbar = ({ onMenuClick }: TopbarProps) => {
+interface Notification {
+  _id: string;
+  type: NotificationType;
+  title: string;
+  body?: string;
+  subTitle?: string;
+  recipientId: string;
+  actorId?: string;
+  data?: Record<string, unknown>;
+  isRead: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+const AdminTopBar = ({ onMenuClick }: TopbarProps) => {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
-  const [notifications, setNotifications] = useState<any[]>([]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [loading, setLoading] = useState(false);
 
   const { data: session } = useSession();
   console.log("data", session);
@@ -47,146 +52,95 @@ const Topbar = ({ onMenuClick }: TopbarProps) => {
     signOut({ callbackUrl: "/" });
   };
 
-  const markAsRead = async (notification: any) => {
-    const ref = doc(
-      db,
-      notification.type === "doctor"
-        ? "Doctors"
-        : notification.type === "parent"
-        ? "Parents"
-        : notification.type === "donation"
-        ? "Donations"
-        : "",
-      notification.id
-    );
-    await updateDoc(ref, { read: true });
+  const fetchNotifications = async () => {
+    try {
+      setLoading(true);
+      // Fetch both types of notifications
+      const [donationResponse, signupResponse] = await Promise.all([
+        fetch("/api/notifications?type=NEW_DONATION&limit=25"),
+        fetch("/api/notifications?type=NEW_SIGNUP&limit=25"),
+      ]);
 
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === notification.id ? { ...n, read: true } : n))
-    );
+      const [donationResult, signupResult] = await Promise.all([
+        donationResponse.json(),
+        signupResponse.json(),
+      ]);
+
+      const allNotifications = [
+        ...(donationResult.success ? donationResult.data || [] : []),
+        ...(signupResult.success ? signupResult.data || [] : []),
+      ];
+
+      // Sort by creation date (newest first)
+      allNotifications.sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+
+      setNotifications(allNotifications);
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const markAsRead = async (notification: Notification) => {
+    try {
+      const response = await fetch(`/api/notifications/${notification._id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ isRead: true }),
+      });
+
+      if (response.ok) {
+        setNotifications((prev) =>
+          prev.map((n) =>
+            n._id === notification._id ? { ...n, isRead: true } : n
+          )
+        );
+      }
+    } catch (error) {
+      console.error("Error marking notification as read:", error);
+    }
   };
 
   const markAllAsRead = async () => {
-    const unread = notifications.filter((n) => !n.read);
+    try {
+      const unreadIds = notifications
+        .filter((n) => !n.isRead)
+        .map((n) => n._id);
 
-    await Promise.all(
-      unread.map((n) =>
-        updateDoc(
-          doc(
-            db,
-            n.type === "doctor"
-              ? "Doctors"
-              : n.type === "parent"
-              ? "Parents"
-              : n.type === "donation"
-              ? "Donations"
-              : "",
-            n.id
-          ),
-          {
-            read: true,
-          }
-        )
-      )
-    );
+      if (unreadIds.length === 0) return;
 
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+      const response = await fetch("/api/notifications/mark-all-read", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ notificationIds: unreadIds }),
+      });
+
+      if (response.ok) {
+        setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+      }
+    } catch (error) {
+      console.error("Error marking all notifications as read:", error);
+    }
   };
 
   useEffect(() => {
-    const doctorsQuery = query(
-      collection(db, "Doctors"),
-      orderBy("RegistrationTime", "asc")
-    );
-    const parentsQuery = query(
-      collection(db, "Parents"),
-      orderBy("RegistrationTime", "asc")
-    );
-    const donationsQuery = query(
-      collection(db, "Donations"),
-      orderBy("timestamp", "asc")
-    );
-    const unsubscribeDoctors = onSnapshot(doctorsQuery, (snapshot) => {
-      snapshot.docChanges().forEach((change) => {
-        const data = change.doc.data();
-        if (change.type === "added" || change.type === "modified") {
-          setNotifications((prev) => {
-            const updated = [
-              {
-                id: change.doc.id,
-                type: "doctor",
-                name: data.Name,
-                time: data.RegistrationTime?.toDate?.() || new Date(),
-                read: data.read ?? false,
-              },
-              ...prev.filter(
-                (n) => !(n.id === change.doc.id && n.type === "doctor")
-              ),
-            ];
+    fetchNotifications();
 
-            return updated.sort((a, b) => b.time.getTime() - a.time.getTime());
-          });
-        }
-      });
-    });
+    // Set up polling to fetch notifications every 30 seconds
+    const interval = setInterval(fetchNotifications, 30000);
 
-    const unsubscribeParents = onSnapshot(parentsQuery, (snapshot) => {
-      snapshot.docChanges().forEach((change) => {
-        const data = change.doc.data();
-        if (change.type === "added" || change.type === "modified") {
-          setNotifications((prev) => {
-            const updated = [
-              {
-                id: change.doc.id,
-                type: "parent",
-                name: data.Name,
-                time: data.RegistrationTime?.toDate?.() || new Date(),
-                read: data.read ?? false,
-              },
-              ...prev.filter(
-                (n) => !(n.id === change.doc.id && n.type === "parent")
-              ),
-            ];
-
-            return updated.sort((a, b) => b.time.getTime() - a.time.getTime());
-          });
-        }
-      });
-    });
-    const unsubscribeDonations = onSnapshot(donationsQuery, (snapshot) => {
-      snapshot.docChanges().forEach((change) => {
-        const data = change.doc.data();
-      
-        if (change.type === "added" || change.type === "modified") {
-          setNotifications((prev) => {
-            const updated = [
-              {
-                id: change.doc.id,
-                type: "donation",
-                amount: data.donationAmount,
-                name: data.donorName,
-                time: data.timestamp?.toDate?.() || new Date(),
-                read: data.read ?? false,
-              },
-              ...prev.filter(
-                (n) => !(n.id === change.doc.id && n.type === "donation")
-              ),
-            ];
-
-            return updated.sort((a, b) => b.time.getTime() - a.time.getTime());
-          });
-        }
-      });
-    });
-
-    return () => {
-      unsubscribeDoctors();
-      unsubscribeParents();
-      unsubscribeDonations();
-    };
+    return () => clearInterval(interval);
   }, []);
 
-  const unreadCount = notifications.filter((n) => !n.read).length;
+  const unreadCount = notifications.filter((n) => !n.isRead).length;
 
   return (
     <header className="bg-white border-b border-gray-200 px-6 py-[18px] dark:bg-slate-800 dark:border-blue-900 transition-colors">
@@ -237,33 +191,36 @@ const Topbar = ({ onMenuClick }: TopbarProps) => {
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
 
-              {notifications.length === 0 ? (
+              {loading ? (
+                <p className="text-sm text-gray-500 p-4">
+                  Loading notifications...
+                </p>
+              ) : notifications.length === 0 ? (
                 <p className="text-sm text-gray-500 p-4">No notifications</p>
               ) : (
                 notifications.map((notification) => (
                   <div
-                    key={notification.id}
+                    key={notification._id}
                     className={`px-4 py-3 transition-colors duration-200 border-b last:border-b-0 dark:border-slate-700 ${
-                      !notification.read
+                      !notification.isRead
                         ? "bg-slate-100 dark:bg-slate-700"
                         : "hover:bg-slate-50 dark:hover:bg-slate-700/40"
                     }`}
                   >
                     <p className="text-sm font-medium text-gray-800 dark:text-gray-100">
-                      {notification.type === "doctor"
-                        ? `A new doctor named ${notification.name} has joined RexVets.`
-                        : notification.type === "parent"
-                        ? `A new pet parent named ${notification.name} has joined RexVets.`
-                        : notification.type === "donation"
-                        ? `A new $${notification.amount} donation has come from ${notification.name}`
-                        : ""}
+                      {notification.title}
                     </p>
+                    {notification.body && (
+                      <p className="text-xs text-gray-600 dark:text-gray-300 mt-1">
+                        {notification.body}
+                      </p>
+                    )}
                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                      {formatDistanceToNow(notification.time, {
+                      {formatDistanceToNow(new Date(notification.createdAt), {
                         addSuffix: true,
                       })}
                     </p>
-                    {!notification.read && (
+                    {!notification.isRead && (
                       <Button
                         variant="link"
                         className="text-xs text-blue-600 hover:underline p-0 mt-1"
@@ -344,4 +301,4 @@ const Topbar = ({ onMenuClick }: TopbarProps) => {
   );
 };
 
-export default Topbar;
+export default AdminTopBar;

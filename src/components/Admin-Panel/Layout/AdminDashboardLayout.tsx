@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { Button } from "@/components/ui/button";
 import clsx from "clsx"; // optional, for conditional classnames
+import { useState } from "react";
+import AdminTopBar from "./AdminTopBar";
 import Sidebar from "./Sidebar";
-import Topbar from "./Topbar";
 
 export default function AdminDashboardLayout({
   children,
@@ -42,7 +43,7 @@ export default function AdminDashboardLayout({
       <div className={`flex-1 flex flex-col h-screen overflow-hidden lg:ml-64`}>
         {/* Topbar */}
         <div className="sticky top-0 z-10 bg-gradient-to-r from-blue-700/80 via-blue-600/80 to-blue-500/80 dark:from-gray-800/80 dark:via-gray-700/80 dark:to-gray-600/80 backdrop-blur-md border-b border-blue-900/20 dark:border-gray-700 shadow">
-          <Topbar onMenuClick={() => setSidebarOpen(true)} />
+          <AdminTopBar onMenuClick={() => setSidebarOpen(true)} />
         </div>
 
         {/* Main content */}
