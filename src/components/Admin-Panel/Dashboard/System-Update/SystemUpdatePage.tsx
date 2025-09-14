@@ -1,43 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import {
-  collection,
-  onSnapshot,
-  deleteDoc,
-  updateDoc,
-  addDoc,
-  doc,
-} from "firebase/firestore";
-import {
-  Trash2,
-  PencilLine,
-  Plus,
-  Search,
-  Filter,
-  Calendar,
-  Users,
-} from "lucide-react";
-import { db } from "@/lib/firebase";
-import { toast } from "sonner";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import {
   Card,
   CardContent,
@@ -46,7 +10,35 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Calendar,
+  Filter,
+  Loader2,
+  PencilLine,
+  Plus,
+  Search,
+  Trash2,
+  Users,
+} from "lucide-react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import RequireAccess from "../../Shared/RequireAccess";
 
 const updateTypes = [
@@ -63,12 +55,14 @@ const updateTypes = [
   },
 ];
 
-const receivers = ["Doctor", "Parent"];
+const receivers = ["veterinarian", "pet_parent"];
 
 export default function SystemUpdatesPage() {
   const [updates, setUpdates] = useState<any[]>([]);
   const [filteredUpdates, setFilteredUpdates] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [typeFilter, setTypeFilter] = useState("all"); // Updated default value
   const [receiverFilter, setReceiverFilter] = useState<string[]>([]);
   const [searchTitle, setSearchTitle] = useState("");
@@ -84,25 +78,38 @@ export default function SystemUpdatesPage() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
-  // Firestore subscription
-  useEffect(() => {
-    const q = collection(db, "Settings", "System Update", "Items");
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-      setUpdates(data);
+  // Fetch announcements from API
+  const fetchAnnouncements = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch("/api/announcement?adminView=true");
+      const result = await response.json();
+
+      if (result.success) {
+        setUpdates(result.data || []);
+      } else {
+        toast.error("Failed to fetch announcements");
+      }
+    } catch (error) {
+      console.error("Error fetching announcements:", error);
+      toast.error("Failed to fetch announcements");
+    } finally {
       setLoading(false);
-    });
-    return () => unsubscribe();
+    }
+  };
+
+  useEffect(() => {
+    fetchAnnouncements();
   }, []);
 
   // Filter logic
   useEffect(() => {
     let filtered = [...updates];
     if (typeFilter !== "all")
-      filtered = filtered.filter((u) => u.type === typeFilter);
+      filtered = filtered.filter((u) => u.kind === typeFilter);
     if (receiverFilter.length)
       filtered = filtered.filter((u) =>
-        receiverFilter.some((r) => u.receiver.includes(r))
+        receiverFilter.some((r) => u.audience.includes(r))
       );
     if (searchTitle)
       filtered = filtered.filter((u) =>
@@ -131,42 +138,49 @@ export default function SystemUpdatesPage() {
     }
 
     try {
-      if (isEditMode && editId) {
-        const docRef = doc(db, "Settings", "System Update", "Items", editId);
-        await updateDoc(docRef, { type, receiver, title, details });
-        toast.success("Update successfully edited");
+      setIsSubmitting(true);
+
+      const payload = {
+        kind: type,
+        audience: receiver,
+        title,
+        details,
+        publishedAt: new Date().toISOString(),
+      };
+
+      const response = await fetch("/api/announcement", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        toast.success("Announcement successfully created");
+        closeDialog();
+        fetchAnnouncements(); // Refresh the list
       } else {
-        const collectionRef = collection(
-          db,
-          "Settings",
-          "System Update",
-          "Items"
-        );
-        await addDoc(collectionRef, {
-          type,
-          receiver,
-          title,
-          details,
-          createdAt: new Date(),
-          reactions: {},
-        });
-        toast.success("Update successfully added");
+        toast.error(result.message || "Error creating announcement");
       }
-      closeDialog();
     } catch (e) {
       console.error(e);
       toast.error("Error saving data");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const openEditDialog = (update: any) => {
     setFormData({
-      type: update.type,
-      receiver: update.receiver,
+      type: update.kind,
+      receiver: update.audience,
       title: update.title,
       details: update.details,
     });
-    setEditId(update.id);
+    setEditId(update._id);
     setIsEditMode(true);
     setIsDialogOpen(true);
   };
@@ -181,14 +195,29 @@ export default function SystemUpdatesPage() {
   const confirmDelete = async () => {
     if (!deleteId) return;
     try {
-      await deleteDoc(doc(db, "Settings", "System Update", "Items", deleteId));
-      toast.success("Update deleted successfully");
+      setIsDeleting(true);
+
+      const response = await fetch(`/api/announcement?id=${deleteId}`, {
+        method: "DELETE",
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        toast.success("Announcement deleted successfully");
+        fetchAnnouncements(); // Refresh the list
+      } else {
+        toast.error(result.message || "Failed to delete announcement");
+      }
+
+      setIsDeleteDialogOpen(false);
+      setDeleteId(null);
     } catch (e) {
       console.error(e);
-      toast.error("Failed to delete update");
+      toast.error("Failed to delete announcement");
+    } finally {
+      setIsDeleting(false);
     }
-    setIsDeleteDialogOpen(false);
-    setDeleteId(null);
   };
 
   const getTypeConfig = (type: string) => {
@@ -350,10 +379,10 @@ export default function SystemUpdatesPage() {
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {filteredUpdates.map((update) => {
-              const typeConfig = getTypeConfig(update.type);
+              const typeConfig = getTypeConfig(update.kind);
               return (
                 <Card
-                  key={update.id}
+                  key={update._id}
                   className="hover:shadow-md transition-shadow"
                 >
                   <CardHeader className="pb-3">
@@ -374,7 +403,7 @@ export default function SystemUpdatesPage() {
                           variant="ghost"
                           size="sm"
                           onClick={() => {
-                            setDeleteId(update.id);
+                            setDeleteId(update._id);
                             setIsDeleteDialogOpen(true);
                           }}
                           className="h-8 w-8 p-0 text-destructive hover:text-destructive"
@@ -392,7 +421,7 @@ export default function SystemUpdatesPage() {
                       {update.details}
                     </CardDescription>
                     <div className="flex flex-wrap gap-1 mb-3">
-                      {update.receiver.map((receiver: string) => (
+                      {update.audience.map((receiver: string) => (
                         <Badge
                           key={receiver}
                           variant="outline"
@@ -407,8 +436,9 @@ export default function SystemUpdatesPage() {
                   <CardFooter className="pt-0">
                     <div className="flex items-center text-xs text-muted-foreground">
                       <Calendar className="mr-1 h-3 w-3" />
-                      {update.createdAt?.toDate?.().toLocaleDateString?.() ||
-                        "Unknown date"}
+                      {update.createdAt
+                        ? new Date(update.createdAt).toLocaleDateString()
+                        : "Unknown date"}
                     </div>
                   </CardFooter>
                 </Card>
@@ -499,11 +529,24 @@ export default function SystemUpdatesPage() {
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={closeDialog}>
+              <Button
+                variant="outline"
+                onClick={closeDialog}
+                disabled={isSubmitting}
+              >
                 Cancel
               </Button>
-              <Button onClick={handleDialogSubmit}>
-                {isEditMode ? "Update" : "Create"}
+              <Button onClick={handleDialogSubmit} disabled={isSubmitting}>
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    {isEditMode ? "Updating..." : "Creating..."}
+                  </>
+                ) : isEditMode ? (
+                  "Update"
+                ) : (
+                  "Create"
+                )}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -523,11 +566,23 @@ export default function SystemUpdatesPage() {
               <Button
                 variant="outline"
                 onClick={() => setIsDeleteDialogOpen(false)}
+                disabled={isDeleting}
               >
                 Cancel
               </Button>
-              <Button variant="destructive" onClick={confirmDelete}>
-                Delete
+              <Button
+                variant="destructive"
+                onClick={confirmDelete}
+                disabled={isDeleting}
+              >
+                {isDeleting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Deleting...
+                  </>
+                ) : (
+                  "Delete"
+                )}
               </Button>
             </DialogFooter>
           </DialogContent>

@@ -11,7 +11,6 @@ import {
   Calendar,
   Check,
   Clock,
-  Edit3,
   Loader2,
   Plus,
   Save,
@@ -151,6 +150,8 @@ const TimeSlotCreator = ({
           toast.success(
             `Period deleted successfully (${slotToRemove.slotIDs.length} slots removed)`
           );
+          refetch && refetch();
+          onClose && onClose();
         } catch (error: any) {
           console.error("Error deleting period:", error);
           const errorMsg = `Failed to delete period: ${
@@ -291,7 +292,8 @@ const TimeSlotCreator = ({
       toast.success(
         `Period saved successfully (${result.data.createdSlotsCount} slots created)`
       );
-
+      refetch && refetch();
+      onClose && onClose();
       // Mark this slot as existing
       setSlots(
         slots.map((s) => (s.id === slotId ? { ...s, isExisting: true } : s))
@@ -304,171 +306,6 @@ const TimeSlotCreator = ({
       });
     } finally {
       setSavingSlotId(null);
-    }
-  };
-
-  // Update individual existing period
-  const updateIndividualPeriod = async (
-    slotIds: string[] | undefined,
-    startTime: string,
-    endTime: string
-  ) => {
-    console.log("SLOT ID", slotIds);
-    console.log("slot start time", startTime);
-    console.log("slot end time", endTime);
-
-    try {
-      if (!vetId) throw new Error("Missing vetId");
-      if (!slotIds || slotIds.length === 0)
-        throw new Error("No slotIds provided");
-      const payload = {
-        vetId,
-        slotIds,
-        startTime,
-        endTime,
-        slotDuration: 30,
-        bufferBetweenSlots: 0,
-        selectedRange,
-      };
-      console.log("payload", payload);
-      const res = await fetch(`/api/appointments/slots/update-period`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      if (!res.ok) {
-        const msg = await res.text();
-        throw new Error(msg || "Failed to update period");
-      }
-      toast.success("Period updated successfully!");
-      if (typeof refetch === "function") {
-        try {
-          refetch();
-        } catch {}
-      }
-    } catch (error: any) {
-      console.error("Error updating existing period:", error);
-      toast.error("Failed to update period", {
-        description: error.message || "Please try again.",
-      });
-    }
-  };
-
-  const validateSlots = (): boolean => {
-    // Check if we have at least one valid slot
-    if (slots.length === 0) return false;
-
-    for (const slot of slots) {
-      if (!slot.startTime || !slot.endTime) return false;
-      if (slot.startTime >= slot.endTime) return false;
-    }
-    return true;
-  };
-
-  // Check if there are any new periods (non-existing slots)
-  const hasNewPeriods = (): boolean => {
-    return slots.some((slot) => !slot.isExisting);
-  };
-
-  const handleSave = async () => {
-    // Clear any previous error messages
-    setErrorMessage("");
-
-    if (!selectedRange || !validateSlots()) {
-      const errorMsg =
-        "Please select a date range and ensure all time slots are valid";
-      setErrorMessage(errorMsg);
-      toast.error(errorMsg);
-      return;
-    }
-
-    if (!hasNewPeriods()) {
-      const errorMsg = "Please add at least one new period to save";
-      setErrorMessage(errorMsg);
-      toast.error(errorMsg);
-      return;
-    }
-
-    if (!vetId) {
-      const errorMsg = "Veterinarian ID is required";
-      setErrorMessage(errorMsg);
-      toast.error(errorMsg);
-      return;
-    }
-
-    setIsLoading(true);
-
-    try {
-      const slotPeriods: SlotPeriod[] = slots.map((slot) => {
-        const [startH, startM] = slot.startTime.split(":").map(Number);
-        const [endH, endM] = slot.endTime.split(":").map(Number);
-
-        const start = new Date(selectedRange.start);
-        start.setHours(startH, startM, 0, 0);
-
-        const end = new Date(selectedRange.start);
-        end.setHours(endH, endM, 0, 0);
-
-        return { start, end };
-      });
-
-      console.log("Saving new period slots:", slots);
-      console.log("Slot periods:", slotPeriods);
-
-      // Use the new addNewPeriod API
-      const result = await addNewPeriod({
-        vetId,
-        slotPeriods,
-        dateRange: {
-          start: new Date(selectedRange.start),
-          end: new Date(selectedRange.end),
-        },
-        slotDuration: 30, // Default slot duration
-        bufferBetweenSlots: 0, // Default buffer
-      });
-
-      console.log("New period added successfully:", result);
-
-      toast.success(
-        `Successfully added new period with ${result.data.createdSlotsCount} slots`
-      );
-
-      // Reset slots after successful save
-      if (hasExistingSlots && processedExistingPeriods.length > 0) {
-        setSlots(processedExistingPeriods);
-      } else {
-        // Use default time
-        setSlots([
-          {
-            id: "1",
-            startTime: "09:00",
-            endTime: "12:00",
-            isExisting: false,
-            isSelected: false,
-            date: selectedRange?.start
-              ? new Date(selectedRange.start)
-              : undefined,
-          },
-        ]);
-      }
-      setSelectAll(false);
-
-      // Call the original onSaveSlots callback to refresh the parent component
-      // await onSaveSlots(slotPeriods);
-
-      // Close the sheet after successful save
-      if (onClose) {
-        onClose();
-      }
-    } catch (error: any) {
-      console.error("Error saving slots:", error);
-      const errorMsg = `${error.message || "Please try again."}`;
-      setErrorMessage(errorMsg);
-      toast.error("Failed to save availability slots", {
-        description: error.message || "Please try again.",
-      });
-    } finally {
-      setIsLoading(false);
     }
   };
 
