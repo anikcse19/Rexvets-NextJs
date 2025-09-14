@@ -4,6 +4,15 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Skeleton } from "@/components/ui/skeleton";
+import { formatTimeToUserTimezone, getUserTimezone } from "@/lib/timezone";
+import { Appointment, Doctor, Pet, PetParent } from "@/lib/types";
+import {
   ArrowDown,
   ArrowLeft,
   Calendar,
@@ -13,26 +22,18 @@ import {
   Stethoscope,
   Video,
 } from "lucide-react";
+import { routerServerGlobal } from "next/dist/server/lib/router-utils/router-server-context";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import PetInfoCard from "./Appointments/PetInfoCard";
-import ParentInfoCard from "./Appointments/ParentInfoCard";
-import DataAssessmentSection from "./Appointments/DataAssessmentSection";
-import PrescriptionSection from "./Appointments/PrescriptionSection";
-import ChatBox from "./Appointments/Chatbox";
-import DataAssessmentModal from "./Appointments/DataAssessmentModal";
-import PrescriptionModal from "./Appointments/PrescriptionModal";
-import { Appointment, Doctor, Pet, PetParent } from "@/lib/types";
-import { routerServerGlobal } from "next/dist/server/lib/router-utils/router-server-context";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Skeleton } from "@/components/ui/skeleton";
+import ChatBox from "./Appointments/Chatbox";
+import DataAssessmentModal from "./Appointments/DataAssessmentModal";
+import DataAssessmentSection from "./Appointments/DataAssessmentSection";
+import ParentInfoCard from "./Appointments/ParentInfoCard";
+import PetInfoCard from "./Appointments/PetInfoCard";
+import PrescriptionModal from "./Appointments/PrescriptionModal";
+import PrescriptionSection from "./Appointments/PrescriptionSection";
 
 interface AppointmentData {
   _id: string;
@@ -59,6 +60,7 @@ export default function AppointmentDetailsPage() {
   const [appointment, setAppointment] = useState<Appointment | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [userTimezone, setUserTimezone] = useState<string>("UTC");
   const params = useParams();
   const appointmentId = params.id as string;
 
@@ -86,6 +88,9 @@ export default function AppointmentDetailsPage() {
   };
 
   useEffect(() => {
+    // Get user timezone
+    setUserTimezone(getUserTimezone());
+    
     if (appointmentId) {
       fetchAppointment();
     }
@@ -106,15 +111,38 @@ export default function AppointmentDetailsPage() {
       year: "numeric",
       month: "long",
       day: "numeric",
+      timeZone: userTimezone,
     });
   };
 
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleTimeString("en-US", {
+    const timeString = date.toLocaleTimeString("en-US", {
       hour: "2-digit",
       minute: "2-digit",
+      hour12: false,
+      timeZone: userTimezone,
     });
+    return formatTimeToUserTimezone(timeString, userTimezone);
+  };
+
+  const formatDateTime = (dateString: string) => {
+    const date = new Date(dateString);
+    const dateStr = date.toLocaleDateString("en-US", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      timeZone: userTimezone,
+    });
+    const timeStr = date.toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+      timeZone: userTimezone,
+    });
+    const formattedTime = formatTimeToUserTimezone(timeStr, userTimezone);
+    return `${dateStr} at ${formattedTime}`;
   };
 
   const getStatusColor = (status: string) => {
@@ -207,8 +235,10 @@ export default function AppointmentDetailsPage() {
                 Appointment Details
               </h1>
               <p className="text-gray-600 mt-1">
-                {formatDate(appointment.appointmentDate)} at{" "}
-                {formatTime(appointment.appointmentDate)}
+                {formatDateTime(appointment.appointmentDate)}
+                <span className="text-sm text-gray-500 ml-2">
+                  ({userTimezone})
+                </span>
               </p>
             </div>
           </div>
@@ -299,6 +329,9 @@ export default function AppointmentDetailsPage() {
                   <p className="font-semibold text-gray-900">Date</p>
                   <p className="text-gray-600">
                     {formatDate(appointment.appointmentDate)}
+                    <span className="text-sm text-gray-500 ml-1">
+                      {userTimezone}
+                    </span>
                   </p>
                 </div>
               </div>
@@ -312,6 +345,9 @@ export default function AppointmentDetailsPage() {
                   <p className="text-gray-600">
                     {formatTime(appointment.appointmentDate)} (
                     {appointment.durationMinutes} min)
+                    <span className="text-sm text-gray-500 ml-1">
+                      {userTimezone}
+                    </span>
                   </p>
                 </div>
               </div>
