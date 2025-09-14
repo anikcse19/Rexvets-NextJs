@@ -224,9 +224,9 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
       >
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-blue-200">
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center justify-center space-x-2 w-full">
             <div className=" rounded-lg flex items-center justify-center">
-              <Image width={120} height={120} src={Logo} alt="LogoWhite" />
+              <Image width={150} height={150} src={Logo} alt="LogoWhite" />
             </div>
           </div>
           <Button

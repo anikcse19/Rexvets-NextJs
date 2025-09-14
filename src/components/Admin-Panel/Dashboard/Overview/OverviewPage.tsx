@@ -53,79 +53,89 @@ const AdminOverviewPage = () => {
   const { theme } = useTheme();
 
   const isDark = theme === "dark";
-  
+
   const fetchParents = async () => {
     try {
-      const response = await fetch('/api/pet-parents?limit=1000');
+      const response = await fetch("/api/pet-parents?limit=1000");
       const result = await response.json();
       if (result.success) {
         setParents(result.data || []);
       }
     } catch (error) {
-      console.error('Error fetching parents:', error);
+      console.error("Error fetching parents:", error);
     }
   };
-  
+
   const fetchAppoinments = async () => {
     try {
-      const response = await fetch('/api/appointments?limit=1000');
+      const response = await fetch("/api/appointments?limit=1000");
       const result = await response.json();
       if (result.success) {
         setAppoinments(result.data || []);
       }
     } catch (error) {
-      console.error('Error fetching appointments:', error);
+      console.error("Error fetching appointments:", error);
     }
   };
-  
+
   const fetchDonations = async () => {
     try {
-      const response = await fetch('/api/donations?limit=1000');
+      const response = await fetch("/api/donations?limit=1000");
       const result = await response.json();
       if (result.success) {
         setDonations(result.data || []);
         console.log("Donations data:", result.data);
-        
+
         // Log unique donation types
-        const uniqueTypes = [...new Set(result.data?.map((d: any) => d.donationType))];
+        const uniqueTypes = [
+          ...new Set(result.data?.map((d: any) => d.donationType)),
+        ];
         console.log("Unique donation types:", uniqueTypes);
       }
     } catch (error) {
-      console.error('Error fetching donations:', error);
+      console.error("Error fetching donations:", error);
     }
   };
-  
+
   const fetchReviews = async () => {
     try {
-      const response = await fetch('/api/reviews?limit=1000');
+      const response = await fetch("/api/reviews?limit=1000");
       const result = await response.json();
       if (result.success) {
         setReviews(result.data?.reviews || []);
       }
     } catch (error) {
-      console.error('Error fetching reviews:', error);
+      console.error("Error fetching reviews:", error);
     }
   };
-  
+
   const fetchDoctors = async () => {
     try {
       // First, let's get all veterinarians without any filters to see what's in the database
-      const response = await fetch('/api/veterinarian?limit=1000&skipSlotFilter=true');
+      const response = await fetch(
+        "/api/veterinarian?limit=1000&skipSlotFilter=true"
+      );
       const result = await response.json();
       console.log("result = doctors data (all veterinarians)", result);
-      
+
       if (result.success && result.data) {
         console.log("Total veterinarians found:", result.data.length);
-        
+
         // Log the approval status of all veterinarians
         result.data.forEach((vet: any, index: number) => {
-          console.log(`Vet ${index + 1}: ${vet.name}, isApproved: ${vet.isApproved}, isActive: ${vet.isActive}`);
+          console.log(
+            `Vet ${index + 1}: ${vet.name}, isApproved: ${
+              vet.isApproved
+            }, isActive: ${vet.isActive}`
+          );
         });
-        
+
         // Filter for approved ones
-        const approvedDoctors = result.data.filter((doc: any) => doc.isApproved === true);
+        const approvedDoctors = result.data.filter(
+          (doc: any) => doc.isApproved === true
+        );
         console.log("Approved veterinarians:", approvedDoctors.length);
-        
+
         // For admin dashboard, let's show all veterinarians regardless of approval status
         // but prioritize approved ones
         const allDoctors = result.data.sort((a: any, b: any) => {
@@ -135,7 +145,7 @@ const AdminOverviewPage = () => {
           }
           return (b.averageRating || 0) - (a.averageRating || 0);
         });
-        
+
         setDoctorsData(allDoctors);
         console.log("doctors data set:", allDoctors.length, "veterinarians");
       } else {
@@ -143,7 +153,7 @@ const AdminOverviewPage = () => {
         setDoctorsData([]);
       }
     } catch (error) {
-      console.error('Error fetching veterinarians:', error);
+      console.error("Error fetching veterinarians:", error);
       setDoctorsData([]);
     }
   };
@@ -161,8 +171,8 @@ const AdminOverviewPage = () => {
           fetchDoctors(),
         ]);
       } catch (err) {
-        setError('Failed to load dashboard data');
-        console.error('Error fetching dashboard data:', err);
+        setError("Failed to load dashboard data");
+        console.error("Error fetching dashboard data:", err);
       } finally {
         setLoading(false);
       }
@@ -172,50 +182,54 @@ const AdminOverviewPage = () => {
   }, []);
 
   // Top doctors - show all veterinarians but prioritize approved ones
-  const sortedDoctors = (doctorsData || [])
-    .sort((a, b) => {
-      // First sort by approval status (approved first)
-      if (a.isApproved !== b.isApproved) {
-        return b.isApproved - a.isApproved;
-      }
-      
-      // Then by number of appointments
-      const aAppointments = a.appointmentCount || a.appointments?.length || 0;
-      const bAppointments = b.appointmentCount || b.appointments?.length || 0;
+  const sortedDoctors = (doctorsData || []).sort((a, b) => {
+    // First sort by approval status (approved first)
+    if (a.isApproved !== b.isApproved) {
+      return b.isApproved - a.isApproved;
+    }
 
-      if (bAppointments !== aAppointments) {
-        return bAppointments - aAppointments; // more appointments first
-      }
+    // Then by number of appointments
+    const aAppointments = a.appointmentCount || a.appointments?.length || 0;
+    const bAppointments = b.appointmentCount || b.appointments?.length || 0;
 
-      // Finally by rating
-      const aRating = a.averageRating || 0;
-      const bRating = b.averageRating || 0;
+    if (bAppointments !== aAppointments) {
+      return bAppointments - aAppointments; // more appointments first
+    }
 
-      return bRating - aRating; // if same appointments, higher rating first
-    });
+    // Finally by rating
+    const aRating = a.averageRating || 0;
+    const bRating = b.averageRating || 0;
+
+    return bRating - aRating; // if same appointments, higher rating first
+  });
 
   // Get today's date in 'YYYY-MM-DD' format
   const today = new Date();
   const todayString = today.toISOString().split("T")[0];
-  
+
   // Debug logging
   console.log("Today's date string:", todayString);
   console.log("Current timezone offset:", new Date().getTimezoneOffset());
-  console.log("Sample appointment dates:", (appoinments || []).slice(0, 3).map(apt => ({
-    appointmentDate: apt.appointmentDate,
-    appointmentDateType: typeof apt.appointmentDate,
-    appointmentDateString: new Date(apt.appointmentDate).toISOString().split("T")[0],
-    appointmentDateLocal: new Date(apt.appointmentDate).toLocaleDateString(),
-    appointmentDateUTC: new Date(apt.appointmentDate).toUTCString()
-  })));
-  
+  console.log(
+    "Sample appointment dates:",
+    (appoinments || []).slice(0, 3).map((apt) => ({
+      appointmentDate: apt.appointmentDate,
+      appointmentDateType: typeof apt.appointmentDate,
+      appointmentDateString: new Date(apt.appointmentDate)
+        .toISOString()
+        .split("T")[0],
+      appointmentDateLocal: new Date(apt.appointmentDate).toLocaleDateString(),
+      appointmentDateUTC: new Date(apt.appointmentDate).toUTCString(),
+    }))
+  );
+
   const todayData = (appoinments || []).filter((item) => {
     // Handle both Date objects and ISO strings
     const appointmentDate = new Date(item.appointmentDate);
     const appointmentDateString = appointmentDate.toISOString().split("T")[0];
     return appointmentDateString === todayString;
   });
-  
+
   // Debug logging for today's appointments
   console.log("Total appointments:", (appoinments || []).length);
   console.log("Today's appointments count:", todayData.length);
@@ -249,28 +263,36 @@ const AdminOverviewPage = () => {
   // Count donations by type
   const donationTypeCounts: { [key: string]: number } = {};
   currentMonthDonationsFiltered.forEach((item) => {
-    const type = item.donationType || 'unknown';
+    const type = item.donationType || "unknown";
     donationTypeCounts[type] = (donationTypeCounts[type] || 0) + 1;
   });
 
   const totalDonations = currentMonthDonationsFiltered.length;
 
   // Create appointment types array dynamically
-  const appointmentTypes = Object.entries(donationTypeCounts).map(([type, count]) => {
-    const percentage = totalDonations > 0 ? ((count / totalDonations) * 100).toFixed(2) : "0";
-    return {
-      name: type.charAt(0).toUpperCase() + type.slice(1), // Capitalize first letter
-      value: parseFloat(percentage),
-      color: type === 'donation' ? '#10B981' : type === 'booking' ? '#3B82F6' : '#6B7280'
-    };
-  });
+  const appointmentTypes = Object.entries(donationTypeCounts).map(
+    ([type, count]) => {
+      const percentage =
+        totalDonations > 0 ? ((count / totalDonations) * 100).toFixed(2) : "0";
+      return {
+        name: type.charAt(0).toUpperCase() + type.slice(1), // Capitalize first letter
+        value: parseFloat(percentage),
+        color:
+          type === "donation"
+            ? "#10B981"
+            : type === "booking"
+            ? "#3B82F6"
+            : "#6B7280",
+      };
+    }
+  );
 
   // If no donations this month, show a default message
   if (appointmentTypes.length === 0) {
     appointmentTypes.push({
       name: "No donations this month",
       value: 100,
-      color: '#E5E7EB'
+      color: "#E5E7EB",
     });
   }
 
@@ -287,7 +309,6 @@ const AdminOverviewPage = () => {
       ? validRatings.reduce((sum, rating) => sum + rating, 0) /
         validRatings.length
       : 0;
-
 
   const startOfWeek = new Date(today);
   startOfWeek.setDate(today.getDate() - ((today.getDay() + 6) % 7)); // Monday
@@ -454,7 +475,9 @@ const AdminOverviewPage = () => {
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600 dark:text-gray-300">Loading dashboard data...</p>
+            <p className="mt-4 text-gray-600 dark:text-gray-300">
+              Loading dashboard data...
+            </p>
           </div>
         </div>
       </div>
@@ -468,8 +491,8 @@ const AdminOverviewPage = () => {
           <div className="text-center">
             <div className="text-red-500 text-6xl mb-4">⚠️</div>
             <p className="text-red-600 dark:text-red-400 text-lg">{error}</p>
-            <button 
-              onClick={() => window.location.reload()} 
+            <button
+              onClick={() => window.location.reload()}
               className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
             >
               Retry
@@ -501,7 +524,7 @@ const AdminOverviewPage = () => {
         </div>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="border-0 shadow-sm hover:shadow-md bg-gray-100 transition-shadow duration-200">
+        <Card className="border-0 shadow-sm hover:shadow-md bg-gray-100 dark:bg-[#293549] transition-shadow duration-200">
           <CardContent className="p-6 dark:bg-[#293549]">
             <div className="flex items-center justify-between">
               <div>
@@ -518,7 +541,7 @@ const AdminOverviewPage = () => {
             </div>
           </CardContent>
         </Card>
-        <Card className="border-0 shadow-sm hover:shadow-md bg-gray-100 transition-shadow duration-200">
+        <Card className="border-0 shadow-sm hover:shadow-md dark:bg-[#293549] transition-shadow duration-200">
           <CardContent className="p-6 dark:bg-[#293549]">
             <div className="flex items-center justify-between">
               <div>
@@ -535,7 +558,7 @@ const AdminOverviewPage = () => {
             </div>
           </CardContent>
         </Card>
-        <Card className="border-0 shadow-sm hover:shadow-md bg-gray-100 transition-shadow duration-200">
+        <Card className="border-0 shadow-sm hover:shadow-md dark:bg-[#293549] transition-shadow duration-200">
           <CardContent className="p-6 dark:bg-[#293549]">
             <div className="flex items-center justify-between">
               <div>
@@ -552,7 +575,7 @@ const AdminOverviewPage = () => {
             </div>
           </CardContent>
         </Card>
-        <Card className="border-0 shadow-sm hover:shadow-md bg-gray-100 transition-shadow duration-200">
+        <Card className="border-0 shadow-sm hover:shadow-md dark:bg-[#293549] transition-shadow duration-200">
           <CardContent className="p-6 dark:bg-[#293549]">
             <div className="flex items-center justify-between">
               <div>
@@ -592,7 +615,7 @@ const AdminOverviewPage = () => {
                   className="flex items-center gap-3 p-3 bg-gray-100 dark:bg-slate-800 rounded-lg"
                 >
                   <img
-                    src={doctor.profileImage || '/images/default-avatar.png'}
+                    src={doctor.profileImage || "/images/default-avatar.png"}
                     alt={doctor.name}
                     className="w-12 h-12 rounded-full object-cover border border-gray-300"
                   />
@@ -611,13 +634,19 @@ const AdminOverviewPage = () => {
                   </div>
                   <div className="text-right">
                     <p className="text-sm dark:text-gray-100 text-gray-800">
-                      {doctor?.appointmentCount || doctor?.appointments?.length || 0} Appointments
+                      {doctor?.appointmentCount ||
+                        doctor?.appointments?.length ||
+                        0}{" "}
+                      Appointments
                     </p>
                     <Badge
                       variant="secondary"
                       className="bg-yellow-500 hover:bg-yellow-500 text-white text-xs"
                     >
-                      {doctor?.averageRating ? doctor.averageRating.toFixed(1) : 0}/5
+                      {doctor?.averageRating
+                        ? doctor.averageRating.toFixed(1)
+                        : 0}
+                      /5
                     </Badge>
                   </div>
                 </div>
