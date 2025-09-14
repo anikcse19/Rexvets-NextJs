@@ -110,7 +110,7 @@ export default function PetParentAppointmentsListPage() {
             Appointments
           </h1>
           <p className="text-gray-600 mt-1">
-            Manage your clinic appointments and schedule.
+            Manage your appointments.
           </p>
         </div>
       </div>
@@ -188,13 +188,15 @@ export default function PetParentAppointmentsListPage() {
 
           return (
             <TabsContent key={tabKey} value={tabKey} className="mt-6">
-              <div className="grid grid-cols-3 gap-4">
+              <div className="flex flex-col items-center gap-4 sm:grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 sm:items-stretch">
                 {loading ? (
                   Array.from({ length: 3 }).map((_, i) => (
-                    <AppointmentCardSkeleton key={i} />
+                    <div key={i} className="w-full max-w-[320px] sm:min-w-[280px]">
+                      <AppointmentCardSkeleton />
+                    </div>
                   ))
                 ) : filtered.length === 0 ? (
-                  <Card className="p-8 text-center">
+                  <Card className="p-8 text-center w-full max-w-[320px] sm:col-span-full">
                     <p className="text-gray-500">
                       No appointments found in this category.
                     </p>

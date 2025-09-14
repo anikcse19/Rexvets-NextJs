@@ -58,23 +58,23 @@ export default function AppointmentCard({ appointment }: AppointmentCardProps) {
   }
 
   return (
-    <div className="relative  rounded-3xl p-6 bg-white/70 backdrop-blur-lg shadow-lg hover:shadow-2xl transition-all duration-300 border border-white/20">
+    <div className="relative w-full max-w-[320px] sm:min-w-[280px] rounded-3xl p-4 bg-white/70 backdrop-blur-lg shadow-lg hover:shadow-2xl transition-all duration-300 border border-white/20">
       {/* Pet Info */}
       <Link
         href={`/dashboard/pet-parent/appointments/${appointment._id}`}
-        className="flex items-center gap-5 cursor-pointer"
+        className="flex items-center gap-3 cursor-pointer"
       >
-        <Avatar className="w-20 h-20 border-4 border-white shadow-md">
+        <Avatar className="w-16 h-16 border-3 border-white shadow-md">
           <AvatarImage src={appointment.pet.image} alt={appointment.pet.name} />
           <AvatarFallback className="bg-gradient-to-br from-blue-100 to-purple-100 text-blue-800 font-bold">
             {appointment.pet.name.charAt(0)}
           </AvatarFallback>
         </Avatar>
-        <div>
-          <h3 className="text-xl font-bold text-gray-900">
+        <div className="flex-1 min-w-0">
+          <h3 className="text-lg font-bold text-gray-900 truncate">
             {appointment.pet.name}
           </h3>
-          <p className="text-sm text-gray-500">{appointment.pet.species}</p>
+          <p className="text-sm text-gray-500 truncate">{appointment.pet.species}</p>
         </div>
       </Link>
 
@@ -82,34 +82,36 @@ export default function AppointmentCard({ appointment }: AppointmentCardProps) {
       <div className="my-5 h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
 
       {/* Appointment Info */}
-      <div className="grid grid-cols-2 gap-4">
-        <div className="flex flex-col items-center p-4 rounded-2xl bg-gradient-to-br from-blue-50 to-white shadow-sm">
-          <Calendar className="w-5 h-5 text-blue-600 mb-1" />
-          <p className="font-semibold">
+      <div className="grid grid-cols-2 gap-3">
+        <div className="flex flex-col items-center p-3 rounded-2xl bg-gradient-to-br from-blue-50 to-white shadow-sm">
+          <Calendar className="w-4 h-4 text-blue-600 mb-1" />
+          <p className="font-semibold text-sm text-center leading-tight">
             {formatDate(appointment.appointmentDate)}
           </p>
         </div>
-        <div className="flex flex-col items-center p-4 rounded-2xl bg-gradient-to-br from-purple-50 to-white shadow-sm">
-          <Clock className="w-5 h-5 text-purple-600 mb-1" />
-          <p className="font-semibold">
+        <div className="flex flex-col items-center p-3 rounded-2xl bg-gradient-to-br from-purple-50 to-white shadow-sm">
+          <Clock className="w-4 h-4 text-purple-600 mb-1" />
+          <p className="font-semibold text-sm text-center leading-tight">
             {formatTime(appointment?.appointmentDate)}
           </p>
-          <span className="text-xs text-gray-500">Local Time</span>
+          <span className="text-xs text-gray-500 mt-1">Local Time</span>
         </div>
       </div>
 
       {/* Booking Time */}
-      <div className="flex items-center justify-between mt-3">
+      <div className="mt-4 space-y-2">
         {appointment.createdAt && (
-          <p className=" text-xs text-gray-500 text-center">
+          <p className="text-xs text-gray-500 text-center">
             Booked on {formatDateTime(appointment.createdAt)}
           </p>
         )}
-        <Badge className="capitalize">{getAppointmentStatus()}</Badge>
+        <div className="flex justify-center">
+          <Badge className="capitalize px-3 py-1">{getAppointmentStatus()}</Badge>
+        </div>
       </div>
 
       {/* doctor Info */}
-      <div className="flex items-center gap-3 mt-5 p-4 rounded-2xl bg-gray-50/70 shadow-sm">
+      <div className="flex items-center gap-3 mt-4 p-3 rounded-2xl bg-gray-50/70 shadow-sm">
         <Avatar className="w-10 h-10 border-2 border-white shadow-sm">
           <AvatarImage
             src={appointment?.veterinarian?.profileImage}
@@ -122,8 +124,8 @@ export default function AppointmentCard({ appointment }: AppointmentCardProps) {
               .join("")}
           </AvatarFallback>
         </Avatar>
-        <div>
-          <p className="font-semibold">{appointment.veterinarian?.name}</p>
+        <div className="flex-1 min-w-0">
+          <p className="font-semibold text-sm truncate">{appointment.veterinarian?.name}</p>
           <p className="text-xs text-gray-500">Veterinarian</p>
         </div>
       </div>
