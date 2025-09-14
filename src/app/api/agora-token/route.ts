@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Map role strings to RtcRole
-    let rtcRole: RtcRole;
+    let rtcRole: number;
     switch (role.toLowerCase()) {
       case "publisher":
         rtcRole = RtcRole.PUBLISHER;

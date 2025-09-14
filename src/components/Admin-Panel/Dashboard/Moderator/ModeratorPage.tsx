@@ -51,10 +51,15 @@ export default function AdminModeratorsPage() {
   const [moderators, setModerators] = useState<Moderator[]>([]);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [form, setForm] = useState<Omit<Moderator, "_id" | "isActive" | "createdAt" | "updatedAt">>({
+  const [form, setForm] = useState<
+    Omit<Moderator, "_id" | "isActive" | "createdAt" | "updatedAt"> & {
+      password?: string;
+    }
+  >({
     name: "",
     email: "",
     phone: "",
+    password: "",
     accesslist: ["Dashboard"],
   });
   const [selectedModeratorId, setSelectedModeratorId] = useState<string | null>(
@@ -66,6 +71,7 @@ export default function AdminModeratorsPage() {
   );
   const [isUpdateLoading, setIsUpdateLoading] = useState(false);
   const [isCreateAccessLoading, setIsCreateAccessLoading] = useState(false);
+  const [tempPassword, setTempPassword] = useState<string | null>(null);
 
   const fetchModerators = async () => {
     try {
@@ -75,6 +81,9 @@ export default function AdminModeratorsPage() {
       }
       const data = await response.json();
       setModerators(data.moderators || []);
+      if (data.tempPassword) {
+        setTempPassword(data.tempPassword);
+      }
     } catch (error) {
       console.error("Failed to fetch moderators:", error);
     }
@@ -85,6 +94,11 @@ export default function AdminModeratorsPage() {
   }, []);
 
   const handleAddModerator = async () => {
+    if (!form.password || form.password.trim().length < 8) {
+      alert("Password is required and must be at least 8 characters");
+      return;
+    }
+    
     setIsCreateAccessLoading(true);
     try {
       const response = await fetch("/api/admin/moderators", {
@@ -97,6 +111,7 @@ export default function AdminModeratorsPage() {
           email: form.email,
           phone: form.phone,
           accesslist: form.accesslist,
+          password: form.password?.trim(),
         }),
       });
 
@@ -104,7 +119,9 @@ export default function AdminModeratorsPage() {
         throw new Error("Failed to create moderator");
       }
 
-      // Refresh local list
+      // Parse response to get temp password
+      const data = await response.json();
+
       await fetchModerators();
 
       // Reset form and close
@@ -112,9 +129,16 @@ export default function AdminModeratorsPage() {
         name: "",
         email: "",
         phone: "",
+        password: "",
         accesslist: ["Dashboard"],
       });
       setAddDialogOpen(false);
+      // Optionally show alert
+      if (data.tempPassword) {
+        alert(`Password for ${form.email}: ${data.tempPassword}`);
+      } else if (form.password) {
+        alert(`Password for ${form.email}: ${form.password}`);
+      }
     } catch (error) {
       console.error("Failed to add moderator:", error);
     } finally {
@@ -220,6 +244,14 @@ export default function AdminModeratorsPage() {
                 onChange={(e) => setForm({ ...form, phone: e.target.value })}
                 className="dark:bg-slate-800"
               />
+            <Input
+              placeholder="Password (minimum 8 characters)"
+              value={form.password}
+              onChange={(e) => setForm({ ...form, password: e.target.value })}
+              className="dark:bg-slate-800"
+              type="password"
+              required
+            />
               <Separator />
               <Label className="text-sm">Access List</Label>
               <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto">
