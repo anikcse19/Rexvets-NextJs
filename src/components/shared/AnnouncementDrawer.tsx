@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { Badge } from "../ui/badge";
 
 interface Announcement {
   _id: string;
@@ -100,7 +101,13 @@ export default function AnnouncementsDrawer({
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <Mic2 className="cursor-pointer" />
+        <div className="relative cursor-pointer">
+          <Mic2 className="cursor-pointer" />
+          <Badge className="absolute -top-1 -right-1 w-5 h-5 p-0 flex items-center justify-center bg-red-500 text-white text-xs">
+            {/* Display count of unread message notifications, default to 0 if none */}
+            {announcements?.length || 0}
+          </Badge>
+        </div>
       </SheetTrigger>
 
       <SheetContent side="right" className="p-4 w-[400px] sm:w-[500px]">
@@ -141,12 +148,12 @@ export default function AnnouncementsDrawer({
             </div>
           ) : (
             announcements.map((a) => {
-            const userReaction = a.reactions.find((r) => {
-              const userMatch =
-                (r.user.toString ? r.user.toString() : r.user) === userId;
-              const roleMatch = r.role === role;
-              return userMatch && roleMatch;
-            });
+              const userReaction = a.reactions.find((r) => {
+                const userMatch =
+                  (r.user.toString ? r.user.toString() : r.user) === userId;
+                const roleMatch = r.role === role;
+                return userMatch && roleMatch;
+              });
 
               return (
                 <Card key={a._id} className="shadow-sm">
