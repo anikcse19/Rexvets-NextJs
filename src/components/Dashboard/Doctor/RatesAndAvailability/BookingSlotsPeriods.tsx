@@ -147,12 +147,19 @@ const BookingSlotsPeriods: React.FC<BookingSlotsProps> = ({
         endDate = startDate;
       }
 
+      console.groupCollapsed("[Slots] Update status request");
+      console.log("refId:", user.refId);
+      console.log("selectedSlotIds:", selectedSlotIds.length);
+      console.log("dateRange:", { startDate, endDate });
+      console.groupEnd();
+
       await onUpdateSelectedSlotStatus(
         SlotStatus.DISABLED,
         user.refId,
         startDate,
         endDate
       );
+      console.log("[Slots] Update status success");
       setSelectedStatus(null);
       setSelectedSlotIds([]);
       setIsDropdownOpen(false);
@@ -164,6 +171,30 @@ const BookingSlotsPeriods: React.FC<BookingSlotsProps> = ({
 
   const performDelete = async () => {
     if (selectedSlotIds.length === 0) return;
+    if (!user?.refId) {
+      console.error("User refId is missing");
+      toast.error("Missing user reference. Please re-login and try again.");
+      return;
+    }
+
+    // Derive date range similar to handleUpdateStatus (for logging and parity)
+    let startDate: string | undefined;
+    let endDate: string | undefined;
+    if (selectedSlot && selectedSlot.length > 0) {
+      const dates = selectedSlot.map((slot) => slot.formattedDate).sort();
+      startDate = dates[0];
+      endDate = dates[dates.length - 1];
+    } else {
+      const currentDate = new Date();
+      startDate = currentDate.toISOString().split("T")[0];
+      endDate = startDate;
+    }
+
+    console.groupCollapsed("[Slots] Delete request");
+    console.log("refId:", user.refId);
+    console.log("selectedSlotIds:", selectedSlotIds.length);
+    console.log("dateRange:", { startDate, endDate });
+    console.groupEnd();
     try {
       setIsDeleting(true);
       const res = await fetch("/api/appointments/delete-slots-by-ids", {
@@ -173,7 +204,24 @@ const BookingSlotsPeriods: React.FC<BookingSlotsProps> = ({
       });
       const data = await res.json();
       if (!res.ok) {
-        toast.error(data?.error || "Failed to delete slots");
+        if (res.status === 409) {
+          // Booked slots present, API returns bookedSlotsCount/bookedSlotIds
+          const bookedCount = data?.bookedSlotsCount || 0;
+          toast.warning(
+            `Some slots could not be deleted (${bookedCount} booked).`,
+            {
+              description:
+                typeof data?.deletedCount === "number"
+                  ? `${data.deletedCount} deleted, ${bookedCount} booked.`
+                  : undefined,
+            }
+          );
+        } else {
+          toast.error(data?.error || "Failed to delete slots");
+        }
+        console.error("[Slots] Delete failed:", { status: res.status, data });
+        // Still refetch to reflect any partial deletions
+        await refetchSlots();
         return;
       }
       toast.success(data?.message || "Slots deleted successfully", {
@@ -184,9 +232,12 @@ const BookingSlotsPeriods: React.FC<BookingSlotsProps> = ({
               } deleted.`
             : undefined,
       });
+      console.log("[Slots] Delete success:", data);
+      alert("Slots deleted successfully");
       setSelectedStatus(null);
       setSelectedSlotIds([]);
       setIsDropdownOpen(false);
+      setIsConfirmOpen(false);
       await refetchSlots();
     } catch (err: any) {
       console.error("Error deleting slots:", err);

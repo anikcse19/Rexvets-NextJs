@@ -13,73 +13,82 @@ export const DELETE = async (req: NextRequest) => {
     // Validate required fields
     if (!slotIds || !Array.isArray(slotIds) || slotIds.length === 0) {
       return NextResponse.json(
-        { 
-          error: "Missing required fields: slotIds array" 
+        {
+          success: false,
+          error: "Missing required fields: slotIds array",
         },
         { status: 400 }
       );
     }
 
     // Validate that all slotIds are valid ObjectIds
-    const invalidIds = slotIds.filter(id => !Types.ObjectId.isValid(id));
+    const invalidIds = slotIds.filter((id) => !Types.ObjectId.isValid(id));
     if (invalidIds.length > 0) {
       return NextResponse.json(
-        { 
-          error: `Invalid slot IDs: ${invalidIds.join(", ")}` 
+        {
+          success: false,
+          error: `Invalid slot IDs: ${invalidIds.join(", ")}`,
+          invalidIds,
         },
         { status: 400 }
       );
     }
 
     // Convert string IDs to ObjectIds
-    const objectIds = slotIds.map(id => new Types.ObjectId(id));
+    const objectIds = slotIds.map((id) => new Types.ObjectId(id));
 
-    // Find slots that will be deleted
-    const slotsToDelete = await AppointmentSlot.find({
-      _id: { $in: objectIds }
-    });
+    // Find slots that match
+    const slotsToAffect = await AppointmentSlot.find({
+      _id: { $in: objectIds },
+    }).lean();
 
-    if (slotsToDelete.length === 0) {
+    if (slotsToAffect.length === 0) {
       return NextResponse.json({
         success: true,
         message: "No slots found with the provided IDs",
-        deletedCount: 0
+        deletedCount: 0,
+        requestedCount: slotIds.length,
+        foundCount: 0,
+        bookedSlotsCount: 0,
+        bookedSlotIds: [],
       });
     }
 
-    // Check if any slots are booked (should not be deleted)
-    const bookedSlots = slotsToDelete.filter(slot => slot.status === SlotStatus.BOOKED);
-    if (bookedSlots.length > 0) {
-      return NextResponse.json(
-        { 
-          error: `Cannot delete slots: ${bookedSlots.length} slots are already booked`,
-          bookedSlotsCount: bookedSlots.length,
-          bookedSlotIds: bookedSlots.map(slot => slot._id?.toString() || '')
-        },
-        { status: 409 }
-      );
-    }
+    // Partition into booked and deletable (available/disabled)
+    const booked = slotsToAffect.filter((s: any) => s.status === SlotStatus.BOOKED);
+    const deletableIds = slotsToAffect
+      .filter((s: any) => [SlotStatus.AVAILABLE, SlotStatus.DISABLED].includes(s.status))
+      .map((s: any) => s._id);
 
-    // Delete only available and disabled slots
-    const deleteResult = await AppointmentSlot.deleteMany({
-      _id: { $in: objectIds },
-      status: { $in: [SlotStatus.AVAILABLE, SlotStatus.DISABLED] }
-    });
+    // Delete deletable even if there are booked ones
+    const deleteResult = await AppointmentSlot.deleteMany({ _id: { $in: deletableIds } });
 
-    return NextResponse.json({
+    const responseBody = {
       success: true,
-      message: `Successfully deleted ${deleteResult.deletedCount} slots`,
+      message:
+        booked.length > 0
+          ? `Deleted ${deleteResult.deletedCount} slots. ${booked.length} booked slot(s) were not deleted.`
+          : `Successfully deleted ${deleteResult.deletedCount} slots`,
       deletedCount: deleteResult.deletedCount,
       requestedCount: slotIds.length,
-      foundCount: slotsToDelete.length
-    });
+      foundCount: slotsToAffect.length,
+      bookedSlotsCount: booked.length,
+      bookedSlotIds: booked.map((s: any) => s._id?.toString() || ""),
+    };
 
+    if (booked.length > 0) {
+      // Inform client of partial success via 409 to signal booked conflicts
+      return NextResponse.json(responseBody, { status: 409 });
+    }
+
+    return NextResponse.json(responseBody, { status: 200 });
   } catch (error: any) {
     console.error("Error deleting slots by IDs:", error);
     return NextResponse.json(
-      { 
+      {
+        success: false,
         error: "Failed to delete slots",
-        details: error.message 
+        details: error.message,
       },
       { status: 500 }
     );
