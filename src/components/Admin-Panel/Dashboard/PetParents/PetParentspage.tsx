@@ -195,6 +195,7 @@ export default function PetParentsPage() {
           setPagination((prev) => ({ ...prev, page: 1 }));
         }
         console.log("pet parents", data?.data);
+        setHasFetched(true);
       }
     } catch (err) {
       console.error(err);
@@ -328,27 +329,31 @@ export default function PetParentsPage() {
   }
 
   // Animated loader during initial fetch
-  if (loading && parents.length === 0) {
-    return (
-      <RequireAccess permission="Pet Parents">
-        <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
-          <LoadingSpinner size="lg" />
-          <div className="text-center">
-            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
-              Loading Pet Parents
-            </h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Please wait while we fetch the pet parents data...
-            </p>
-          </div>
-        </div>
-      </RequireAccess>
-    );
-  }
+  // if (loading && parents.length === 0) {
+  //   return (
+  //     <RequireAccess permission="Pet Parents">
+  //       <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+  //         <LoadingSpinner size="lg" />
+  //         <div className="text-center">
+  //           <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
+  //             Loading Pet Parents
+  //           </h3>
+  //           <p className="text-sm text-gray-500 dark:text-gray-400">
+  //             Please wait while we fetch the pet parents data...
+  //           </p>
+  //         </div>
+  //       </div>
+  //     </RequireAccess>
+  //   );
+  // }
 
   // Derived UI states for clear rendering logic
   const isInitialLoading = !hasFetched || (loading && parents.length === 0);
-  const isEmptyAfterFetch = hasFetched && !loading && parents.length === 0;
+  const isEmptyAfterFetch =
+    hasFetched &&
+    !loading &&
+    parents.length === 0 &&
+    (pagination.total || 0) === 0;
   const isTableLoading = loading && parents.length > 0;
 
   return (
