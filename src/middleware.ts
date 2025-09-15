@@ -59,12 +59,23 @@ function hasRouteAccess(pathname: string, userRole: string, accessList: string[]
 
 export default withAuth(
   function middleware(req) {
-    const { pathname } = req.nextUrl;
+    const { pathname, host, protocol } = req.nextUrl as any;
     const token = (req as any).nextauth?.token;
 
     // Allow NextAuth internal routes to proceed without auth middleware handling
     if (pathname.startsWith("/api/auth")) {
       return NextResponse.next();
+    }
+
+    // Enforce canonical host to ensure cookies are set on the same domain
+    if (process.env.NODE_ENV === "production") {
+      const desiredHost = "www.rexvet.org";
+      if (host !== desiredHost) {
+        const url = req.nextUrl.clone();
+        url.host = desiredHost;
+        url.protocol = "https";
+        return NextResponse.redirect(url, 308);
+      }
     }
 
     // Check admin routes first

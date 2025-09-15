@@ -179,6 +179,10 @@ export const authOptions = {
         sameSite: 'lax',
         path: '/',
         secure: process.env.NODE_ENV === 'production',
+        // Share session between www and apex domains in production
+        ...(process.env.NODE_ENV === 'production'
+          ? { domain: '.rexvet.org' }
+          : {}),
         maxAge: 30 * 24 * 60 * 60 // 30 days
       }
     },
@@ -187,7 +191,10 @@ export const authOptions = {
       options: {
         sameSite: 'lax',
         path: '/',
-        secure: process.env.NODE_ENV === 'production'
+        secure: process.env.NODE_ENV === 'production',
+        ...(process.env.NODE_ENV === 'production'
+          ? { domain: '.rexvet.org' }
+          : {})
       }
     },
     csrfToken: {
@@ -196,7 +203,10 @@ export const authOptions = {
         httpOnly: true,
         sameSite: 'lax',
         path: '/',
-        secure: process.env.NODE_ENV === 'production'
+        secure: process.env.NODE_ENV === 'production',
+        ...(process.env.NODE_ENV === 'production'
+          ? { domain: '.rexvet.org' }
+          : {})
       }
     }
   },
