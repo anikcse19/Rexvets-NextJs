@@ -40,6 +40,32 @@ export default function VetsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [doctorsData, setDoctorsData] = useState<Doctor[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [stats, setStats] = useState({
+    total: 0,
+    active: 0,
+    pending: 0,
+    suspended: 0,
+  });
+  const [isStatsLoading, setIsStatsLoading] = useState(true);
+
+  const getStats = async () => {
+    try {
+      setIsStatsLoading(true);
+      const res = await fetch("/api/veterinarian/stats");
+
+      if (!res.ok) {
+        throw new Error();
+      }
+
+      const data = await res.json();
+      setStats(data?.data);
+    } catch (error) {
+      console.error("Error fetching stats:", error);
+      toast.error("Failed to fetch statistics");
+    } finally {
+      setIsStatsLoading(false);
+    }
+  };
 
   const getDoctors = async () => {
     try {
@@ -62,6 +88,7 @@ export default function VetsPage() {
   };
 
   useEffect(() => {
+    getStats();
     getDoctors();
   }, []);
   console.log("doctor ", doctorsData);
@@ -77,12 +104,6 @@ export default function VetsPage() {
     return matchesSearch && matchesStatus;
   });
 
-  const stats = {
-    total: doctorsData.length,
-    active: doctorsData.filter((d) => d.status === "approved").length,
-    pending: doctorsData.filter((d) => d.status === "pending").length,
-    suspended: doctorsData.filter((d) => d.status === "suspended").length,
-  };
 
   const handleViewDetails = (doctor: Doctor) => {
     setSelectedDoctor(doctor);
@@ -97,7 +118,7 @@ export default function VetsPage() {
       setIsLoading(true);
       const res = await updateDoctorStatus(id, newStatus);
       if (res.success) {
-        await getDoctors(); // refresh list
+        await Promise.all([getStats(), getDoctors()]); // refresh both stats and list
         toast.success(
           `Veterinarian status updated to ${newStatus} successfully`
         );
@@ -113,7 +134,7 @@ export default function VetsPage() {
   };
 
   // Show loading spinner while data is being fetched
-  if (isLoading && doctorsData.length === 0) {
+  if ((isLoading && doctorsData.length === 0) || isStatsLoading) {
     return (
       <RequireAccess permission="Doctors">
         <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
@@ -167,7 +188,7 @@ export default function VetsPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl text-blue-600 dark:text-blue-500 font-bold">
-                {isLoading ? <LoadingSpinner size="sm" /> : stats.total}
+                {isStatsLoading ? <LoadingSpinner size="sm" /> : stats.total}
               </div>
               <p className="text-xs dark:text-gray-300 text-muted-foreground">
                 Registered Doctors
@@ -183,7 +204,7 @@ export default function VetsPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold dark:text-green-400 text-green-600">
-                {isLoading ? <LoadingSpinner size="sm" /> : stats.active}
+                {isStatsLoading ? <LoadingSpinner size="sm" /> : stats.active}
               </div>
               <p className="text-xs dark:text-gray-300 text-muted-foreground">
                 Currently practicing
@@ -199,7 +220,7 @@ export default function VetsPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold dark:text-yellow-400 text-yellow-600">
-                {isLoading ? <LoadingSpinner size="sm" /> : stats.pending}
+                {isStatsLoading ? <LoadingSpinner size="sm" /> : stats.pending}
               </div>
               <p className="text-xs dark:text-gray-300 text-muted-foreground">
                 Awaiting verification
@@ -215,7 +236,7 @@ export default function VetsPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold dark:text-red-500 text-red-600">
-                {isLoading ? <LoadingSpinner size="sm" /> : stats.suspended}
+                {isStatsLoading ? <LoadingSpinner size="sm" /> : stats.suspended}
               </div>
               <p className="text-xs dark:text-gray-300 text-muted-foreground">
                 Awaiting verification
