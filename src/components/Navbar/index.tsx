@@ -31,7 +31,8 @@ import {
   UserCircle,
   Video,
 } from "lucide-react";
-import { signOut, useSession } from "next-auth/react";
+import { signOut } from "next-auth/react";
+import { useSessionStable } from "@/hooks/useSessionStable";
 import Image from "next/image";
 import Link from "next/link";
 import React, { useEffect, useRef, useState } from "react";
@@ -67,8 +68,8 @@ const Header: React.FC = () => {
   const [isSLotAvailable, setIsSLotAvailable] = useState(false);
   const [showDebugBanner, setShowDebugBanner] = useState(false);
 
-  const { data: session, status } = useSession();
-console.log("session from navbar", session);
+  const { data: session, status, isInitialized, update } = useSessionStable();
+  console.log("session from navbar", session);
   // const session = {
   //   user: {
   //     name: "Anik",
@@ -133,9 +134,10 @@ console.log("session from navbar", session);
   };
 
   useEffect(() => {
+    if (status !== "authenticated") return;
     const getBadgeName = async () => {
       try {
-        const res = await fetch("/api/check-category-badge");
+        const res = await fetch("/api/check-category-badge", { cache: "no-store" });
 
         if (!res.ok) {
           // Gracefully ignore not found/unauthorized without logging errors in console
@@ -153,6 +155,19 @@ console.log("session from navbar", session);
       }
     };
     getBadgeName();
+  }, [status]);
+
+  // After route mount, if we just came back from auth, force a one-time refresh
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    const justSignedIn = url.searchParams.get("signedin");
+    if (justSignedIn === "1") {
+      // Remove the flag from URL to avoid loops
+      url.searchParams.delete("signedin");
+      window.history.replaceState({}, "", url.pathname + url.search + url.hash);
+      // Refresh session so navbar re-renders immediately
+      try { update?.(); } catch {}
+    }
   }, []);
   // console.log("session emergency", session);
 
@@ -186,7 +201,7 @@ console.log("session from navbar", session);
   }, [session]);
 
   // Avoid UI flicker while session is loading
-  if (status === "loading") {
+  if (status === "loading" || !isInitialized) {
     return (
       <>
         {showDebugBanner && (

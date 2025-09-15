@@ -2,11 +2,19 @@
 import { StateProvider } from "@/hooks/StateContext";
 import { SessionProvider } from "next-auth/react";
 import React, { FC, PropsWithChildren } from "react";
+import type { Session } from "next-auth";
 import TawkToScript from "@/components/TawkTo/TawkToScript";
 
-const RootLayoutProvider: FC<PropsWithChildren> = ({ children }) => {
+type Props = PropsWithChildren & { session?: Session | null };
+
+const RootLayoutProvider: FC<Props> = ({ children, session }) => {
   return (
-    <SessionProvider refetchOnWindowFocus={true} refetchInterval={5 * 60}>
+    <SessionProvider 
+      session={session}
+      refetchOnWindowFocus={false} 
+      refetchInterval={0}
+      refetchWhenOffline={false}
+    >
       <StateProvider>
         {children}
         <TawkToScript />
