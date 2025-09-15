@@ -280,7 +280,7 @@ export default function PetParentsPage() {
   }
 
   return (
-    <RequireAccess permission="Parents">
+    <RequireAccess permission="Pet Parents">
       <div className="min-h-screen bg-gray-50 dark:bg-slate-900">
         {/* Header Section */}
         <div className="bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700 shadow-sm">

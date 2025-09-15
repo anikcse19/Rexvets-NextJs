@@ -65,9 +65,10 @@ const Header: React.FC = () => {
   const [scrolled, setScrolled] = useState(false);
   const [visible, setVisible] = useState(true);
   const [isSLotAvailable, setIsSLotAvailable] = useState(false);
+  const [showDebugBanner, setShowDebugBanner] = useState(false);
 
   const { data: session, status } = useSession();
-
+console.log("session from navbar", session);
   // const session = {
   //   user: {
   //     name: "Anik",
@@ -84,6 +85,14 @@ const Header: React.FC = () => {
 
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // Enable lightweight debug banner with ?debugSession=1
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      setShowDebugBanner(params.get("debugSession") === "1");
+    } catch (_) {}
   }, []);
 
   const handleMouseEnter = (key: string) => {
@@ -129,13 +138,18 @@ const Header: React.FC = () => {
         const res = await fetch("/api/check-category-badge");
 
         if (!res.ok) {
-          throw new Error();
+          // Gracefully ignore not found/unauthorized without logging errors in console
+          if (res.status === 404 || res.status === 401) return;
+          throw new Error(`Failed to fetch badge (${res.status})`);
         }
 
         const data = await res.json();
         setBadge(data?.badgeName);
       } catch (error: any) {
-        console.log(error?.message);
+        // Avoid noisy logs in production for non-critical UI badge
+        if (process.env.NODE_ENV === "development") {
+          console.log(error?.message);
+        }
       }
     };
     getBadgeName();
@@ -171,16 +185,26 @@ const Header: React.FC = () => {
     }
   }, [session]);
 
-  // Debug session state
-  console.log("Navbar - Session status:", status, "Session data:", session);
-
-  // Force re-render when session changes
-  useEffect(() => {
-    console.log("Session changed in Navbar:", { status, session });
-  }, [status, session]);
+  // Avoid UI flicker while session is loading
+  if (status === "loading") {
+    return (
+      <>
+        {showDebugBanner && (
+          <div className="fixed top-0 left-0 right-0 z-[100000] text-xs text-white bg-amber-700 px-3 py-1">
+            Session status: loading
+          </div>
+        )}
+      </>
+    );
+  }
 
   return (
     <>
+      {showDebugBanner && (
+        <div className="fixed top-0 left-0 right-0 z-[100000] text-xs text-white bg-emerald-700 px-3 py-1">
+          Session status: {status} | email: {(session as any)?.user?.email || "none"}
+        </div>
+      )}
       {!session || session?.user?.role === "pet_parent" ? (
         <TopToolbarPetParent visible={visible} setVisible={setVisible} />
       ) : (

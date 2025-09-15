@@ -238,7 +238,7 @@ export default function FindVetPage({
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 p-4 lg:p-6 mt-16">
+    <main className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 p-4 lg:p-6 lg:mt-5">
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Header */}
         <header
@@ -249,11 +249,12 @@ export default function FindVetPage({
         >
           <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
             <div>
-              <h1 className="text-3xl lg:text-4xl font-bold mb-4">
+              <h1 className="text-xl lg:text-4xl font-bold mb-4">
                 Find Your Veterinarian
               </h1>
-              <p className="text-blue-100 text-lg mb-6">
-                Connect with experienced veterinarians for expert pet care services
+              <p className="text-blue-100 text-base lg:text-lg mb-6">
+                Connect with experienced veterinarians for expert pet care
+                services
               </p>
 
               <div className="flex flex-wrap gap-3">
@@ -291,7 +292,7 @@ export default function FindVetPage({
         </header>
 
         {/* Search & Filter */}
-        <section
+        {/* <section
           aria-label="Search and filter veterinarians"
           className="bg-white rounded-2xl shadow-lg p-6 border-0"
         >
@@ -311,7 +312,7 @@ export default function FindVetPage({
               />
             </div>
 
-            {/* <div className="relative">
+            <div className="relative">
               <Filter
                 className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5"
                 aria-hidden="true"
@@ -331,9 +332,9 @@ export default function FindVetPage({
                   </option>
                 ))}
               </select>
-            </div> */}
+            </div>
 
-            {/* <div className="relative">
+            <div className="relative">
               <select
                 value={sortBy}
                 onChange={handleSortChange}
@@ -349,9 +350,9 @@ export default function FindVetPage({
                   );
                 })}
               </select>
-            </div> */}
+            </div>
 
-            {/* <div className="flex gap-2">
+            <div className="flex gap-2">
               <Button
                 variant={viewMode === "grid" ? "default" : "outline"}
                 size="sm"
@@ -368,10 +369,9 @@ export default function FindVetPage({
               >
                 List
               </Button>
-            </div> */}
+            </div>
           </div>
 
-          {/* Active Filters Display */}
           {(searchQuery || selectedState) && (
             <div className="flex flex-wrap gap-2">
               {searchQuery && (
@@ -402,7 +402,7 @@ export default function FindVetPage({
               )}
             </div>
           )}
-        </section>
+        </section> */}
 
         {/* Grid/List View */}
         {isLoading ? (

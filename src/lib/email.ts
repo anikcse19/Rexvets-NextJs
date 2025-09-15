@@ -18,16 +18,19 @@ import {
   welcomeEmailTemplate,
 } from "./emailTemplates";
 
-// Email configuration
+// Email configuration with fallback to SMTP_* variables
 const emailConfig = {
-  host: process.env.EMAIL_HOST || "smtp.gmail.org",
-  port: parseInt(process.env.EMAIL_PORT || "587"),
+  host: process.env.EMAIL_HOST || process.env.SMTP_HOST || "smtp.gmail.org",
+  port: parseInt(process.env.EMAIL_PORT || process.env.SMTP_PORT || "587"),
   secure: process.env.EMAIL_SECURE === "true", // true for 465, false for other ports
   auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
+    user: process.env.EMAIL_USER || process.env.SMTP_USER,
+    pass: process.env.EMAIL_PASS || process.env.SMTP_PASSWORD,
   },
 };
+
+// Default sender email (should be verified in Brevo)
+const DEFAULT_FROM_EMAIL = "Rex Vet <support@rexvet.org>";
 
 // Create transporter
 const createTransporter = () => {
@@ -148,7 +151,7 @@ const createEmailVerificationTemplate = (
             <div class="footer">
                 <p>© 2025 RexVet. All rights reserved.</p>
                 <div style="background-color: #002366; padding: 10px; text-align: center; margin-top: 20px;">
-                    <img src="https://res.cloudinary.com/di6zff0rd/image/upload/v1747926532/Logo_debjuj.png" alt="Rex Vet Logo" width="150" style="display: block; margin: 0 auto;" />
+                    <img src="https://res.cloudinary.com/di6zff0rd/image/upload/v1757862776/Logo_yjqrwa.png" alt="Rex Vet Logo" width="150" style="display: block; margin: 0 auto;" />
                 </div>
             </div>
         </div>
@@ -200,7 +203,7 @@ const createPasswordResetTemplate = (name: string, resetUrl: string) => {
             <div class="footer">
                 <p>© ${new Date().getFullYear()} RexVet. All rights reserved.</p>
                 <div style="background-color: #002366; padding: 10px; text-align: center; margin-top: 20px;">
-                    <img src="https://res.cloudinary.com/di6zff0rd/image/upload/v1747926532/Logo_debjuj.png" alt="Rex Vet Logo" width="150" style="display: block; margin: 0 auto;" />
+                    <img src="https://res.cloudinary.com/di6zff0rd/image/upload/v1757862776/Logo_yjqrwa.png" alt="Rex Vet Logo" width="150" style="display: block; margin: 0 auto;" />
                 </div>
             </div>
         </div>
@@ -237,7 +240,7 @@ export async function sendEmailVerification(
     );
 
     const mailOptions = {
-      from: `"RexVet" <${process.env.EMAIL_USER}>`,
+      from: DEFAULT_FROM_EMAIL,
       to: email,
       subject: "Verify Your Email - Welcome to RexVet! 🐾",
       html: htmlContent,
@@ -273,7 +276,7 @@ export async function sendPasswordReset(
     const htmlContent = createPasswordResetTemplate(name, resetUrl);
 
     const mailOptions = {
-      from: `"RexVet" <${process.env.EMAIL_USER}>`,
+      from: DEFAULT_FROM_EMAIL,
       to: email,
       subject: "Reset Your Password - RexVet 🐾",
       html: htmlContent,
@@ -328,7 +331,7 @@ export async function sendHelpAskingReplyFromAdmin({
     });
 
     await transporter.sendMail({
-      from: `"RexVet" <${process.env.EMAIL_USER}>`,
+      from: DEFAULT_FROM_EMAIL,
       to: email,
       subject: "Update on Your Help Request",
       text: messageContent,
@@ -434,7 +437,7 @@ export async function sendAppointmentConfirmationEmails({
     );
 
     const doctorMailOptions = {
-      from: `"RexVet" <${process.env.EMAIL_USER}>`,
+      from: DEFAULT_FROM_EMAIL,
       to: doctorEmail,
       subject: "Appointment Confirmation - RexVet",
       html: doctorHtmlContent,
@@ -451,7 +454,7 @@ export async function sendAppointmentConfirmationEmails({
 
     // Build parent mail options with PDF attachment if available
     const parentMailOptions: any = {
-      from: `"Rex Vet" <${process.env.EMAIL_USER}>`,
+      from: DEFAULT_FROM_EMAIL,
       to: parentEmail,
       subject: "Your Appointment Confirmation - Rex Vet",
       html: parentHtmlContent,
@@ -521,7 +524,7 @@ export async function sendAppointmentReminderEmails({
     const transporter = createTransporter();
 
     const doctorMail = {
-      from: `"Rex Vet" <${process.env.EMAIL_USER}>`,
+      from: DEFAULT_FROM_EMAIL,
       to: doctorEmail,
       subject: "Appointment Reminder - Starts in 10 minutes",
       html: reminderDoctorTemplate(
@@ -533,7 +536,7 @@ export async function sendAppointmentReminderEmails({
     } as any;
 
     const parentMail = {
-      from: `"Rex Vet" <${process.env.EMAIL_USER}>`,
+      from: DEFAULT_FROM_EMAIL,
       to: parentEmail,
       subject: "Reminder: Your Appointment Starts in 10 Minutes",
       html: reminderParentTemplate(
@@ -679,7 +682,7 @@ export async function sendDonationThankYouEmail({
     );
 
     const mailOptions = {
-      from: `"RexVet" <${process.env.EMAIL_USER}>`,
+      from: DEFAULT_FROM_EMAIL,
       to: email,
       subject: "Thank You for Your Generous Donation - RexVet",
       html: htmlContent,
@@ -731,7 +734,7 @@ export async function sendWelcomeEmail(
     console.log("[WELCOME] Sending email with template length:", html.length);
 
     const mailOptions = {
-      from: `"RexVet" <${process.env.EMAIL_USER}>`,
+      from: DEFAULT_FROM_EMAIL,
       to: email,
       subject: "Welcome to Rex Vet",
       html,
@@ -766,7 +769,7 @@ export async function sendHelpRequestEmail(params: {
     const transporter = createTransporter();
     const html = helpRequestEmailTemplate(params);
     await transporter.sendMail({
-      from: `"RexVet" <${process.env.EMAIL_USER}>`,
+      from: DEFAULT_FROM_EMAIL,
       to: params.to,
       subject: `Support Request: ${params.subject || "New Request"}`,
       html,
@@ -794,7 +797,7 @@ export async function sendPharmacyPaymentEmail(params: {
     const transporter = createTransporter();
     const html = pharmacyRequestPaymentTemplate(params);
     await transporter.sendMail({
-      from: `"RexVet" <${process.env.EMAIL_USER}>`,
+      from: DEFAULT_FROM_EMAIL,
       to: params.to,
       subject: "Pharmacy Transfer Payment Receipt",
       html,
@@ -825,7 +828,7 @@ export async function sendPharmacyAcceptedEmail(params: {
     const transporter = createTransporter();
     const html = pharmacyRequestAcceptedTemplate(params);
     await transporter.sendMail({
-      from: `"RexVet" <${process.env.EMAIL_USER}>`,
+      from: DEFAULT_FROM_EMAIL,
       to: params.to,
       subject: "Pharmacy Transfer Accepted",
       html,
@@ -864,7 +867,7 @@ export async function sendChatNotificationEmail(params: {
         });
 
     await transporter.sendMail({
-      from: `"RexVet" <${process.env.EMAIL_USER}>`,
+      from: DEFAULT_FROM_EMAIL,
       to,
       subject: "New chat message on RexVet",
       html,
