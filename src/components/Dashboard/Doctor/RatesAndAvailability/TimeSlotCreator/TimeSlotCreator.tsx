@@ -439,7 +439,7 @@ const TimeSlotCreator = ({
   };
 
   return (
-    <div className="w-full min-h-screen  p-6">
+    <div className="w-full min-h-screen  md:p-6">
       {!selectedRange ? (
         <div className="max-w-2xl mx-auto">
           <Card className="border-0 shadow-2xl ">
@@ -715,13 +715,15 @@ const TimeSlotCreator = ({
                     return (
                       <div
                         key={slot.id}
-                        className={`group relative rounded-xl p-3 border transition-all duration-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 ${
+                        className={`group relative rounded-xl p-3 border transition-all duration-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 cursor-pointer ${
                           slot.isSelected
                             ? "border-emerald-300 bg-gradient-to-br from-emerald-50 to-emerald-100/60"
                             : slot.isExisting
                             ? "border-gray-200 bg-white hover:border-gray-300"
                             : "border-blue-300 bg-gradient-to-br from-blue-50 to-indigo-50"
-                        } ${!isValidSlot(slot) ? "border-red-300 bg-red-50" : ""}`}
+                        } ${
+                          !isValidSlot(slot) ? "border-red-300 bg-red-50" : ""
+                        }`}
                         role="button"
                         tabIndex={0}
                         onClick={() => toggleSlotSelection(slot.id)}
@@ -734,11 +736,13 @@ const TimeSlotCreator = ({
                             className="data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-500 w-4 h-4"
                           />
                         </div>
- 
+
                         {/* Header */}
                         <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center gap-3">
-                            <h3 className="font-semibold text-sm text-gray-800 truncate">#{index + 1}</h3>
+                          <div className="flex items-center gap-1">
+                            <h3 className="font-semibold text-sm text-gray-800 truncate">
+                              #{index + 1}
+                            </h3>
                             <span
                               className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium border ${
                                 slot.isExisting
@@ -748,11 +752,15 @@ const TimeSlotCreator = ({
                                   : "bg-red-50 text-red-700 border-red-200"
                               }`}
                             >
-                              {slot.isExisting ? "Existing" : isValidSlot(slot) ? "New" : "Invalid"}
+                              {slot.isExisting
+                                ? "Existing"
+                                : isValidSlot(slot)
+                                ? "New"
+                                : "Invalid"}
                             </span>
                           </div>
                         </div>
- 
+
                         {/* Date Display */}
                         {formattedDate && (
                           <div className="text-center mb-2">
@@ -761,7 +769,7 @@ const TimeSlotCreator = ({
                             </span>
                           </div>
                         )}
- 
+
                         {/* Time Display */}
                         <div className="space-y-1 mb-2">
                           <div className="text-center">
@@ -779,7 +787,7 @@ const TimeSlotCreator = ({
                               )}
                             </p>
                           </div>
- 
+
                           <div className="text-center">
                             <span className="inline-block px-2 py-0.5 rounded-full text-[11px] border bg-white text-gray-700">
                               {isValidSlot(slot)
@@ -813,7 +821,7 @@ const TimeSlotCreator = ({
                             </span>
                           </div>
                         </div>
- 
+
                         {/* Time Block Selector - Only show for new periods */}
                         {!slot.isExisting && (
                           <div className="space-y-2 mb-2">
@@ -876,7 +884,7 @@ const TimeSlotCreator = ({
                             </div>
                           </div>
                         )}
- 
+
                         {/* Action Buttons */}
                         <div className="flex items-center justify-between">
                           <div className="flex items-center space-x-2">
@@ -888,7 +896,7 @@ const TimeSlotCreator = ({
                                 </span>
                               </div>
                             )}
- 
+
                             {/* Individual Save Button - Only for new slots */}
                             {isValidSlot(slot) && !slot.isExisting && (
                               <Button
@@ -918,7 +926,7 @@ const TimeSlotCreator = ({
                               </Button>
                             )}
                           </div>
- 
+
                           {slots.length > 1 && (
                             <Button
                               variant="ghost"
