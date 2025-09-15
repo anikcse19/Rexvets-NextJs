@@ -8,6 +8,8 @@ import GoogleAnalytics, {
 import PerformanceMonitor from "@/components/PerformanceMonitor";
 import { sameAs, siteName, siteUrl } from "@/lib";
 import RootLayoutProvider from "@/lib/Layoutes/RootLayoutProvider";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import { Suspense } from "react";
@@ -176,11 +178,12 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const serverSession = (await getServerSession(authOptions as any)) as any;
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -424,7 +427,7 @@ export default function RootLayout({
         className={`${garet.variable} antialiased`}
         suppressHydrationWarning
       >
-        <RootLayoutProvider>
+        <RootLayoutProvider session={serverSession}>
           {/* Session Debugger */}
           <SessionDebugger />
           
