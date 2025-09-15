@@ -32,16 +32,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { db } from "@/lib/firebase";
 import { Appointment, Pet, PetParent } from "@/lib/types";
-import {
-  collection,
-  deleteDoc,
-  doc,
-  getDocs,
-  orderBy,
-  query,
-} from "firebase/firestore";
 import {
   Calendar,
   Clock,
