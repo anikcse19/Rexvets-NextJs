@@ -98,7 +98,9 @@ export default function VetsPage() {
       const res = await updateDoctorStatus(id, newStatus);
       if (res.success) {
         await getDoctors(); // refresh list
-        toast.success(`Veterinarian status updated to ${newStatus} successfully`);
+        toast.success(
+          `Veterinarian status updated to ${newStatus} successfully`
+        );
       } else {
         toast.error("Failed to Update Technician Status");
       }
@@ -279,9 +281,9 @@ export default function VetsPage() {
               <LoadingSpinner size="lg" />
             </div>
           ) : (
-            filteredDoctors.map((doctor) => (
+            filteredDoctors.map((doctor, index) => (
               <DoctorCard
-                key={doctor.id}
+                key={index}
                 doctor={doctor}
                 onViewDetails={handleViewDetails}
                 handleStatusChange={handleStatusChange}
