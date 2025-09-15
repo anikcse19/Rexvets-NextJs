@@ -200,17 +200,12 @@ const Header: React.FC = () => {
     }
   }, [session]);
 
-  // Avoid UI flicker while session is loading
+  // Follow kidslearnapp behavior: hide navbar while loading or unauthenticated
   if (status === "loading" || !isInitialized) {
-    return (
-      <>
-        {showDebugBanner && (
-          <div className="fixed top-0 left-0 right-0 z-[100000] text-xs text-white bg-amber-700 px-3 py-1">
-            Session status: loading
-          </div>
-        )}
-      </>
-    );
+    return null;
+  }
+  if (!session) {
+    return null;
   }
 
   return (
