@@ -31,7 +31,7 @@ export default function SignInPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirect = searchParams.get("redirect") || "/";
-  const { data: session, status } = useSession();
+  const { data: session, status, update } = useSession();
 
   console.log("redirect to", redirect);
 
@@ -71,15 +71,12 @@ export default function SignInPage() {
       const result = await signIn("credentials", {
         email,
         password,
-        redirect: false,
+        // redirect: false,
       });
 
       if (result?.ok) {
-        console.log("Sign-in successful, redirecting...");
-        const targetUrl = (redirect && redirect !== "/") ? redirect : "/admin/overview";
-        console.log("Redirecting to:", targetUrl);
-        // Force a hard redirect to ensure session is properly set
-        window.location.replace(targetUrl);
+     console.log("Sign-in successful, redirecting...", result);
+     router.push(redirect);
       } else {
         // Handle different error cases
         if (result?.error === "CredentialsSignin") {
@@ -141,10 +138,18 @@ export default function SignInPage() {
       
       if (result?.ok) {
         console.log("Google sign-in successful, redirecting...");
-        const targetUrl = (redirect && redirect !== "/") ? redirect : "/admin/overview";
+        let updatedSession: any = null;
+        try { updatedSession = await update(); } catch {}
+        const role = updatedSession?.user?.role || session?.user?.role;
+        // Append a small flag so navbar can force-refresh session once
+        const targetUrl = (redirect && redirect !== "/")
+          ? redirect
+          : (role === "admin" || role === "moderator")
+          ? "/admin/overview?signedin=1"
+          : "/?signedin=1";
         console.log("Redirecting to:", targetUrl);
-        // Force a hard redirect to ensure session is properly set
-        window.location.replace(targetUrl);
+        await new Promise((r) => setTimeout(r, 50));
+        router.replace(targetUrl);
       } else {
         setError("Google sign-in failed. Please try again.");
       }
