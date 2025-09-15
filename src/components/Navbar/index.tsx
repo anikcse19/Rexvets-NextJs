@@ -67,7 +67,7 @@ const Header: React.FC = () => {
   const [isSLotAvailable, setIsSLotAvailable] = useState(false);
 
   const { data: session, status } = useSession();
-
+console.log("session from navbar", session);
   // const session = {
   //   user: {
   //     name: "Anik",
