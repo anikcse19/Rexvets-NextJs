@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { adjustDateRange, getUserTimezone } from "@/lib/timezone";
 import { convertTimesToUserTimezone } from "@/lib/timezone/index";
-import { DateRange, SlotPeriod } from "@/lib/types";
+import { DateRange } from "@/lib/types";
 import {
   AlertTriangle,
   Calendar,
@@ -19,11 +19,7 @@ import {
 import moment from "moment";
 import React, { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import {
-  addNewPeriod,
-  addSinglePeriod,
-  deleteSlotsByIds,
-} from "../services/delete-periods";
+import { addSinglePeriod, deleteSlotsByIds } from "../services/delete-periods";
 
 interface TimeSlotCreatorProps {
   selectedRange: DateRange | null;
@@ -894,16 +890,16 @@ const TimeSlotCreator = ({
                             {/* Individual Save Button - Only for new slots */}
                             {isValidSlot(slot) && !slot.isExisting && (
                               <Button
-                                variant="ghost"
+                                variant="default"
                                 size="sm"
                                 disabled={savingSlotId === slot.id}
                                 onClick={() => {
                                   saveIndividualPeriod(slot.id);
                                 }}
-                                className={`h-6 w-6 p-0 rounded-md transition-all duration-200 ${
+                                className={`inline-flex items-center justify-center px-3 py-1.5 h-7 rounded-md text-white text-xs font-medium shadow-sm bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:from-emerald-700 hover:via-teal-700 hover:to-cyan-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-colors ${
                                   savingSlotId === slot.id
-                                    ? "text-gray-400 cursor-not-allowed"
-                                    : "text-emerald-600 hover:text-emerald-700 hover:bg-emerald-100"
+                                    ? "opacity-60 cursor-not-allowed"
+                                    : ""
                                 }`}
                                 title={
                                   savingSlotId === slot.id
@@ -914,7 +910,7 @@ const TimeSlotCreator = ({
                                 {savingSlotId === slot.id ? (
                                   <Loader2 className="h-4 w-4 animate-spin" />
                                 ) : (
-                                  <Save className="h-4 w-4" />
+                                  <span>Create Periods</span>
                                 )}
                               </Button>
                             )}
