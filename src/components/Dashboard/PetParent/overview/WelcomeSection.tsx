@@ -3,7 +3,13 @@ import { PetParent } from "@/lib/types";
 import { Calendar, PawPrint } from "lucide-react";
 import React from "react";
 
-const WelcomeSection = ({ petParentData }: { petParentData: PetParent }) => {
+const WelcomeSection = ({
+  petParentData,
+  name,
+}: {
+  petParentData: PetParent;
+  name: string;
+}) => {
   const formatDate = (dateStr?: string | null) => {
     if (!dateStr) return "--";
     const date = new Date(dateStr);
@@ -56,7 +62,7 @@ const WelcomeSection = ({ petParentData }: { petParentData: PetParent }) => {
         <div className="flex-1">
           <div className="mb-4">
             <h1 className="text-3xl lg:text-4xl font-bold mb-2">
-              Welcome back, {petParentData?.name}!
+              Welcome back, {name}!
             </h1>
             <p className="text-blue-100 text-lg">
               Caring for your beloved pets since{" "}

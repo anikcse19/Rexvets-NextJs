@@ -3,17 +3,17 @@ import { sendAppointmentConfirmationEmails } from "@/lib/email";
 import { sendPushNotification } from "@/lib/firebase/sendPush";
 import { connectToDatabase } from "@/lib/mongoose";
 import {
-    IErrorResponse,
-    ISendResponse,
-    sendResponse,
-    throwAppError,
+  IErrorResponse,
+  ISendResponse,
+  sendResponse,
+  throwAppError,
 } from "@/lib/utils/send.response";
 import {
-    INotification,
-    NotificationModel,
-    NotificationType,
-    UserModel,
-    VeterinarianModel,
+  INotification,
+  NotificationModel,
+  NotificationType,
+  UserModel,
+  VeterinarianModel,
 } from "@/models";
 import { AppointmentModel } from "@/models/Appointment";
 import { AppointmentSlot, SlotStatus } from "@/models/AppointmentSlot";
@@ -56,14 +56,14 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json();
     console.log("Reschedule request body:", body);
-    
+
     const parsed = rescheduleAppointmentSchema.safeParse(body);
     if (!parsed.success) {
       const errors: Record<string, string> = {};
       parsed.error.issues.forEach((e) => {
         if (e.path[0]) errors[e.path[0].toString()] = e.message;
       });
-      
+
       const errResp: IErrorResponse = {
         success: false,
         message: "Validation failed",
@@ -122,7 +122,7 @@ export async function POST(req: NextRequest) {
     const newSlotDate = new Date(newSlot.date);
     const today = new Date();
     today.setHours(0, 0, 0, 0); // Reset time to start of day for comparison
-    
+
     if (newSlotDate < today) {
       const errResp: IErrorResponse = {
         success: false,
@@ -139,9 +139,12 @@ export async function POST(req: NextRequest) {
     if (newSlotDate.getTime() === today.getTime()) {
       const currentTime = new Date();
       const slotDateTime = moment
-        .tz(`${moment(newSlotDate).format("YYYY-MM-DD")}T${newSlot.startTime}:00`, newSlot.timezone || "UTC")
+        .tz(
+          `${moment(newSlotDate).format("YYYY-MM-DD")}T${newSlot.startTime}:00`,
+          newSlot.timezone || "UTC"
+        )
         .toDate();
-      
+
       if (slotDateTime < currentTime) {
         const errResp: IErrorResponse = {
           success: false,
@@ -187,7 +190,7 @@ export async function POST(req: NextRequest) {
     const link_URL =
       process.env.NODE_ENV === "development"
         ? "http://localhost:3000"
-        : "https://rexvets-nextjs.vercel.app";
+        : "https://rexvet.org";
 
     const meetingLink = `${link_URL}/video-call/?appointmentId=${encodeURIComponent(
       existingAppointment._id
@@ -198,7 +201,10 @@ export async function POST(req: NextRequest) {
     )}&petParentId=${encodeURIComponent(existingAppointment.petParent._id)}`;
 
     existingAppointment.meetingLink = meetingLink;
-    await existingAppointment.save({ validateBeforeSave: true, session: sessionDb });
+    await existingAppointment.save({
+      validateBeforeSave: true,
+      session: sessionDb,
+    });
 
     // Mark new slot as booked
     newSlot.status = SlotStatus.BOOKED;
@@ -252,9 +258,11 @@ export async function POST(req: NextRequest) {
 
         await sendAppointmentConfirmationEmails({
           doctorEmail: (existingAppointment.veterinarian as any)?.email,
-          doctorName: (existingAppointment.veterinarian as any)?.name || "Doctor",
+          doctorName:
+            (existingAppointment.veterinarian as any)?.name || "Doctor",
           parentEmail: (existingAppointment.petParent as any)?.email,
-          parentName: (existingAppointment.petParent as any)?.name || "Pet Parent",
+          parentName:
+            (existingAppointment.petParent as any)?.name || "Pet Parent",
           petName: (existingAppointment.pet as any)?.name || "Pet",
           appointmentDate: apptDate,
           appointmentTime: apptTime,
@@ -265,7 +273,6 @@ export async function POST(req: NextRequest) {
       }
     })();
 
-  
     const response: ISendResponse<any> = {
       success: true,
       data: {
@@ -287,7 +294,7 @@ export async function POST(req: NextRequest) {
     return sendResponse(response);
   } catch (err: any) {
     console.error("Error rescheduling appointment:", err.message);
-    
+
     // Best-effort rollback if session exists
     try {
       const currentSession = (mongoose as any).connection?.clientSession;

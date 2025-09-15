@@ -626,11 +626,6 @@ const AdminOverviewPage = () => {
                     <p className="text-xs dark:text-gray-100 text-gray-500">
                       {doctor.specialization}
                     </p>
-                    {!doctor.isApproved && (
-                      <Badge variant="outline" className="text-xs mt-1">
-                        Pending Approval
-                      </Badge>
-                    )}
                   </div>
                   <div className="text-right">
                     <p className="text-sm dark:text-gray-100 text-gray-800">

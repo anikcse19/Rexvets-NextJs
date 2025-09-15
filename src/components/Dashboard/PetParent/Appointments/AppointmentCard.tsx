@@ -58,7 +58,7 @@ export default function AppointmentCard({ appointment }: AppointmentCardProps) {
   }
 
   return (
-    <div className="relative w-full max-w-[320px] sm:min-w-[280px] rounded-3xl p-4 bg-white/70 backdrop-blur-lg shadow-lg hover:shadow-2xl transition-all duration-300 border border-white/20">
+    <div className="relative w-full rounded-3xl p-4 bg-white/70 backdrop-blur-lg shadow-lg hover:shadow-2xl transition-all duration-300 border border-white/20">
       {/* Pet Info */}
       <Link
         href={`/dashboard/pet-parent/appointments/${appointment._id}`}
@@ -74,7 +74,9 @@ export default function AppointmentCard({ appointment }: AppointmentCardProps) {
           <h3 className="text-lg font-bold text-gray-900 truncate">
             {appointment.pet.name}
           </h3>
-          <p className="text-sm text-gray-500 truncate">{appointment.pet.species}</p>
+          <p className="text-sm text-gray-500 truncate">
+            {appointment.pet.species}
+          </p>
         </div>
       </Link>
 
@@ -106,7 +108,9 @@ export default function AppointmentCard({ appointment }: AppointmentCardProps) {
           </p>
         )}
         <div className="flex justify-center">
-          <Badge className="capitalize px-3 py-1">{getAppointmentStatus()}</Badge>
+          <Badge className="capitalize px-3 py-1">
+            {getAppointmentStatus()}
+          </Badge>
         </div>
       </div>
 
@@ -125,7 +129,9 @@ export default function AppointmentCard({ appointment }: AppointmentCardProps) {
           </AvatarFallback>
         </Avatar>
         <div className="flex-1 min-w-0">
-          <p className="font-semibold text-sm truncate">{appointment.veterinarian?.name}</p>
+          <p className="font-semibold text-sm truncate">
+            {appointment.veterinarian?.name}
+          </p>
           <p className="text-xs text-gray-500">Veterinarian</p>
         </div>
       </div>

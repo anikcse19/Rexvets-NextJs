@@ -227,7 +227,7 @@ export async function POST(req: NextRequest) {
     const link_URL =
       process.env.NODE_ENV === "development"
         ? "http://localhost:3000"
-        : "https://rexvets-nextjs.vercel.app";
+        : "https://rexvet.org";
 
     // Generate meeting link
     const meetingLink = `${link_URL}/video-call/?appointmentId=${encodeURIComponent(
@@ -254,10 +254,17 @@ export async function POST(req: NextRequest) {
         if (subscription && subscription.remainingAppointments > 0) {
           subscription.remainingAppointments -= 1;
           subscription.appointmentIds.push(newAppointment._id);
-          await subscription.save({ validateBeforeSave: false, session: sessionDb });
-          console.log(`Decreased subscription quota for ${petParent}. Remaining: ${subscription.remainingAppointments}`);
+          await subscription.save({
+            validateBeforeSave: false,
+            session: sessionDb,
+          });
+          console.log(
+            `Decreased subscription quota for ${petParent}. Remaining: ${subscription.remainingAppointments}`
+          );
         } else {
-          console.warn(`No active subscription found or quota exhausted for ${petParent}`);
+          console.warn(
+            `No active subscription found or quota exhausted for ${petParent}`
+          );
         }
       } catch (subscriptionError) {
         console.error("Error updating subscription quota:", subscriptionError);

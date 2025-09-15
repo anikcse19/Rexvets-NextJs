@@ -274,7 +274,7 @@ export default function AddPetModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <div className="flex items-center gap-3">
             <div className="bg-gradient-to-br from-pink-500 to-rose-500 text-white p-3 rounded-xl">

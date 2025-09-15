@@ -68,7 +68,11 @@ const Header: React.FC = () => {
   const [isSLotAvailable, setIsSLotAvailable] = useState(false);
   const [showDebugBanner, setShowDebugBanner] = useState(false);
 
+<<<<<<< HEAD
+  const { data: session, status } = useSession();
+=======
   const { data: session, status, isInitialized, update } = useSessionStable();
+>>>>>>> e6fc7a3f41a20df0671c31bf091215f7599237a0
   console.log("session from navbar", session);
   // const session = {
   //   user: {
@@ -215,25 +219,21 @@ const Header: React.FC = () => {
 
   return (
     <>
-      {showDebugBanner && (
-        <div className="fixed top-0 left-0 right-0 z-[100000] text-xs text-white bg-emerald-700 px-3 py-1">
-          Session status: {status} | email: {(session as any)?.user?.email || "none"}
-        </div>
-      )}
-      {!session || session?.user?.role === "pet_parent" ? (
-        <TopToolbarPetParent visible={visible} setVisible={setVisible} />
-      ) : (
-        !isSLotAvailable && (
-          <TopToolbarVet visible={visible} setVisible={setVisible} />
-        )
-      )}
+      {!session ||
+        (session?.user?.role === "pet_parent" && (
+          <TopToolbarPetParent visible={visible} setVisible={setVisible} />
+        ))}
       <header
         style={{
           background:
             "linear-gradient(135deg, #0f0c29 0%, #24243e 25%, #302b63 50%, #0f3460 75%, #002366 100%)",
         }}
         className={`fixed ${
-          scrolled || !visible || isSLotAvailable
+          scrolled ||
+          !visible ||
+          isSLotAvailable ||
+          session?.user?.role === "admin" ||
+          session?.user?.role === "veterinarian"
             ? "top-0"
             : "top-[60px] md:top-[50px]"
         } transition-all duration-300 ease-in-out py-2 ${
@@ -528,10 +528,12 @@ const Header: React.FC = () => {
                       className="group hover:bg-red-50 focus:bg-red-50 data-[highlighted]:bg-red-50 text-blue-200 data-[highlighted]:text-[#211951]"
                     >
                       <Link
-                        href={`/dashboard/${
+                        href={`${
                           (session?.user as any).role === "veterinarian"
-                            ? "doctor"
-                            : "pet-parent"
+                            ? "/dashboard/doctor"
+                            : (session?.user as any).role === "pet_parent"
+                            ? "/dashboard/pet-parent"
+                            : "/admin"
                         }/overview`}
                         className="flex items-center px-3 py-2 rounded-lg cursor-pointer"
                       >
