@@ -216,14 +216,21 @@ export function DoctorDetailsModal({
   console.log("doctor", doctor);
 
   const [sending, setSending] = useState<boolean>(false);
-  const sendNotification = async (message: string) => {
+  const sendNotification = async (
+    message: string,
+    missingFields?: string[]
+  ) => {
     if (!doctor?._id) return;
     try {
       setSending(true);
       const res = await fetch(`/api/notifications/vet-profile-info`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ vetId: doctor._id, reason: message }),
+        body: JSON.stringify({
+          vetId: doctor._id,
+          reason: message,
+          missingFields: missingFields || [],
+        }),
       });
       if (!res.ok) {
         const t = await res.text();
@@ -292,7 +299,7 @@ export function DoctorDetailsModal({
                             </div>
                           ))
                         ) : (
-                          <>
+                          <div className=" ">
                             <div>No licenses provided</div>
                             <Button
                               className="mt-2"
@@ -303,13 +310,14 @@ export function DoctorDetailsModal({
                                 sendNotification(
                                   `Hi ${
                                     doctor?.firstName || "Doctor"
-                                  }, please add your license details to complete your profile.`
+                                  }, please add your license details to complete your profile.`,
+                                  ["license"]
                                 )
                               }
                             >
-                              Send notification to vet
+                              Notify
                             </Button>
-                          </>
+                          </div>
                         )}
                       </div>
                       <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -331,12 +339,6 @@ export function DoctorDetailsModal({
                   <Phone className="w-5 h-5" />
                   Contact Information
                 </CardTitle>
-                <div className="mt-2">
-                  <Button size="sm" className="gap-2">
-                    <Bell className="w-4 h-4" />
-                    Send Notification
-                  </Button>
-                </div>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex items-center gap-3">
@@ -360,10 +362,38 @@ export function DoctorDetailsModal({
             {/* Chamber Information */}
             <Card className="dark:bg-slate-700">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Building className="w-5 h-5" />
-                  Chamber Information
-                </CardTitle>
+                <div className="flex items-center justify-between gap-x-3">
+                  <CardTitle className="flex items-center gap-2">
+                    <Building className="w-5 h-5" />
+                    Chamber Information
+                  </CardTitle>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={sending}
+                    onClick={() => {
+                      const missing: string[] = [];
+                      if (!doctor?.clinic?.name) missing.push("clinicName");
+                      if (!doctor?.clinic?.address)
+                        missing.push("clinicAddress");
+                      const reasonParts: string[] = [];
+                      if (missing.includes("clinicName"))
+                        reasonParts.push("clinic name");
+                      if (missing.includes("clinicAddress"))
+                        reasonParts.push("clinic address");
+                      const reasonText = reasonParts.length
+                        ? `Hi ${
+                            doctor?.firstName || "Doctor"
+                          }, please provide your ${reasonParts.join(" and ")}.`
+                        : `Hi ${
+                            doctor?.firstName || "Doctor"
+                          }, please review your clinic information.`;
+                      sendNotification(reasonText, missing);
+                    }}
+                  >
+                    Notify
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent>
                 <div className="flex items-center gap-3 flex-wrap">
@@ -372,34 +402,10 @@ export function DoctorDetailsModal({
                       Clinic: {doctor?.clinic?.name || "Name not provided"}
                     </p>
                     <p className="truncate">
-                      Address: {doctor?.clinic?.address || "Address not provided"}
+                      Address:{" "}
+                      {doctor?.clinic?.address || "Address not provided"}
                     </p>
                   </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={sending}
-                    onClick={() => {
-                      const missing: string[] = [];
-                      if (!doctor?.clinic?.name) missing.push("clinicName");
-                      if (!doctor?.clinic?.address) missing.push("clinicAddress");
-                      const reasonParts: string[] = [];
-                      if (missing.includes("clinicName")) reasonParts.push("clinic name");
-                      if (missing.includes("clinicAddress")) reasonParts.push("clinic address");
-                      const reasonText = reasonParts.length
-                        ? `Hi ${doctor?.firstName || "Doctor"}, please provide your ${reasonParts.join(" and ")}.`
-                        : `Hi ${doctor?.firstName || "Doctor"}, please review your clinic information.`;
-                      sendNotification(reasonText);
-                      // Also send missing fields to API
-                      fetch(`/api/notifications/vet-profile-info`, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ vetId: doctor?._id, reason: reasonText, missingFields: missing }),
-                      }).catch(() => {});
-                    }}
-                  >
-                    Check & notify
-                  </Button>
                 </div>
               </CardContent>
             </Card>
