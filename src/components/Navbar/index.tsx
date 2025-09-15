@@ -67,7 +67,7 @@ const Header: React.FC = () => {
   const [isSLotAvailable, setIsSLotAvailable] = useState(false);
 
   const { data: session, status } = useSession();
-console.log("session from navbar", session);
+  console.log("session from navbar", session);
   // const session = {
   //   user: {
   //     name: "Anik",
@@ -183,20 +183,21 @@ console.log("session from navbar", session);
 
   return (
     <>
-      {!session || session?.user?.role === "pet_parent" ? (
-        <TopToolbarPetParent visible={visible} setVisible={setVisible} />
-      ) : (
-        !isSLotAvailable && (
-          <TopToolbarVet visible={visible} setVisible={setVisible} />
-        )
-      )}
+      {!session ||
+        (session?.user?.role === "pet_parent" && (
+          <TopToolbarPetParent visible={visible} setVisible={setVisible} />
+        ))}
       <header
         style={{
           background:
             "linear-gradient(135deg, #0f0c29 0%, #24243e 25%, #302b63 50%, #0f3460 75%, #002366 100%)",
         }}
         className={`fixed ${
-          scrolled || !visible || isSLotAvailable
+          scrolled ||
+          !visible ||
+          isSLotAvailable ||
+          session?.user?.role === "admin" ||
+          session?.user?.role === "veterinarian"
             ? "top-0"
             : "top-[60px] md:top-[50px]"
         } transition-all duration-300 ease-in-out py-2 ${
@@ -491,10 +492,12 @@ console.log("session from navbar", session);
                       className="group hover:bg-red-50 focus:bg-red-50 data-[highlighted]:bg-red-50 text-blue-200 data-[highlighted]:text-[#211951]"
                     >
                       <Link
-                        href={`/dashboard/${
+                        href={`${
                           (session?.user as any).role === "veterinarian"
-                            ? "doctor"
-                            : "pet-parent"
+                            ? "/dashboard/doctor"
+                            : (session?.user as any).role === "pet_parent"
+                            ? "/dashboard/pet-parent"
+                            : "/admin"
                         }/overview`}
                         className="flex items-center px-3 py-2 rounded-lg cursor-pointer"
                       >

@@ -180,7 +180,9 @@ const PetSelection: React.FC<PetSelectionProps> = ({
           </div>
         </CardContent>
       </Card>
-      <AddPetModal isOpen={isAddPetModalOpen} onClose={handleCloseModal} />
+      <div className="">
+        <AddPetModal isOpen={isAddPetModalOpen} onClose={handleCloseModal} />
+      </div>
     </div>
   );
 };

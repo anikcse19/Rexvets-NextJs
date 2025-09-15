@@ -454,10 +454,10 @@ export default function FindVetPage({
               Try adjusting your search criteria
             </p>
             <Button
-              onClick={() => router.replace("/find-vet")}
+              onClick={() => router.replace("/find-a-vet")}
               variant="outline"
             >
-              Clear Filters
+              Refresh
             </Button>
           </section>
         )}

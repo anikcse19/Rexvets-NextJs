@@ -143,7 +143,7 @@ const AdminTopBar = ({ onMenuClick }: TopbarProps) => {
   const unreadCount = notifications.filter((n) => !n.isRead).length;
 
   return (
-    <header className="bg-white border-b border-gray-200 px-6 py-[18px] dark:bg-slate-800 dark:border-blue-900 transition-colors">
+    <header className="bg-white border-b border-gray-200 px-6 py-[12px] dark:bg-slate-800 dark:border-blue-900 transition-colors">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <Button
@@ -199,7 +199,6 @@ const AdminTopBar = ({ onMenuClick }: TopbarProps) => {
                 <p className="text-sm text-gray-500 p-4">No notifications</p>
               ) : (
                 notifications?.map((notification) => {
-              
                   const isNotificationDonation =
                     notification?.type === NotificationType.NEW_DONATION;
                   return (
