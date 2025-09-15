@@ -1,0 +1,529 @@
+"use client";
+
+import ConfirmDeleteModal from "@/components/shared/ConfirmDeleteModal";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { useDashboardContext } from "@/hooks/DashboardContext";
+import { Slot, SlotStatus } from "@/lib";
+import { getTimezoneOffset, getUserTimezone } from "@/lib/timezone";
+import { convertTimesToUserTimezone } from "@/lib/timezone/index";
+import { format } from "date-fns";
+import { Check, ChevronDown, Globe } from "lucide-react";
+import moment from "moment";
+import { useSession } from "next-auth/react";
+import React, { useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
+
+interface BookingSlotsProps {
+  className?: string;
+}
+
+interface SessionUserWithRefId {
+  refId: string;
+  timezone: string;
+  // other user properties can be added here
+}
+
+const BookingSlotsPeriods: React.FC<BookingSlotsProps> = ({
+  className = "",
+}) => {
+  const {
+    selectedSlot,
+    setSlotStatus,
+    setSelectedSlotIds,
+    selectedSlotIds,
+    onUpdateSelectedSlotStatus,
+    isUpdating,
+    selectedRange,
+    getSlots,
+  } = useDashboardContext();
+
+  const { data: session } = useSession();
+  const user = session?.user as SessionUserWithRefId | undefined;
+
+  const [selectedStatus, setSelectedStatus] = useState<SlotStatus | null>(null);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+
+  const getSlotStyles = (status: SlotStatus) => {
+    const baseStyles =
+      "px-4 py-3 rounded-lg border-2 transition-all duration-200 cursor-pointer text-sm font-medium w-full";
+
+    switch (status) {
+      case SlotStatus.AVAILABLE:
+        return `${baseStyles} border-green-200 bg-green-50 text-green-700 hover:border-green-300 hover:bg-green-100`;
+      case SlotStatus.BOOKED:
+        return `${baseStyles} border-red-200 bg-red-50 text-red-700  opacity-75`;
+      case SlotStatus.DISABLED:
+        return `${baseStyles} border-gray-300 bg-gray-100 text-gray-500  opacity-75`;
+
+      default:
+        return `${baseStyles} border-gray-200 bg-white text-gray-700 hover:border-gray-300`;
+    }
+  };
+
+  const getStatusBadgeStyles = (status: SlotStatus) => {
+    switch (status) {
+      case SlotStatus.AVAILABLE:
+        return "bg-green-100 text-green-800 border-green-200";
+      case SlotStatus.BOOKED:
+        return "bg-red-100 text-red-800 border-red-200";
+      case SlotStatus.DISABLED:
+        return "bg-gray-100 text-gray-800 border-gray-200";
+
+      default:
+        return "bg-gray-100 text-gray-800 border-gray-200";
+    }
+  };
+
+  const handleSlotClick = (slot: Slot) => {
+    // Only allow clicking for available slots
+    if (slot.status === SlotStatus.AVAILABLE) {
+      const isSelected = selectedSlotIds.includes(slot._id);
+      if (isSelected) {
+        setSelectedSlotIds((prev) => prev.filter((id) => id !== slot._id));
+      } else {
+        setSelectedSlotIds((prev) => [...prev, slot._id]);
+      }
+    }
+  };
+
+  // Handle checkbox selection for available slots
+  const handleCheckboxChange = (slotId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedSlotIds((prev) => [...prev, slotId]);
+    } else {
+      setSelectedSlotIds((prev) => prev.filter((id) => id !== slotId));
+    }
+  };
+
+  // Handle checkbox click to prevent slot click when clicking checkbox
+  const handleCheckboxClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+  };
+  const refetchSlots = useCallback(async () => {
+    if (!selectedRange || !user?.refId) {
+      throw new Error("Missing required data");
+    }
+
+    try {
+      const startDate = format(selectedRange.start, "yyyy-MM-dd");
+      const endDate = format(selectedRange.end, "yyyy-MM-dd");
+
+      // Always use vetTimezone from DB, never use local timezone
+      await getSlots(startDate, endDate, user.refId);
+    } catch (error: any) {
+      console.error("Error fetching available slots:", error);
+      toast.error(error?.message || "Failed to fetch availability data", {
+        description: "Please try refreshing the page or contact support.",
+      });
+    }
+  }, [selectedRange, user?.refId, getSlots]);
+  const handleUpdateStatus = async () => {
+    if (selectedSlotIds.length === 0) {
+      return;
+    }
+
+    if (!user?.refId) {
+      console.error("User refId is missing");
+      return;
+    }
+
+    try {
+      // Get current date range from the selectedSlot data
+      let startDate: string | undefined;
+      let endDate: string | undefined;
+
+      if (selectedSlot && selectedSlot.length > 0) {
+        // Get the first and last dates from the selected slots
+        const dates = selectedSlot.map((slot) => slot.formattedDate).sort();
+        startDate = dates[0];
+        endDate = dates[dates.length - 1];
+      } else {
+        // Fallback to current date if no slots available
+        const currentDate = new Date();
+        startDate = currentDate.toISOString().split("T")[0];
+        endDate = startDate;
+      }
+
+      console.groupCollapsed("[Slots] Update status request");
+      console.log("refId:", user.refId);
+      console.log("selectedSlotIds:", selectedSlotIds.length);
+      console.log("dateRange:", { startDate, endDate });
+      console.groupEnd();
+
+      await onUpdateSelectedSlotStatus(
+        SlotStatus.DISABLED,
+        user.refId,
+        startDate,
+        endDate
+      );
+      console.log("[Slots] Update status success");
+      setSelectedStatus(null);
+      setSelectedSlotIds([]);
+      setIsDropdownOpen(false);
+      await refetchSlots();
+    } catch (error) {
+      console.error("Failed to update slot status:", error);
+    }
+  };
+
+  const performDelete = async () => {
+    if (selectedSlotIds.length === 0) return;
+    if (!user?.refId) {
+      console.error("User refId is missing");
+      toast.error("Missing user reference. Please re-login and try again.");
+      return;
+    }
+
+    // Derive date range similar to handleUpdateStatus (for logging and parity)
+    let startDate: string | undefined;
+    let endDate: string | undefined;
+    if (selectedSlot && selectedSlot.length > 0) {
+      const dates = selectedSlot.map((slot) => slot.formattedDate).sort();
+      startDate = dates[0];
+      endDate = dates[dates.length - 1];
+    } else {
+      const currentDate = new Date();
+      startDate = currentDate.toISOString().split("T")[0];
+      endDate = startDate;
+    }
+
+    console.groupCollapsed("[Slots] Delete request");
+    console.log("refId:", user.refId);
+    console.log("selectedSlotIds:", selectedSlotIds.length);
+    console.log("dateRange:", { startDate, endDate });
+    console.groupEnd();
+    try {
+      setIsDeleting(true);
+      const res = await fetch("/api/appointments/delete-slots-by-ids", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slotIds: selectedSlotIds }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        if (res.status === 409) {
+          // Booked slots present, API returns bookedSlotsCount/bookedSlotIds
+          const bookedCount = data?.bookedSlotsCount || 0;
+          toast.warning(
+            `Some slots could not be deleted (${bookedCount} booked).`,
+            {
+              description:
+                typeof data?.deletedCount === "number"
+                  ? `${data.deletedCount} deleted, ${bookedCount} booked.`
+                  : undefined,
+            }
+          );
+        } else {
+          toast.error(data?.error || "Failed to delete slots");
+        }
+        console.error("[Slots] Delete failed:", { status: res.status, data });
+        // Still refetch to reflect any partial deletions
+        await refetchSlots();
+        return;
+      }
+      toast.success(data?.message || "Slots deleted successfully", {
+        description:
+          typeof data?.deletedCount === "number"
+            ? `${data.deletedCount} of ${
+                data?.requestedCount ?? selectedSlotIds.length
+              } deleted.`
+            : undefined,
+      });
+      console.log("[Slots] Delete success:", data);
+      alert("Slots deleted successfully");
+      setSelectedStatus(null);
+      setSelectedSlotIds([]);
+      setIsDropdownOpen(false);
+      setIsConfirmOpen(false);
+      await refetchSlots();
+    } catch (err: any) {
+      console.error("Error deleting slots:", err);
+      toast.error(err?.message || "Error deleting slots");
+    } finally {
+      setIsDeleting(false);
+      setIsConfirmOpen(false);
+    }
+  };
+
+  const groupSlotsByDate = (slots: Slot[] | null) => {
+    return slots?.reduce((groups, slot) => {
+      const date = slot.formattedDate;
+      if (!groups[date]) {
+        groups[date] = [];
+      }
+      groups[date].push(slot);
+      return groups;
+    }, {} as Record<string, Slot[]>);
+  };
+
+  const groupedSlots = groupSlotsByDate(selectedSlot ?? null);
+
+  // Enhanced time formatting with timezone support
+  const formatTimeForDisplay = (slot: Slot): string => {
+    const { formattedStartTime, formattedEndTime } = convertTimesToUserTimezone(
+      slot.startTime,
+      slot.endTime,
+      slot.date,
+      getUserTimezone()
+    );
+
+    return `${formattedStartTime} - ${formattedEndTime}`;
+  };
+
+  // Get timezone information for display
+  const getTimezoneInfo = (slot: Slot) => {
+    const slotTimezone = slot.timezone;
+    const currentUserTimezone =
+      Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+    if (!slotTimezone) return null;
+
+    // Always show conversion from slot timezone to user's timezone
+    if (slotTimezone !== currentUserTimezone) {
+      return {
+        original: slotTimezone,
+        display: currentUserTimezone,
+        offset: getTimezoneOffset(slotTimezone),
+        displayOffset: getTimezoneOffset(currentUserTimezone),
+      };
+    }
+
+    return {
+      original: slotTimezone,
+      offset: getTimezoneOffset(slotTimezone),
+    };
+  };
+
+  return (
+    <div className={`w-full max-w-4xl mx-auto p-6 ${className}`}>
+      <div className="mb-6">
+        {/* <h2 className="text-2xl font-bold text-gray-900 mb-4">
+          {slotStatus?.charAt(0)?.toUpperCase() + slotStatus?.slice(1)} Time
+          Slots
+        </h2> */}
+
+        {/* Timezone Information */}
+        {selectedSlot && selectedSlot.length > 0 && (
+          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="flex items-center gap-2 text-sm text-blue-800">
+              <Globe className="w-4 h-4" />
+              <span className="font-medium">Timezone Information:</span>
+              {(() => {
+                const firstSlot = selectedSlot[0];
+                const timezoneInfo = getTimezoneInfo(firstSlot);
+                const currentUserTimezone =
+                  Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+                if (timezoneInfo) {
+                  if ("display" in timezoneInfo) {
+                    return (
+                      <span>
+                        Slots created in{" "}
+                        <strong>{timezoneInfo.original}</strong> (
+                        {timezoneInfo.offset}) • Displaying in{" "}
+                        <strong>{currentUserTimezone}</strong> (
+                        {timezoneInfo.displayOffset})
+                      </span>
+                    );
+                  } else {
+                    return (
+                      <span>
+                        All times in <strong>{timezoneInfo.original}</strong> (
+                        {timezoneInfo.offset})
+                      </span>
+                    );
+                  }
+                }
+                return <span>No timezone information available</span>;
+              })()}
+            </div>
+          </div>
+        )}
+
+        {/* Legend */}
+        <div className="flex flex-wrap gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
+          {/* <div className="flex items-center gap-2">
+            <div className="w-3 h-3 bg-green-200 border border-green-300 rounded"></div>
+            <span className="text-sm text-gray-600">Available</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 bg-red-200 border border-red-300 rounded"></div>
+            <span className="text-sm text-gray-600">Booked</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 bg-gray-200 border border-gray-300 rounded"></div>
+            <span className="text-sm text-gray-600">Disabled</span>
+          </div> */}
+
+          {selectedSlot &&
+            selectedSlot.some(
+              (slot) =>
+                slot.timezone &&
+                slot.timezone !==
+                  Intl.DateTimeFormat().resolvedOptions().timeZone
+            ) && (
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-blue-200 border border-blue-300 rounded"></div>
+                <span className="text-sm text-gray-600">
+                  Different Timezone
+                </span>
+              </div>
+            )}
+        </div>
+
+        {/* Action Buttons */}
+        {selectedSlotIds.length > 0 && (
+          <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-blue-800">
+                <span className="font-medium">{selectedSlotIds.length}</span>{" "}
+                slot{selectedSlotIds.length !== 1 ? "s" : ""} selected
+              </p>
+
+              <div className="flex items-center gap-3">
+                {/* Update Button */}
+                <button
+                  onClick={handleUpdateStatus}
+                  disabled={isUpdating || isDeleting}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  Disabled
+                </button>
+                <button
+                  onClick={() => setIsConfirmOpen(true)}
+                  disabled={isDeleting || isUpdating}
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-red-500"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+        <ConfirmDeleteModal
+          isOpen={isConfirmOpen}
+          onClose={() => setIsConfirmOpen(false)}
+          onConfirm={performDelete}
+          loading={isDeleting}
+          title="Delete selected slots?"
+          description={`This action is permanent and cannot be undone. You are about to delete ${
+            selectedSlotIds.length
+          } slot${
+            selectedSlotIds.length !== 1 ? "s" : ""
+          }. Booked slots cannot be deleted and will be skipped automatically. Only Available and Disabled slots will be removed.`}
+          confirmText="Delete"
+          cancelText="Cancel"
+        />
+      </div>
+
+      {/* Slots Display */}
+      <ScrollArea className="space-y-8 w-full h-[60vh] pb-2">
+        {Object.keys(groupedSlots ?? {})?.length === 0 ? (
+          <div className="text-center py-12">
+            <div className="text-gray-500 text-lg">
+              No slots found for the selected filter.
+            </div>
+          </div>
+        ) : (
+          Object.entries(groupedSlots ?? {})
+            .sort(([a], [b]) => new Date(a).getTime() - new Date(b).getTime())
+            .map(([date, dateSlots]) => (
+              <div key={date} className="space-y-4">
+                <h3 className="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2">
+                  {new Intl.DateTimeFormat("en-US", {
+                    weekday: "long",
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                    timeZone: getUserTimezone(),
+                  }).format(new Date(date))}
+                </h3>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                  {dateSlots
+                    .sort((a, b) =>
+                      a.formattedStartTime.localeCompare(b.formattedStartTime)
+                    )
+                    .map((slot) => {
+                      const isSelected = selectedSlotIds.includes(slot._id);
+                      const timezoneInfo = getTimezoneInfo(slot);
+                      const currentUserTimezone =
+                        Intl.DateTimeFormat().resolvedOptions().timeZone;
+                      const hasDifferentTimezone =
+                        timezoneInfo &&
+                        slot.timezone &&
+                        slot.timezone !== currentUserTimezone;
+                      return (
+                        <div
+                          key={slot._id}
+                          onClick={() => handleSlotClick(slot)}
+                          className={`${getSlotStyles(
+                            slot.status as SlotStatus
+                          )} ${
+                            hasDifferentTimezone
+                              ? "border-blue-300 bg-blue-50"
+                              : ""
+                          }`}
+                        >
+                          <div className="flex flex-col items-center space-y-1 relative">
+                            {slot.status === SlotStatus.AVAILABLE && (
+                              <div
+                                className="absolute -top-[10px] right-[-18px] p-1"
+                                onClick={handleCheckboxClick}
+                              >
+                                <Checkbox
+                                  className={`z-50 ${
+                                    isSelected
+                                      ? "data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600"
+                                      : "border-gray-300 bg-white"
+                                  }`}
+                                  id={`checkbox-${slot._id}`}
+                                  checked={isSelected}
+                                  onCheckedChange={(checked) =>
+                                    handleCheckboxChange(
+                                      slot._id,
+                                      checked as boolean
+                                    )
+                                  }
+                                />
+                              </div>
+                            )}
+
+                            <div className="font-semibold text-center">
+                              {formatTimeForDisplay(slot)}
+                            </div>
+
+                            {/* Timezone indicator */}
+                            {hasDifferentTimezone && (
+                              <div className="flex items-center gap-1 text-xs text-blue-600">
+                                <Globe className="w-3 h-3" />
+                                <span className="text-[10px]">
+                                  {timezoneInfo.original}
+                                </span>
+                              </div>
+                            )}
+
+                            <div
+                              className={`px-2 py-1 rounded-full text-xs border ${getStatusBadgeStyles(
+                                slot.status as SlotStatus
+                              )}`}
+                            >
+                              {slot.status}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                </div>
+              </div>
+            ))
+        )}
+      </ScrollArea>
+    </div>
+  );
+};
+
+export default BookingSlotsPeriods;

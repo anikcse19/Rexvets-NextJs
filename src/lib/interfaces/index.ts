@@ -1,3 +1,4 @@
+import { Types } from "mongoose";
 import { StaticImageData } from "next/image";
 import { IconType } from "react-icons/lib";
 
@@ -18,12 +19,31 @@ export enum UserRole {
   Admin = "admin",
 }
 export interface IPet {
+  _id: string;
   name: string;
-  species: PetSpecies;
-  breed?: string;
-  age: number;
-  medicalHistory?: string[];
+  image: string;
+  species: "dog" | "cat" | "bird" | "rabbit" | "hamster" | "guinea pig";
+  breed: string;
+  gender: "male" | "female";
+  primaryColor: string;
+  spayedNeutered: "spayed" | "neutered" | "intact";
+  weight: number;
+  weightUnit: "kg" | "lb";
+  dateOfBirth: string;
+  microchipId?: string;
+  parentId: Types.ObjectId;
+  allergies?: string[];
+  medicalConditions?: string[];
+  currentMedications?: string[];
+  healthStatus?: "Healthy" | "Under Treatment" | "Critical" | "Unknown";
+  emergencyContact?: string;
+  veterinarianNotes?: string;
+  seenBy?: string[];
+  lastVisit?: string;
+  nextVaccination?: string;
+  isDeleted?: boolean;
 }
+
 export enum PetSpecies {
   Dog = "dog",
   Cat = "cat",
@@ -116,10 +136,53 @@ export interface SignUpData {
 }
 
 export interface ITreatmentCategory {
+  id: number;
   title: string;
   description: string;
+  detailedDescription: string;
   image: string;
   color: string;
   symptoms: string[];
-  id: number;
+  treatmentOptions: string[];
+  faq: { question: string; answer: string }[];
+}
+
+export enum MessageSenderType {
+  Admin = "ADMIN",
+  VetParent = "VET_PARENT",
+}
+
+export interface IMessage {
+  _id?: Types.ObjectId;
+  isAdmin: boolean;
+  vetParent?: Types.ObjectId;
+  senderType: MessageSenderType;
+  content: string;
+  attachments?: string[];
+  isRead: boolean;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export interface Slot {
+  _id: string;
+  vetId: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  timezone?: string; // Timezone of the appointment slot
+  status: string;
+  createdAt: string;
+  __v: number;
+  updatedAt: string;
+  formattedDate: string;
+  formattedStartTime: string;
+  formattedEndTime: string;
+  displayTimezone?: string; // Timezone used for display conversion
+}
+export enum SlotStatus {
+  AVAILABLE = "available",
+  BOOKED = "booked",
+  DISABLED = "disabled",
+  ALL = "all",
 }

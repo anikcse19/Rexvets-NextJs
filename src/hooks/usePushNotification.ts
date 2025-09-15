@@ -1,5 +1,4 @@
 "use client";
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useCallback, useEffect, useState } from "react";
 
 interface PushSubscriptionJSON {
@@ -10,6 +9,12 @@ interface PushSubscriptionJSON {
   };
 }
 
+/**
+ * The `usePushNotification` function in TypeScript manages push notification support, permission,
+ * subscription, and utility functions.
+ * @returns The `usePushNotification` custom hook is returning an object with the following properties
+ * and methods:
+ */
 const usePushNotification = () => {
   const [isSupported, setIsSupported] = useState(false);
   const [permission, setPermission] =
@@ -67,11 +72,16 @@ const usePushNotification = () => {
       }
 
       try {
-        // Register service worker
-        await navigator.serviceWorker.register("/service-worker.js");
+        // Check if service worker is already registered
+        let registration = await navigator.serviceWorker.getRegistration();
+        
+        if (!registration) {
+          // Register service worker (using Next.js workbox service worker)
+          registration = await navigator.serviceWorker.register("/sw.js");
+        }
 
         // ✅ Wait for service worker to be active
-        const registration = await navigator.serviceWorker.ready;
+        await navigator.serviceWorker.ready;
 
         // Subscribe to push
         const subscription = await registration.pushManager.subscribe({
@@ -95,7 +105,18 @@ const usePushNotification = () => {
         return subJson;
       } catch (e: any) {
         console.error("Subscription error:", e);
-        setError(e.message || "Subscription failed");
+        
+        // Handle specific errors
+        if (e.name === 'AbortError') {
+          setError("Push notification registration was cancelled");
+        } else if (e.name === 'NotAllowedError') {
+          setError("Push notification permission denied");
+        } else if (e.name === 'NotSupportedError') {
+          setError("Push notifications not supported");
+        } else {
+          setError(e.message || "Subscription failed");
+        }
+        
         return null;
       }
     },
@@ -103,6 +124,10 @@ const usePushNotification = () => {
   );
 
   // Utility: Convert VAPID key from base64 string to Uint8Array
+  /**
+   *
+   * @param base64String
+   */
   const urlBase64ToUint8Array = (base64String: string) => {
     const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
     const base64 = (base64String + padding)

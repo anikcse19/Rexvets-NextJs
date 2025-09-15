@@ -4,7 +4,7 @@ import { motion, Variants } from "framer-motion";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React from "react";
-import { FaPills, FaUserCheck } from "react-icons/fa6"; // Import icons
+import { FaPills, FaUserCheck } from "react-icons/fa6";
 const fadeInUp: Variants = {
   hidden: { opacity: 0, y: 20 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } },
@@ -17,8 +17,18 @@ const staggerContainer = {
     transition: { staggerChildren: 0.2 },
   },
 };
-
-const GetAPrescriptionHeroSectionSection = () => {
+interface IProps {
+  tabs: string[];
+  description: string;
+  title: string;
+  sub_title: string;
+}
+const GetAPrescriptionHeroSectionSection: React.FC<IProps> = ({
+  tabs = [],
+  title,
+  sub_title,
+  description,
+}) => {
   const router = useRouter();
 
   return (
@@ -33,17 +43,16 @@ const GetAPrescriptionHeroSectionSection = () => {
           variants={fadeInUp}
           className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-white mb-4 tracking-tight drop-shadow-lg"
         >
-          Pet Medication{" "}
+          {title}{" "}
           <span className="bg-gradient-to-r from-amber-400 to-amber-600 bg-clip-text text-transparent">
-            Delivered
+            {sub_title} {/* Delivered */}
           </span>
         </motion.h1>
         <motion.p
           variants={fadeInUp}
           className="text-lg sm:text-xl md:my-11 md:text-2xl text-white/90 max-w-[800px] mx-auto mb-8 leading-relaxed drop-shadow-md"
         >
-          Rex Vets can prescribe online. Order medication with RexRx or pick up
-          from your local pharmacy.
+          {description}
         </motion.p>
         <motion.div
           variants={fadeInUp}
@@ -73,7 +82,7 @@ const GetAPrescriptionHeroSectionSection = () => {
           variants={staggerContainer}
           className="flex justify-center gap-4 flex-wrap mt-14"
         >
-          {["Trusted", "Licensed", "24/7 Available", "Secure"].map((tag) => (
+          {tabs.map((tag) => (
             <motion.span
               key={tag}
               variants={fadeInUp}

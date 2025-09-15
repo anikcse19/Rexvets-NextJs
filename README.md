@@ -1,4 +1,37 @@
-# RexVet-nextjs
+# RexVets Next.js Application
+
+## Features
+
+### File Upload with Vet Name Prefixing
+
+The application now supports automatic file naming with vet name prefixes for better Cloudinary recognition. When veterinarians upload files during registration, the filenames are automatically prefixed with their name and a timestamp.
+
+**Example:**
+- Original filename: `profile-picture.jpg`
+- With vet name prefix: `dr_john_smith_2024-01-15t10-30-45_profile-picture.jpg`
+
+This feature helps with:
+- Better organization in Cloudinary
+- Easier file identification
+- Improved searchability
+- Professional file naming
+
+**How it works:**
+1. During vet registration, the `FileUpload` component receives the vet's name
+2. Files are automatically renamed with the format: `{cleanVetName}_{timestamp}_{originalName}`
+3. Special characters are removed and spaces are converted to underscores
+4. A timestamp ensures uniqueness
+
+**Usage:**
+```tsx
+<FileUpload
+  label="Profile Picture"
+  name="profilePicture"
+  accept="image/*"
+  vetName="Dr. John Smith"
+  onFileChange={handleFileChange}
+/>
+```
 
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 

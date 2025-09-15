@@ -1,3 +1,5 @@
+// Server-side configuration - environment variables are loaded by Next.js
+
 const config = {
   AGORA_PUBLIC_ID: process.env.NEXT_PUBLIC_AGORA_APP_ID,
   AGORA_ID: process.env.AGORA_APP_ID,
@@ -18,7 +20,10 @@ const config = {
   APP_ID_PUBLIC: process.env.NEXT_PUBLIC_APP_ID,
   ZEGO_SECRET: process.env.ZEGO_SERVER_SECRET,
 
-  STRIPE_KEY_PUBLIC: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
+  // Simplified Stripe Configuration
+  // Only essential variables needed for basic payment processing
+  STRIPE_KEY_PUBLIC: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY, // Client-side publishable key
+  STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY, // Server-side secret key for API calls
 
   API_BASE_URL_PUBLIC: process.env.NEXT_PUBLIC_API_BASE_URL,
   EMAIL_SERVER_URL_PUBLIC: process.env.NEXT_PUBLIC_EMAIL_SERVER_URL,
@@ -32,7 +37,7 @@ const config = {
 
   NODE_ENVIRONMENT: process.env.NODE_ENV,
 
-  STRIPE_KEY_PUBLIC_ALT: process.env.NEXT_PUBLIC_STRIPE_KEY,
+  STRIPE_KEY_PUBLIC_ALT: process.env.NEXT_PUBLIC_STRIPE_KEY, // Alternative Stripe publishable key
 
   GOOGLE_PLACES_KEY_PUBLIC: process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY,
   GOOGLE_PLACE_ID_PUBLIC: process.env.NEXT_PUBLIC_GOOGLE_PLACE_ID,
@@ -46,6 +51,26 @@ const config = {
   FIREBASE_PROJECT_ID: process.env.FIREBASE_PROJECT_ID,
   FIREBASE_PRIVATE_KEY: process.env.FIREBASE_PRIVATE_KEY,
   FIREBASE_CLIENT_EMAIL: process.env.FIREBASE_CLIENT_EMAIL,
+
+  // Authentication
+  NEXTAUTH_URL: process.env.NEXTAUTH_URL,
+  NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
+  GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
+  GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
+
+  // Email Configuration
+  EMAIL_HOST: process.env.EMAIL_HOST,
+  EMAIL_PORT: process.env.EMAIL_PORT,
+  EMAIL_SECURE: process.env.EMAIL_SECURE,
+  EMAIL_USER: process.env.EMAIL_USER,
+  EMAIL_PASS: process.env.EMAIL_PASS,
+
+  BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL,
+
+  // Google Analytics Configuration
+  GOOGLE_ANALYTICS_ID: process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID,
+  GOOGLE_TAG_MANAGER_ID: process.env.NEXT_PUBLIC_GOOGLE_TAG_MANAGER_ID,
+
 } as const;
 
 export default config;

@@ -1,5 +1,6 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
+import { useAppContext } from "@/hooks/StateContext";
+import { getUserTimezone } from "@/lib/timezone";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import RexVetAPointmentFeeInfo from "./RexVetAPointmentFeeInfo";
@@ -23,7 +24,7 @@ const perAppointmentFeatures = [
 ];
 
 const familyPlanFeatures = [
-  "4 virtual vet appointments ($140 value minimum)",
+  "4 virtual vet appointments ($289 value minimum)",
   "Unlimited messaging with professionals",
   "Exclusive discounts on medications",
   "Free shipping on all orders over $49",
@@ -33,7 +34,7 @@ const familyPlanFeatures = [
 const RexVetPlan: React.FC = () => {
   const [hoveredCard, setHoveredCard] = useState<"per" | "family" | null>(null);
   const [isSmallDevice, setIsSmallDevice] = useState(false);
-
+  const { setAppState } = useAppContext();
   const navigate = useRouter();
 
   // Framer Motion variants for pulse effect
@@ -68,15 +69,24 @@ const RexVetPlan: React.FC = () => {
               isSmallDevice={isSmallDevice}
               hoveredCard={hoveredCard}
               setHoveredCard={setHoveredCard}
-              onClick={() => navigate.push("/findAVet")}
+              onClick={() => navigate.push("/find-a-vet")}
               perAppointmentFeatures={perAppointmentFeatures}
             />
             {/* Family Plan Card */}
             <RexVetFamilyPlanInfo
               familyPlanFeatures={familyPlanFeatures}
-              onClick={(state: number) =>
-                navigate.push("/indAVet", { state } as any)
-              }
+              onClick={(state: number) => {
+                if (state > 0) {
+                  setAppState((prev) => ({
+                    ...prev,
+                    selectedFamilyPlan: state.toString(),
+                  }));
+                  // queryParams.set("selected-family-plan", state.toString());
+                }
+
+                navigate.push("/find-a-vet");
+                // navigate.push("/find-a-vet", { state } as any);
+              }}
               isSmallDevice={isSmallDevice}
               hoveredCard={hoveredCard}
               setHoveredCard={setHoveredCard}

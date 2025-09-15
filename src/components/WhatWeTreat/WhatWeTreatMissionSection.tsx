@@ -18,7 +18,7 @@ const WhatWeTreatMissionSection = () => {
             Our Mission
           </h2>
           <p className="text-[20px] text-gray-600 mb-4 leading-relaxed">
-            As a nonprofit, Rex Vets is committed to making veterinary care
+            As a nonprofit, Rex Vet is committed to making veterinary care
             accessible through free and low-cost telehealth services. Our goal
             is to reach more underserved pets and families—ensuring every animal
             gets the care they deserve, no matter the circumstances.

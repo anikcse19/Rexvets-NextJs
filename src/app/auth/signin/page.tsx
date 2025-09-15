@@ -1,23 +1,24 @@
 "use client";
 
-import { useState } from "react";
-import { motion } from "framer-motion";
-import { signIn } from "next-auth/react";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent } from "@/components/ui/card";
+import LoadingSpinner from "@/components/ui/loading-spinner";
+import { motion } from "framer-motion";
 import {
   ArrowLeft,
   Eye,
   EyeOff,
-  Mail,
-  Lock,
   Heart,
+  Lock,
+  Mail,
   Stethoscope,
 } from "lucide-react";
-import LoadingSpinner from "@/components/ui/loading-spinner";
+import { signIn, useSession } from "next-auth/react";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export default function SignInPage() {
   const [email, setEmail] = useState("");
@@ -25,25 +26,214 @@ export default function SignInPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirect = searchParams.get("redirect") || "/";
+  const { data: session, status, update } = useSession();
+
+  console.log("redirect to", redirect);
+
+  // Redirect already authenticated users
+  useEffect(() => {
+    if (status === "authenticated" && session?.user) {
+      const userRole = session.user.role;
+
+      if (userRole === "admin" || userRole === "moderator") {
+        window.location.replace("/admin/overview");
+      } else if (redirect !== "/") {
+        router.push(redirect);
+      } else {
+        router.push("/");
+      }
+    }
+  }, [session, status, router, redirect]);
+
+  useEffect(() => {
+    const handlePopState = () => {
+      window.location.replace("/"); // send them home
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, []);
+
+  // const handleSubmit = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   setIsLoading(true);
+  //   setError(""); // Clear previous errors
+
+  //   try {
+  //     const result = await signIn("credentials", {
+  //       email,
+  //       password,
+  //       // redirect: false,
+  //     });
+
+  //     if (result?.ok) {
+  //    console.log("Sign-in successful, redirecting...", result);
+  //    router.push(redirect);
+  //     } else {
+  //       // Handle different error cases
+  //       if (result?.error === "CredentialsSignin") {
+  //         // Check if this might be a Google OAuth account
+  //         // We'll make an additional check to see if the email exists in the database
+  //         try {
+  //           const checkResponse = await fetch(
+  //             `/api/check-email?email=${encodeURIComponent(email)}`
+  //           );
+  //           if (checkResponse.ok) {
+  //             const checkData = await checkResponse.json();
+  //             if (checkData.isGoogleAccount) {
+  //               setError(
+  //                 "This email is linked to a Google account. Please sign in using the 'Continue with Google' button instead of email and password."
+  //               );
+  //             } else {
+  //               setError("Invalid email or password. Please try again.");
+  //             }
+  //           } else {
+  //             setError("Invalid email or password. Please try again.");
+  //           }
+  //         } catch {
+  //           setError("Invalid email or password. Please try again.");
+  //         }
+  //       } else if (result?.error === "AccountLocked") {
+  //         setError(
+  //           "Account is temporarily locked due to too many failed attempts. Please try again later."
+  //         );
+  //       } else if (result?.error === "AccountDeactivated") {
+  //         setError("Account is deactivated. Please contact support.");
+  //       } else if (result?.error === "EmailNotVerified") {
+  //         setError("Please verify your email address before signing in.");
+  //       } else if (result?.error?.includes("Database connection failed")) {
+  //         setError("Service temporarily unavailable. Please try again later.");
+  //       } else if (result?.error?.includes("linked to a Google account")) {
+  //         setError(
+  //           "This email is linked to a Google account. Please sign in using the 'Continue with Google' button instead of email and password."
+  //         );
+  //       } else {
+  //         setError(
+  //           "Sign in failed. Please check your credentials and try again."
+  //         );
+  //       }
+  //     }
+  //   } catch {
+  //     setError("An unexpected error occurred. Please try again.");
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
+
+  // const handleGoogleSignIn = async () => {
+  //   setGoogleLoading(true);
+  //   setError(""); // Clear previous errors
+  //   try {
+  //     const result = await signIn("google", {
+  //       redirect: false,
+  //     });
+
+  //     if (result?.ok) {
+  //       console.log("Google sign-in successful, redirecting...");
+  //       let updatedSession: any = null;
+  //       try { updatedSession = await update(); } catch {}
+  //       const role = updatedSession?.user?.role || session?.user?.role;
+  //       // Append a small flag so navbar can force-refresh session once
+  //       const targetUrl = (redirect && redirect !== "/")
+  //         ? redirect
+  //         : (role === "admin" || role === "moderator")
+  //         ? "/admin/overview?signedin=1"
+  //         : "/?signedin=1";
+  //       console.log("Redirecting to:", targetUrl);
+  //       await new Promise((r) => setTimeout(r, 50));
+  //       router.replace(targetUrl);
+  //     } else {
+  //       setError("Google sign-in failed. Please try again.");
+  //     }
+  //   } catch {
+  //     setError("Google sign-in failed. Please try again.");
+  //   } finally {
+  //     setGoogleLoading(false);
+  //   }
+  // };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setError(""); // Clear previous errors
 
     try {
       const result = await signIn("credentials", {
         email,
         password,
-        redirect: false,
+        // redirect: false,
       });
 
       if (result?.ok) {
-        window.location.href = "/dashboard";
+        console.log("Sign-in successful, updating session...");
+        router.refresh();
+        let updatedSession: any = null;
+        try {
+          updatedSession = await update(); // refresh session immediately
+        } catch {}
+
+        const role = updatedSession?.user?.role || session?.user?.role;
+        const targetUrl =
+          redirect && redirect !== "/"
+            ? redirect
+            : role === "admin" || role === "moderator"
+            ? "/admin/overview?signedin=1"
+            : "/?signedin=1";
+
+        router.replace(targetUrl);
       } else {
-        console.error("Sign in failed");
+        // Handle different error cases
+        if (result?.error === "CredentialsSignin") {
+          // Check if this might be a Google OAuth account
+          // We'll make an additional check to see if the email exists in the database
+          try {
+            const checkResponse = await fetch(
+              `/api/check-email?email=${encodeURIComponent(email)}`
+            );
+            if (checkResponse.ok) {
+              const checkData = await checkResponse.json();
+              if (checkData.isGoogleAccount) {
+                setError(
+                  "This email is linked to a Google account. Please sign in using the 'Continue with Google' button instead of email and password."
+                );
+              } else {
+                setError("Invalid email or password. Please try again.");
+              }
+            } else {
+              setError("Invalid email or password. Please try again.");
+            }
+          } catch {
+            setError("Invalid email or password. Please try again.");
+          }
+        } else if (result?.error === "AccountLocked") {
+          setError(
+            "Account is temporarily locked due to too many failed attempts. Please try again later."
+          );
+        } else if (result?.error === "AccountDeactivated") {
+          setError("Account is deactivated. Please contact support.");
+        } else if (result?.error === "EmailNotVerified") {
+          setError("Please verify your email address before signing in.");
+        } else if (result?.error?.includes("Database connection failed")) {
+          setError("Service temporarily unavailable. Please try again later.");
+        } else if (result?.error?.includes("linked to a Google account")) {
+          setError(
+            "This email is linked to a Google account. Please sign in using the 'Continue with Google' button instead of email and password."
+          );
+        } else {
+          setError(
+            "Sign in failed. Please check your credentials and try again."
+          );
+        }
       }
-    } catch (error) {
-      console.error("Sign in error:", error);
+    } catch {
+      setError("An unexpected error occurred. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -51,10 +241,34 @@ export default function SignInPage() {
 
   const handleGoogleSignIn = async () => {
     setGoogleLoading(true);
+    setError(""); // Clear previous errors
     try {
-      await signIn("google", { callbackUrl: "/dashboard" });
-    } catch (error) {
-      console.error("Google sign in error:", error);
+      const result = await signIn("google", {
+        redirect: false,
+      });
+
+      if (result?.ok) {
+        console.log("Google sign-in successful, redirecting...");
+        let updatedSession: any = null;
+        try {
+          updatedSession = await update();
+        } catch {}
+        const role = updatedSession?.user?.role || session?.user?.role;
+        // Append a small flag so navbar can force-refresh session once
+        const targetUrl =
+          redirect && redirect !== "/"
+            ? redirect
+            : role === "admin" || role === "moderator"
+            ? "/admin/overview?signedin=1"
+            : "/?signedin=1";
+        console.log("Redirecting to:", targetUrl);
+        await new Promise((r) => setTimeout(r, 50));
+        router.replace(targetUrl);
+      } else {
+        setError("Google sign-in failed. Please try again.");
+      }
+    } catch {
+      setError("Google sign-in failed. Please try again.");
     } finally {
       setGoogleLoading(false);
     }
@@ -207,8 +421,8 @@ export default function SignInPage() {
                   <div className="absolute inset-0 flex items-center">
                     <div className="w-full border-t border-white/20"></div>
                   </div>
-                  <div className="relative flex justify-center text-sm">
-                    <span className="px-4 bg-transparent text-white/70">
+                  <div className="relative flex justify-center">
+                    <span className="px-4 backdrop-blur-xl bg-white/70 border-white/20 shadow-2xl text-sm text-black rounded-3xl">
                       or continue with email
                     </span>
                   </div>
@@ -277,6 +491,29 @@ export default function SignInPage() {
                     </div>
                   </motion.div>
 
+                  {/* Forgot password */}
+                  <div className="flex justify-end -mt-2">
+                    <Link
+                      href="/auth/forgot-password"
+                      className="text-sm text-cyan-300 hover:text-cyan-200 underline"
+                    >
+                      Forgot your password?
+                    </Link>
+                  </div>
+
+                  {/* Error Message */}
+                  {error && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg"
+                    >
+                      <p className="text-red-400 text-sm text-center">
+                        {error}
+                      </p>
+                    </motion.div>
+                  )}
+
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -286,7 +523,7 @@ export default function SignInPage() {
                   >
                     <Button
                       type="submit"
-                      className="w-full h-14 text-base bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300"
+                      className="w-full h-14 text-base cursor-pointer bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300"
                       disabled={isLoading}
                     >
                       {isLoading ? (
@@ -313,7 +550,7 @@ export default function SignInPage() {
                       href="/auth/signup"
                       className="text-cyan-400 hover:text-cyan-300 font-medium transition-colors duration-300 hover:underline"
                     >
-                      Create one now
+                      Create Account
                     </Link>
                   </p>
                 </motion.div>
@@ -329,7 +566,7 @@ export default function SignInPage() {
             className="text-center mt-8"
           >
             <p className="text-white/50 text-sm">
-              © 2025 RexVet. Professional Veterinary Care Platform.
+              ©2025 RexVet. Professional Veterinary Care Platform.
             </p>
           </motion.div>
         </div>

@@ -146,6 +146,13 @@ body {
   scrollbar-width: none; /* Firefox */
 }
 
+Button {
+  cursor: pointer;
+}
+
+button {
+  cursor: pointer;
+}
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -380,4 +387,19 @@ body {
   bottom: 0;
   background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><defs><radialGradient id="a" cx="50%" cy="50%"><stop offset="0%" stop-color="%23ffffff" stop-opacity="0.05"/><stop offset="100%" stop-color="%23ffffff" stop-opacity="0"/></radialGradient></defs><circle cx="200" cy="200" r="80" fill="url(%23a)"/><circle cx="800" cy="300" r="120" fill="url(%23a)"/><circle cx="400" cy="700" r="100" fill="url(%23a)"/></svg>');
   pointer-events: none;
+}
+
+/* stop to getting bg from auto fill in input field */
+
+/* Fix Chrome autofill background to match bg-white/10 */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill,
+select:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0px 1000px rgba(255, 255, 255, 0.1) inset !important;
+  box-shadow: 0 0 0px 1000px rgba(255, 255, 255, 0.1) inset !important;
+  -webkit-text-fill-color: black !important; /* your text color */
+  caret-color: #434173 !important; /* ensure cursor is visible */
+  transition: background-color 9999s ease-in-out 0s;
 }

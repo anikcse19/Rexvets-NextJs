@@ -6,7 +6,6 @@ import { FaGoogle } from "react-icons/fa";
 interface IProps {
   onSignIn?: (email: string, password: string) => void;
   onGoogleSignIn?: () => void;
-  onGoogleSignUp?: () => void;
   onSignUp?: (data: SignUpData) => void;
   onForgotPassword?: () => void;
 }
@@ -14,7 +13,6 @@ interface IProps {
 const SignIn: React.FC<IProps> = ({
   onSignIn,
   onGoogleSignIn,
-  onGoogleSignUp,
   onSignUp,
   onForgotPassword,
 }) => {
@@ -43,9 +41,6 @@ const SignIn: React.FC<IProps> = ({
     onSignUp?.(signUpData);
   };
 
-  const handleGoogleSignUp = () => {
-    onGoogleSignUp?.();
-  };
 
   const handleSignUpInputChange = (
     field: keyof typeof signUpData,
@@ -100,7 +95,7 @@ const SignIn: React.FC<IProps> = ({
             {/* Google Sign In Button */}
             <button
               onClick={handleGoogleSignIn}
-              className="w-full flex items-center justify-center gap-3 bg-blue-500 text-white font-semibold cursor-pointer py-2.5 sm:py-3 px-4 sm:px-6 rounded-md transition-colors mb-6 text-sm sm:text-base"
+              className="w-full flex items-center justify-center cursor-pointer gap-3 cursor-pointer bg-blue-500 text-white font-semibold  py-2.5 sm:py-3 px-4 sm:px-6 rounded-md transition-colors mb-6 text-sm sm:text-base"
             >
               <FaGoogle size={24} className="text-white" />
               Sign in with Google
@@ -162,14 +157,6 @@ const SignIn: React.FC<IProps> = ({
 
         {activeTab === "register" && (
           <>
-            {/* Google Sign Up Button */}
-            <button
-              onClick={handleGoogleSignUp}
-              className="w-full flex items-center justify-center gap-3 bg-blue-500 text-white font-semibold cursor-pointer py-2.5 sm:py-3 px-4 sm:px-6 rounded-md transition-colors mb-6 text-sm sm:text-base"
-            >
-              <FaGoogle size={24} className="text-white" />
-              Sign up with Google
-            </button>
 
             {/* Sign Up Form */}
             <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>

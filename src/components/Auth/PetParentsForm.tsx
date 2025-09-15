@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -29,12 +29,13 @@ import {
 import { signIn } from "next-auth/react";
 import LoadingSpinner from "@/components/ui/loading-spinner";
 import { US_STATES } from "@/lib";
+import { getUserTimezone } from "@/lib/timezone";
 
 const petParentSchema = z
   .object({
     name: z.string().min(2, "Name must be at least 2 characters"),
     email: z.string().email("Invalid email address"),
-    phone: z.string().min(10, "Phone number must be at least 10 digits"),
+    phone: z.string().optional().or(z.literal("")),
     state: z.string().min(1, "Please select a state"),
     password: z.string().min(8, "Password must be at least 8 characters"),
     confirmPassword: z.string(),
@@ -56,21 +57,109 @@ export default function PetParentForm() {
     register,
     handleSubmit,
     setValue,
-    watch,
     formState: { errors },
   } = useForm<PetParentFormData>({
     resolver: zodResolver(petParentSchema),
   });
 
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [timezone, setTimezone] = useState<string>("");
+
+  useEffect(() => {
+    const tz = getUserTimezone();
+    setTimezone(tz);
+  }, []);
+
+  useEffect(() => {
+    console.log("form errors", errors);
+  }, [errors]);
+
+  console.log("timezone check", timezone);
+
   const onSubmit = async (data: PetParentFormData) => {
+    console.log("function click");
     setIsLoading(true);
+    setError("");
+    setSuccess("");
+
     try {
-      // Here you would typically make an API call to register the pet parent
-      console.log("Pet parent registration:", data);
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      const createParentData = {
+        name: data.name,
+        email: data.email,
+        password: data.password,
+        phoneNumber: data.phone,
+        state: data.state,
+        timezone,
+      };
+
+      console.log("createParentData", createParentData);
+      const response = await fetch("/api/auth/register/pet-parent", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(createParentData),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        // Handle different types of errors
+        if (result.details && Array.isArray(result.details)) {
+          // Handle validation errors with details
+          const errorMessages = result.details
+            .map((detail: any) => detail.message)
+            .join(", ");
+          setError(errorMessages);
+        } else if (result.error) {
+          // Handle specific error messages from API
+          setError(result.error);
+        } else {
+          // Handle generic errors based on status code
+          switch (response.status) {
+            case 400:
+              setError(
+                "Invalid information provided. Please check your details and try again."
+              );
+              break;
+            case 409:
+              setError(
+                "An account with this email already exists. Please use a different email or try signing in."
+              );
+              break;
+            case 503:
+              setError(
+                "Service temporarily unavailable. Please try again in a few moments."
+              );
+              break;
+            case 500:
+              setError("Server error. Please try again later.");
+              break;
+            default:
+              setError("Registration failed. Please try again.");
+          }
+        }
+        return;
+      }
+
+      setSuccess(result.message || "Registration successful!");
+
+      // Redirect to sign in page after 3 seconds
+      setTimeout(() => {
+        window.location.href = "/auth/signin";
+      }, 3000);
     } catch (error) {
       console.error("Registration error:", error);
+
+      // Handle network errors
+      if (error instanceof TypeError && error.message.includes("fetch")) {
+        setError(
+          "Network error. Please check your internet connection and try again."
+        );
+      } else {
+        setError("Registration failed. Please try again later.");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -112,7 +201,7 @@ export default function PetParentForm() {
         </CardHeader>
 
         <CardContent className="space-y-6 p-8">
-          {/* Google Sign In */}
+          {/* Google Sign In for existing users */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -148,7 +237,7 @@ export default function PetParentForm() {
                   />
                 </svg>
               )}
-              Continue with Google
+              Sign in with Google for Existing User
             </Button>
           </motion.div>
 
@@ -162,6 +251,27 @@ export default function PetParentForm() {
               </span>
             </div>
           </div>
+
+          {/* Error and Success Messages */}
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="p-4 bg-red-500/10 border border-red-500/20 rounded-lg"
+            >
+              <p className="text-red-400 text-sm text-center">{error}</p>
+            </motion.div>
+          )}
+
+          {success && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="p-4 bg-green-500/10 border border-green-500/20 rounded-lg"
+            >
+              <p className="text-green-400 text-sm text-center">{success}</p>
+            </motion.div>
+          )}
 
           {/* Manual Registration Form */}
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -256,18 +366,12 @@ export default function PetParentForm() {
                   <MapPin className="w-4 h-4" />
                   State
                 </Label>
-                <Select onValueChange={(value) => setValue("state", value)}>
-                  <SelectTrigger className="h-12 bg-white/10 border-white/20 text-white data-[placeholder]:text-white/50 focus:border-cyan-400 focus:ring-cyan-400/20 backdrop-blur-sm">
-                    <SelectValue placeholder="Select a state" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {US_STATES.map((state) => (
-                      <SelectItem key={state.value} value={state.value}>
-                        {state.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Input
+                  id="state"
+                  {...register("state")}
+                  className="h-12 bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-cyan-400 focus:ring-cyan-400/20 backdrop-blur-sm"
+                  placeholder="Enter your state"
+                />
                 {errors.state && (
                   <p className="text-sm text-red-400 mt-1">
                     {errors.state.message}

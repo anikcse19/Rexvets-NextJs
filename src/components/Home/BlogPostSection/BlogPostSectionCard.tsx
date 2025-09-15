@@ -58,7 +58,7 @@ const BlogPostSectionCard: React.FC<BlogPostSectionCard> = ({
       whileHover="hover"
       className="h-full"
     >
-      <Link href={`/blog/${blog.slug}`} className="no-underline">
+      <Link href={`/rex-health-hub/${blog.slug}`} className="no-underline">
         <div className="relative flex flex-col rounded-lg overflow-hidden shadow-md hover:shadow-xl">
           {/* Featured Badge */}
           {index === 0 && (

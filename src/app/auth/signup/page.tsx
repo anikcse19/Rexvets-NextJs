@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 
@@ -9,11 +9,18 @@ import { Button } from "@/components/ui/button";
 import RoleSelector from "@/components/Auth/RoleSelector";
 import VetRegistrationForm from "@/components/Auth/VetRegistrationForm";
 import PetParentForm from "@/components/Auth/PetParentsForm";
+import { useSearchParams } from "next/navigation";
 
 export default function SignUpPage() {
-  const [selectedRole, setSelectedRole] = useState<
-    "pet_parent" | "veterinarian" | "technician" | null
-  >(null);
+  const searchParams = useSearchParams();
+  const role = searchParams.get("role") || null;
+  const [selectedRole, setSelectedRole] = useState(role || null);
+
+  useEffect(() => {
+    if (role) {
+      setSelectedRole(role);
+    }
+  }, [role]);
 
   const handleRoleSelect = (
     role: "pet_parent" | "veterinarian" | "technician"

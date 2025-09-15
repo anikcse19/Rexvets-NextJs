@@ -1,5 +1,4 @@
 "use client";
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { ITestimonial } from "@/lib";
 import { getFilteredReviews } from "@/services/googleService";
 import { motion, Variants } from "framer-motion";

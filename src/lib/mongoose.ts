@@ -1,8 +1,7 @@
-/* eslint-disable no-var */
+import config from "@/config/env.config";
 import mongoose from "mongoose";
 
-const MONGODB_URI = process.env.MONGODB_URI!;
-
+const MONGODB_URI = config.MONGO_URI;
 if (!MONGODB_URI) {
   throw new Error("Please define the MONGODB_URI environment variable");
 }
@@ -13,29 +12,36 @@ interface MongooseCache {
 }
 
 declare global {
-  // allow global `var` declarations
-  // eslint-disable-next-line no-var
   var mongoose: MongooseCache;
 }
 
 const cached: MongooseCache = global.mongoose || { conn: null, promise: null };
 
-if (process.env.NODE_ENV === "development") {
+// Only use global caching in development to avoid memory leaks in production
+if (config.NODE_ENVIRONMENT === "development") {
   global.mongoose = cached;
 }
 
+/**
+ *
+ */
 export async function connectToDatabase() {
-  if (cached.conn) {
+  try {
+    if (cached.conn) {
+      return cached.conn;
+    }
+
+    if (!cached.promise) {
+      cached.promise = mongoose.connect(config.MONGO_URI!, {
+        bufferCommands: false,
+      });
+    }
+
+    cached.conn = await cached.promise;
+
     return cached.conn;
+  } catch (error: any) {
+    console.error("Error connecting to database", error.message);
+    throw error;
   }
-
-  if (!cached.promise) {
-    cached.promise = mongoose.connect(MONGODB_URI, {
-      bufferCommands: false,
-    });
-  }
-
-  cached.conn = await cached.promise;
-
-  return cached.conn;
 }

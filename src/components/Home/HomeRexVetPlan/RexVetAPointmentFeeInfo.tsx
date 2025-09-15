@@ -72,7 +72,7 @@ const RexVetAPointmentFeeInfo: React.FC<IProps> = ({
       animate={
         hoveredCard === "per" ? "hover" : isSmallDevice ? "initial" : "tilt"
       }
-      className={`relative w-full lg:w-[75%] rounded-3xl mb-4 lg:mb-0 ${
+      className={`relative w-full lg:w-[75%] rounded-3xl mb-14 md:mb-4 lg:mb-0 ${
         hoveredCard === "per" ? "z-[100]" : "z-[2]"
       } lg:absolute lg:top-0 lg:left-0`}
     >
@@ -109,7 +109,7 @@ const RexVetAPointmentFeeInfo: React.FC<IProps> = ({
 
         <motion.div variants={buttonVariants} whileHover="hover">
           <Button
-            className="w-full py-7 bg-gradient-to-br from-amber-500 to-amber-700 font-bold text-white rounded-lg shadow-[0_4px_12px_rgba(255,193,7,0.25)] hover:shadow-[0_8px_20px_rgba(255,193,7,0.3)]"
+            className="w-full cursor-pointer py-7 bg-gradient-to-br from-amber-500 to-amber-700 font-bold text-white rounded-lg shadow-[0_4px_12px_rgba(255,193,7,0.25)] hover:shadow-[0_8px_20px_rgba(255,193,7,0.3)]"
             onClick={onClick}
           >
             Get Started

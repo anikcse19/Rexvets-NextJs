@@ -8,7 +8,7 @@ const FooterBrandSection: React.FC = () => {
     <div className="mb-8">
       <Link href="/">
         <Image
-          src="/images/Logo (Gradient).svg"
+          src="/images/Logo.svg"
           alt="Logo RexVet"
           width={150}
           height={35}

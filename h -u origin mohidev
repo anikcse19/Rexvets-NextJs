@@ -1,0 +1,5 @@
+[33m4750723[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmohidev[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmain[m[33m)[m Parent authentication after disable hsuskey
+[33m6eb60a1[m feat: add parent authentication system
+[33me9cba70[m fix: resolve ESLint dirname duplicate declaration and update Husky hooks
+[33mefb9211[m Merge pull request #7 from jdrexxxx/dev-anik
+[33mb2f8468[m [Done: Doctor Dashboard new design ready]

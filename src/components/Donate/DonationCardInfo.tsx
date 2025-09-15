@@ -17,13 +17,13 @@ const DonationCardInfo = () => {
       <DonationBGAnimation />
 
       {/* Main Container */}
-      <div className="relative z-10  md:max-w-[850px] w-full mx-auto py-4 px-4 sm:px-6">
+      <div className="relative z-10 w-full md:max-w-[850px] mx-auto py-4">
         {/* Header Section */}
-        <div className="text-center mb-8 text-white">
+        <div className="text-center mb-8 text-white px-3">
           <h2 className="text-5xl md:text-6xl font-bold mb-2 bg-gradient-to-r from-white to-gray-200 text-transparent bg-clip-text drop-shadow-md">
             Make a Difference
           </h2>
-          <p className="text-lg opacity-90 font-light tracking-wide">
+          <p className="text-lg opacity-90 font-light tracking-wide text-center">
             Your contribution creates lasting impact
           </p>
         </div>
@@ -42,7 +42,7 @@ const DonationCardInfo = () => {
           transition={{ duration: 3, ease: "easeInOut", repeat: Infinity }}
         /> */}
 
-        <CardContent className="relative p-6 sm:p-8 md:p-2 ">
+        <CardContent className="relative w-full">
           {/* Decorative shapes inside card */}
           {/* <div className="absolute top-5 right-5 w-10 h-10 rounded-full bg-gradient-to-br from-[#667eea]/20 to-[#764ba2]/20 opacity-60" />
             <div className="absolute bottom-5 left-5 w-[30px] h-[30px] rounded-[20%] bg-gradient-to-tr from-[#667eea]/15 to-[#764ba2]/15 opacity-40" /> */}

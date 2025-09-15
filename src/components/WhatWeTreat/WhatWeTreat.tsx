@@ -1,11 +1,15 @@
 "use client";
 import dynamic from "next/dynamic";
 import React from "react";
-const Loading = () => <p>Loading...</p>;
+import Loader from "../shared/Loader";
+const Loading = () => <Loader size={60} />;
 
-const WhatWeTreatCTASection = dynamic(() => import("./WhatWeTreatCTASection"), {
-  loading: Loading,
-});
+const ReadyToGetStarted = dynamic(
+  () => import("@/components/shared/ReadyToGetStarted"),
+  {
+    loading: Loading,
+  }
+);
 const WhatWeTreatHeroSection = dynamic(
   () => import("./WhatWeTreatHeroSection"),
   { loading: Loading }
@@ -30,7 +34,11 @@ const WhatWeTreat = () => {
       <WhatWeTreatMissionSection />
       <WhatWeTreatServicesSection />
       <WhatWeTreatWhyChooseSection />
-      <WhatWeTreatCTASection />
+      <ReadyToGetStarted
+        isShowVisitPerfumery={false}
+        description="Connect with our licensed veterinarians today and give your pets the
+          care they deserve."
+      />
     </div>
   );
 };

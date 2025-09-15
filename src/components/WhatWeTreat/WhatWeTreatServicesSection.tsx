@@ -105,7 +105,7 @@ const WhatWeTreatServicesSection = () => {
                       ))}
                     </div>
                   </div>
-                  <Link href={`/treatment-service/${service.id}`} passHref>
+                  <Link href={`/what-we-treat/${service.id}`} passHref>
                     <Button
                       role="button"
                       aria-label={`Learn more about ${service.title}`}
