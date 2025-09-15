@@ -1,5 +1,6 @@
 "use client";
 
+import ConfirmDeleteModal from "@/components/shared/ConfirmDeleteModal";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useDashboardContext } from "@/hooks/DashboardContext";
@@ -42,6 +43,8 @@ const BookingSlotsPeriods: React.FC<BookingSlotsProps> = ({
 
   const [selectedStatus, setSelectedStatus] = useState<SlotStatus | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
   const getSlotStyles = (status: SlotStatus) => {
     const baseStyles =
@@ -156,6 +159,41 @@ const BookingSlotsPeriods: React.FC<BookingSlotsProps> = ({
       await refetchSlots();
     } catch (error) {
       console.error("Failed to update slot status:", error);
+    }
+  };
+
+  const performDelete = async () => {
+    if (selectedSlotIds.length === 0) return;
+    try {
+      setIsDeleting(true);
+      const res = await fetch("/api/appointments/delete-slots-by-ids", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slotIds: selectedSlotIds }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(data?.error || "Failed to delete slots");
+        return;
+      }
+      toast.success(data?.message || "Slots deleted successfully", {
+        description:
+          typeof data?.deletedCount === "number"
+            ? `${data.deletedCount} of ${
+                data?.requestedCount ?? selectedSlotIds.length
+              } deleted.`
+            : undefined,
+      });
+      setSelectedStatus(null);
+      setSelectedSlotIds([]);
+      setIsDropdownOpen(false);
+      await refetchSlots();
+    } catch (err: any) {
+      console.error("Error deleting slots:", err);
+      toast.error(err?.message || "Error deleting slots");
+    } finally {
+      setIsDeleting(false);
+      setIsConfirmOpen(false);
     }
   };
 
@@ -298,15 +336,36 @@ const BookingSlotsPeriods: React.FC<BookingSlotsProps> = ({
                 {/* Update Button */}
                 <button
                   onClick={handleUpdateStatus}
-                  disabled={isUpdating}
+                  disabled={isUpdating || isDeleting}
                   className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   Disabled
+                </button>
+                <button
+                  onClick={() => setIsConfirmOpen(true)}
+                  disabled={isDeleting || isUpdating}
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-red-500"
+                >
+                  Delete
                 </button>
               </div>
             </div>
           </div>
         )}
+        <ConfirmDeleteModal
+          isOpen={isConfirmOpen}
+          onClose={() => setIsConfirmOpen(false)}
+          onConfirm={performDelete}
+          loading={isDeleting}
+          title="Delete selected slots?"
+          description={`This action is permanent and cannot be undone. You are about to delete ${
+            selectedSlotIds.length
+          } slot${
+            selectedSlotIds.length !== 1 ? "s" : ""
+          }. Booked slots cannot be deleted and will be skipped automatically. Only Available and Disabled slots will be removed.`}
+          confirmText="Delete"
+          cancelText="Cancel"
+        />
       </div>
 
       {/* Slots Display */}
