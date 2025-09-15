@@ -217,6 +217,7 @@ const Header: React.FC = () => {
     );
   }
 
+  console.log("session check", session);
   return (
     <>
       {!session ||
@@ -233,7 +234,8 @@ const Header: React.FC = () => {
           !visible ||
           isSLotAvailable ||
           session?.user?.role === "admin" ||
-          session?.user?.role === "veterinarian"
+          session?.user?.role === "veterinarian" ||
+          session === null
             ? "top-0"
             : "top-[60px] md:top-[50px]"
         } transition-all duration-300 ease-in-out py-2 ${

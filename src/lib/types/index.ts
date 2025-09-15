@@ -111,6 +111,7 @@ export interface Appointment {
   appointmentType: "general_checkup" | string; // extend with known values
   paymentStatus: "paid" | "unpaid" | "pending"; // extend as needed
   reminderSent: boolean;
+  dataAssessmentPlan: any;
   isDeleted: boolean;
   slotId: string;
   createdAt: string; // ISO date

@@ -89,12 +89,12 @@ const petParentSchema = new Schema<IPetParent>(
     // password: { ... },
     phoneNumber: {
       type: String,
-      required: function (this: any) {
-        // Phone number is required only if user is not signing up via Google OAuth
-        return !this.googleId;
-      },
-      trim: true,
-      match: [/^[\+]?[1-9][\d]{0,15}$/, "Please enter a valid phone number"],
+      // required: function (this: any) {
+      //   // Phone number is required only if user is not signing up via Google OAuth
+      //   return !this.googleId;
+      // },
+      // trim: true,
+      // match: [/^[\+]?[1-9][\d]{0,15}$/, "Please enter a valid phone number"],
     },
     state: {
       type: String,

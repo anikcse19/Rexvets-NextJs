@@ -28,6 +28,8 @@ import moment from "moment-timezone";
 import mongoose, { Types } from "mongoose";
 import { getServerSession } from "next-auth/next";
 import { NextRequest } from "next/server";
+import { DataAssessmentPlanModel } from "@/models/DataAssessmentPlan";
+
 import z from "zod";
 
 const appointmentSchema = z.object({
@@ -512,7 +514,7 @@ export async function GET(req: NextRequest) {
     const skip = (page - 1) * limit;
 
     // Filters
-    const status = searchParams.get("status"); // scheduled, completed, etc.
+    const status = searchParams.get("status");
     const appointmentType = searchParams.get("appointmentType");
     const paymentStatus = searchParams.get("paymentStatus");
     const vet = searchParams.get("veterinarian");
@@ -537,22 +539,59 @@ export async function GET(req: NextRequest) {
       query.isFollowUp = isFollowUp === "true";
     if (search) query.concerns = { $regex: search, $options: "i" };
 
-    // Fetch data with pagination and sorting
+    // Fetch appointments
     const [appointments, total] = await Promise.all([
       AppointmentModel.find(query)
-        .populate("veterinarian pet petParent")
+        .populate("veterinarian pet petParent dataAssessmentPlan")
         .skip(skip)
         .limit(limit)
-        .sort({ appointmentDate: -1 })
-        .exec(),
+        .sort({ appointmentDate: -1 }),
       AppointmentModel.countDocuments(query),
     ]);
+
+    const appointmentIds = appointments.map((appt) => appt._id);
+
+    // Fetch DataAssessmentPlans linked to these appointments
+    const plans = await DataAssessmentPlanModel.find({
+      appointment: { $in: appointmentIds },
+      isDeleted: false,
+    }).sort({ createdAt: -1 });
+
+    const planMap = new Map(
+      plans.map((plan) => [plan.appointment.toString(), plan])
+    );
+
+    // Update appointments that don't have plan saved yet
+    await Promise.all(
+      appointments.map(async (appt) => {
+        const matchingPlan = planMap.get(appt._id.toString());
+        if (
+          matchingPlan &&
+          (!appt.dataAssessmentPlan ||
+            appt.dataAssessmentPlan.toString() !== matchingPlan._id.toString())
+        ) {
+          // ✅ Use findByIdAndUpdate to avoid triggering validators like appointmentDate check
+          await AppointmentModel.findByIdAndUpdate(
+            appt._id,
+            { dataAssessmentPlan: matchingPlan._id },
+            { new: true, runValidators: false } // disable validation
+          );
+        }
+      })
+    );
+
+    // Re-populate to include the newly linked plans
+    const updatedAppointments = await AppointmentModel.find({
+      _id: { $in: appointmentIds },
+    })
+      .populate("veterinarian pet petParent dataAssessmentPlan")
+      .sort({ appointmentDate: -1 });
 
     return sendResponse({
       statusCode: 200,
       success: true,
-      message: "Appointments fetched successfully",
-      data: appointments,
+      message: "Appointments fetched and updated successfully",
+      data: updatedAppointments,
       meta: {
         page,
         limit,

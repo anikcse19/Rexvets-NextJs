@@ -19,6 +19,7 @@ export interface IAppointment extends Document {
   notes?: string;
   feeUSD: number;
   status: AppointmentStatus;
+  dataAssessmentPlan: Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
   isFollowUp: boolean;
@@ -47,6 +48,11 @@ const AppointmentSchema = new Schema<IAppointment>(
       type: Schema.Types.ObjectId,
       ref: "Pet",
       required: true,
+    },
+    dataAssessmentPlan: {
+      type: Schema.Types.ObjectId,
+      ref: "DataAssessmentPlan",
+      default: null,
     },
     appointmentDate: {
       type: Date,
@@ -140,60 +146,62 @@ export const AppointmentModel =
 // This will be executed when the model is first loaded
 if (!mongoose.models.Appointment) {
   // Index for cron job queries (most important for performance)
-  AppointmentSchema.index({ 
-    isDeleted: 1, 
-    reminderSent: 1, 
-    appointmentDate: 1 
+  AppointmentSchema.index({
+    isDeleted: 1,
+    reminderSent: 1,
+    appointmentDate: 1,
   });
 
   // Index for cron job time window queries
-  AppointmentSchema.index({ 
-    isDeleted: 1, 
-    status: 1, 
-    appointmentDate: 1 
+  AppointmentSchema.index({
+    isDeleted: 1,
+    status: 1,
+    appointmentDate: 1,
   });
 
   // Index for finding appointments by user (pet parent)
-  AppointmentSchema.index({ 
-    petParent: 1, 
-    isDeleted: 1, 
-    appointmentDate: -1 
+  AppointmentSchema.index({
+    petParent: 1,
+    isDeleted: 1,
+    appointmentDate: -1,
   });
 
   // Index for finding appointments by veterinarian
-  AppointmentSchema.index({ 
-    veterinarian: 1, 
-    isDeleted: 1, 
-    appointmentDate: -1 
+  AppointmentSchema.index({
+    veterinarian: 1,
+    isDeleted: 1,
+    appointmentDate: -1,
   });
 
   // Index for finding appointments by pet
-  AppointmentSchema.index({ 
-    pet: 1, 
-    isDeleted: 1, 
-    appointmentDate: -1 
+  AppointmentSchema.index({
+    pet: 1,
+    isDeleted: 1,
+    appointmentDate: -1,
   });
 
   // Index for finding appointments by slot
-  AppointmentSchema.index({ 
-    slotId: 1, 
-    isDeleted: 1 
+  AppointmentSchema.index({
+    slotId: 1,
+    isDeleted: 1,
   });
 
   // Index for status-based queries
-  AppointmentSchema.index({ 
-    status: 1, 
-    isDeleted: 1, 
-    appointmentDate: 1 
+  AppointmentSchema.index({
+    status: 1,
+    isDeleted: 1,
+    appointmentDate: 1,
   });
 
   // Compound index for dashboard queries
-  AppointmentSchema.index({ 
-    isDeleted: 1, 
-    status: 1, 
-    appointmentDate: -1, 
-    createdAt: -1 
+  AppointmentSchema.index({
+    isDeleted: 1,
+    status: 1,
+    appointmentDate: -1,
+    createdAt: -1,
   });
 
-  console.log('[APPOINTMENT MODEL] Indexes created for optimal query performance');
+  console.log(
+    "[APPOINTMENT MODEL] Indexes created for optimal query performance"
+  );
 }

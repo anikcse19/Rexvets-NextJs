@@ -25,9 +25,7 @@ const petParentRegistrationSchema = z.object({
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
       "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character"
     ),
-  phoneNumber: z
-    .string()
-    .regex(/^[\+]?[1-9][\d]{0,15}$/, "Please enter a valid phone number"),
+  phoneNumber: z.string().optional(),
   state: z.string().min(1, "State is required"),
   city: z.string().optional(),
   address: z.string().optional(),
