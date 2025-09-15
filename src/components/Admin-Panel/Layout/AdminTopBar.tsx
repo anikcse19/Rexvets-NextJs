@@ -261,7 +261,7 @@ const AdminTopBar = ({ onMenuClick }: TopbarProps) => {
                               variant="outline"
                               className=" cursor-pointer text-blue-700 border-blue-200 hover:bg-blue-50"
                             >
-                              Visit vet profile
+                              Visit {vetId ? "vet" : "parent"} profile
                             </Button>
                           ) : // </Link>
                           null}
