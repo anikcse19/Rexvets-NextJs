@@ -28,7 +28,7 @@ import {
   Stethoscope,
   Users,
 } from "lucide-react";
-import { useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { updateDoctorStatus } from "../../Actions/vets";
@@ -37,11 +37,13 @@ import { DoctorCard } from "./DoctorCard";
 import { DoctorDetailsModal } from "./DoctorDetailsModal";
 
 export default function VetsPage() {
+  const router = useRouter();
+  const pathname = usePathname();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [specializationFilter, setSpecializationFilter] =
     useState<string>("all");
-
+  console.log("statusFilter", statusFilter);
   const searchParams = useSearchParams();
   const vetId = searchParams.get("vetId");
   // Debounced search term
@@ -103,6 +105,7 @@ export default function VetsPage() {
       params.append("page", pagination.page.toString());
       params.append("limit", pagination.limit.toString());
       params.append("skipSlotFilter", "true"); // Skip slot filtering for admin panel
+      if (vetId) params.append("vetId", vetId);
 
       const res = await fetch(`/api/veterinarian?${params.toString()}`);
 
@@ -111,9 +114,24 @@ export default function VetsPage() {
       }
 
       const data = await res.json();
+      // If vetId is present, filter by _id locally to ensure exact match
+      const rawDoctors: Doctor[] = data?.data || [];
+      const filteredByVetId = vetId
+        ? rawDoctors.filter((d: any) => (d?._id || d?.id) === vetId)
+        : rawDoctors;
 
-      setDoctorsData(data?.data || []);
-      if (data?.pagination) {
+      setDoctorsData(filteredByVetId);
+      if (vetId) {
+        // Override pagination for single vet view
+        setPagination({
+          page: 1,
+          limit: 6,
+          total: filteredByVetId.length,
+          pages: 1,
+          hasNext: false,
+          hasPrev: false,
+        });
+      } else if (data?.pagination) {
         setPagination({
           page: data.pagination.page || 1,
           limit: data.pagination.limit || 6,
@@ -141,7 +159,7 @@ export default function VetsPage() {
   useEffect(() => {
     setPagination((prev) => ({ ...prev, page: 1 }));
     getDoctors();
-  }, [debouncedSearchTerm, statusFilter, specializationFilter]);
+  }, [debouncedSearchTerm, statusFilter, specializationFilter, vetId]);
 
   // Refetch data when pagination changes
   useEffect(() => {
@@ -335,22 +353,51 @@ export default function VetsPage() {
             {(pagination.pages || 0) > 1 &&
               ` (Page ${pagination.page || 1} of ${pagination.pages || 0})`}
           </p>
-          {(searchTerm ||
-            statusFilter !== "all" ||
-            specializationFilter !== "all") && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                setSearchTerm("");
-                setStatusFilter("all");
-                setSpecializationFilter("all");
-                setPagination((prev) => ({ ...prev, page: 1 }));
-              }}
-            >
-              Clear Filters
-            </Button>
-          )}
+          <div className="flex items-center gap-2">
+            {(searchTerm ||
+              statusFilter !== "all" ||
+              specializationFilter !== "all") && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setSearchTerm("");
+                  setStatusFilter("all");
+                  setSpecializationFilter("all");
+                  setPagination((prev) => ({ ...prev, page: 1 }));
+                }}
+              >
+                Clear Filters
+              </Button>
+            )}
+            {(vetId || searchTerm) && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  // Reset local filters
+                  setSearchTerm("");
+                  setStatusFilter("all");
+                  setSpecializationFilter("all");
+                  setPagination((prev) => ({ ...prev, page: 1 }));
+
+                  // Clear URL params
+                  const params = new URLSearchParams(searchParams.toString());
+                  params.delete("vetId");
+                  params.delete("search");
+                  params.delete("status");
+                  params.delete("specialization");
+                  params.delete("page");
+                  params.delete("limit");
+                  const query = params.toString();
+                  router.replace(query ? `${pathname}?${query}` : pathname);
+                }}
+                className="text-blue-700 border-blue-200 hover:bg-blue-50"
+              >
+                Clear link & filters
+              </Button>
+            )}
+          </div>
         </div>
 
         {/* Doctors Grid */}
