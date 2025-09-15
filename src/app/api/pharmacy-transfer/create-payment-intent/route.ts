@@ -16,9 +16,7 @@ import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 
 // Initialize Stripe with secret key for server-side operations
-const stripe = new Stripe((config.STRIPE_SECRET_KEY as string) || "", {
-  apiVersion: "2025-07-30.basil",
-});
+const stripe = new Stripe((config.STRIPE_SECRET_KEY as string) || "");
 
 /**
  * API Route: Create Donation Payment
@@ -37,15 +35,20 @@ const stripe = new Stripe((config.STRIPE_SECRET_KEY as string) || "", {
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    
+
     // Validate session
-    if (!session?.user?.email || !session?.user?.name || !session?.user?.refId || !session?.user?.id) {
+    if (
+      !session?.user?.email ||
+      !session?.user?.name ||
+      !session?.user?.refId ||
+      !session?.user?.id
+    ) {
       return NextResponse.json(
         { error: "User session is invalid or missing required information" },
         { status: 401 }
       );
     }
-    
+
     const body = await request.json();
     // Extract donation details from request body
     const {
@@ -89,13 +92,13 @@ export async function POST(request: NextRequest) {
     }
 
     await connectToDatabase();
-    
+
     // Start MongoDB session for transaction
     const dbSession = await mongoose.startSession();
-    
+
     try {
       await dbSession.startTransaction();
-      
+
       // 1. Find or create the customer
       let customerId;
       const customers = await stripe.customers.list({
@@ -114,10 +117,10 @@ export async function POST(request: NextRequest) {
         customerId = customer.id;
         console.log("[DEBUG] Created new customer:", customerId);
       }
-      
-      const existingAppointment = await AppointmentModel.findById(
-        appointment
-      ).select("veterinarian pet").session(dbSession);
+
+      const existingAppointment = await AppointmentModel.findById(appointment)
+        .select("veterinarian pet")
+        .session(dbSession);
 
       // Validate that the appointment exists and has required fields
       if (!existingAppointment) {
@@ -131,7 +134,10 @@ export async function POST(request: NextRequest) {
       if (!existingAppointment.veterinarian || !existingAppointment.pet) {
         await dbSession.abortTransaction();
         return NextResponse.json(
-          { error: "Appointment is missing required veterinarian or pet information" },
+          {
+            error:
+              "Appointment is missing required veterinarian or pet information",
+          },
           { status: 400 }
         );
       }
@@ -149,11 +155,11 @@ export async function POST(request: NextRequest) {
           ...(metadata || {}),
         },
       });
-      
+
       const existingUser = await User.findOne({
         veterinarianRef: existingAppointment.veterinarian,
       }).session(dbSession);
-      
+
       const notificationPayload: INotification = {
         type: NotificationType.PRESCRIPTION_REQUEST,
         body: `A prescription request has been made by ${session.user.name}`,
@@ -174,51 +180,57 @@ export async function POST(request: NextRequest) {
       console.log(session.user.refId);
 
       // Store one-time donation record
-      const donation = await PharmacyTransferRequestModel.create([{
-        amount: Number(amount), // Convert cents back to dollars for storage
-        pharmacyName,
-        phoneNumber,
-        street,
-        city,
-        state,
-        appointment,
-        petParentId: session.user.refId,
-        status,
-        paymentStatus,
-        transactionID: paymentIntent.id,
-        paymentIntentId: paymentIntent.id,
-        stripeCustomerId: customerId,
-        timestamp: new Date(),
-        metadata,
-      }], { session: dbSession });
-      
-      await NotificationModel.create([notificationPayload], { session: dbSession });
-      
+      const donation = await PharmacyTransferRequestModel.create(
+        [
+          {
+            amount: Number(amount), // Convert cents back to dollars for storage
+            pharmacyName,
+            phoneNumber,
+            street,
+            city,
+            state,
+            appointment,
+            petParentId: session.user.refId,
+            status,
+            paymentStatus,
+            transactionID: paymentIntent.id,
+            paymentIntentId: paymentIntent.id,
+            stripeCustomerId: customerId,
+            timestamp: new Date(),
+            metadata,
+          },
+        ],
+        { session: dbSession }
+      );
+
+      await NotificationModel.create([notificationPayload], {
+        session: dbSession,
+      });
+
       // Commit the transaction
       await dbSession.commitTransaction();
       console.log("[DEBUG] Transaction committed successfully");
-      
+
       return NextResponse.json({
         clientSecret: paymentIntent.client_secret,
         isRecurring: false,
         donationId: donation[0]._id,
         paymentIntentId: paymentIntent.id,
       });
-      
     } catch (error: any) {
       // Rollback transaction on error
       await dbSession.abortTransaction();
       console.error("[DEBUG] Transaction rolled back due to error:", error);
       throw error;
     } finally {
-             // End the session
-       await dbSession.endSession();
-     }
-   } catch (error: any) {
-     console.error("create-payment-intent error:", error);
-     return NextResponse.json(
-       { error: "Failed to create payment intent" },
-       { status: 500 }
-     );
-   }
- }
+      // End the session
+      await dbSession.endSession();
+    }
+  } catch (error: any) {
+    console.error("create-payment-intent error:", error);
+    return NextResponse.json(
+      { error: "Failed to create payment intent" },
+      { status: 500 }
+    );
+  }
+}

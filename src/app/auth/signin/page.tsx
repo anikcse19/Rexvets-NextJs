@@ -158,6 +158,7 @@ export default function SignInPage() {
   //     setGoogleLoading(false);
   //   }
   // };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -172,6 +173,7 @@ export default function SignInPage() {
 
       if (result?.ok) {
         console.log("Sign-in successful, updating session...");
+        router.refresh();
         let updatedSession: any = null;
         try {
           updatedSession = await update(); // refresh session immediately

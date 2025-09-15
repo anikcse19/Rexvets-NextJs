@@ -5,9 +5,7 @@ import { DonationModel } from "@/models";
 import config from "@/config/env.config";
 
 // Initialize Stripe with secret key for server-side operations
-const stripe = new Stripe((config.STRIPE_SECRET_KEY as string) || "", {
-  apiVersion: "2025-07-30.basil",
-});
+const stripe = new Stripe((config.STRIPE_SECRET_KEY as string) || "");
 
 /**
  * API Route: Create Donation Payment

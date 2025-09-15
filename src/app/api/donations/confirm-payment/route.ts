@@ -22,9 +22,7 @@ import {
 } from "../../subscription/subcription.utils";
 
 // Initialize Stripe with secret key for server-side operations
-const stripe = new Stripe((config.STRIPE_SECRET_KEY as string) || "", {
-  apiVersion: "2025-07-30.basil",
-});
+const stripe = new Stripe((config.STRIPE_SECRET_KEY as string) || "");
 
 /**
  * API Route: Confirm Donation Payment
