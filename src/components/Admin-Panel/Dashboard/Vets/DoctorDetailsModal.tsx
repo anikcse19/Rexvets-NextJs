@@ -1,6 +1,7 @@
 "use client";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
@@ -9,11 +10,16 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { SlotStatus } from "@/lib";
-import { formatTimeToUserTimezone, getUserTimezone, getWeekRange } from "@/lib/timezone";
+import {
+  formatTimeToUserTimezone,
+  getUserTimezone,
+  getWeekRange,
+} from "@/lib/timezone";
 import { Doctor } from "@/lib/types";
 import { format } from "date-fns";
 import {
   Award,
+  Bell,
   Building,
   Calendar,
   Clock,
@@ -142,7 +148,7 @@ export function DoctorDetailsModal({
 
   useEffect(() => {
     if (doctor?._id) {
-const weeklyRange = getWeekRange();
+      const weeklyRange = getWeekRange();
       const startDate = format(weeklyRange.start, "yyyy-MM-dd");
       const endDate = format(weeklyRange.end, "yyyy-MM-dd");
       getSlots(startDate, endDate, doctor._id);
@@ -150,7 +156,6 @@ const weeklyRange = getWeekRange();
     }
   }, [getSlots, getSlotStats]);
   console.log("Slots", slots);
-  if (!doctor) return null;
 
   // Flatten slots per period to paginate one period at a time
   const flattenedPeriods: Array<{
@@ -208,7 +213,31 @@ const weeklyRange = getWeekRange();
     const cls = getSlotStatusClasses(status);
     return <span className={`${base} ${cls}`}>{status}</span>;
   };
-  console.log("doctor", doctor);  
+  console.log("doctor", doctor);
+
+  const [sending, setSending] = useState<boolean>(false);
+  const sendNotification = async (message: string) => {
+    if (!doctor?._id) return;
+    try {
+      setSending(true);
+      const res = await fetch(`/api/notifications/vet-profile-info`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ vetId: doctor._id, reason: message }),
+      });
+      if (!res.ok) {
+        const t = await res.text();
+        throw new Error(`Failed: ${res.status} ${t}`);
+      }
+      alert("Notification sent.");
+    } catch (e: any) {
+      console.error(e);
+      alert("Failed to send notification.");
+    } finally {
+      setSending(false);
+    }
+  };
+  if (!doctor) return null;
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg md:!max-w-5xl max-h-[90vh] overflow-y-auto dark:bg-slate-800">
@@ -224,17 +253,22 @@ const weeklyRange = getWeekRange();
                 <div className="text-center space-y-4">
                   <Avatar className="w-32 h-32 mx-auto">
                     <AvatarImage
-                      src={doctor.profileImage}
-                      alt={doctor.firstName}
+                      src={doctor.profileImage || ""}
+                      alt={doctor.firstName || "Doctor"}
                     />
                     <AvatarFallback className="text-2xl">
-                      {doctor.lastName}
+                      {(doctor?.firstName?.[0] || "D") +
+                        (doctor?.lastName?.[0] || "R")}
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <h3 className="text-2xl font-bold">{doctor.firstName}</h3>
+                    <h3 className="text-2xl font-bold">
+                      {doctor.firstName || "Name not provided"}
+                    </h3>
                     <p className="text-gray-600 dark:text-gray-400">
-                      {doctor.specialities}
+                      {doctor?.specialities?.length
+                        ? doctor.specialities.join(", ")
+                        : "Specialities not provided"}
                     </p>
                   </div>
                   {/* <Badge
@@ -250,11 +284,34 @@ const weeklyRange = getWeekRange();
                   <div className="flex items-center gap-3">
                     <FileText className="w-5 h-5 text-green-600" />
                     <div>
-                      <p className="font-semibold">
-                        {doctor?.licenses?.map((url) => (
-                          <p key={url.licenseNumber}>{url?.licenseNumber}</p>
-                        ))}
-                      </p>
+                      <div className="font-semibold space-y-1">
+                        {doctor?.licenses?.length ? (
+                          doctor.licenses.map((url) => (
+                            <div key={url.licenseNumber || url.id}>
+                              {url?.licenseNumber || "License # not provided"}
+                            </div>
+                          ))
+                        ) : (
+                          <>
+                            <div>No licenses provided</div>
+                            <Button
+                              className="mt-2"
+                              variant="outline"
+                              size="sm"
+                              disabled={sending}
+                              onClick={() =>
+                                sendNotification(
+                                  `Hi ${
+                                    doctor?.firstName || "Doctor"
+                                  }, please add your license details to complete your profile.`
+                                )
+                              }
+                            >
+                              Send notification to vet
+                            </Button>
+                          </>
+                        )}
+                      </div>
                       <p className="text-sm text-gray-600 dark:text-gray-400">
                         License Number
                       </p>
@@ -274,20 +331,27 @@ const weeklyRange = getWeekRange();
                   <Phone className="w-5 h-5" />
                   Contact Information
                 </CardTitle>
+                <div className="mt-2">
+                  <Button size="sm" className="gap-2">
+                    <Bell className="w-4 h-4" />
+                    Send Notification
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex items-center gap-3">
                   <Phone className="w-4 h-4 text-gray-500" />
-                  <span>{doctor.phoneNumber}</span>
+                  <span>{doctor.phoneNumber || "Phone not provided"}</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <Mail className="w-4 h-4 text-gray-500" />
-                  <span>{doctor.email}</span>
+                  <span>{doctor.email || "Email not provided"}</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <MapPin className="w-4 h-4 text-gray-500" />
                   <span>
-                    {doctor.city}, {doctor.state}
+                    {doctor?.city || "City not provided"},{" "}
+                    {doctor?.state || "State not provided"}
                   </span>
                 </div>
               </CardContent>
@@ -302,8 +366,41 @@ const weeklyRange = getWeekRange();
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p>{doctor?.clinic?.name}</p>
-                <p>{doctor?.clinic?.address}</p>
+                <div className="flex items-center gap-3 flex-wrap">
+                  <div className="min-w-0">
+                    <p className="truncate">
+                      Clinic: {doctor?.clinic?.name || "Name not provided"}
+                    </p>
+                    <p className="truncate">
+                      Address: {doctor?.clinic?.address || "Address not provided"}
+                    </p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={sending}
+                    onClick={() => {
+                      const missing: string[] = [];
+                      if (!doctor?.clinic?.name) missing.push("clinicName");
+                      if (!doctor?.clinic?.address) missing.push("clinicAddress");
+                      const reasonParts: string[] = [];
+                      if (missing.includes("clinicName")) reasonParts.push("clinic name");
+                      if (missing.includes("clinicAddress")) reasonParts.push("clinic address");
+                      const reasonText = reasonParts.length
+                        ? `Hi ${doctor?.firstName || "Doctor"}, please provide your ${reasonParts.join(" and ")}.`
+                        : `Hi ${doctor?.firstName || "Doctor"}, please review your clinic information.`;
+                      sendNotification(reasonText);
+                      // Also send missing fields to API
+                      fetch(`/api/notifications/vet-profile-info`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ vetId: doctor?._id, reason: reasonText, missingFields: missing }),
+                      }).catch(() => {});
+                    }}
+                  >
+                    Check & notify
+                  </Button>
+                </div>
               </CardContent>
             </Card>
 
@@ -339,28 +436,48 @@ const weeklyRange = getWeekRange();
                       ) : stats ? (
                         <>
                           <div className="rounded-lg border p-3 text-center">
-                            <div className="text-xs text-slate-500">Available</div>
-                            <div className="text-lg font-semibold text-green-600">{stats.availableSlots}</div>
+                            <div className="text-xs text-slate-500">
+                              Available
+                            </div>
+                            <div className="text-lg font-semibold text-green-600">
+                              {stats.availableSlots}
+                            </div>
                           </div>
                           <div className="rounded-lg border p-3 text-center">
                             <div className="text-xs text-slate-500">Booked</div>
-                            <div className="text-lg font-semibold text-red-600">{stats.bookedSlots}</div>
+                            <div className="text-lg font-semibold text-red-600">
+                              {stats.bookedSlots}
+                            </div>
                           </div>
                           <div className="rounded-lg border p-3 text-center">
-                            <div className="text-xs text-slate-500">Disabled</div>
-                            <div className="text-lg font-semibold text-slate-600">{stats.disabledSlots}</div>
+                            <div className="text-xs text-slate-500">
+                              Disabled
+                            </div>
+                            <div className="text-lg font-semibold text-slate-600">
+                              {stats.disabledSlots}
+                            </div>
                           </div>
                           <div className="rounded-lg border p-3 text-center">
-                            <div className="text-xs text-slate-500">Periods</div>
-                            <div className="text-lg font-semibold">{stats.totalPeriods}</div>
+                            <div className="text-xs text-slate-500">
+                              Periods
+                            </div>
+                            <div className="text-lg font-semibold">
+                              {stats.totalPeriods}
+                            </div>
                           </div>
                           <div className="rounded-lg border p-3 text-center">
-                            <div className="text-xs text-slate-500">Slot Hours</div>
-                            <div className="text-lg font-semibold">{stats.totalSlotHours}</div>
+                            <div className="text-xs text-slate-500">
+                              Slot Hours
+                            </div>
+                            <div className="text-lg font-semibold">
+                              {stats.totalSlotHours}
+                            </div>
                           </div>
                         </>
                       ) : (
-                        <div className="col-span-full text-center text-xs text-slate-500">No stats available</div>
+                        <div className="col-span-full text-center text-xs text-slate-500">
+                          No stats available
+                        </div>
                       )}
                     </div>
                     {/* Header: Date */}

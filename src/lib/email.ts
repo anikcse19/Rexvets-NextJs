@@ -3,18 +3,19 @@ import { commonStyles } from "./emailStyles";
 import {
   bookingConfirmationDoctorTemplate,
   bookingConfirmationParentTemplate,
-  rescheduleConfirmationDoctorTemplate,
-  rescheduleConfirmationParentTemplate,
-  reminderParentTemplate,
-  reminderDoctorTemplate,
   donationThankYouTemplate as donationThankYouTemplateShared,
-  welcomeEmailTemplate,
+  generateAdminReplyEmail,
   helpRequestEmailTemplate,
-  pharmacyRequestPaymentTemplate,
-  pharmacyRequestAcceptedTemplate,
   messageToDoctorTemplate,
   messageToParentTemplate,
-  generateAdminReplyEmail,
+  pharmacyRequestAcceptedTemplate,
+  pharmacyRequestPaymentTemplate,
+  reminderDoctorTemplate,
+  reminderParentTemplate,
+  rescheduleConfirmationDoctorTemplate,
+  rescheduleConfirmationParentTemplate,
+  vetProfileInfoRequestTemplate,
+  welcomeEmailTemplate,
 } from "./emailTemplates";
 
 // Email configuration
@@ -336,6 +337,32 @@ export async function sendHelpAskingReplyFromAdmin({
     console.log(`Email sent to ${name} (${email}) successfully.`);
   } catch (error) {
     console.error("Failed to send help request email:", error);
+  }
+}
+
+// Send vet profile info request
+export async function sendVetProfileInfoEmail(params: {
+  to: string;
+  doctorName: string;
+  missingFields: string[];
+}): Promise<void> {
+  const { to, doctorName, missingFields } = params;
+  try {
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+      console.log("[VET_PROFILE_INFO] Dev mode. Would send to:", to);
+      return;
+    }
+    const transporter = createTransporter();
+    const html = vetProfileInfoRequestTemplate({ doctorName, missingFields });
+    await transporter.sendMail({
+      from: `"RexVet" <${process.env.EMAIL_USER}>`,
+      to,
+      subject: "Action required: complete your profile",
+      html,
+    } as any);
+  } catch (err) {
+    console.error("Failed to send vet profile info email:", err);
+    throw err;
   }
 }
 
