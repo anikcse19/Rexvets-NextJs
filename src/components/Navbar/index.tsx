@@ -133,9 +133,10 @@ console.log("session from navbar", session);
   };
 
   useEffect(() => {
+    if (status !== "authenticated") return;
     const getBadgeName = async () => {
       try {
-        const res = await fetch("/api/check-category-badge");
+        const res = await fetch("/api/check-category-badge", { cache: "no-store" });
 
         if (!res.ok) {
           // Gracefully ignore not found/unauthorized without logging errors in console
@@ -153,7 +154,7 @@ console.log("session from navbar", session);
       }
     };
     getBadgeName();
-  }, []);
+  }, [status]);
   // console.log("session emergency", session);
 
   const isAppointmentSLotAvailable = async (vetId: string) => {
