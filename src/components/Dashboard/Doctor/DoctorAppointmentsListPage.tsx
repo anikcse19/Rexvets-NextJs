@@ -77,8 +77,7 @@ export default function AppointmentsPage() {
             new Date(a.appointmentDate) < now || a.status === "completed"
         ),
         actionNeeded: data?.data?.filter(
-          (a: Appointment) =>
-            new Date(a.appointmentDate) < now || a.status === "cancelled"
+          (a: Appointment) => a.status === "completed" && !a.dataAssessmentPlan // ✅ new condition
         ),
       };
 

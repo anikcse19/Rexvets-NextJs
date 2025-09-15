@@ -68,11 +68,7 @@ const Header: React.FC = () => {
   const [isSLotAvailable, setIsSLotAvailable] = useState(false);
   const [showDebugBanner, setShowDebugBanner] = useState(false);
 
-<<<<<<< HEAD
-  const { data: session, status } = useSession();
-=======
   const { data: session, status, isInitialized, update } = useSessionStable();
->>>>>>> e6fc7a3f41a20df0671c31bf091215f7599237a0
   console.log("session from navbar", session);
   // const session = {
   //   user: {
@@ -141,7 +137,9 @@ const Header: React.FC = () => {
     if (status !== "authenticated") return;
     const getBadgeName = async () => {
       try {
-        const res = await fetch("/api/check-category-badge", { cache: "no-store" });
+        const res = await fetch("/api/check-category-badge", {
+          cache: "no-store",
+        });
 
         if (!res.ok) {
           // Gracefully ignore not found/unauthorized without logging errors in console
@@ -170,7 +168,9 @@ const Header: React.FC = () => {
       url.searchParams.delete("signedin");
       window.history.replaceState({}, "", url.pathname + url.search + url.hash);
       // Refresh session so navbar re-renders immediately
-      try { update?.(); } catch {}
+      try {
+        update?.();
+      } catch {}
     }
   }, []);
   // console.log("session emergency", session);
@@ -217,6 +217,7 @@ const Header: React.FC = () => {
     );
   }
 
+  console.log("session check", session);
   return (
     <>
       {!session ||
@@ -233,7 +234,8 @@ const Header: React.FC = () => {
           !visible ||
           isSLotAvailable ||
           session?.user?.role === "admin" ||
-          session?.user?.role === "veterinarian"
+          session?.user?.role === "veterinarian" ||
+          session === null
             ? "top-0"
             : "top-[60px] md:top-[50px]"
         } transition-all duration-300 ease-in-out py-2 ${
