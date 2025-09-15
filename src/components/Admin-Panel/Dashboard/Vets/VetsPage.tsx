@@ -28,6 +28,7 @@ import {
   Stethoscope,
   Users,
 } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { updateDoctorStatus } from "../../Actions/vets";
@@ -41,6 +42,8 @@ export default function VetsPage() {
   const [specializationFilter, setSpecializationFilter] =
     useState<string>("all");
 
+  const searchParams = useSearchParams();
+  const vetId = searchParams.get("vetId");
   // Debounced search term
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
