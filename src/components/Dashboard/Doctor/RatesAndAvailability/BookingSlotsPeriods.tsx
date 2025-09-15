@@ -6,10 +6,12 @@ import { useDashboardContext } from "@/hooks/DashboardContext";
 import { Slot, SlotStatus } from "@/lib";
 import { getTimezoneOffset, getUserTimezone } from "@/lib/timezone";
 import { convertTimesToUserTimezone } from "@/lib/timezone/index";
+import { format } from "date-fns";
 import { Check, ChevronDown, Globe } from "lucide-react";
 import moment from "moment";
 import { useSession } from "next-auth/react";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
 
 interface BookingSlotsProps {
   className?: string;
@@ -31,6 +33,8 @@ const BookingSlotsPeriods: React.FC<BookingSlotsProps> = ({
     selectedSlotIds,
     onUpdateSelectedSlotStatus,
     isUpdating,
+    selectedRange,
+    getSlots,
   } = useDashboardContext();
 
   const { data: session } = useSession();
@@ -38,7 +42,6 @@ const BookingSlotsPeriods: React.FC<BookingSlotsProps> = ({
 
   const [selectedStatus, setSelectedStatus] = useState<SlotStatus | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
   const getSlotStyles = (status: SlotStatus) => {
     const baseStyles =
@@ -96,12 +99,24 @@ const BookingSlotsPeriods: React.FC<BookingSlotsProps> = ({
   const handleCheckboxClick = (e: React.MouseEvent) => {
     e.stopPropagation();
   };
+  const refetchSlots = useCallback(async () => {
+    if (!selectedRange || !user?.refId) {
+      throw new Error("Missing required data");
+    }
 
-  const handleStatusSelect = (status: SlotStatus) => {
-    setSelectedStatus(status);
-    setIsDropdownOpen(false);
-  };
+    try {
+      const startDate = format(selectedRange.start, "yyyy-MM-dd");
+      const endDate = format(selectedRange.end, "yyyy-MM-dd");
 
+      // Always use vetTimezone from DB, never use local timezone
+      await getSlots(startDate, endDate, user.refId);
+    } catch (error: any) {
+      console.error("Error fetching available slots:", error);
+      toast.error(error?.message || "Failed to fetch availability data", {
+        description: "Please try refreshing the page or contact support.",
+      });
+    }
+  }, [selectedRange, user?.refId, getSlots]);
   const handleUpdateStatus = async () => {
     if (selectedSlotIds.length === 0) {
       return;
@@ -137,6 +152,8 @@ const BookingSlotsPeriods: React.FC<BookingSlotsProps> = ({
       );
       setSelectedStatus(null);
       setSelectedSlotIds([]);
+      setIsDropdownOpen(false);
+      await refetchSlots();
     } catch (error) {
       console.error("Failed to update slot status:", error);
     }
@@ -154,17 +171,6 @@ const BookingSlotsPeriods: React.FC<BookingSlotsProps> = ({
   };
 
   const groupedSlots = groupSlotsByDate(selectedSlot ?? null);
-
-  const formatDateForDisplay = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      timeZone: userTimezone,
-    });
-  };
 
   // Enhanced time formatting with timezone support
   const formatTimeForDisplay = (slot: Slot): string => {
@@ -317,7 +323,13 @@ const BookingSlotsPeriods: React.FC<BookingSlotsProps> = ({
             .map(([date, dateSlots]) => (
               <div key={date} className="space-y-4">
                 <h3 className="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2">
-                  {formatDateForDisplay(date)}
+                  {new Intl.DateTimeFormat("en-US", {
+                    weekday: "long",
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                    timeZone: getUserTimezone(),
+                  }).format(new Date(date))}
                 </h3>
 
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
