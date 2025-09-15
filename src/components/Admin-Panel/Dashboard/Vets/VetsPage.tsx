@@ -13,8 +13,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useDebounce } from "@/hooks/useDebounce";
+import { SlotStatus } from "@/lib";
 import { VeterinarianStatus } from "@/lib/constants/veterinarian";
 import { db } from "@/lib/firebase";
+import { getWeekRange } from "@/lib/timezone";
 import { Doctor } from "@/lib/types";
 import {
   Clock,
@@ -26,7 +28,7 @@ import {
   Stethoscope,
   Users,
 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { updateDoctorStatus } from "../../Actions/vets";
 import RequireAccess from "../../Shared/RequireAccess";
@@ -399,13 +401,13 @@ export default function VetsPage() {
             >
               Previous
             </Button>
-            
+
             <div className="flex items-center space-x-1">
               {(() => {
                 const currentPage = pagination.page || 1;
                 const totalPages = pagination.pages || 0;
                 const pages = [];
-                
+
                 // Always show first page
                 pages.push(
                   <Button
@@ -421,7 +423,7 @@ export default function VetsPage() {
                     1
                   </Button>
                 );
-                
+
                 // Show ellipsis if current page is far from start
                 if (currentPage > 4) {
                   pages.push(
@@ -430,11 +432,11 @@ export default function VetsPage() {
                     </span>
                   );
                 }
-                
+
                 // Show pages around current page
                 const startPage = Math.max(2, currentPage - 1);
                 const endPage = Math.min(totalPages - 1, currentPage + 1);
-                
+
                 for (let i = startPage; i <= endPage; i++) {
                   if (i !== 1 && i !== totalPages) {
                     pages.push(
@@ -453,7 +455,7 @@ export default function VetsPage() {
                     );
                   }
                 }
-                
+
                 // Show ellipsis if current page is far from end
                 if (currentPage < totalPages - 3) {
                   pages.push(
@@ -462,13 +464,15 @@ export default function VetsPage() {
                     </span>
                   );
                 }
-                
+
                 // Always show last page (if more than 1 page)
                 if (totalPages > 1) {
                   pages.push(
                     <Button
                       key={totalPages}
-                      variant={currentPage === totalPages ? "default" : "outline"}
+                      variant={
+                        currentPage === totalPages ? "default" : "outline"
+                      }
                       size="sm"
                       onClick={() =>
                         setPagination((prev) => ({ ...prev, page: totalPages }))
@@ -480,11 +484,11 @@ export default function VetsPage() {
                     </Button>
                   );
                 }
-                
+
                 return pages;
               })()}
             </div>
-            
+
             <Button
               variant="outline"
               size="sm"

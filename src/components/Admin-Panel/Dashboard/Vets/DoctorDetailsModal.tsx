@@ -1,27 +1,31 @@
 "use client";
 
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { SlotStatus } from "@/lib";
+import { getWeekRange } from "@/lib/timezone";
+import { Doctor } from "@/lib/types";
+import { format } from "date-fns";
 import {
-  Star,
-  Phone,
-  Mail,
-  MapPin,
+  Award,
+  Building,
   Calendar,
   Clock,
-  Users,
   DollarSign,
-  Building,
-  Award,
   FileText,
+  Mail,
+  MapPin,
+  Phone,
+  Star,
+  Users,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Doctor } from "@/lib/types";
+import { useCallback, useEffect, useState } from "react";
 
 interface DoctorDetailsModalProps {
   doctor: Doctor | null;
@@ -45,8 +49,7 @@ export function DoctorDetailsModal({
   open,
   onOpenChange,
 }: DoctorDetailsModalProps) {
-  if (!doctor) return null;
-
+  const [slots, setSlots] = useState<any[]>([]);
   const getStatusColor = (status: string) => {
     switch (status) {
       case "Approved":
@@ -56,6 +59,46 @@ export function DoctorDetailsModal({
     }
   };
 
+  const getSlots = useCallback(
+    async (startDate: string, endDate: string, refId: string) => {
+      if (!refId) {
+        return;
+      }
+      try {
+        console.log(startDate, endDate, "vet slotsss date");
+        // const timezoneParam = timezone ? `&timezone=${encodeURIComponent(timezone)}` : '';
+        const apiUrl = `/api/appointments/slots/slot-summary/${refId}?startDate=${startDate}&endDate=${endDate}&status=${SlotStatus.ALL}`;
+        console.log("Fetching from API:", apiUrl);
+
+        const res = await fetch(apiUrl);
+
+        if (!res.ok) {
+          const errorText = await res.text();
+          console.error("API Error Response:", errorText);
+          throw new Error(`HTTP error! status: ${res.status} - ${errorText}`);
+        }
+
+        const responseData = await res.json();
+        setSlots(responseData?.data?.periods);
+        console.log("API Response Data:", responseData);
+      } catch (error: any) {
+        console.error("Error in getAvailableSlots:", error);
+      } finally {
+      }
+    },
+    [doctor]
+  );
+
+  useEffect(() => {
+    if (doctor?._id) {
+      const weeklyRange = getWeekRange();
+      const startDate = format(weeklyRange.start, "yyyy-MM-dd");
+      const endDate = format(weeklyRange.end, "yyyy-MM-dd");
+      getSlots(startDate, endDate, doctor._id);
+    }
+  }, [getSlots]);
+  console.log("Slots", slots);
+  if (!doctor) return null;
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg md:!max-w-5xl max-h-[90vh] overflow-y-auto dark:bg-slate-800">
