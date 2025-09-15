@@ -99,8 +99,13 @@ notificationSchema.index({ type: 1, createdAt: -1 });
 //   delete mongoose.models.Notification;
 // }
 
+const existingModel =
+  typeof mongoose.models === "object"
+    ? mongoose.models.Notification
+    : undefined;
+
 const NotificationModel =
-  (mongoose.models.Notification as INotificationModel) ||
+  (existingModel as INotificationModel) ||
   mongoose.model<INotification, INotificationModel>(
     "Notification",
     notificationSchema
