@@ -1,19 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import {
-  Search,
-  Filter,
-  Download,
-  Plus,
-  Users,
-  Stethoscope,
-  Clock,
-  Star,
-} from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import LoadingSpinner from "@/components/ui/loading-spinner";
 import {
   Select,
   SelectContent,
@@ -21,15 +12,24 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { collection, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { toast } from "sonner";
 import { Doctor } from "@/lib/types";
+import {
+  Clock,
+  Download,
+  Filter,
+  Plus,
+  Search,
+  Star,
+  Stethoscope,
+  Users,
+} from "lucide-react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { updateDoctorStatus } from "../../Actions/vets";
-import { DoctorDetailsModal } from "./DoctorDetailsModal";
-import { DoctorCard } from "./DoctorCard";
 import RequireAccess from "../../Shared/RequireAccess";
+import { DoctorCard } from "./DoctorCard";
+import { DoctorDetailsModal } from "./DoctorDetailsModal";
 
 export default function VetsPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -39,9 +39,11 @@ export default function VetsPage() {
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [doctorsData, setDoctorsData] = useState<Doctor[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const getDoctors = async () => {
     try {
+      setIsLoading(true);
       const res = await fetch("/api/veterinarian");
 
       if (!res.ok) {
@@ -52,7 +54,10 @@ export default function VetsPage() {
 
       setDoctorsData(data?.data);
     } catch (error) {
-      console.error("Error fetching appointments:", error);
+      console.error("Error fetching doctors:", error);
+      toast.error("Failed to fetch doctors data");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -88,14 +93,41 @@ export default function VetsPage() {
     id: string,
     newStatus: "approved" | "suspended" | "pending"
   ) => {
-    const res = await updateDoctorStatus(id, newStatus);
-    if (res.success) {
-      getDoctors(); // refresh list
-      toast.success(`Veterinarian status updated to ${newStatus} successfully`);
-    } else {
-      toast.error("Failed to Update Technician Status");
+    try {
+      setIsLoading(true);
+      const res = await updateDoctorStatus(id, newStatus);
+      if (res.success) {
+        await getDoctors(); // refresh list
+        toast.success(`Veterinarian status updated to ${newStatus} successfully`);
+      } else {
+        toast.error("Failed to Update Technician Status");
+      }
+    } catch (error) {
+      console.error("Error updating doctor status:", error);
+      toast.error("Failed to update doctor status");
+    } finally {
+      setIsLoading(false);
     }
   };
+
+  // Show loading spinner while data is being fetched
+  if (isLoading && doctorsData.length === 0) {
+    return (
+      <RequireAccess permission="Doctors">
+        <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+          <LoadingSpinner size="lg" />
+          <div className="text-center">
+            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
+              Loading Doctors
+            </h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Please wait while we fetch the doctors data...
+            </p>
+          </div>
+        </div>
+      </RequireAccess>
+    );
+  }
 
   return (
     <RequireAccess permission="Doctors">
@@ -133,7 +165,7 @@ export default function VetsPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl text-blue-600 dark:text-blue-500 font-bold">
-                {stats.total}
+                {isLoading ? <LoadingSpinner size="sm" /> : stats.total}
               </div>
               <p className="text-xs dark:text-gray-300 text-muted-foreground">
                 Registered Doctors
@@ -149,7 +181,7 @@ export default function VetsPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold dark:text-green-400 text-green-600">
-                {stats.active}
+                {isLoading ? <LoadingSpinner size="sm" /> : stats.active}
               </div>
               <p className="text-xs dark:text-gray-300 text-muted-foreground">
                 Currently practicing
@@ -165,7 +197,7 @@ export default function VetsPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold dark:text-yellow-400 text-yellow-600">
-                {stats.pending}
+                {isLoading ? <LoadingSpinner size="sm" /> : stats.pending}
               </div>
               <p className="text-xs dark:text-gray-300 text-muted-foreground">
                 Awaiting verification
@@ -181,7 +213,7 @@ export default function VetsPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold dark:text-red-500 text-red-600">
-                {stats.suspended}
+                {isLoading ? <LoadingSpinner size="sm" /> : stats.suspended}
               </div>
               <p className="text-xs dark:text-gray-300 text-muted-foreground">
                 Awaiting verification
@@ -242,17 +274,23 @@ export default function VetsPage() {
 
         {/* Doctors Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-          {filteredDoctors.map((doctor) => (
-            <DoctorCard
-              key={doctor.id}
-              doctor={doctor}
-              onViewDetails={handleViewDetails}
-              handleStatusChange={handleStatusChange}
-            />
-          ))}
+          {isLoading && doctorsData.length > 0 ? (
+            <div className="col-span-full flex justify-center py-8">
+              <LoadingSpinner size="lg" />
+            </div>
+          ) : (
+            filteredDoctors.map((doctor) => (
+              <DoctorCard
+                key={doctor.id}
+                doctor={doctor}
+                onViewDetails={handleViewDetails}
+                handleStatusChange={handleStatusChange}
+              />
+            ))
+          )}
         </div>
 
-        {filteredDoctors.length === 0 && (
+        {!isLoading && filteredDoctors.length === 0 && (
           <Card className="dark:bg-slate-800 bg-gray-200">
             <CardContent className="pt-6">
               <div className="text-center py-12">

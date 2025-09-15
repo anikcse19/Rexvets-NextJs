@@ -1,4 +1,17 @@
 import mongoose, { Document, Model, Schema } from "mongoose";
+export enum VeterinarianStatus {
+  APPROVED = "approved",
+  SUSPENDED = "suspended",
+  PENDING = "pending",
+}
+
+export enum Gender {
+  MALE = "male",
+  FEMALE = "female",
+  NON_BINARY = "non-binary",
+  TRANSGENDER = "transgender",
+  INTERSEX = "intersex",
+}
 
 export interface IVeterinarian extends Document {
   name: string;
@@ -50,7 +63,7 @@ export interface IVeterinarian extends Document {
     saturday: { start: string; end: string; available: boolean };
     sunday: { start: string; end: string; available: boolean };
   };
-  status?: string;
+  status?: VeterinarianStatus;
   isActive: boolean;
   isApproved: boolean;
   approvalDate?: Date;
@@ -73,7 +86,7 @@ export interface IVeterinarian extends Document {
     name: string;
     address: string;
   };
-  gender?: "male" | "female";
+  gender?: Gender;
   noticePeriod?: number;
 
   // Reviews reference - veterinarians receive reviews from pet parents
@@ -340,7 +353,8 @@ const veterinarianSchema = new Schema<IVeterinarian>(
     // lockUntil: { ... },
     status: {
       type: String,
-      default: "pending",
+      enum: Object.values(VeterinarianStatus),
+      default: VeterinarianStatus.PENDING,
     },
     isActive: {
       type: Boolean,
@@ -422,8 +436,10 @@ const veterinarianSchema = new Schema<IVeterinarian>(
     },
     gender: {
       type: String,
-      enum: ["male", "female"],
+      enum: Object.values(Gender),
       lowercase: true,
+      required: true,
+      default: Gender.MALE,
     },
     noticePeriod: {
       type: Number,
