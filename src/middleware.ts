@@ -62,6 +62,11 @@ export default withAuth(
     const { pathname } = req.nextUrl;
     const token = (req as any).nextauth?.token;
 
+    // Allow NextAuth internal routes to proceed without auth middleware handling
+    if (pathname.startsWith("/api/auth")) {
+      return NextResponse.next();
+    }
+
     // Check admin routes first
     if (adminRoutes.some((route) => pathname.startsWith(route))) {
       if (!token) {
