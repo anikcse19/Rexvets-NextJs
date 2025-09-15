@@ -706,7 +706,7 @@ const TimeSlotCreator = ({
                 )}
 
                 {/* Period Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                   {slots.map((slot, index) => {
                     const formattedDate = formatDate(
                       slot.date,
@@ -715,57 +715,54 @@ const TimeSlotCreator = ({
                     return (
                       <div
                         key={slot.id}
-                        className={`group relative rounded-2xl p-4 border-2 transition-all duration-300 hover:scale-[1.02] ${
+                        className={`group relative rounded-xl p-3 border transition-all duration-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 ${
                           slot.isSelected
-                            ? "border-emerald-400 bg-emerald-50 shadow-lg shadow-emerald-500/20"
+                            ? "border-emerald-300 bg-gradient-to-br from-emerald-50 to-emerald-100/60"
                             : slot.isExisting
-                            ? "border-gray-200 bg-white hover:border-gray-300 hover:shadow-md"
-                            : "border-blue-400 bg-blue-50 hover:border-blue-500 hover:shadow-md"
-                        } ${
-                          !isValidSlot(slot) ? "border-red-300 bg-red-50" : ""
-                        }`}
+                            ? "border-gray-200 bg-white hover:border-gray-300"
+                            : "border-blue-300 bg-gradient-to-br from-blue-50 to-indigo-50"
+                        } ${!isValidSlot(slot) ? "border-red-300 bg-red-50" : ""}`}
                       >
                         {/* Selection Checkbox */}
-                        <div className="absolute top-3 right-3">
+                        <div className="absolute top-2 right-2">
                           <Checkbox
                             checked={slot.isSelected}
                             onCheckedChange={() => toggleSlotSelection(slot.id)}
                             className="data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-500 w-4 h-4"
                           />
                         </div>
-
+ 
                         {/* Header */}
-                        <div className="flex items-center space-x-2 mb-2">
-                          <div
-                            className={`w-2 h-2 rounded-full ${
-                              slot.isExisting
-                                ? "bg-blue-400"
-                                : isValidSlot(slot)
-                                ? "bg-emerald-400 animate-pulse"
-                                : "bg-red-400"
-                            }`}
-                          ></div>
+                        <div className="flex items-center justify-between mb-2">
                           <h3 className="font-semibold text-sm text-gray-800 truncate">
-                            {slot.isExisting
-                              ? "Period/Slot"
-                              : "New-Period/Slot"}{" "}
                             #{index + 1}
                           </h3>
+                          <span
+                            className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium border ${
+                              slot.isExisting
+                                ? "bg-blue-50 text-blue-700 border-blue-200"
+                                : isValidSlot(slot)
+                                ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                : "bg-red-50 text-red-700 border-red-200"
+                            }`}
+                          >
+                            {slot.isExisting ? "Existing" : isValidSlot(slot) ? "New" : "Invalid"}
+                          </span>
                         </div>
-
+ 
                         {/* Date Display */}
                         {formattedDate && (
-                          <div className="text-center mb-3">
-                            <p className="font-medium text-sm text-gray-700">
+                          <div className="text-center mb-2">
+                            <span className="inline-block px-2 py-0.5 rounded-full bg-gray-100 text-gray-700 text-[11px] border border-gray-200">
                               {formattedDate}
-                            </p>
+                            </span>
                           </div>
                         )}
-
+ 
                         {/* Time Display */}
-                        <div className="space-y-1 mb-3">
+                        <div className="space-y-1 mb-2">
                           <div className="text-center">
-                            <p className="font-medium text-sm text-gray-800">
+                            <p className="font-semibold text-sm text-gray-900">
                               {formatTime(
                                 slot.startTime,
                                 slot.date?.toString() || "",
@@ -779,9 +776,9 @@ const TimeSlotCreator = ({
                               )}
                             </p>
                           </div>
-
+ 
                           <div className="text-center">
-                            <p className="font-medium text-sm text-gray-800">
+                            <span className="inline-block px-2 py-0.5 rounded-full text-[11px] border bg-white text-gray-700">
                               {isValidSlot(slot)
                                 ? formatDuration(
                                     (() => {
@@ -810,13 +807,13 @@ const TimeSlotCreator = ({
                                     })()
                                   )
                                 : "Invalid"}
-                            </p>
+                            </span>
                           </div>
                         </div>
-
+ 
                         {/* Time Block Selector - Only show for new periods */}
                         {!slot.isExisting && (
-                          <div className="space-y-2 mb-3">
+                          <div className="space-y-2 mb-2">
                             <div>
                               <div className="grid grid-cols-2 gap-2">
                                 <div>
@@ -839,10 +836,10 @@ const TimeSlotCreator = ({
                                       );
                                     }}
                                     disabled={savingSlotId === slot.id}
-                                    className={`w-full px-2 py-1 text-xs border rounded focus:outline-none focus:ring-1 focus:ring-blue-500 ${
+                                    className={`w-full px-2 py-1 text-xs border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 ${
                                       savingSlotId === slot.id
                                         ? "bg-gray-100 border-gray-200 cursor-not-allowed opacity-50"
-                                        : "bg-white border-gray-300"
+                                        : "bg-slate-50 border-gray-300 hover:border-gray-400"
                                     }`}
                                   />
                                 </div>
@@ -863,10 +860,10 @@ const TimeSlotCreator = ({
                                       );
                                     }}
                                     disabled={savingSlotId === slot.id}
-                                    className={`w-full px-2 py-1 text-xs border rounded focus:outline-none focus:ring-1 focus:ring-blue-500 ${
+                                    className={`w-full px-2 py-1 text-xs border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 ${
                                       savingSlotId === slot.id
                                         ? "bg-gray-100 border-gray-200 cursor-not-allowed opacity-50"
-                                        : "bg-white border-gray-300"
+                                        : "bg-slate-50 border-gray-300 hover:border-gray-400"
                                     }`}
                                   />
                                 </div>
@@ -874,7 +871,7 @@ const TimeSlotCreator = ({
                             </div>
                           </div>
                         )}
-
+ 
                         {/* Action Buttons */}
                         <div className="flex items-center justify-between">
                           <div className="flex items-center space-x-2">
@@ -886,7 +883,7 @@ const TimeSlotCreator = ({
                                 </span>
                               </div>
                             )}
-
+ 
                             {/* Individual Save Button - Only for new slots */}
                             {isValidSlot(slot) && !slot.isExisting && (
                               <Button
@@ -915,7 +912,7 @@ const TimeSlotCreator = ({
                               </Button>
                             )}
                           </div>
-
+ 
                           {slots.length > 1 && (
                             <Button
                               variant="ghost"
