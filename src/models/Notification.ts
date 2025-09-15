@@ -99,9 +99,11 @@ notificationSchema.index({ type: 1, createdAt: -1 });
 //   delete mongoose.models.Notification;
 // }
 
-const NotificationModel = mongoose.model<INotification, INotificationModel>(
-  "Notification",
-  notificationSchema
-);
+const NotificationModel =
+  (mongoose.models.Notification as INotificationModel) ||
+  mongoose.model<INotification, INotificationModel>(
+    "Notification",
+    notificationSchema
+  );
 
 export default NotificationModel;
