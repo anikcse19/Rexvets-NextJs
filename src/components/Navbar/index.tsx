@@ -68,7 +68,7 @@ const Header: React.FC = () => {
   const [isSLotAvailable, setIsSLotAvailable] = useState(false);
   const [showDebugBanner, setShowDebugBanner] = useState(false);
 
-  const { data: session, status, isInitialized } = useSessionStable();
+  const { data: session, status, isInitialized, update } = useSessionStable();
   console.log("session from navbar", session);
   // const session = {
   //   user: {
@@ -156,6 +156,19 @@ const Header: React.FC = () => {
     };
     getBadgeName();
   }, [status]);
+
+  // After route mount, if we just came back from auth, force a one-time refresh
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    const justSignedIn = url.searchParams.get("signedin");
+    if (justSignedIn === "1") {
+      // Remove the flag from URL to avoid loops
+      url.searchParams.delete("signedin");
+      window.history.replaceState({}, "", url.pathname + url.search + url.hash);
+      // Refresh session so navbar re-renders immediately
+      try { update?.(); } catch {}
+    }
+  }, []);
   // console.log("session emergency", session);
 
   const isAppointmentSLotAvailable = async (vetId: string) => {

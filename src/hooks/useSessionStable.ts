@@ -40,6 +40,6 @@ export function useSessionStable() {
     data: stableSession,
     status,
     update,
-    isInitialized: isInitialized.current
+    isInitialized: isInitialized.current,
   };
 }

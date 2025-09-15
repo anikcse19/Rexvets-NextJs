@@ -141,11 +141,12 @@ export default function SignInPage() {
         let updatedSession: any = null;
         try { updatedSession = await update(); } catch {}
         const role = updatedSession?.user?.role || session?.user?.role;
+        // Append a small flag so navbar can force-refresh session once
         const targetUrl = (redirect && redirect !== "/")
           ? redirect
           : (role === "admin" || role === "moderator")
-          ? "/admin/overview"
-          : "/";
+          ? "/admin/overview?signedin=1"
+          : "/?signedin=1";
         console.log("Redirecting to:", targetUrl);
         await new Promise((r) => setTimeout(r, 50));
         router.replace(targetUrl);
