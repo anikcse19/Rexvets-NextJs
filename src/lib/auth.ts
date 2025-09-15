@@ -37,7 +37,7 @@ export const authOptions = {
           name: profile.name,
           email: profile.email,
           image: profile.picture,
-          role: "pet_parent", // Default role for Google OAuth users
+          role: "pet_parent",
         };
       },
     }),
@@ -49,7 +49,6 @@ export const authOptions = {
       },
       async authorize(credentials): Promise<User | null> {
         try {
-          // Validate input
           const validatedFields = signInSchema.safeParse(credentials);
           if (!validatedFields.success) {
             console.error("Validation error:", validatedFields.error);
@@ -57,75 +56,37 @@ export const authOptions = {
           }
 
           const { email, password } = validatedFields.data;
-
-          // Connect to database
           await connectToDatabase();
 
-          // Find user with password for authentication (single query)
           const user = await (UserModel as IUserModel).findByEmailForAuth(
             email
           );
+          if (!user) return null;
 
-          if (!user) {
-            console.error("User not found:", email);
-            return null;
-          }
-
-          console.log("User found for auth:", {
-            email: user.email,
-            role: user.role,
-            isActive: user.isActive,
-            isEmailVerified: user.isEmailVerified,
-            hasPassword: !!user.password
-          });
-
-          // Check if user exists but has no password (Google OAuth user)
-          if (!user.password && user.googleId) {
-            console.error(
-              "Google OAuth user trying to sign in with password:",
-              email
-            );
-            return null;
-          }
-
-          // Check if account is locked
+          if (!user.password && user.googleId) return null;
           if (user.checkIfLocked()) {
-            console.error("Account is locked:", email);
             throw new Error(
-              "Account is temporarily locked due to too many failed login attempts. Please try again later."
+              "Account is temporarily locked due to too many failed login attempts."
             );
           }
-
-          // Check if account is active
           if (!user.isActive) {
-            console.error("Account is inactive:", email);
             throw new Error("Account is deactivated. Please contact support.");
           }
 
-          // Verify password
           const isPasswordValid = await user.comparePassword(password);
           if (!isPasswordValid) {
-            console.error("Invalid password for user:", email);
-            // Increment login attempts
             await user.incrementLoginAttempts();
             return null;
           }
-
-          // Check if email is verified
           if (!user.isEmailVerified) {
-            console.warn("Email not verified for user:", email);
             throw new Error("EmailNotVerified");
           }
 
-          // Reset login attempts on successful login
           await user.resetLoginAttempts();
-
-          // Get full user data with references populated
           const fullUserData = await getUserWithFullData(
             (user as any)._id.toString()
           );
 
-          // Return user data for NextAuth
           return {
             id: (user as any)._id.toString(),
             email: (user as any).email,
@@ -147,17 +108,6 @@ export const authOptions = {
           } as any;
         } catch (error) {
           console.error("Authentication error:", error);
-
-          // Handle specific database connection errors
-          if (
-            error instanceof Error &&
-            error.message.includes("ECONNREFUSED")
-          ) {
-            throw new Error(
-              "Database connection failed. Please try again later."
-            );
-          }
-
           throw error;
         }
       },
@@ -165,54 +115,55 @@ export const authOptions = {
   ],
   session: {
     strategy: "jwt" as const,
-    maxAge: 30 * 24 * 60 * 60, // 30 days
-    updateAge: 24 * 60 * 60, // 24 hours
+    maxAge: 30 * 24 * 60 * 60,
+    updateAge: 24 * 60 * 60,
   },
   jwt: {
-    maxAge: 30 * 24 * 60 * 60, // 30 days
+    maxAge: 30 * 24 * 60 * 60,
   },
   cookies: {
     sessionToken: {
-      name: `next-auth.session-token`,
+      name:
+        process.env.NODE_ENV === "production"
+          ? "__Secure-next-auth.session-token"
+          : "next-auth.session-token",
       options: {
         httpOnly: true,
-        sameSite: 'lax',
-        path: '/',
-        secure: process.env.NODE_ENV === 'production',
-        // Share session between www and apex domains in production
-        ...(process.env.NODE_ENV === 'production'
-          ? { domain: '.rexvet.org' }
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+        ...(process.env.NODE_ENV === "production"
+          ? { domain: ".rexvet.org" }
           : {}),
-        maxAge: 30 * 24 * 60 * 60 // 30 days
-      }
+        maxAge: 30 * 24 * 60 * 60,
+      },
     },
     callbackUrl: {
-      name: `next-auth.callback-url`,
+      name: "next-auth.callback-url",
       options: {
-        sameSite: 'lax',
-        path: '/',
-        secure: process.env.NODE_ENV === 'production',
-        ...(process.env.NODE_ENV === 'production'
-          ? { domain: '.rexvet.org' }
-          : {})
-      }
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+        ...(process.env.NODE_ENV === "production"
+          ? { domain: ".rexvet.org" }
+          : {}),
+      },
     },
     csrfToken: {
-      name: `next-auth.csrf-token`,
+      name: "next-auth.csrf-token",
       options: {
         httpOnly: true,
-        sameSite: 'lax',
-        path: '/',
-        secure: process.env.NODE_ENV === 'production',
-        ...(process.env.NODE_ENV === 'production'
-          ? { domain: '.rexvet.org' }
-          : {})
-      }
-    }
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+        ...(process.env.NODE_ENV === "production"
+          ? { domain: ".rexvet.org" }
+          : {}),
+      },
+    },
   },
   callbacks: {
     async jwt({ token, user, account, trigger }: any) {
-      // Initial sign in
       if (account && user) {
         token.role = user.role;
         token.id = user.id;
@@ -222,43 +173,25 @@ export const authOptions = {
         token.timezone = user.timezone;
         token.accesslist = user.accesslist;
         token.iat = Math.floor(Date.now() / 1000);
-        token.exp = Math.floor(Date.now() / 1000) + (30 * 24 * 60 * 60); // 30 days
-
-        // Console log the JWT token data on initial sign in
-        console.log("🔑 JWT Token Data (Initial Sign In):", {
-          role: token.role,
-          id: token.id,
-          emailVerified: token.emailVerified,
-          image: token.image,
-          refId: token.refId,
-          timezone: token.timezone,
-          accesslist: token.accesslist,
-        });
-      } else if (trigger === "update") {
-        // Handle token updates (when session is updated)
-        if (user) {
-          token.role = user.role || token.role;
-          token.emailVerified = Boolean(user.emailVerified ?? token.emailVerified);
-          token.image = user.image || token.image;
-          token.refId = user.refId || token.refId;
-          token.timezone = user.timezone || token.timezone;
-          token.accesslist = user.accesslist || token.accesslist;
-        }
+        token.exp = Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60;
+      } else if (trigger === "update" && user) {
+        token.role = user.role || token.role;
+        token.emailVerified = Boolean(
+          user.emailVerified ?? token.emailVerified
+        );
+        token.image = user.image || token.image;
+        token.refId = user.refId || token.refId;
+        token.timezone = user.timezone || token.timezone;
+        token.accesslist = user.accesslist || token.accesslist;
       }
 
-      // Check if token is expired and needs refresh
       const now = Math.floor(Date.now() / 1000);
-      if (token.exp && now > token.exp) {
-        // Token has expired, return null to force re-authentication
-        return null;
-      }
+      if (token.exp && now > token.exp) return null;
 
-      // Return the token
       return token;
     },
     async session({ session, token }: any) {
       if (token) {
-        // Ensure all required fields are present
         session.user = {
           ...session.user,
           id: token.id as string,
@@ -267,23 +200,16 @@ export const authOptions = {
           image: token.image as string,
           refId: token.refId as string,
           timezone: token.timezone as string,
-          accesslist: token.accesslist as string[] || [],
+          accesslist: (token.accesslist as string[]) || [],
         };
-        
-        // Set session expiry to match token expiry
         session.expires = new Date(token.exp * 1000).toISOString();
       }
-
       return session;
     },
     async signIn({ user, account, profile }: any) {
-      // Handle Google OAuth sign in
       if (account?.provider === "google") {
         try {
-          // Connect to database
           await connectToDatabase();
-
-          // Extract data from Google profile
           const googleProfile = profile as any;
           const googleData = {
             googleId: googleProfile?.sub || account.providerAccountId,
@@ -300,11 +226,8 @@ export const authOptions = {
             scope: account.scope,
           };
 
-          // Check if user already exists
           const existingUser = await UserModel.findOne({ email: user.email });
-
           if (existingUser) {
-            // Update existing user with Google data
             existingUser.lastLogin = new Date();
             existingUser.googleId = googleData.googleId;
             existingUser.googleAccessToken = googleData.accessToken;
@@ -313,7 +236,6 @@ export const authOptions = {
             existingUser.googleTokenType = googleData.tokenType;
             existingUser.googleScope = googleData.scope;
 
-            // Update profile data if not already set
             if (!existingUser.name && googleData.name) {
               existingUser.name = googleData.name;
             }
@@ -323,14 +245,12 @@ export const authOptions = {
 
             await existingUser.save();
 
-            // Check if account is active
             if (!existingUser.isActive) {
               throw new Error(
                 "Account is deactivated. Please contact support."
               );
             }
 
-            // Set session data
             user.id = (existingUser as any)._id.toString();
             user.role = existingUser.role;
             user.emailVerified = existingUser.isEmailVerified;
@@ -338,8 +258,6 @@ export const authOptions = {
             user.image = existingUser.profileImage;
             user.timezone = existingUser?.timezone;
             user.accesslist = existingUser?.accesslist;
-
-            // Add reference to veterinarian profile if user is a veterinarian
             if (
               existingUser.role === "veterinarian" &&
               existingUser.veterinarianRef
@@ -354,27 +272,18 @@ export const authOptions = {
                 : existingUser.role === "veterinarian"
                 ? existingUser.veterinarianRef?.toString()
                 : existingUser.role === "moderator"
-                ? existingUser._id?.toString() // Moderators use their own ID as refId
+                ? existingUser._id?.toString()
                 : existingUser.vetTechRef?.toString();
           } else {
-            // Prevent new user creation through Google OAuth
-            // Users must register through the proper signup process
-            console.error(
-              "Google OAuth sign-up blocked for new users:",
-              user.email
-            );
-            // Return false to trigger error redirect, NextAuth will use "AccessDenied" by default
-            // We'll handle this specific case in the error page
+            console.error("Google OAuth sign-up blocked:", user.email);
             return false;
           }
-
           return true;
         } catch (error: any) {
           console.error("Google OAuth error:", error);
           return false;
         }
       }
-
       return true;
     },
   },
@@ -384,15 +293,11 @@ export const authOptions = {
   },
   events: {
     async signIn({ user }: any) {
-      // Log successful sign in
       console.log("User signed in:", user.email);
     },
     async signOut({ session }: any) {
-      // Log sign out
       console.log("User signed out:", session?.user?.email);
     },
   },
-  debug: process.env.NODE_ENV === 'development',
+  debug: process.env.NODE_ENV === "development",
 };
-
-// export default NextAuth(authOptions);
