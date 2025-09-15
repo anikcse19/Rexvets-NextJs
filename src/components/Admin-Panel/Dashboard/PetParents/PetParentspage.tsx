@@ -1,16 +1,7 @@
 "use client";
-import { useEffect, useState, useMemo } from "react";
-import { db } from "@/lib/firebase";
-import {
-  collection,
-  getDocs,
-  query,
-  orderBy,
-  doc,
-  deleteDoc,
-} from "firebase/firestore";
-import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -18,16 +9,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -36,35 +24,47 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import Image from "next/image";
 import {
-  Search,
-  Users,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { db } from "@/lib/firebase";
+import { Appointment, Pet, PetParent } from "@/lib/types";
+import {
+  collection,
+  deleteDoc,
+  doc,
+  getDocs,
+  orderBy,
+  query,
+} from "firebase/firestore";
+import {
   Calendar,
-  Heart,
-  Phone,
-  MapPin,
   Clock,
-  Stethoscope,
   FileText,
-  PawPrint,
-  Palette,
-  Scale,
-  User,
-  MoreHorizontal,
   Filter,
+  Heart,
+  MapPin,
+  MoreHorizontal,
+  Palette,
+  PawPrint,
+  Phone,
+  Scale,
+  Search,
+  Stethoscope,
   Trash2,
+  User,
+  Users,
 } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import Image from "next/image";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { deleteParent, updateParentStatus } from "../../Actions/pet-parents";
 import Pagination from "../../Shared/Pagination";
-import { Appointment, Pet, PetParent } from "@/lib/types";
 import RequireAccess from "../../Shared/RequireAccess";
 
 type DateFilter =
@@ -78,6 +78,7 @@ type DateFilter =
 export default function PetParentsPage() {
   const [parents, setParents] = useState<PetParent[]>([]);
   const [filteredParents, setFilteredParents] = useState<PetParent[]>([]);
+  const [stats, setStats] = useState<{ total: number; active: number; inactive: number } | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [dateFilter, setDateFilter] = useState<DateFilter>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -144,8 +145,25 @@ export default function PetParentsPage() {
     }
   };
 
+  const fetchStats = async () => {
+    try {
+      const res = await fetch(`/api/pet-parents/stats`);
+      const data = await res.json();
+      if (data?.success && data?.data) {
+        setStats({
+          total: data.data.total ?? 0,
+          active: data.data.active ?? 0,
+          inactive: data.data.inactive ?? 0,
+        });
+      }
+    } catch (error) {
+      console.error("Failed to fetch pet parent stats", error);
+    }
+  };
+
   useEffect(() => {
     fetchPetParents();
+    fetchStats();
   }, []);
 
   useEffect(() => {
@@ -199,6 +217,7 @@ export default function PetParentsPage() {
       );
       toast.success(`Parent Status Updated to ${newStatus} Successfully`);
       fetchPetParents();
+      fetchStats();
     } else {
       toast.error("Failed to Update Parent Status");
     }
@@ -226,6 +245,7 @@ export default function PetParentsPage() {
       toast.success(`Parent "${parentToDelete.name}" deleted successfully`);
       setDeleteModalOpen(false);
       setParentToDelete(null);
+      fetchStats();
     } catch (error) {
       console.error("Error deleting parent:", error);
       toast.error("Failed to delete parent. Please try again.");
@@ -249,7 +269,7 @@ export default function PetParentsPage() {
     return { active, inactive, total: parents.length };
   };
 
-  const statusCounts = getStatusCounts();
+  const statusCounts = stats ?? getStatusCounts();
 
   console.log("paginated", paginatedParents);
 
