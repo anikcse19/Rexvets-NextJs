@@ -8,6 +8,7 @@ export enum NotificationType {
   NEW_APPOINTMENT = "NEW_APPOINTMENT",
   APPOINTMENT_RESCHEDULED = "APPOINTMENT_RESCHEDULED",
   NEW_SIGNUP = "NEW_SIGNUP",
+  VET_PROFILE_INFO_REQUEST = "VET_PROFILE_INFO_REQUEST",
 }
 
 export interface INotification {
@@ -94,18 +95,8 @@ notificationSchema.pre("validate", function (next) {
 notificationSchema.index({ recipientId: 1, isRead: 1, createdAt: -1 });
 notificationSchema.index({ type: 1, createdAt: -1 });
 
-// Delete cached model to force recreation with new enum values
-// if (mongoose.models.Notification) {
-//   delete mongoose.models.Notification;
-// }
-
-const existingModel =
-  typeof mongoose.models === "object"
-    ? mongoose.models.Notification
-    : undefined;
-
 const NotificationModel =
-  (existingModel as INotificationModel) ||
+  (mongoose.models && mongoose.models.Notification) ||
   mongoose.model<INotification, INotificationModel>(
     "Notification",
     notificationSchema

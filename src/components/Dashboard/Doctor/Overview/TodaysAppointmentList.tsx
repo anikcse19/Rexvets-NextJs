@@ -1,5 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { getUserTimezone } from "@/lib/timezone";
 import { Appointment } from "@/lib/types";
 import { Calendar, CalendarX2 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -13,12 +14,7 @@ const TodaysAppointmentList = ({
   console.log("todaysAppointmentList", todaysAppointmentList);
   const router = useRouter();
 
-  const formatDateTime = (dateString: string) => {
-    return new Date(dateString).toLocaleString("en-US", {
-      dateStyle: "medium",
-      timeStyle: "short",
-    });
-  };
+  const userTz = getUserTimezone();
   return (
     <Card className="shadow-lg border-0 bg-white">
       <CardHeader className="pb-4">
@@ -88,7 +84,11 @@ const TodaysAppointmentList = ({
                 </div>
                 <div className="text-right">
                   <p className="font-medium text-gray-900">
-                    {formatDateTime(appointment?.appointmentDate)}
+                    {new Intl.DateTimeFormat("en-US", {
+                      dateStyle: "medium",
+                      timeStyle: "short",
+                      timeZone: userTz,
+                    }).format(new Date(appointment?.appointmentDate))}
                   </p>
                   <Badge
                     variant="outline"

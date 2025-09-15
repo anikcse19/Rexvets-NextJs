@@ -1,24 +1,24 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
-import { signIn, useSession } from "next-auth/react";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent } from "@/components/ui/card";
+import LoadingSpinner from "@/components/ui/loading-spinner";
+import { motion } from "framer-motion";
 import {
   ArrowLeft,
   Eye,
   EyeOff,
-  Mail,
-  Lock,
   Heart,
+  Lock,
+  Mail,
   Stethoscope,
 } from "lucide-react";
-import LoadingSpinner from "@/components/ui/loading-spinner";
+import { signIn, useSession } from "next-auth/react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export default function SignInPage() {
   const [email, setEmail] = useState("");
@@ -39,7 +39,7 @@ export default function SignInPage() {
   useEffect(() => {
     if (status === "authenticated" && session?.user) {
       const userRole = session.user.role;
-      
+
       if (userRole === "admin" || userRole === "moderator") {
         window.location.replace("/admin/overview");
       } else if (redirect !== "/") {
@@ -49,7 +49,6 @@ export default function SignInPage() {
       }
     }
   }, [session, status, router, redirect]);
-
 
   useEffect(() => {
     const handlePopState = () => {
@@ -62,63 +61,136 @@ export default function SignInPage() {
     };
   }, []);
 
+  // const handleSubmit = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   setIsLoading(true);
+  //   setError(""); // Clear previous errors
+
+  //   try {
+  //     const result = await signIn("credentials", {
+  //       email,
+  //       password,
+  //       // redirect: false,
+  //     });
+
+  //     if (result?.ok) {
+  //    console.log("Sign-in successful, redirecting...", result);
+  //    router.push(redirect);
+  //     } else {
+  //       // Handle different error cases
+  //       if (result?.error === "CredentialsSignin") {
+  //         // Check if this might be a Google OAuth account
+  //         // We'll make an additional check to see if the email exists in the database
+  //         try {
+  //           const checkResponse = await fetch(
+  //             `/api/check-email?email=${encodeURIComponent(email)}`
+  //           );
+  //           if (checkResponse.ok) {
+  //             const checkData = await checkResponse.json();
+  //             if (checkData.isGoogleAccount) {
+  //               setError(
+  //                 "This email is linked to a Google account. Please sign in using the 'Continue with Google' button instead of email and password."
+  //               );
+  //             } else {
+  //               setError("Invalid email or password. Please try again.");
+  //             }
+  //           } else {
+  //             setError("Invalid email or password. Please try again.");
+  //           }
+  //         } catch {
+  //           setError("Invalid email or password. Please try again.");
+  //         }
+  //       } else if (result?.error === "AccountLocked") {
+  //         setError(
+  //           "Account is temporarily locked due to too many failed attempts. Please try again later."
+  //         );
+  //       } else if (result?.error === "AccountDeactivated") {
+  //         setError("Account is deactivated. Please contact support.");
+  //       } else if (result?.error === "EmailNotVerified") {
+  //         setError("Please verify your email address before signing in.");
+  //       } else if (result?.error?.includes("Database connection failed")) {
+  //         setError("Service temporarily unavailable. Please try again later.");
+  //       } else if (result?.error?.includes("linked to a Google account")) {
+  //         setError(
+  //           "This email is linked to a Google account. Please sign in using the 'Continue with Google' button instead of email and password."
+  //         );
+  //       } else {
+  //         setError(
+  //           "Sign in failed. Please check your credentials and try again."
+  //         );
+  //       }
+  //     }
+  //   } catch {
+  //     setError("An unexpected error occurred. Please try again.");
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
+
+  // const handleGoogleSignIn = async () => {
+  //   setGoogleLoading(true);
+  //   setError(""); // Clear previous errors
+  //   try {
+  //     const result = await signIn("google", {
+  //       redirect: false,
+  //     });
+
+  //     if (result?.ok) {
+  //       console.log("Google sign-in successful, redirecting...");
+  //       let updatedSession: any = null;
+  //       try { updatedSession = await update(); } catch {}
+  //       const role = updatedSession?.user?.role || session?.user?.role;
+  //       // Append a small flag so navbar can force-refresh session once
+  //       const targetUrl = (redirect && redirect !== "/")
+  //         ? redirect
+  //         : (role === "admin" || role === "moderator")
+  //         ? "/admin/overview?signedin=1"
+  //         : "/?signedin=1";
+  //       console.log("Redirecting to:", targetUrl);
+  //       await new Promise((r) => setTimeout(r, 50));
+  //       router.replace(targetUrl);
+  //     } else {
+  //       setError("Google sign-in failed. Please try again.");
+  //     }
+  //   } catch {
+  //     setError("Google sign-in failed. Please try again.");
+  //   } finally {
+  //     setGoogleLoading(false);
+  //   }
+  // };
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setError(""); // Clear previous errors
+    setError("");
 
     try {
       const result = await signIn("credentials", {
         email,
         password,
-        // redirect: false,
+        redirect: false, // important: don’t auto redirect
       });
 
       if (result?.ok) {
-     console.log("Sign-in successful, redirecting...", result);
-     router.push(redirect);
+        console.log("Sign-in successful, updating session...");
+        let updatedSession: any = null;
+        try {
+          updatedSession = await update(); // refresh session immediately
+        } catch {}
+
+        const role = updatedSession?.user?.role || session?.user?.role;
+        const targetUrl =
+          redirect && redirect !== "/"
+            ? redirect
+            : role === "admin" || role === "moderator"
+            ? "/admin/overview?signedin=1"
+            : "/?signedin=1";
+
+        router.replace(targetUrl);
       } else {
-        // Handle different error cases
         if (result?.error === "CredentialsSignin") {
-          // Check if this might be a Google OAuth account
-          // We'll make an additional check to see if the email exists in the database
-          try {
-            const checkResponse = await fetch(
-              `/api/check-email?email=${encodeURIComponent(email)}`
-            );
-            if (checkResponse.ok) {
-              const checkData = await checkResponse.json();
-              if (checkData.isGoogleAccount) {
-                setError(
-                  "This email is linked to a Google account. Please sign in using the 'Continue with Google' button instead of email and password."
-                );
-              } else {
-                setError("Invalid email or password. Please try again.");
-              }
-            } else {
-              setError("Invalid email or password. Please try again.");
-            }
-          } catch {
-            setError("Invalid email or password. Please try again.");
-          }
-        } else if (result?.error === "AccountLocked") {
-          setError(
-            "Account is temporarily locked due to too many failed attempts. Please try again later."
-          );
-        } else if (result?.error === "AccountDeactivated") {
-          setError("Account is deactivated. Please contact support.");
-        } else if (result?.error === "EmailNotVerified") {
-          setError("Please verify your email address before signing in.");
-        } else if (result?.error?.includes("Database connection failed")) {
-          setError("Service temporarily unavailable. Please try again later.");
-        } else if (result?.error?.includes("linked to a Google account")) {
-          setError(
-            "This email is linked to a Google account. Please sign in using the 'Continue with Google' button instead of email and password."
-          );
+          setError("Invalid email or password. Please try again.");
         } else {
-          setError(
-            "Sign in failed. Please check your credentials and try again."
-          );
+          setError("Sign in failed. Please check your credentials.");
         }
       }
     } catch {
@@ -130,25 +202,24 @@ export default function SignInPage() {
 
   const handleGoogleSignIn = async () => {
     setGoogleLoading(true);
-    setError(""); // Clear previous errors
+    setError("");
     try {
-      const result = await signIn("google", {
-        redirect: false,
-      });
-      
+      const result = await signIn("google", { redirect: false });
       if (result?.ok) {
-        console.log("Google sign-in successful, redirecting...");
+        console.log("Google sign-in successful, updating session...");
         let updatedSession: any = null;
-        try { updatedSession = await update(); } catch {}
+        try {
+          updatedSession = await update(); // refresh session immediately
+        } catch {}
+
         const role = updatedSession?.user?.role || session?.user?.role;
-        // Append a small flag so navbar can force-refresh session once
-        const targetUrl = (redirect && redirect !== "/")
-          ? redirect
-          : (role === "admin" || role === "moderator")
-          ? "/admin/overview?signedin=1"
-          : "/?signedin=1";
-        console.log("Redirecting to:", targetUrl);
-        await new Promise((r) => setTimeout(r, 50));
+        const targetUrl =
+          redirect && redirect !== "/"
+            ? redirect
+            : role === "admin" || role === "moderator"
+            ? "/admin/overview?signedin=1"
+            : "/?signedin=1";
+
         router.replace(targetUrl);
       } else {
         setError("Google sign-in failed. Please try again.");

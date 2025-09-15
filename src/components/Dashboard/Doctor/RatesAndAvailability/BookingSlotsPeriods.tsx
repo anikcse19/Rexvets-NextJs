@@ -1,15 +1,18 @@
 "use client";
 
+import ConfirmDeleteModal from "@/components/shared/ConfirmDeleteModal";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useDashboardContext } from "@/hooks/DashboardContext";
 import { Slot, SlotStatus } from "@/lib";
 import { getTimezoneOffset, getUserTimezone } from "@/lib/timezone";
 import { convertTimesToUserTimezone } from "@/lib/timezone/index";
+import { format } from "date-fns";
 import { Check, ChevronDown, Globe } from "lucide-react";
 import moment from "moment";
 import { useSession } from "next-auth/react";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
 
 interface BookingSlotsProps {
   className?: string;
@@ -31,6 +34,8 @@ const BookingSlotsPeriods: React.FC<BookingSlotsProps> = ({
     selectedSlotIds,
     onUpdateSelectedSlotStatus,
     isUpdating,
+    selectedRange,
+    getSlots,
   } = useDashboardContext();
 
   const { data: session } = useSession();
@@ -38,7 +43,8 @@ const BookingSlotsPeriods: React.FC<BookingSlotsProps> = ({
 
   const [selectedStatus, setSelectedStatus] = useState<SlotStatus | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
   const getSlotStyles = (status: SlotStatus) => {
     const baseStyles =
@@ -96,12 +102,24 @@ const BookingSlotsPeriods: React.FC<BookingSlotsProps> = ({
   const handleCheckboxClick = (e: React.MouseEvent) => {
     e.stopPropagation();
   };
+  const refetchSlots = useCallback(async () => {
+    if (!selectedRange || !user?.refId) {
+      throw new Error("Missing required data");
+    }
 
-  const handleStatusSelect = (status: SlotStatus) => {
-    setSelectedStatus(status);
-    setIsDropdownOpen(false);
-  };
+    try {
+      const startDate = format(selectedRange.start, "yyyy-MM-dd");
+      const endDate = format(selectedRange.end, "yyyy-MM-dd");
 
+      // Always use vetTimezone from DB, never use local timezone
+      await getSlots(startDate, endDate, user.refId);
+    } catch (error: any) {
+      console.error("Error fetching available slots:", error);
+      toast.error(error?.message || "Failed to fetch availability data", {
+        description: "Please try refreshing the page or contact support.",
+      });
+    }
+  }, [selectedRange, user?.refId, getSlots]);
   const handleUpdateStatus = async () => {
     if (selectedSlotIds.length === 0) {
       return;
@@ -129,16 +147,104 @@ const BookingSlotsPeriods: React.FC<BookingSlotsProps> = ({
         endDate = startDate;
       }
 
+      console.groupCollapsed("[Slots] Update status request");
+      console.log("refId:", user.refId);
+      console.log("selectedSlotIds:", selectedSlotIds.length);
+      console.log("dateRange:", { startDate, endDate });
+      console.groupEnd();
+
       await onUpdateSelectedSlotStatus(
         SlotStatus.DISABLED,
         user.refId,
         startDate,
         endDate
       );
+      console.log("[Slots] Update status success");
       setSelectedStatus(null);
       setSelectedSlotIds([]);
+      setIsDropdownOpen(false);
+      await refetchSlots();
     } catch (error) {
       console.error("Failed to update slot status:", error);
+    }
+  };
+
+  const performDelete = async () => {
+    if (selectedSlotIds.length === 0) return;
+    if (!user?.refId) {
+      console.error("User refId is missing");
+      toast.error("Missing user reference. Please re-login and try again.");
+      return;
+    }
+
+    // Derive date range similar to handleUpdateStatus (for logging and parity)
+    let startDate: string | undefined;
+    let endDate: string | undefined;
+    if (selectedSlot && selectedSlot.length > 0) {
+      const dates = selectedSlot.map((slot) => slot.formattedDate).sort();
+      startDate = dates[0];
+      endDate = dates[dates.length - 1];
+    } else {
+      const currentDate = new Date();
+      startDate = currentDate.toISOString().split("T")[0];
+      endDate = startDate;
+    }
+
+    console.groupCollapsed("[Slots] Delete request");
+    console.log("refId:", user.refId);
+    console.log("selectedSlotIds:", selectedSlotIds.length);
+    console.log("dateRange:", { startDate, endDate });
+    console.groupEnd();
+    try {
+      setIsDeleting(true);
+      const res = await fetch("/api/appointments/delete-slots-by-ids", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slotIds: selectedSlotIds }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        if (res.status === 409) {
+          // Booked slots present, API returns bookedSlotsCount/bookedSlotIds
+          const bookedCount = data?.bookedSlotsCount || 0;
+          toast.warning(
+            `Some slots could not be deleted (${bookedCount} booked).`,
+            {
+              description:
+                typeof data?.deletedCount === "number"
+                  ? `${data.deletedCount} deleted, ${bookedCount} booked.`
+                  : undefined,
+            }
+          );
+        } else {
+          toast.error(data?.error || "Failed to delete slots");
+        }
+        console.error("[Slots] Delete failed:", { status: res.status, data });
+        // Still refetch to reflect any partial deletions
+        await refetchSlots();
+        return;
+      }
+      toast.success(data?.message || "Slots deleted successfully", {
+        description:
+          typeof data?.deletedCount === "number"
+            ? `${data.deletedCount} of ${
+                data?.requestedCount ?? selectedSlotIds.length
+              } deleted.`
+            : undefined,
+      });
+      console.log("[Slots] Delete success:", data);
+      alert("Slots deleted successfully");
+      setSelectedStatus(null);
+      setSelectedSlotIds([]);
+      setIsDropdownOpen(false);
+      setIsConfirmOpen(false);
+      await refetchSlots();
+    } catch (err: any) {
+      console.error("Error deleting slots:", err);
+      toast.error(err?.message || "Error deleting slots");
+    } finally {
+      setIsDeleting(false);
+      setIsConfirmOpen(false);
     }
   };
 
@@ -154,17 +260,6 @@ const BookingSlotsPeriods: React.FC<BookingSlotsProps> = ({
   };
 
   const groupedSlots = groupSlotsByDate(selectedSlot ?? null);
-
-  const formatDateForDisplay = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      timeZone: userTimezone,
-    });
-  };
 
   // Enhanced time formatting with timezone support
   const formatTimeForDisplay = (slot: Slot): string => {
@@ -292,15 +387,36 @@ const BookingSlotsPeriods: React.FC<BookingSlotsProps> = ({
                 {/* Update Button */}
                 <button
                   onClick={handleUpdateStatus}
-                  disabled={isUpdating}
+                  disabled={isUpdating || isDeleting}
                   className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   Disabled
+                </button>
+                <button
+                  onClick={() => setIsConfirmOpen(true)}
+                  disabled={isDeleting || isUpdating}
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-red-500"
+                >
+                  Delete
                 </button>
               </div>
             </div>
           </div>
         )}
+        <ConfirmDeleteModal
+          isOpen={isConfirmOpen}
+          onClose={() => setIsConfirmOpen(false)}
+          onConfirm={performDelete}
+          loading={isDeleting}
+          title="Delete selected slots?"
+          description={`This action is permanent and cannot be undone. You are about to delete ${
+            selectedSlotIds.length
+          } slot${
+            selectedSlotIds.length !== 1 ? "s" : ""
+          }. Booked slots cannot be deleted and will be skipped automatically. Only Available and Disabled slots will be removed.`}
+          confirmText="Delete"
+          cancelText="Cancel"
+        />
       </div>
 
       {/* Slots Display */}
@@ -317,7 +433,13 @@ const BookingSlotsPeriods: React.FC<BookingSlotsProps> = ({
             .map(([date, dateSlots]) => (
               <div key={date} className="space-y-4">
                 <h3 className="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2">
-                  {formatDateForDisplay(date)}
+                  {new Intl.DateTimeFormat("en-US", {
+                    weekday: "long",
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                    timeZone: getUserTimezone(),
+                  }).format(new Date(date))}
                 </h3>
 
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
