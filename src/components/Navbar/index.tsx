@@ -67,7 +67,7 @@ const Header: React.FC = () => {
   const [isSLotAvailable, setIsSLotAvailable] = useState(false);
 
   const { data: session, status } = useSession();
-
+console.log("session from navbar", session);
   // const session = {
   //   user: {
   //     name: "Anik",
@@ -129,13 +129,18 @@ const Header: React.FC = () => {
         const res = await fetch("/api/check-category-badge");
 
         if (!res.ok) {
-          throw new Error();
+          // Gracefully ignore not found/unauthorized without logging errors in console
+          if (res.status === 404 || res.status === 401) return;
+          throw new Error(`Failed to fetch badge (${res.status})`);
         }
 
         const data = await res.json();
         setBadge(data?.badgeName);
       } catch (error: any) {
-        console.log(error?.message);
+        // Avoid noisy logs in production for non-critical UI badge
+        if (process.env.NODE_ENV === "development") {
+          console.log(error?.message);
+        }
       }
     };
     getBadgeName();
