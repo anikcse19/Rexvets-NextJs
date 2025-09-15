@@ -52,6 +52,14 @@ export function DoctorDetailsModal({
 }: DoctorDetailsModalProps) {
   const [slots, setSlots] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  const [stats, setStats] = useState<{
+    availableSlots: number;
+    bookedSlots: number;
+    disabledSlots: number;
+    totalPeriods: number;
+    totalSlotHours: number;
+  } | null>(null);
+  const [statsLoading, setStatsLoading] = useState<boolean>(false);
   const [currentPage, setCurrentPage] = useState<number>(0); // paginate by period
 
   const tz = getUserTimezone();
@@ -109,14 +117,38 @@ export function DoctorDetailsModal({
     [doctor]
   );
 
+  const getSlotStats = useCallback(
+    async (startDate: string, endDate: string, refId: string) => {
+      if (!refId) return;
+      try {
+        setStatsLoading(true);
+        const apiUrl = `/api/appointments/slots/slot-stats?vetId=${refId}&startDate=${startDate}&endDate=${endDate}`;
+        const res = await fetch(apiUrl);
+        if (!res.ok) {
+          const errorText = await res.text();
+          throw new Error(`HTTP ${res.status} - ${errorText}`);
+        }
+        const responseData = await res.json();
+        setStats(responseData?.data || null);
+      } catch (e) {
+        console.error("getSlotStats error", e);
+        setStats(null);
+      } finally {
+        setStatsLoading(false);
+      }
+    },
+    [doctor]
+  );
+
   useEffect(() => {
     if (doctor?._id) {
 const weeklyRange = getWeekRange();
       const startDate = format(weeklyRange.start, "yyyy-MM-dd");
       const endDate = format(weeklyRange.end, "yyyy-MM-dd");
       getSlots(startDate, endDate, doctor._id);
+      getSlotStats(startDate, endDate, doctor._id);
     }
-  }, [getSlots]);
+  }, [getSlots, getSlotStats]);
   console.log("Slots", slots);
   if (!doctor) return null;
 
@@ -176,6 +208,7 @@ const weeklyRange = getWeekRange();
     const cls = getSlotStatusClasses(status);
     return <span className={`${base} ${cls}`}>{status}</span>;
   };
+  console.log("doctor", doctor);  
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg md:!max-w-5xl max-h-[90vh] overflow-y-auto dark:bg-slate-800">
@@ -297,6 +330,39 @@ const weeklyRange = getWeekRange();
                   </p>
                 ) : (
                   <div className="space-y-4">
+                    {/* Stats row */}
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+                      {statsLoading ? (
+                        <div className="col-span-full w-full flex items-center justify-center py-2">
+                          <Loader2 className="w-5 h-5 animate-spin text-slate-500" />
+                        </div>
+                      ) : stats ? (
+                        <>
+                          <div className="rounded-lg border p-3 text-center">
+                            <div className="text-xs text-slate-500">Available</div>
+                            <div className="text-lg font-semibold text-green-600">{stats.availableSlots}</div>
+                          </div>
+                          <div className="rounded-lg border p-3 text-center">
+                            <div className="text-xs text-slate-500">Booked</div>
+                            <div className="text-lg font-semibold text-red-600">{stats.bookedSlots}</div>
+                          </div>
+                          <div className="rounded-lg border p-3 text-center">
+                            <div className="text-xs text-slate-500">Disabled</div>
+                            <div className="text-lg font-semibold text-slate-600">{stats.disabledSlots}</div>
+                          </div>
+                          <div className="rounded-lg border p-3 text-center">
+                            <div className="text-xs text-slate-500">Periods</div>
+                            <div className="text-lg font-semibold">{stats.totalPeriods}</div>
+                          </div>
+                          <div className="rounded-lg border p-3 text-center">
+                            <div className="text-xs text-slate-500">Slot Hours</div>
+                            <div className="text-lg font-semibold">{stats.totalSlotHours}</div>
+                          </div>
+                        </>
+                      ) : (
+                        <div className="col-span-full text-center text-xs text-slate-500">No stats available</div>
+                      )}
+                    </div>
                     {/* Header: Date */}
                     <div className="w-full flex items-center justify-between gap-2">
                       <div className="flex items-center gap-2">
