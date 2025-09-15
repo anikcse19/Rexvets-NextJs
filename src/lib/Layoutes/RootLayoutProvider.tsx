@@ -6,7 +6,7 @@ import TawkToScript from "@/components/TawkTo/TawkToScript";
 
 const RootLayoutProvider: FC<PropsWithChildren> = ({ children }) => {
   return (
-    <SessionProvider refetchInterval={5 * 60} refetchOnWindowFocus={true}>
+    <SessionProvider refetchOnWindowFocus={true} refetchInterval={5 * 60}>
       <StateProvider>
         {children}
         <TawkToScript />

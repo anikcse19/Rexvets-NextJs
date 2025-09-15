@@ -9,7 +9,7 @@ export const welcomeEmailTemplate = (name) => `
             
             <!-- Add logo here -->
             <div style="background-color: #002366; padding: 10px; text-align: center;">
-                <img src="https://res.cloudinary.com/di6zff0rd/image/upload/v1747926532/Logo_debjuj.png" alt="Rex Vet Logo" width="150" style="display: block; margin: 0 auto;" />
+                <img src="https://res.cloudinary.com/di6zff0rd/image/upload/v1757862776/Logo_yjqrwa.png" alt="Rex Vet Logo" width="150" style="display: block; margin: 0 auto;" />
             </div>
         `;
 // this
@@ -50,7 +50,7 @@ export const bookingConfirmationDoctorTemplate = (
 
             <!-- Add logo here -->
             <div style="background-color: #002366; padding: 10px; text-align: center;">
-                <img src="https://res.cloudinary.com/di6zff0rd/image/upload/v1747926532/Logo_debjuj.png" alt="Rex Vet Logo" width="150" style="display: block; margin: 0 auto;" />
+                <img src="https://res.cloudinary.com/di6zff0rd/image/upload/v1757862776/Logo_yjqrwa.png" alt="Rex Vet Logo" width="150" style="display: block; margin: 0 auto;" />
             </div>
         `;
 
@@ -100,7 +100,7 @@ export const rescheduleConfirmationDoctorTemplate = (
           <p>Warm regards,<br>The Team at Rex Vet</p>
         
           <div style="background-color: #002366; padding: 10px; text-align: center;">
-            <img src="https://res.cloudinary.com/di6zff0rd/image/upload/v1747926532/Logo_debjuj.png" alt="Rex Vet Logo" width="150" style="display: block; margin: 0 auto;" />
+            <img src="https://res.cloudinary.com/di6zff0rd/image/upload/v1757862776/Logo_yjqrwa.png" alt="Rex Vet Logo" width="150" style="display: block; margin: 0 auto;" />
           </div>
         `;
 
@@ -138,7 +138,7 @@ export const bookingConfirmationParentTemplate = (
 
             <!-- Add logo here -->
             <div style="background-color: #002366; padding: 10px; text-align: center;">
-                <img src="https://res.cloudinary.com/di6zff0rd/image/upload/v1747926532/Logo_debjuj.png" alt="Rex Vet Logo" width="150" style="display: block; margin: 0 auto;" />
+                <img src="https://res.cloudinary.com/di6zff0rd/image/upload/v1757862776/Logo_yjqrwa.png" alt="Rex Vet Logo" width="150" style="display: block; margin: 0 auto;" />
             </div>
         `;
 
@@ -189,7 +189,7 @@ export const rescheduleConfirmationParentTemplate = (
           <p>Warm regards,<br>The Team at Rex Vet</p>
         
           <div style="background-color: #002366; padding: 10px; text-align: center;">
-            <img src="https://res.cloudinary.com/di6zff0rd/image/upload/v1747926532/Logo_debjuj.png" alt="Rex Vet Logo" width="150" style="display: block; margin: 0 auto;" />
+            <img src="https://res.cloudinary.com/di6zff0rd/image/upload/v1757862776/Logo_yjqrwa.png" alt="Rex Vet Logo" width="150" style="display: block; margin: 0 auto;" />
           </div>
         `;
 
@@ -231,7 +231,7 @@ export const sendAppointmentReminderEmails = (
 
     <!-- Add logo here -->
     <div style="background-color: #002366; padding: 10px; text-align: center;">
-        <img src="https://res.cloudinary.com/di6zff0rd/image/upload/v1747926532/Logo_debjuj.png" alt="Rex Vet Logo" width="150" style="display: block; margin: 0 auto;" />
+        <img src="https://res.cloudinary.com/di6zff0rd/image/upload/v1757862776/Logo_yjqrwa.png" alt="Rex Vet Logo" width="150" style="display: block; margin: 0 auto;" />
     </div>
   `;
 
@@ -273,7 +273,7 @@ export const reminderDoctorTemplate = (
 
     <!-- Add logo here -->
     <div style="background-color: #002366; padding: 10px; text-align: center;">
-        <img src="https://res.cloudinary.com/di6zff0rd/image/upload/v1747926532/Logo_debjuj.png" alt="Rex Vet Logo" width="150" style="display: block; margin: 0 auto;" />
+        <img src="https://res.cloudinary.com/di6zff0rd/image/upload/v1757862776/Logo_yjqrwa.png" alt="Rex Vet Logo" width="150" style="display: block; margin: 0 auto;" />
     </div>
   `;
 
@@ -296,7 +296,7 @@ export const donationThankYouTemplate = (
 <div style="max-width: 700px; margin: 0 auto; background: #ffffff; font-family: Arial, sans-serif; color: #333; border: 1px solid #e0e0e0; border-radius: 10px; overflow: hidden;">
   <!-- Header -->
    <div style="background-color: #002366; padding: 10px; text-align: center;">
-        <img src="https://res.cloudinary.com/di6zff0rd/image/upload/v1747926532/Logo_debjuj.png" alt="Rex Vet Logo" width="150" style="display: block; margin: 0 auto;" />
+        <img src="https://res.cloudinary.com/di6zff0rd/image/upload/v1757862776/Logo_yjqrwa.png" alt="Rex Vet Logo" width="150" style="display: block; margin: 0 auto;" />
     </div>
 
   <!-- Body -->
@@ -784,7 +784,7 @@ export const pharmacyRequestPaymentTemplate = ({
 
       <!-- Banner -->
    <div style="background-color: #002366; padding: 10px; text-align: center;">
-        <img src="https://res.cloudinary.com/di6zff0rd/image/upload/v1747926532/Logo_debjuj.png" alt="Rex Vets Logo" width="150" style="display: block; margin: 0 auto;" />
+        <img src="https://res.cloudinary.com/di6zff0rd/image/upload/v1757862776/Logo_yjqrwa.png" alt="Rex Vets Logo" width="150" style="display: block; margin: 0 auto;" />
     </div>
 
       <!-- Body -->
