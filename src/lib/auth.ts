@@ -18,6 +18,7 @@ const signInSchema = z.object({
 
 export const authOptions = {
   secret: process.env.NEXTAUTH_SECRET,
+  trustHost: true,
   providers: [
     GoogleProvider({
       clientId: config.GOOGLE_CLIENT_ID!,
@@ -164,14 +165,43 @@ export const authOptions = {
   ],
   session: {
     strategy: "jwt" as const,
-    maxAge: 24 * 60 * 60, // 24 hours
-    updateAge: 60 * 60, // 1 hour
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+    updateAge: 24 * 60 * 60, // 24 hours
   },
   jwt: {
-    maxAge: 24 * 60 * 60, // 24 hours
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+  },
+  cookies: {
+    sessionToken: {
+      name: `next-auth.session-token`,
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 30 * 24 * 60 * 60 // 30 days
+      }
+    },
+    callbackUrl: {
+      name: `next-auth.callback-url`,
+      options: {
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production'
+      }
+    },
+    csrfToken: {
+      name: `next-auth.csrf-token`,
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production'
+      }
+    }
   },
   callbacks: {
-    async jwt({ token, user, account }: any) {
+    async jwt({ token, user, account, trigger }: any) {
       // Initial sign in
       if (account && user) {
         token.role = user.role;
@@ -181,6 +211,8 @@ export const authOptions = {
         token.refId = user.refId;
         token.timezone = user.timezone;
         token.accesslist = user.accesslist;
+        token.iat = Math.floor(Date.now() / 1000);
+        token.exp = Math.floor(Date.now() / 1000) + (30 * 24 * 60 * 60); // 30 days
 
         // Console log the JWT token data on initial sign in
         console.log("🔑 JWT Token Data (Initial Sign In):", {
@@ -192,41 +224,45 @@ export const authOptions = {
           timezone: token.timezone,
           accesslist: token.accesslist,
         });
-      } else {
-        // Console log the JWT token data on subsequent calls
-        console.log("🔑 JWT Token Data (Subsequent):", {
-          role: token.role,
-          id: token.id,
-          emailVerified: token.emailVerified,
-          image: token.image,
-          refId: token.refId,
-          timezone: token.timezone,
-          accesslist: token.accesslist,
-        });
+      } else if (trigger === "update") {
+        // Handle token updates (when session is updated)
+        if (user) {
+          token.role = user.role || token.role;
+          token.emailVerified = Boolean(user.emailVerified ?? token.emailVerified);
+          token.image = user.image || token.image;
+          token.refId = user.refId || token.refId;
+          token.timezone = user.timezone || token.timezone;
+          token.accesslist = user.accesslist || token.accesslist;
+        }
       }
 
-      // Return previous token if the access token has not expired yet
+      // Check if token is expired and needs refresh
+      const now = Math.floor(Date.now() / 1000);
+      if (token.exp && now > token.exp) {
+        // Token has expired, return null to force re-authentication
+        return null;
+      }
+
+      // Return the token
       return token;
     },
     async session({ session, token }: any) {
       if (token) {
+        // Ensure all required fields are present
         session.user = {
           ...session.user,
           id: token.id as string,
           role: token.role as string,
-          emailVerified: token.emailVerified as boolean,
+          emailVerified: Boolean(token.emailVerified),
           image: token.image as string,
           refId: token.refId as string,
           timezone: token.timezone as string,
-          accesslist: token.accesslist as string[],
+          accesslist: token.accesslist as string[] || [],
         };
+        
+        // Set session expiry to match token expiry
+        session.expires = new Date(token.exp * 1000).toISOString();
       }
-
-      // // Console log the session data
-      // console.log("🔍 Session Data:", {
-      //   user: session.user,
-      //   expires: session.expires
-      // });
 
       return session;
     },
@@ -346,7 +382,7 @@ export const authOptions = {
       console.log("User signed out:", session?.user?.email);
     },
   },
-  debug: false,
+  debug: process.env.NODE_ENV === 'development',
 };
 
 // export default NextAuth(authOptions);

@@ -14,6 +14,7 @@ import { Suspense } from "react";
 import { Toaster } from "sonner";
 import "./globals.css";
 import Loader from "@/components/shared/Loader";
+import SessionDebugger from "@/components/SessionDebugger";
 
 const garet = localFont({
   src: [
@@ -424,6 +425,9 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         <RootLayoutProvider>
+          {/* Session Debugger */}
+          <SessionDebugger />
+          
           {/* Google Tag Manager NoScript */}
           <GoogleTagManagerNoScript />
 

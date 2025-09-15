@@ -31,7 +31,8 @@ import {
   UserCircle,
   Video,
 } from "lucide-react";
-import { signOut, useSession } from "next-auth/react";
+import { signOut } from "next-auth/react";
+import { useSessionStable } from "@/hooks/useSessionStable";
 import Image from "next/image";
 import Link from "next/link";
 import React, { useEffect, useRef, useState } from "react";
@@ -67,8 +68,8 @@ const Header: React.FC = () => {
   const [isSLotAvailable, setIsSLotAvailable] = useState(false);
   const [showDebugBanner, setShowDebugBanner] = useState(false);
 
-  const { data: session, status } = useSession();
-console.log("session from navbar", session);
+  const { data: session, status, isInitialized } = useSessionStable();
+  console.log("session from navbar", session);
   // const session = {
   //   user: {
   //     name: "Anik",
@@ -187,7 +188,7 @@ console.log("session from navbar", session);
   }, [session]);
 
   // Avoid UI flicker while session is loading
-  if (status === "loading") {
+  if (status === "loading" || !isInitialized) {
     return (
       <>
         {showDebugBanner && (

@@ -101,6 +101,10 @@ export default withAuth(
 
       const res = NextResponse.next();
       res.headers.set("user", JSON.stringify(userData));
+      // Add security headers for better session handling
+      res.headers.set('X-Frame-Options', 'DENY');
+      res.headers.set('X-Content-Type-Options', 'nosniff');
+      res.headers.set('Referrer-Policy', 'origin-when-cross-origin');
       return res;
     }
 
@@ -120,15 +124,29 @@ export default withAuth(
 
       const res = NextResponse.next();
       res.headers.set("user", JSON.stringify(userData));
+      // Add security headers for better session handling
+      res.headers.set('X-Frame-Options', 'DENY');
+      res.headers.set('X-Content-Type-Options', 'nosniff');
+      res.headers.set('Referrer-Policy', 'origin-when-cross-origin');
       return res;
     }
 
-    return NextResponse.next();
+    // Add security headers to all responses
+    const res = NextResponse.next();
+    res.headers.set('X-Frame-Options', 'DENY');
+    res.headers.set('X-Content-Type-Options', 'nosniff');
+    res.headers.set('Referrer-Policy', 'origin-when-cross-origin');
+    return res;
   },
   {
     callbacks: {
       authorized: ({ token, req }) => {
         const { pathname } = req.nextUrl;
+
+        // Always allow access to NextAuth internal routes
+        if (pathname.startsWith("/api/auth")) {
+          return true;
+        }
 
         // Allow access to admin routes only if user has admin or moderator role
         if (adminRoutes.some((route) => pathname.startsWith(route))) {
