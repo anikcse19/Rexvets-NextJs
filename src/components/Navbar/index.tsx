@@ -65,6 +65,7 @@ const Header: React.FC = () => {
   const [scrolled, setScrolled] = useState(false);
   const [visible, setVisible] = useState(true);
   const [isSLotAvailable, setIsSLotAvailable] = useState(false);
+  const [showDebugBanner, setShowDebugBanner] = useState(false);
 
   const { data: session, status } = useSession();
   console.log("session from navbar", session);
@@ -84,6 +85,14 @@ const Header: React.FC = () => {
 
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // Enable lightweight debug banner with ?debugSession=1
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      setShowDebugBanner(params.get("debugSession") === "1");
+    } catch (_) {}
   }, []);
 
   const handleMouseEnter = (key: string) => {
@@ -178,7 +187,15 @@ const Header: React.FC = () => {
 
   // Avoid UI flicker while session is loading
   if (status === "loading") {
-    return null;
+    return (
+      <>
+        {showDebugBanner && (
+          <div className="fixed top-0 left-0 right-0 z-[100000] text-xs text-white bg-amber-700 px-3 py-1">
+            Session status: loading
+          </div>
+        )}
+      </>
+    );
   }
 
   return (
