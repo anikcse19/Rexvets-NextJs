@@ -4,6 +4,8 @@ import { AppointmentSlot } from "@/models/AppointmentSlot";
 import moment from "moment-timezone";
 import { NextRequest, NextResponse } from "next/server";
 import { getSlotsByNoticePeriodAndDateRangeByVetId } from "../appointments/booking/slot/slot.util";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 /**
  * GET /api/veterinarian
@@ -19,6 +21,7 @@ import { getSlotsByNoticePeriodAndDateRangeByVetId } from "../appointments/booki
  */
 export async function GET(req: NextRequest) {
   try {
+    const session = await getServerSession(authOptions);
     console.log("Connecting to database...");
     console.log(
       "MongoDB URI (first 20 chars):",
@@ -57,14 +60,19 @@ export async function GET(req: NextRequest) {
       // Temporarily removed filters to debug
       // isActive: true,
       // isDeleted: { $ne: true },
+      // status: session?.user?.role !== "admin" ? "approved" : "",
     };
 
-    // Do not force approval by default; allow optional filtering via `approved`
-    if (approvedParam === "true") {
-      filter.isApproved = true;
-    } else if (approvedParam === "false") {
-      filter.isApproved = false;
+    if (session?.user?.role !== "admin") {
+      filter.status = "approved";
     }
+
+    // Do not force approval by default; allow optional filtering via `approved`
+    // if (approvedParam === "true") {
+    //   filter.isApproved = true;
+    // } else if (approvedParam === "false") {
+    //   filter.isApproved = false;
+    // }
 
     if (q) {
       filter.name = { $regex: q, $options: "i" };
@@ -131,6 +139,7 @@ export async function GET(req: NextRequest) {
       string,
       { todaysCount: number; nextAvailableSlots: any[] }
     >();
+
     const vetResults = await Promise.all(
       veterinarians.map(async (vet: any) => {
         const tz = vet.timezone || "UTC";
@@ -192,18 +201,18 @@ export async function GET(req: NextRequest) {
       {
         $match: {
           veterinarian: { $in: vetIds },
-          isDeleted: false
-        }
+          isDeleted: false,
+        },
       },
       {
         $group: {
           _id: "$veterinarian",
           appointmentCount: { $sum: 1 },
           completedAppointments: {
-            $sum: { $cond: [{ $eq: ["$status", "completed"] }, 1, 0] }
-          }
-        }
-      }
+            $sum: { $cond: [{ $eq: ["$status", "completed"] }, 1, 0] },
+          },
+        },
+      },
     ]);
 
     // Create a map for quick lookup
@@ -211,7 +220,7 @@ export async function GET(req: NextRequest) {
     appointmentCounts.forEach((count) => {
       appointmentCountMap.set(count._id.toString(), {
         totalAppointments: count.appointmentCount,
-        completedAppointments: count.completedAppointments
+        completedAppointments: count.completedAppointments,
       });
     });
 
@@ -220,16 +229,16 @@ export async function GET(req: NextRequest) {
         const s = slotByVet.get(vet._id.toString());
         const appointmentData = appointmentCountMap.get(vet._id.toString()) || {
           totalAppointments: 0,
-          completedAppointments: 0
+          completedAppointments: 0,
         };
-        
+
         return {
           ...vet,
           todaysCount: s?.todaysCount || 0,
           nextAvailableSlots: s?.nextAvailableSlots || [],
           appointments: Array(appointmentData.totalAppointments).fill(null), // Create array for length
           appointmentCount: appointmentData.totalAppointments,
-          completedAppointments: appointmentData.completedAppointments
+          completedAppointments: appointmentData.completedAppointments,
         };
       })
       .filter((v: any) => {
