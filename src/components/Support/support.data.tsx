@@ -40,6 +40,6 @@ export const supportOptions: ISupportOption[] = [
     description:
       "Send us detailed questions about platform features, account issues, or technical problems for comprehensive support.",
     action: "Email Us",
-    href: "mailto:support@rexvets.com?subject=Support Request&body=Describe your issue here",
+    href: "mailto:support@rexvet.org?subject=Support Request&body=Describe your issue here",
   },
 ];

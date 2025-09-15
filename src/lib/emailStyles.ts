@@ -27,7 +27,7 @@ export const headerTemplate = `
 
 export const footerTemplate = `
   <div class="footer">
-    <img class="logo" src="https://res.cloudinary.com/di6zff0rd/image/upload/v1752576755/logo_srruel.webp" alt="Rex Vets Logo" />
+    <img class="logo" src="https://res.cloudinary.com/di6zff0rd/image/upload/v1757862776/Logo_yjqrwa.png" alt="Rex Vets Logo" />
   </div>
 `;
 

@@ -16,6 +16,7 @@ export async function PATCH(req: NextRequest) {
           success: false,
           message: "notificationIds must be a non-empty array",
           errorCode: "INVALID_NOTIFICATION_IDS",
+          errors: null,
         },
         400
       );

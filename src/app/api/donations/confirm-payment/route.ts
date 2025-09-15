@@ -136,6 +136,9 @@ export async function POST(request: NextRequest) {
           donationAmount: donation.donationAmount,
           donationType: donation.donationType,
           isRecurring: donation.isRecurring,
+          donorName: donation.donorName,
+          donorEmail: donation.donorEmail,
+          paymentMethod: paymentMethod,
         },
         subTitle: "🙏Thank You for Your Donation!",
         body: `Thank you for your generous ${
@@ -178,7 +181,9 @@ export async function POST(request: NextRequest) {
             donationId: donation._id,
             subscriptionAmount: donation.donationAmount, // Required field
             startDate: new Date(),
-            endDate: new Date(new Date().setFullYear(new Date().getFullYear() + 1)), // 1 year from now
+            endDate: new Date(
+              new Date().setFullYear(new Date().getFullYear() + 1)
+            ), // 1 year from now
             maxAppointments: 4, // Required field
             remainingAppointments: 4, // Required field
             appointmentIds: [], // Required field

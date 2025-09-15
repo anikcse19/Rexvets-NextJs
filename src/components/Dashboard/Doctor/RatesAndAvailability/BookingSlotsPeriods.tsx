@@ -162,6 +162,7 @@ const BookingSlotsPeriods: React.FC<BookingSlotsProps> = ({
       year: "numeric",
       month: "long",
       day: "numeric",
+      timeZone: userTimezone,
     });
   };
 
@@ -171,7 +172,7 @@ const BookingSlotsPeriods: React.FC<BookingSlotsProps> = ({
       slot.startTime,
       slot.endTime,
       slot.date,
-      slot.timezone || "UTC"
+      getUserTimezone()
     );
 
     return `${formattedStartTime} - ${formattedEndTime}`;
