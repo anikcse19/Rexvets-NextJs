@@ -171,13 +171,10 @@ const Header: React.FC = () => {
     }
   }, [session]);
 
-  // Debug session state
-  console.log("Navbar - Session status:", status, "Session data:", session);
-
-  // Force re-render when session changes
-  useEffect(() => {
-    console.log("Session changed in Navbar:", { status, session });
-  }, [status, session]);
+  // Avoid UI flicker while session is loading
+  if (status === "loading") {
+    return null;
+  }
 
   return (
     <>
