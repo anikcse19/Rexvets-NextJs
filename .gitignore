@@ -39,7 +39,9 @@ firebase.js
 # vercel
 .vercel
 
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
 log.txt
+daily-log.txt

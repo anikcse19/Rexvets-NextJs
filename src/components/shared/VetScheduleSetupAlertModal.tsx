@@ -22,7 +22,7 @@ export default function VetScheduleSetupAlertModal({
   return (
     <Dialog open={open} onOpenChange={() => {}}>
       <DialogContent
-        className="sm:max-w-md rounded-2xl shadow-xl bg-white"
+        className="sm:max-w-md rounded-2xl shadow-xl bg-white [&>button]:hidden"
         // prevent closing on outside click or ESC
         onInteractOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
