@@ -722,6 +722,9 @@ const TimeSlotCreator = ({
                             ? "border-gray-200 bg-white hover:border-gray-300"
                             : "border-blue-300 bg-gradient-to-br from-blue-50 to-indigo-50"
                         } ${!isValidSlot(slot) ? "border-red-300 bg-red-50" : ""}`}
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => toggleSlotSelection(slot.id)}
                       >
                         {/* Selection Checkbox */}
                         <div className="absolute top-2 right-2">
@@ -734,20 +737,20 @@ const TimeSlotCreator = ({
  
                         {/* Header */}
                         <div className="flex items-center justify-between mb-2">
-                          <h3 className="font-semibold text-sm text-gray-800 truncate">
-                            #{index + 1}
-                          </h3>
-                          <span
-                            className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium border ${
-                              slot.isExisting
-                                ? "bg-blue-50 text-blue-700 border-blue-200"
-                                : isValidSlot(slot)
-                                ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                                : "bg-red-50 text-red-700 border-red-200"
-                            }`}
-                          >
-                            {slot.isExisting ? "Existing" : isValidSlot(slot) ? "New" : "Invalid"}
-                          </span>
+                          <div className="flex items-center gap-3">
+                            <h3 className="font-semibold text-sm text-gray-800 truncate">#{index + 1}</h3>
+                            <span
+                              className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium border ${
+                                slot.isExisting
+                                  ? "bg-blue-50 text-blue-700 border-blue-200"
+                                  : isValidSlot(slot)
+                                  ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                  : "bg-red-50 text-red-700 border-red-200"
+                              }`}
+                            >
+                              {slot.isExisting ? "Existing" : isValidSlot(slot) ? "New" : "Invalid"}
+                            </span>
+                          </div>
                         </div>
  
                         {/* Date Display */}
@@ -835,6 +838,7 @@ const TimeSlotCreator = ({
                                         )
                                       );
                                     }}
+                                    onClick={(e) => e.stopPropagation()}
                                     disabled={savingSlotId === slot.id}
                                     className={`w-full px-2 py-1 text-xs border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 ${
                                       savingSlotId === slot.id
@@ -859,6 +863,7 @@ const TimeSlotCreator = ({
                                         )
                                       );
                                     }}
+                                    onClick={(e) => e.stopPropagation()}
                                     disabled={savingSlotId === slot.id}
                                     className={`w-full px-2 py-1 text-xs border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 ${
                                       savingSlotId === slot.id
@@ -890,7 +895,8 @@ const TimeSlotCreator = ({
                                 variant="default"
                                 size="sm"
                                 disabled={savingSlotId === slot.id}
-                                onClick={() => {
+                                onClick={(e) => {
+                                  e.stopPropagation();
                                   saveIndividualPeriod(slot.id);
                                 }}
                                 className={`inline-flex items-center justify-center px-3 py-1.5 h-7 rounded-md text-white text-xs font-medium shadow-sm bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:from-emerald-700 hover:via-teal-700 hover:to-cyan-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-colors ${
@@ -918,7 +924,8 @@ const TimeSlotCreator = ({
                               variant="ghost"
                               size="sm"
                               disabled={savingSlotId === slot.id}
-                              onClick={() => {
+                              onClick={(e) => {
+                                e.stopPropagation();
                                 console.log("SLOT PERIOD:", slot);
                                 removeSlot(slot.id);
                               }}
