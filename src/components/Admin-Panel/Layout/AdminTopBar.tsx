@@ -15,6 +15,8 @@ import { formatDistanceToNow } from "date-fns";
 import { Bell, LogOut, Menu, Moon, Sun } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import { useTheme } from "next-themes";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 interface TopbarProps {
@@ -40,7 +42,7 @@ const AdminTopBar = ({ onMenuClick }: TopbarProps) => {
   const [mounted, setMounted] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(false);
-
+  const router = useRouter();
   const { data: session } = useSession();
   console.log("data", session);
 
@@ -201,6 +203,20 @@ const AdminTopBar = ({ onMenuClick }: TopbarProps) => {
                 notifications?.map((notification) => {
                   const isNotificationDonation =
                     notification?.type === NotificationType.NEW_DONATION;
+                  const isNotificationSignup =
+                    notification?.type === NotificationType.NEW_SIGNUP;
+                  const vetId =
+                    isNotificationSignup && notification?.data?.veterinarianId
+                      ? notification?.data?.veterinarianId
+                      : "";
+                  if (isNotificationSignup) {
+                    console.log("notification", notification);
+                  }
+                  const petParentId =
+                    isNotificationSignup && notification?.data?.petParentId
+                      ? notification?.data?.petParentId
+                      : "";
+
                   return (
                     <div
                       key={notification._id}
@@ -211,21 +227,50 @@ const AdminTopBar = ({ onMenuClick }: TopbarProps) => {
                       }`}
                     >
                       {!isNotificationDonation ? (
-                        <>
-                          <p className="text-sm font-medium text-gray-800 dark:text-gray-100">
-                            {notification?.title}
-                          </p>
-                          {notification.body && (
-                            <p className="text-xs text-gray-600 dark:text-gray-300 mt-1">
-                              {notification.body}
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium text-gray-800 dark:text-gray-100">
+                              {notification?.title}
                             </p>
-                          )}
-                        </>
+                            {notification.body && (
+                              <p className="text-xs text-gray-600 dark:text-gray-300 mt-1">
+                                {notification.body}
+                              </p>
+                            )}
+                          </div>
+                          {(isNotificationSignup && petParentId) || vetId ? (
+                            // <Link
+                            //   href={vetId ? `/admin/vets/${vetId}` : "/admin/vets"}
+                            //   className="shrink-0"
+                            // >
+                            <Button
+                              onClick={() => {
+                                if (vetId) {
+                                  router.push(
+                                    `/admin/doctors/vets?vetId=${vetId}`
+                                  );
+                                  return;
+                                }
+                                if (petParentId) {
+                                  router.push(
+                                    `/admin/pet-parents/list?parentId=${petParentId}`
+                                  );
+                                }
+                              }}
+                              size="sm"
+                              variant="outline"
+                              className=" cursor-pointer text-blue-700 border-blue-200 hover:bg-blue-50"
+                            >
+                              Visit {vetId ? "vet" : "parent"} profile
+                            </Button>
+                          ) : // </Link>
+                          null}
+                        </div>
                       ) : (
                         <>
                           <p>
                             A new ${notification?.data?.donationAmount} donation
-                            has come from
+                            has come from{" "}
                             {notification?.data?.donorName || "----"}
                           </p>
                         </>

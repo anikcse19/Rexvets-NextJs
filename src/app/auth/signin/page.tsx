@@ -61,136 +61,63 @@ export default function SignInPage() {
     };
   }, []);
 
-  // const handleSubmit = async (e: React.FormEvent) => {
-  //   e.preventDefault();
-  //   setIsLoading(true);
-  //   setError(""); // Clear previous errors
-
-  //   try {
-  //     const result = await signIn("credentials", {
-  //       email,
-  //       password,
-  //       // redirect: false,
-  //     });
-
-  //     if (result?.ok) {
-  //    console.log("Sign-in successful, redirecting...", result);
-  //    router.push(redirect);
-  //     } else {
-  //       // Handle different error cases
-  //       if (result?.error === "CredentialsSignin") {
-  //         // Check if this might be a Google OAuth account
-  //         // We'll make an additional check to see if the email exists in the database
-  //         try {
-  //           const checkResponse = await fetch(
-  //             `/api/check-email?email=${encodeURIComponent(email)}`
-  //           );
-  //           if (checkResponse.ok) {
-  //             const checkData = await checkResponse.json();
-  //             if (checkData.isGoogleAccount) {
-  //               setError(
-  //                 "This email is linked to a Google account. Please sign in using the 'Continue with Google' button instead of email and password."
-  //               );
-  //             } else {
-  //               setError("Invalid email or password. Please try again.");
-  //             }
-  //           } else {
-  //             setError("Invalid email or password. Please try again.");
-  //           }
-  //         } catch {
-  //           setError("Invalid email or password. Please try again.");
-  //         }
-  //       } else if (result?.error === "AccountLocked") {
-  //         setError(
-  //           "Account is temporarily locked due to too many failed attempts. Please try again later."
-  //         );
-  //       } else if (result?.error === "AccountDeactivated") {
-  //         setError("Account is deactivated. Please contact support.");
-  //       } else if (result?.error === "EmailNotVerified") {
-  //         setError("Please verify your email address before signing in.");
-  //       } else if (result?.error?.includes("Database connection failed")) {
-  //         setError("Service temporarily unavailable. Please try again later.");
-  //       } else if (result?.error?.includes("linked to a Google account")) {
-  //         setError(
-  //           "This email is linked to a Google account. Please sign in using the 'Continue with Google' button instead of email and password."
-  //         );
-  //       } else {
-  //         setError(
-  //           "Sign in failed. Please check your credentials and try again."
-  //         );
-  //       }
-  //     }
-  //   } catch {
-  //     setError("An unexpected error occurred. Please try again.");
-  //   } finally {
-  //     setIsLoading(false);
-  //   }
-  // };
-
-  // const handleGoogleSignIn = async () => {
-  //   setGoogleLoading(true);
-  //   setError(""); // Clear previous errors
-  //   try {
-  //     const result = await signIn("google", {
-  //       redirect: false,
-  //     });
-
-  //     if (result?.ok) {
-  //       console.log("Google sign-in successful, redirecting...");
-  //       let updatedSession: any = null;
-  //       try { updatedSession = await update(); } catch {}
-  //       const role = updatedSession?.user?.role || session?.user?.role;
-  //       // Append a small flag so navbar can force-refresh session once
-  //       const targetUrl = (redirect && redirect !== "/")
-  //         ? redirect
-  //         : (role === "admin" || role === "moderator")
-  //         ? "/admin/overview?signedin=1"
-  //         : "/?signedin=1";
-  //       console.log("Redirecting to:", targetUrl);
-  //       await new Promise((r) => setTimeout(r, 50));
-  //       router.replace(targetUrl);
-  //     } else {
-  //       setError("Google sign-in failed. Please try again.");
-  //     }
-  //   } catch {
-  //     setError("Google sign-in failed. Please try again.");
-  //   } finally {
-  //     setGoogleLoading(false);
-  //   }
-  // };
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setError("");
+    setError(""); // Clear previous errors
 
     try {
       const result = await signIn("credentials", {
         email,
         password,
-        redirect: false, // important: don’t auto redirect
+        // redirect: false,
       });
 
       if (result?.ok) {
-        console.log("Sign-in successful, updating session...");
-        let updatedSession: any = null;
-        try {
-          updatedSession = await update(); // refresh session immediately
-        } catch {}
-
-        const role = updatedSession?.user?.role || session?.user?.role;
-        const targetUrl =
-          redirect && redirect !== "/"
-            ? redirect
-            : role === "admin" || role === "moderator"
-            ? "/admin/overview?signedin=1"
-            : "/?signedin=1";
-
-        router.replace(targetUrl);
+        console.log("Sign-in successful, redirecting...", result);
+        router.push(redirect);
       } else {
+        // Handle different error cases
         if (result?.error === "CredentialsSignin") {
-          setError("Invalid email or password. Please try again.");
+          // Check if this might be a Google OAuth account
+          // We'll make an additional check to see if the email exists in the database
+          try {
+            const checkResponse = await fetch(
+              `/api/check-email?email=${encodeURIComponent(email)}`
+            );
+            if (checkResponse.ok) {
+              const checkData = await checkResponse.json();
+              if (checkData.isGoogleAccount) {
+                setError(
+                  "This email is linked to a Google account. Please sign in using the 'Continue with Google' button instead of email and password."
+                );
+              } else {
+                setError("Invalid email or password. Please try again.");
+              }
+            } else {
+              setError("Invalid email or password. Please try again.");
+            }
+          } catch {
+            setError("Invalid email or password. Please try again.");
+          }
+        } else if (result?.error === "AccountLocked") {
+          setError(
+            "Account is temporarily locked due to too many failed attempts. Please try again later."
+          );
+        } else if (result?.error === "AccountDeactivated") {
+          setError("Account is deactivated. Please contact support.");
+        } else if (result?.error === "EmailNotVerified") {
+          setError("Please verify your email address before signing in.");
+        } else if (result?.error?.includes("Database connection failed")) {
+          setError("Service temporarily unavailable. Please try again later.");
+        } else if (result?.error?.includes("linked to a Google account")) {
+          setError(
+            "This email is linked to a Google account. Please sign in using the 'Continue with Google' button instead of email and password."
+          );
         } else {
-          setError("Sign in failed. Please check your credentials.");
+          setError(
+            "Sign in failed. Please check your credentials and try again."
+          );
         }
       }
     } catch {
@@ -202,24 +129,28 @@ export default function SignInPage() {
 
   const handleGoogleSignIn = async () => {
     setGoogleLoading(true);
-    setError("");
+    setError(""); // Clear previous errors
     try {
-      const result = await signIn("google", { redirect: false });
+      const result = await signIn("google", {
+        redirect: false,
+      });
+
       if (result?.ok) {
-        console.log("Google sign-in successful, updating session...");
+        console.log("Google sign-in successful, redirecting...");
         let updatedSession: any = null;
         try {
-          updatedSession = await update(); // refresh session immediately
+          updatedSession = await update();
         } catch {}
-
         const role = updatedSession?.user?.role || session?.user?.role;
+        // Append a small flag so navbar can force-refresh session once
         const targetUrl =
           redirect && redirect !== "/"
             ? redirect
             : role === "admin" || role === "moderator"
             ? "/admin/overview?signedin=1"
             : "/?signedin=1";
-
+        console.log("Redirecting to:", targetUrl);
+        await new Promise((r) => setTimeout(r, 50));
         router.replace(targetUrl);
       } else {
         setError("Google sign-in failed. Please try again.");
