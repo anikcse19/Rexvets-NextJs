@@ -34,13 +34,7 @@ import { AlertTriangle, Calendar, Clock, Globe } from "lucide-react";
 import moment from "moment";
 import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
-import React, {
-  useCallback,
-  useDeferredValue,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import React, { useCallback, useDeferredValue, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 const TimeSlotCreator = dynamic(
@@ -290,9 +284,9 @@ const AvailabilityManager: React.FC = () => {
 
           <div className=" flex items-center justify-end absolute top-[178px] right-3 md:top-[190px] md:right-7 z-50">
             <Button
-              className="  cursor-pointer"
+              className="cursor-pointer bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white shadow-md hover:shadow-lg hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-60 disabled:cursor-not-allowed"
               disabled={availableSlotsApiResponse.loading}
-              variant="outline"
+              variant="default"
               onClick={() => setIsTimePeriodOpen(true)}
             >
               {hasExistingSlots
