@@ -1,5 +1,6 @@
+import { VeterinarianStatus } from "@/lib/constants/veterinarian";
 import { connectToDatabase } from "@/lib/mongoose";
-import { VeterinarianModel, AppointmentModel } from "@/models";
+import { AppointmentModel, VeterinarianModel } from "@/models";
 import { AppointmentSlot } from "@/models/AppointmentSlot";
 import moment from "moment-timezone";
 import { NextRequest, NextResponse } from "next/server";
@@ -34,9 +35,11 @@ export async function GET(req: NextRequest) {
       100
     );
     const q = (searchParams.get("q") || searchParams.get("name") || "").trim();
+    const search = (searchParams.get("search") || "").trim();
     const specialization = (searchParams.get("specialization") || "").trim();
     const availableParam = searchParams.get("available");
     const approvedParam = searchParams.get("approved");
+    const status = (searchParams.get("status") || "").trim();
     const speciality = (searchParams.get("speciality") || "").trim();
     const treatedSpecies = (searchParams.get("treatedSpecies") || "").trim();
     const interest = (searchParams.get("interest") || "").trim();
@@ -68,6 +71,27 @@ export async function GET(req: NextRequest) {
 
     if (q) {
       filter.name = { $regex: q, $options: "i" };
+    }
+    
+    // Enhanced search functionality for admin panel
+    if (search) {
+      filter.$or = [
+        { firstName: { $regex: search, $options: "i" } },
+        { lastName: { $regex: search, $options: "i" } },
+        { email: { $regex: search, $options: "i" } },
+        { name: { $regex: search, $options: "i" } }
+      ];
+    }
+    
+    // Status filtering for admin panel
+    if (status && status !== "all") {
+      if (status === VeterinarianStatus.APPROVED) {
+        filter.isApproved = true;
+      } else if (status === VeterinarianStatus.PENDING) {
+        filter.isApproved = false;
+      } else if (status === VeterinarianStatus.SUSPENDED) {
+        filter.isSuspended = true;
+      }
     }
     if (specialization) {
       filter.specialization = specialization;
@@ -284,6 +308,14 @@ export async function GET(req: NextRequest) {
       success: true,
       message: "Veterinarians retrieved successfully",
       data: items,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit),
+        hasNext: page < Math.ceil(total / limit),
+        hasPrev: page > 1
+      }
     });
 
     // return NextResponse.json({

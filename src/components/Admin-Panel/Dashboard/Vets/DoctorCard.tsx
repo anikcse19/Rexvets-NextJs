@@ -1,36 +1,35 @@
 "use client";
 
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  Phone,
-  Mail,
-  MapPin,
-  Eye,
-  Edit,
-  FileText,
-  ShieldCheck,
-  Ellipsis,
-  Check,
-  Ban,
-} from "lucide-react";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Rating } from "react-simple-star-rating";
+import { VeterinarianStatus } from "@/lib/constants/veterinarian";
 import { Doctor } from "@/lib/types";
-
-type ApprovalStatus = "approved" | "pending" | "suspended";
+import {
+  Ban,
+  Check,
+  Edit,
+  Ellipsis,
+  Eye,
+  FileText,
+  Mail,
+  MapPin,
+  Phone,
+  ShieldCheck,
+} from "lucide-react";
+import { Rating } from "react-simple-star-rating";
 
 interface DoctorCardProps {
   doctor: Doctor;
   onViewDetails: (doctor: Doctor) => void;
-  handleStatusChange: (id: string, status: ApprovalStatus) => void;
+  handleStatusChange: (id: string, status: VeterinarianStatus) => void;
 }
 
 export function DoctorCard({
@@ -63,7 +62,7 @@ export function DoctorCard({
             <Avatar className="w-16 h-16">
               <AvatarImage src={doctor.profileImage} alt={doctor.firstName} />
               <AvatarFallback className="text-lg dark:text-white">
-                {doctor.firstName[0] + doctor.lastName[0]}
+                {(doctor.firstName?.[0] || '') + (doctor.lastName?.[0] || '')}
               </AvatarFallback>
             </Avatar>
             <div>
@@ -115,11 +114,11 @@ export function DoctorCard({
               <DropdownMenuItem onClick={() => onViewDetails(doctor)}>
                 <Eye className="w-4 h-4 mr-2" /> View Details
               </DropdownMenuItem>
-              {doctor?.status === "suspended" ||
-              doctor?.status === "pending" ? (
+              {doctor?.status === VeterinarianStatus.SUSPENDED ||
+              doctor?.status === VeterinarianStatus.PENDING ? (
                 <DropdownMenuItem
                   onClick={() => {
-                    handleStatusChange(doctor?._id, "approved");
+                    handleStatusChange(doctor?._id, VeterinarianStatus.APPROVED);
                   }}
                 >
                   <Check className="w-4 h-4 mr-2" /> Approve Profile
@@ -127,7 +126,7 @@ export function DoctorCard({
               ) : (
                 <DropdownMenuItem
                   onClick={() => {
-                    handleStatusChange(doctor?._id, "suspended");
+                    handleStatusChange(doctor?._id, VeterinarianStatus.SUSPENDED);
                   }}
                 >
                   <Ban className="w-4 h-4 mr-2" /> Suspend Profile
