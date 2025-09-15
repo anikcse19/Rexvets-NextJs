@@ -8,7 +8,7 @@ export type { IPetParent, IPetParentModel } from "./PetParent";
 export { default as ReviewModel } from "./Review";
 export type { IReview, IReviewModel } from "./Review";
 
-export { default as VeterinarianModel } from "./Veterinarian";
+export { Gender, default as VeterinarianModel, VeterinarianStatus } from "./Veterinarian";
 export type { IVeterinarian, IVeterinarianModel } from "./Veterinarian";
 
 export { default as VetTechModel } from "./VetTech";
@@ -21,7 +21,7 @@ export {
   AppointmentModel,
   AppointmentStatus,
   AppointmentType,
-  PaymentStatus,
+  PaymentStatus
 } from "./Appointment";
 export type { IAppointment } from "./Appointment";
 
@@ -50,10 +50,11 @@ export { MessageModel } from "./Message";
 
 export {
   AppointmentChatModel,
-  AppointmentMessageModel,
+  AppointmentMessageModel
 } from "./AppointmentChat";
 export type { IAppointmentChat, IAppointmentMessage } from "./AppointmentChat";
 
 // Notifications
 export { default as NotificationModel, NotificationType } from "./Notification";
 export type { INotification, INotificationModel } from "./Notification";
+

@@ -954,3 +954,59 @@ Best regards,
 Admin Team
 `;
 }
+
+// Vet profile info request template
+export const vetProfileInfoRequestTemplate = ({
+  doctorName,
+  missingFields,
+}: {
+  doctorName: string;
+  missingFields: string[];
+}) => {
+  const humanized = missingFields.map((f) => {
+    switch (f) {
+      case "license":
+        return "License details";
+      case "clinicName":
+        return "Clinic name";
+      case "clinicAddress":
+        return "Clinic address";
+      default:
+        return f;
+    }
+  });
+  const list = humanized.length
+    ? `<ul style="margin: 12px 0 18px;">${humanized
+        .map((f) => `<li>${f}</li>`)
+        .join("")}</ul>`
+    : "";
+  return `
+  <!DOCTYPE html>
+  <html>
+    <head>
+      <meta charset="utf-8" />
+      <title>Action Required: Complete Your Profile</title>
+      <style>
+        body { font-family: Arial, sans-serif; color: #111; }
+        .wrap { max-width: 640px; margin: 0 auto; border: 1px solid #eee; border-radius: 8px; overflow: hidden; }
+        .header { background: #002366; color: #fff; padding: 16px; text-align: center; }
+        .content { padding: 20px; }
+        .footer { background: #f5f5f5; color: #666; padding: 10px; text-align: center; font-size: 12px; }
+      </style>
+    </head>
+    <body>
+      <div class="wrap">
+        <div class="header">RexVet</div>
+        <div class="content">
+          <h2>Action required: complete your profile</h2>
+          <p>Dear ${doctorName || "Doctor"},</p>
+          <p>We noticed some information appears to be missing from your profile. Please review and update the following to help pet parents trust and book with you:</p>
+          ${list}
+          <p>Thank you for keeping your profile up to date.</p>
+          <p>— The RexVet Team</p>
+        </div>
+        <div class="footer">© ${new Date().getFullYear()} RexVet</div>
+      </div>
+    </body>
+  </html>`;
+};
