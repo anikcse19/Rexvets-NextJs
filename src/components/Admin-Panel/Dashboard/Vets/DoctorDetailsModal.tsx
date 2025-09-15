@@ -59,6 +59,19 @@ export function DoctorDetailsModal({
     }
   };
 
+  const getSlotStatusClasses = (status: string) => {
+    switch (status) {
+      case SlotStatus.AVAILABLE:
+        return "bg-green-50 text-green-700 border-green-200 hover:bg-green-100";
+      case SlotStatus.BOOKED:
+        return "bg-red-50 text-red-700 border-red-200 line-through opacity-70";
+      case SlotStatus.DISABLED:
+        return "bg-gray-100 text-gray-500 border-gray-200 opacity-70";
+      default:
+        return "bg-slate-50 text-slate-700 border-slate-200";
+    }
+  };
+
   const getSlots = useCallback(
     async (startDate: string, endDate: string, refId: string) => {
       if (!refId) {
@@ -205,37 +218,63 @@ export function DoctorDetailsModal({
                   Weekly Schedule
                 </CardTitle>
               </CardHeader>
-              {/* <CardContent>
-                <div className="grid grid-cols-1 gap-2">
-                  {doctor?.Schedule?.map((schedule: ScheduleEntry) => (
-                    <div
-                      key={schedule.day}
-                      className="flex items-center justify-between p-3 rounded-lg border"
-                    >
-                      <span className="font-medium">{schedule?.day}</span>
-                      {schedule?.checked ? (
-                        <div className="flex flex-col gap-2">
-                          {schedule?.timings?.map(
-                            (timing: Timing, i: number) => (
-                              <div
-                                key={i}
-                                className="flex items-center gap-2 text-green-600"
-                              >
-                                <Clock className="w-4 h-4" />
-                                <span>
-                                  {timing?.from} - {timing?.until}
-                                </span>
-                              </div>
-                            )
+              <CardContent>
+                {!slots || slots.length === 0 ? (
+                  <p className="text-sm text-gray-500 dark:text-gray-400">No slots found for this week.</p>
+                ) : (
+                  <div className="space-y-5">
+                    {slots.map((group: any, groupIdx: number) => {
+                      const dateLabel = group?.date?.start
+                        ? format(new Date(group.date.start), "EEE, MMM d")
+                        : `Day ${groupIdx + 1}`;
+                      return (
+                        <div key={groupIdx} className="border rounded-lg p-4 dark:border-slate-600">
+                          <div className="flex items-center gap-2 mb-3">
+                            <Calendar className="w-4 h-4 text-slate-500" />
+                            <span className="font-semibold">{dateLabel}</span>
+                            {group?.timezone && (
+                              <span className="ml-2 text-xs text-slate-500">{group.timezone}</span>
+                            )}
+                          </div>
+
+                          {group?.periods?.length ? (
+                            <div className="space-y-3">
+                              {group.periods.map((period: any, pIdx: number) => (
+                                <div key={pIdx} className="">
+                                  <div className="flex items-center gap-2 text-xs text-slate-500 mb-2">
+                                    <Clock className="w-3.5 h-3.5" />
+                                    <span>
+                                      {period.startTime} - {period.endTime}
+                                    </span>
+                                    {typeof period.totalHours === "number" && (
+                                      <span className="ml-2">({period.totalHours.toFixed(1)} hrs)</span>
+                                    )}
+                                  </div>
+                                  <div className="flex flex-wrap gap-2">
+                                    {period?.slots?.map((slot: any) => (
+                                      <div
+                                        key={slot._id}
+                                        className={`text-xs px-2.5 py-1 rounded-full border transition ${getSlotStatusClasses(
+                                          slot.status
+                                        )}`}
+                                        title={`${slot.formattedStartTime || slot.startTime} - ${slot.formattedEndTime || slot.endTime} (${slot.status})`}
+                                      >
+                                        {(slot.formattedStartTime || slot.startTime) + " - " + (slot.formattedEndTime || slot.endTime)}
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="text-sm text-gray-500 dark:text-gray-400">No periods for this day.</p>
                           )}
                         </div>
-                      ) : (
-                        <span className="text-red-600">Unavailable</span>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </CardContent> */}
+                      );
+                    })}
+                  </div>
+                )}
+              </CardContent>
             </Card>
           </div>
         </div>
