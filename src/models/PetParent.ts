@@ -1,5 +1,8 @@
 import mongoose, { Document, Model, Schema, Types } from "mongoose";
-
+export enum PetParentStatus {
+  ACTIVE = "active",
+  INACTIVE = "inactive",
+}
 export interface IPetParent extends Document {
   name: string;
   email: string;
@@ -15,7 +18,7 @@ export interface IPetParent extends Document {
   isActive: boolean;
   // Soft delete flag
   isDeleted?: boolean;
-  status?: "active" | "inactive";
+  status?: PetParentStatus;
 
   // Additional profile fields
   firstName?: string;
@@ -106,7 +109,8 @@ const petParentSchema = new Schema<IPetParent>(
     },
     status: {
       type: String,
-      default: "inactive",
+      default: PetParentStatus.ACTIVE,
+      enum: Object.values(PetParentStatus),
     },
     gender: {
       type: String,

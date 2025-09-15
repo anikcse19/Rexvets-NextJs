@@ -1,16 +1,7 @@
 "use client";
-import { useEffect, useState, useMemo } from "react";
-import { db } from "@/lib/firebase";
-import {
-  collection,
-  getDocs,
-  query,
-  orderBy,
-  doc,
-  deleteDoc,
-} from "firebase/firestore";
-import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -18,16 +9,14 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import LoadingSpinner from "@/components/ui/loading-spinner";
 import {
   Select,
   SelectContent,
@@ -36,35 +25,38 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import Image from "next/image";
 import {
-  Search,
-  Users,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Appointment, Pet, PetParent } from "@/lib/types";
+import {
   Calendar,
-  Heart,
-  Phone,
-  MapPin,
   Clock,
-  Stethoscope,
   FileText,
-  PawPrint,
-  Palette,
-  Scale,
-  User,
-  MoreHorizontal,
   Filter,
+  Heart,
+  MapPin,
+  MoreHorizontal,
+  Palette,
+  PawPrint,
+  Phone,
+  Scale,
+  Search,
+  Stethoscope,
   Trash2,
+  User,
+  Users,
 } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import moment from "moment-timezone";
+import Image from "next/image";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { deleteParent, updateParentStatus } from "../../Actions/pet-parents";
-import Pagination from "../../Shared/Pagination";
-import { Appointment, Pet, PetParent } from "@/lib/types";
 import RequireAccess from "../../Shared/RequireAccess";
 
 type DateFilter =
@@ -77,7 +69,11 @@ type DateFilter =
 
 export default function PetParentsPage() {
   const [parents, setParents] = useState<PetParent[]>([]);
-  const [filteredParents, setFilteredParents] = useState<PetParent[]>([]);
+  const [stats, setStats] = useState<{
+    total: number;
+    active: number;
+    inactive: number;
+  } | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [dateFilter, setDateFilter] = useState<DateFilter>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -85,16 +81,22 @@ export default function PetParentsPage() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [pets, setPets] = useState<Pet[]>([]);
   const [isAppointmentsLoading, setIsAppointmentLoading] = useState(false);
-  const itemsPerPage = 20;
-  const [currentPage, setCurrentPage] = useState(1);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 10,
+    total: 0,
+    pages: 0,
+    hasNext: false,
+    hasPrev: false,
+  });
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [parentToDelete, setParentToDelete] = useState<any>(null);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [hasFetched, setHasFetched] = useState(false);
+  const fetchIdRef = useRef(0);
 
   // Search states
-  const [search, setSearch] = useState("");
-  const [page, setPage] = useState(1);
 
   const isDateInRange = (date: string | Date, filter: DateFilter): boolean => {
     const d = new Date(date); // convert input to Date
@@ -127,54 +129,113 @@ export default function PetParentsPage() {
 
   const fetchPetParents = async () => {
     setLoading(true);
+    const fetchId = ++fetchIdRef.current;
     try {
-      const res = await fetch(
-        `/api/pet-parents?page=${page}&limit=10&name=${search}`
-      );
+      // Build query params for server-side filtering & pagination
+      const params = new URLSearchParams();
+      params.append("page", String(pagination.page));
+      params.append("limit", String(pagination.limit));
+      if (searchTerm) {
+        params.append("name", searchTerm); // backward compatibility
+        params.append("search", searchTerm); // broader search (name/email/phone)
+      }
+      if (statusFilter && statusFilter !== "all")
+        params.append("status", statusFilter);
+
+      // Date filter using browser timezone via moment-timezone
+      if (dateFilter !== "all") {
+        const tz = moment.tz.guess();
+        const nowTz = moment.tz(tz);
+        let start: moment.Moment | null = null;
+        let end: moment.Moment | null = null;
+        if (dateFilter === "today") {
+          start = nowTz.clone().startOf("day");
+          end = nowTz.clone().endOf("day");
+        } else if (dateFilter === "yesterday") {
+          start = nowTz.clone().subtract(1, "day").startOf("day");
+          end = nowTz.clone().subtract(1, "day").endOf("day");
+        } else if (dateFilter === "last7days") {
+          start = nowTz.clone().subtract(7, "day").startOf("day");
+          end = nowTz.clone().endOf("day");
+        } else if (dateFilter === "last30days") {
+          start = nowTz.clone().subtract(30, "day").startOf("day");
+          end = nowTz.clone().endOf("day");
+        } else if (dateFilter === "last90days") {
+          start = nowTz.clone().subtract(90, "day").startOf("day");
+          end = nowTz.clone().endOf("day");
+        }
+        if (start && end) {
+          params.append("startDate", start.toDate().toISOString());
+          params.append("endDate", end.toDate().toISOString());
+        }
+      }
+
+      const res = await fetch(`/api/pet-parents?${params.toString()}`);
       const data = await res.json();
       if (data.success) {
+        // Guard against race conditions: ignore stale responses
+        if (fetchId !== fetchIdRef.current) return;
         setParents(data.data);
-        setFilteredParents(data?.data);
+        const total = data.total || 0;
+        const pages =
+          data.totalPages || Math.ceil(total / pagination.limit) || 0;
+        setPagination((prev) => ({
+          ...prev,
+          total,
+          pages,
+          hasPrev: (prev.page || 1) > 1,
+          hasNext: pages > (prev.page || 1),
+        }));
+        // If requested page has no results but there are pages, fallback to page 1
+        if (
+          (data.data?.length ?? 0) === 0 &&
+          ((prev) => prev)(pagination).page > 1 &&
+          pages > 0
+        ) {
+          setPagination((prev) => ({ ...prev, page: 1 }));
+        }
         console.log("pet parents", data?.data);
+        setHasFetched(true);
       }
     } catch (err) {
       console.error(err);
     } finally {
       setLoading(false);
+      setHasFetched(true);
+    }
+  };
+
+  const fetchStats = async () => {
+    try {
+      const res = await fetch(`/api/pet-parents/stats`);
+      const data = await res.json();
+      if (data?.success && data?.data) {
+        setStats({
+          total: data.data.total ?? 0,
+          active: data.data.active ?? 0,
+          inactive: data.data.inactive ?? 0,
+        });
+      }
+    } catch (error) {
+      console.error("Failed to fetch pet parent stats", error);
     }
   };
 
   useEffect(() => {
     fetchPetParents();
+    fetchStats();
   }, []);
 
+  // Refetch when filters change; reset to page 1
   useEffect(() => {
-    const term = searchTerm.toLowerCase();
-    let filtered = parents.filter(
-      (p) =>
-        p.name?.toLowerCase().includes(term) ||
-        p.email?.toLowerCase().includes(term) ||
-        p.phoneNumber?.includes(term)
-    );
+    setPagination((prev) => ({ ...prev, page: 1 }));
+    fetchPetParents();
+  }, [searchTerm, statusFilter, dateFilter]);
 
-    // Apply date filter
-    if (dateFilter !== "all") {
-      filtered = filtered.filter(
-        (p) => p.createdAt && isDateInRange(p.createdAt, dateFilter)
-      );
-    }
-
-    // Apply status filter
-    if (statusFilter !== "all") {
-      filtered = filtered.filter((p) => {
-        const status = p.status || "active";
-        return status === statusFilter;
-      });
-    }
-
-    setFilteredParents(filtered);
-    setCurrentPage(1); // Reset to first page when filters change
-  }, [searchTerm, parents, dateFilter, statusFilter]);
+  // Refetch when page changes
+  useEffect(() => {
+    fetchPetParents();
+  }, [pagination.page]);
 
   const openAppointments = async (parent: any) => {
     setAppointments(parent?.appointments);
@@ -199,6 +260,7 @@ export default function PetParentsPage() {
       );
       toast.success(`Parent Status Updated to ${newStatus} Successfully`);
       fetchPetParents();
+      fetchStats();
     } else {
       toast.error("Failed to Update Parent Status");
     }
@@ -219,13 +281,11 @@ export default function PetParentsPage() {
       setParents((prev) =>
         prev.filter((parent) => parent._id !== parentToDelete._id)
       );
-      setFilteredParents((prev) =>
-        prev.filter((parent) => parent._id !== parentToDelete._id)
-      );
 
       toast.success(`Parent "${parentToDelete.name}" deleted successfully`);
       setDeleteModalOpen(false);
       setParentToDelete(null);
+      fetchStats();
     } catch (error) {
       console.error("Error deleting parent:", error);
       toast.error("Failed to delete parent. Please try again.");
@@ -234,24 +294,13 @@ export default function PetParentsPage() {
     }
   };
 
-  const paginatedParents = useMemo(() => {
-    console.log("filtered parents", filteredParents);
-    const start = (currentPage - 1) * itemsPerPage;
-    const end = start + itemsPerPage;
-    return filteredParents.slice(start, end);
-  }, [filteredParents, currentPage]);
-
-  const getStatusCounts = () => {
-    const active = parents.filter(
-      (p) => (p.status || "active") === "active"
-    ).length;
-    const inactive = parents.filter((p) => p.status === "inactive").length;
-    return { active, inactive, total: parents.length };
+  const statusCounts = stats ?? {
+    total: parents.length,
+    active: 0,
+    inactive: 0,
   };
 
-  const statusCounts = getStatusCounts();
-
-  console.log("paginated", paginatedParents);
+  // console.log("pagination", pagination);
 
   function formatDateTime(isoString: string): string {
     const date = new Date(isoString);
@@ -278,6 +327,34 @@ export default function PetParentsPage() {
 
     return `${day}${ordinal} ${month}, ${year} at ${formattedHours}.${minutes} ${ampm}`;
   }
+
+  // Animated loader during initial fetch
+  // if (loading && parents.length === 0) {
+  //   return (
+  //     <RequireAccess permission="Pet Parents">
+  //       <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+  //         <LoadingSpinner size="lg" />
+  //         <div className="text-center">
+  //           <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
+  //             Loading Pet Parents
+  //           </h3>
+  //           <p className="text-sm text-gray-500 dark:text-gray-400">
+  //             Please wait while we fetch the pet parents data...
+  //           </p>
+  //         </div>
+  //       </div>
+  //     </RequireAccess>
+  //   );
+  // }
+
+  // Derived UI states for clear rendering logic
+  const isInitialLoading = !hasFetched || (loading && parents.length === 0);
+  const isEmptyAfterFetch =
+    hasFetched &&
+    !loading &&
+    parents.length === 0 &&
+    (pagination.total || 0) === 0;
+  const isTableLoading = loading && parents.length > 0;
 
   return (
     <RequireAccess permission="Pet Parents">
@@ -372,7 +449,7 @@ export default function PetParentsPage() {
                         Filtered Results
                       </p>
                       <p className="text-3xl font-bold text-gray-900 dark:text-white mt-1">
-                        {filteredParents.length}
+                        {pagination.total}
                       </p>
                     </div>
                     <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-full">
@@ -444,7 +521,16 @@ export default function PetParentsPage() {
 
         {/* Main Content */}
         <div className="container mx-auto px-6 py-8">
-          {paginatedParents.length === 0 ? (
+          {isInitialLoading ? (
+            <div className="text-center py-16">
+              <div className="flex flex-col items-center gap-3">
+                <LoadingSpinner size="lg" />
+                <span className="text-sm text-gray-600 dark:text-gray-300">
+                  Loading pet parents...
+                </span>
+              </div>
+            </div>
+          ) : isEmptyAfterFetch ? (
             <div className="text-center py-16">
               <div className="p-4 bg-gray-100 dark:bg-slate-800 rounded-full w-20 h-20 mx-auto mb-4 flex items-center justify-center">
                 <Search className="w-10 h-10 text-gray-400" />
@@ -458,7 +544,17 @@ export default function PetParentsPage() {
             </div>
           ) : (
             <Card className="bg-white dark:bg-slate-800 shadow-lg border-0">
-              <CardContent className="p-0">
+              <CardContent className="p-0 relative">
+                {isTableLoading && (
+                  <div className="absolute inset-0 bg-white/60 dark:bg-slate-800/60 backdrop-blur-[1px] z-10 flex items-center justify-center">
+                    <div className="flex flex-col items-center gap-3">
+                      <LoadingSpinner size="lg" />
+                      <span className="text-sm text-gray-600 dark:text-gray-300">
+                        Loading pet parents...
+                      </span>
+                    </div>
+                  </div>
+                )}
                 <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
@@ -484,7 +580,7 @@ export default function PetParentsPage() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {paginatedParents.map((parent) => (
+                      {parents.map((parent) => (
                         <TableRow
                           key={parent._id}
                           className="hover:bg-gray-50 dark:hover:bg-slate-700 border-b border-gray-100 dark:border-slate-600"
@@ -899,12 +995,122 @@ export default function PetParentsPage() {
           </DialogContent>
         </Dialog>
 
-        <Pagination
-          totalItems={filteredParents.length}
-          itemsPerPage={itemsPerPage}
-          currentPage={currentPage}
-          onPageChange={setCurrentPage}
-        />
+        {/* Server-side Pagination Controls */}
+        {(pagination.pages || 0) > 1 && (
+          <div className="flex items-center justify-center space-x-1 py-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() =>
+                setPagination((prev) => ({
+                  ...prev,
+                  page: Math.max(1, (prev.page || 1) - 1),
+                }))
+              }
+              disabled={!pagination.hasPrev || loading}
+              className="px-3"
+            >
+              Previous
+            </Button>
+
+            <div className="flex items-center space-x-1">
+              {(() => {
+                const currentPage = pagination.page || 1;
+                const totalPages = pagination.pages || 0;
+                const pages: React.ReactNode[] = [];
+
+                // First page
+                pages.push(
+                  <Button
+                    key={1}
+                    variant={currentPage === 1 ? "default" : "outline"}
+                    size="sm"
+                    onClick={() =>
+                      setPagination((prev) => ({ ...prev, page: 1 }))
+                    }
+                    disabled={loading}
+                    className="w-10 h-10"
+                  >
+                    1
+                  </Button>
+                );
+
+                if (currentPage > 4) {
+                  pages.push(
+                    <span key="ellipsis-start" className="px-2 text-gray-500">
+                      ...
+                    </span>
+                  );
+                }
+
+                const startPage = Math.max(2, currentPage - 1);
+                const endPage = Math.min(totalPages - 1, currentPage + 1);
+                for (let i = startPage; i <= endPage; i++) {
+                  if (i !== 1 && i !== totalPages) {
+                    pages.push(
+                      <Button
+                        key={i}
+                        variant={currentPage === i ? "default" : "outline"}
+                        size="sm"
+                        onClick={() =>
+                          setPagination((prev) => ({ ...prev, page: i }))
+                        }
+                        disabled={loading}
+                        className="w-10 h-10"
+                      >
+                        {i}
+                      </Button>
+                    );
+                  }
+                }
+
+                if (currentPage < totalPages - 3) {
+                  pages.push(
+                    <span key="ellipsis-end" className="px-2 text-gray-500">
+                      ...
+                    </span>
+                  );
+                }
+
+                if (totalPages > 1) {
+                  pages.push(
+                    <Button
+                      key={totalPages}
+                      variant={
+                        currentPage === totalPages ? "default" : "outline"
+                      }
+                      size="sm"
+                      onClick={() =>
+                        setPagination((prev) => ({ ...prev, page: totalPages }))
+                      }
+                      disabled={loading}
+                      className="w-10 h-10"
+                    >
+                      {totalPages}
+                    </Button>
+                  );
+                }
+
+                return pages;
+              })()}
+            </div>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() =>
+                setPagination((prev) => ({
+                  ...prev,
+                  page: (prev.page || 1) + 1,
+                }))
+              }
+              disabled={!pagination.hasNext || loading}
+              className="px-3"
+            >
+              Next
+            </Button>
+          </div>
+        )}
       </div>
     </RequireAccess>
   );

@@ -1,12 +1,12 @@
+import { authOptions } from "@/lib/auth";
 import { VeterinarianStatus } from "@/lib/constants/veterinarian";
 import { connectToDatabase } from "@/lib/mongoose";
 import { AppointmentModel, VeterinarianModel } from "@/models";
 import { AppointmentSlot } from "@/models/AppointmentSlot";
 import moment from "moment-timezone";
+import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
 import { getSlotsByNoticePeriodAndDateRangeByVetId } from "../appointments/booking/slot/slot.util";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 
 /**
  * GET /api/veterinarian
@@ -80,25 +80,28 @@ export async function GET(req: NextRequest) {
     if (q) {
       filter.name = { $regex: q, $options: "i" };
     }
-    
+
     // Enhanced search functionality for admin panel
     if (search) {
       filter.$or = [
         { firstName: { $regex: search, $options: "i" } },
         { lastName: { $regex: search, $options: "i" } },
         { email: { $regex: search, $options: "i" } },
-        { name: { $regex: search, $options: "i" } }
+        { name: { $regex: search, $options: "i" } },
       ];
     }
-    
+
     // Status filtering for admin panel
     if (status && status !== "all") {
-      if (status === VeterinarianStatus.APPROVED) {
-        filter.isApproved = true;
-      } else if (status === VeterinarianStatus.PENDING) {
-        filter.isApproved = false;
-      } else if (status === VeterinarianStatus.SUSPENDED) {
-        filter.isSuspended = true;
+      if (status === VeterinarianStatus.APPROVED || status == "approved") {
+        filter.status = VeterinarianStatus.APPROVED;
+      } else if (status === VeterinarianStatus.PENDING || status == "pending") {
+        filter.status = VeterinarianStatus.PENDING;
+      } else if (
+        status === VeterinarianStatus.SUSPENDED ||
+        status == "suspended"
+      ) {
+        filter.status = VeterinarianStatus.SUSPENDED;
       }
     }
     if (specialization) {
@@ -323,8 +326,8 @@ export async function GET(req: NextRequest) {
         total,
         pages: Math.ceil(total / limit),
         hasNext: page < Math.ceil(total / limit),
-        hasPrev: page > 1
-      }
+        hasPrev: page > 1,
+      },
     });
 
     // return NextResponse.json({

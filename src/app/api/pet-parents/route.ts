@@ -1,7 +1,7 @@
 import { connectToDatabase } from "@/lib/mongoose";
 import { AppointmentModel, PetModel, PetParentModel } from "@/models";
-import { NextRequest, NextResponse } from "next/server";
 import { Types } from "mongoose";
+import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
   await connectToDatabase();
@@ -14,14 +14,31 @@ export async function GET(req: NextRequest) {
     const sortOrder = searchParams.get("sortOrder") === "asc" ? 1 : -1;
 
     // Filters
-    const filter: any = {};
+    const filter: any = { isDeleted: { $ne: true } };
     const name = searchParams.get("name");
     const email = searchParams.get("email");
+    const search = searchParams.get("search");
     const isActive = searchParams.get("isActive");
+    const status = searchParams.get("status"); // optional: active|inactive
+    const startDate = searchParams.get("startDate"); // ISO string
+    const endDate = searchParams.get("endDate"); // ISO string
 
     if (name) filter.name = { $regex: name, $options: "i" };
     if (email) filter.email = { $regex: email, $options: "i" };
+    if (search) {
+      filter.$or = [
+        { name: { $regex: search, $options: "i" } },
+        { email: { $regex: search, $options: "i" } },
+        { phoneNumber: { $regex: search, $options: "i" } },
+      ];
+    }
     if (isActive) filter.isActive = isActive === "true";
+    if (status) filter.status = status;
+    if (startDate || endDate) {
+      filter.createdAt = {} as any;
+      if (startDate) (filter.createdAt as any).$gte = new Date(startDate);
+      if (endDate) (filter.createdAt as any).$lt = new Date(endDate);
+    }
 
     // Pagination
     const skip = (page - 1) * limit;
