@@ -9,7 +9,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { SlotStatus } from "@/lib";
-import { getWeekRange } from "@/lib/timezone";
+import { formatTimeToUserTimezone, getUserTimezone, getWeekRange } from "@/lib/timezone";
 import { Doctor } from "@/lib/types";
 import { format } from "date-fns";
 import {
@@ -19,6 +19,7 @@ import {
   Clock,
   DollarSign,
   FileText,
+  Loader2,
   Mail,
   MapPin,
   Phone,
@@ -50,6 +51,10 @@ export function DoctorDetailsModal({
   onOpenChange,
 }: DoctorDetailsModalProps) {
   const [slots, setSlots] = useState<any[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [currentPage, setCurrentPage] = useState<number>(0); // paginate by period
+
+  const tz = getUserTimezone();
   const getStatusColor = (status: string) => {
     switch (status) {
       case "Approved":
@@ -78,6 +83,7 @@ export function DoctorDetailsModal({
         return;
       }
       try {
+        setLoading(true);
         console.log(startDate, endDate, "vet slotsss date");
         // const timezoneParam = timezone ? `&timezone=${encodeURIComponent(timezone)}` : '';
         const apiUrl = `/api/appointments/slots/slot-summary/${refId}?startDate=${startDate}&endDate=${endDate}&status=${SlotStatus.ALL}`;
@@ -97,6 +103,7 @@ export function DoctorDetailsModal({
       } catch (error: any) {
         console.error("Error in getAvailableSlots:", error);
       } finally {
+        setLoading(false);
       }
     },
     [doctor]
@@ -104,7 +111,7 @@ export function DoctorDetailsModal({
 
   useEffect(() => {
     if (doctor?._id) {
-      const weeklyRange = getWeekRange();
+const weeklyRange = getWeekRange();
       const startDate = format(weeklyRange.start, "yyyy-MM-dd");
       const endDate = format(weeklyRange.end, "yyyy-MM-dd");
       getSlots(startDate, endDate, doctor._id);
@@ -112,6 +119,63 @@ export function DoctorDetailsModal({
   }, [getSlots]);
   console.log("Slots", slots);
   if (!doctor) return null;
+
+  // Flatten slots per period to paginate one period at a time
+  const flattenedPeriods: Array<{
+    dateStart: Date | null;
+    dateTzLabel: string;
+    timezone?: string;
+    period: any;
+  }> = (slots || []).flatMap((group: any) => {
+    const dateStart = group?.date?.start ? new Date(group.date.start) : null;
+    const dateTzLabel = dateStart
+      ? new Intl.DateTimeFormat("en-US", {
+          weekday: "short",
+          month: "short",
+          day: "numeric",
+          timeZone: tz,
+        }).format(dateStart)
+      : "";
+    return (group?.periods || []).map((p: any) => ({
+      dateStart,
+      dateTzLabel,
+      timezone: group?.timezone,
+      period: p,
+    }));
+  });
+
+  const totalPages = flattenedPeriods.length;
+  const currentItem = flattenedPeriods[currentPage] || null;
+
+  const goToPage = (idx: number) => {
+    if (idx < 0 || idx >= totalPages) return;
+    setCurrentPage(idx);
+  };
+
+  const buildPageNumbers = () => {
+    const pages: Array<number | string> = [];
+    const maxShown = 7; // mobile-first concise
+    if (totalPages <= maxShown) {
+      for (let i = 0; i < totalPages; i++) pages.push(i);
+    } else {
+      const start = Math.max(0, currentPage - 2);
+      const end = Math.min(totalPages - 1, currentPage + 2);
+      if (start > 0) {
+        pages.push(0, 1, "...");
+      }
+      for (let i = start; i <= end; i++) pages.push(i);
+      if (end < totalPages - 1) {
+        pages.push("...", totalPages - 2, totalPages - 1);
+      }
+    }
+    return pages;
+  };
+
+  const renderStatusBadge = (status: string) => {
+    const base = "px-2 py-0.5 text-[10px] rounded-full border";
+    const cls = getSlotStatusClasses(status);
+    return <span className={`${base} ${cls}`}>{status}</span>;
+  };
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg md:!max-w-5xl max-h-[90vh] overflow-y-auto dark:bg-slate-800">
@@ -219,59 +283,133 @@ export function DoctorDetailsModal({
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {!slots || slots.length === 0 ? (
-                  <p className="text-sm text-gray-500 dark:text-gray-400">No slots found for this week.</p>
+                {loading ? (
+                  <div className="w-full flex items-center justify-center py-8">
+                    <Loader2 className="w-6 h-6 animate-spin text-slate-500" />
+                  </div>
+                ) : !slots || slots.length === 0 ? (
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    No slots found for this week.
+                  </p>
+                ) : !currentItem ? (
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    No period to display.
+                  </p>
                 ) : (
-                  <div className="space-y-5">
-                    {slots.map((group: any, groupIdx: number) => {
-                      const dateLabel = group?.date?.start
-                        ? format(new Date(group.date.start), "EEE, MMM d")
-                        : `Day ${groupIdx + 1}`;
-                      return (
-                        <div key={groupIdx} className="border rounded-lg p-4 dark:border-slate-600">
-                          <div className="flex items-center gap-2 mb-3">
-                            <Calendar className="w-4 h-4 text-slate-500" />
-                            <span className="font-semibold">{dateLabel}</span>
-                            {group?.timezone && (
-                              <span className="ml-2 text-xs text-slate-500">{group.timezone}</span>
-                            )}
-                          </div>
+                  <div className="space-y-4">
+                    {/* Header: Date */}
+                    <div className="w-full flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <Calendar className="w-4 h-4 text-slate-500" />
+                        <span className="font-semibold">
+                          {currentItem.dateTzLabel}
+                        </span>
+                        {currentItem?.timezone && (
+                          <span className="ml-2 text-xs text-slate-500">
+                            {currentItem.timezone}
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-xs text-slate-500">
+                        {currentPage + 1} of {totalPages}
+                      </span>
+                    </div>
 
-                          {group?.periods?.length ? (
-                            <div className="space-y-3">
-                              {group.periods.map((period: any, pIdx: number) => (
-                                <div key={pIdx} className="">
-                                  <div className="flex items-center gap-2 text-xs text-slate-500 mb-2">
-                                    <Clock className="w-3.5 h-3.5" />
-                                    <span>
-                                      {period.startTime} - {period.endTime}
-                                    </span>
-                                    {typeof period.totalHours === "number" && (
-                                      <span className="ml-2">({period.totalHours.toFixed(1)} hrs)</span>
-                                    )}
-                                  </div>
-                                  <div className="flex flex-wrap gap-2">
-                                    {period?.slots?.map((slot: any) => (
-                                      <div
-                                        key={slot._id}
-                                        className={`text-xs px-2.5 py-1 rounded-full border transition ${getSlotStatusClasses(
-                                          slot.status
-                                        )}`}
-                                        title={`${slot.formattedStartTime || slot.startTime} - ${slot.formattedEndTime || slot.endTime} (${slot.status})`}
-                                      >
-                                        {(slot.formattedStartTime || slot.startTime) + " - " + (slot.formattedEndTime || slot.endTime)}
-                                      </div>
-                                    ))}
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          ) : (
-                            <p className="text-sm text-gray-500 dark:text-gray-400">No periods for this day.</p>
-                          )}
+                    {/* Period meta */}
+                    <div className="flex items-center gap-2 text-xs text-slate-500">
+                      <Clock className="w-3.5 h-3.5" />
+                      <span>
+                        {formatTimeToUserTimezone(
+                          currentItem.period.startTime,
+                          tz
+                        )}{" "}
+                        -{" "}
+                        {formatTimeToUserTimezone(
+                          currentItem.period.endTime,
+                          tz
+                        )}
+                      </span>
+                      {typeof currentItem.period.totalHours === "number" && (
+                        <span className="ml-2">
+                          ({currentItem.period.totalHours.toFixed(1)} hrs)
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Slots list */}
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 justify-items-center">
+                      {currentItem.period?.slots?.map((slot: any) => (
+                        <div
+                          key={slot._id}
+                          className={`flex flex-col items-start gap-1 rounded-xl border p-2 text-xs shadow-sm transition hover:shadow ${getSlotStatusClasses(
+                            slot.status
+                          )}`}
+                          title={`${formatTimeToUserTimezone(
+                            slot.formattedStartTime || slot.startTime,
+                            tz
+                          )} - ${formatTimeToUserTimezone(
+                            slot.formattedEndTime || slot.endTime,
+                            tz
+                          )} (${slot.status})`}
+                        >
+                          <span className="font-semibold">
+                            {formatTimeToUserTimezone(
+                              slot.formattedStartTime || slot.startTime,
+                              tz
+                            )}
+                          </span>
+                          <span className="opacity-80">
+                            {formatTimeToUserTimezone(
+                              slot.formattedEndTime || slot.endTime,
+                              tz
+                            )}
+                          </span>
+                          {renderStatusBadge(slot.status)}
                         </div>
-                      );
-                    })}
+                      ))}
+                    </div>
+
+                    {/* Pagination controls */}
+                    {totalPages > 1 && (
+                      <div className="flex items-center justify-center gap-1 sm:gap-2 pt-2">
+                        <button
+                          className="px-2 sm:px-3 py-1 rounded border text-xs disabled:opacity-50"
+                          onClick={() => goToPage(currentPage - 1)}
+                          disabled={currentPage === 0}
+                        >
+                          Prev
+                        </button>
+                        {buildPageNumbers().map((p, idx) =>
+                          typeof p === "string" ? (
+                            <span
+                              key={idx}
+                              className="px-2 text-xs text-slate-500"
+                            >
+                              {p}
+                            </span>
+                          ) : (
+                            <button
+                              key={idx}
+                              className={`px-2 sm:px-3 py-1 rounded border text-xs ${
+                                p === currentPage
+                                  ? "bg-slate-900 text-white dark:bg-slate-200 dark:text-slate-900"
+                                  : "bg-white dark:bg-slate-700"
+                              }`}
+                              onClick={() => goToPage(p)}
+                            >
+                              {p + 1}
+                            </button>
+                          )
+                        )}
+                        <button
+                          className="px-2 sm:px-3 py-1 rounded border text-xs disabled:opacity-50"
+                          onClick={() => goToPage(currentPage + 1)}
+                          disabled={currentPage >= totalPages - 1}
+                        >
+                          Next
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
               </CardContent>
