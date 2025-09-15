@@ -41,7 +41,7 @@ export default function Topbar({
   onMenuClick,
 }: // sidebarOpen = false,
 TopbarProps) {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession({ required: true });
   const [notifications, setNotifications] = useState<INotification[]>([]);
   const [messageNotifications, setMessageNotifications] = useState<
     INotification[]
@@ -229,6 +229,7 @@ TopbarProps) {
       };
     }
   }, [session]);
+
   console.log("notifications", notifications);
   console.log("announcements", announcements);
   return (

@@ -59,12 +59,23 @@ function hasRouteAccess(pathname: string, userRole: string, accessList: string[]
 
 export default withAuth(
   function middleware(req) {
-    const { pathname } = req.nextUrl;
+    const { pathname, host, protocol } = req.nextUrl as any;
     const token = (req as any).nextauth?.token;
 
     // Allow NextAuth internal routes to proceed without auth middleware handling
     if (pathname.startsWith("/api/auth")) {
       return NextResponse.next();
+    }
+
+    // Enforce canonical host to ensure cookies are set on the same domain
+    if (process.env.NODE_ENV === "production") {
+      const desiredHost = "www.rexvet.org";
+      if (host !== desiredHost) {
+        const url = req.nextUrl.clone();
+        url.host = desiredHost;
+        url.protocol = "https";
+        return NextResponse.redirect(url, 308);
+      }
     }
 
     // Check admin routes first
@@ -101,6 +112,10 @@ export default withAuth(
 
       const res = NextResponse.next();
       res.headers.set("user", JSON.stringify(userData));
+      // Add security headers for better session handling
+      res.headers.set('X-Frame-Options', 'DENY');
+      res.headers.set('X-Content-Type-Options', 'nosniff');
+      res.headers.set('Referrer-Policy', 'origin-when-cross-origin');
       return res;
     }
 
@@ -120,15 +135,29 @@ export default withAuth(
 
       const res = NextResponse.next();
       res.headers.set("user", JSON.stringify(userData));
+      // Add security headers for better session handling
+      res.headers.set('X-Frame-Options', 'DENY');
+      res.headers.set('X-Content-Type-Options', 'nosniff');
+      res.headers.set('Referrer-Policy', 'origin-when-cross-origin');
       return res;
     }
 
-    return NextResponse.next();
+    // Add security headers to all responses
+    const res = NextResponse.next();
+    res.headers.set('X-Frame-Options', 'DENY');
+    res.headers.set('X-Content-Type-Options', 'nosniff');
+    res.headers.set('Referrer-Policy', 'origin-when-cross-origin');
+    return res;
   },
   {
     callbacks: {
       authorized: ({ token, req }) => {
         const { pathname } = req.nextUrl;
+
+        // Always allow access to NextAuth internal routes
+        if (pathname.startsWith("/api/auth")) {
+          return true;
+        }
 
         // Allow access to admin routes only if user has admin or moderator role
         if (adminRoutes.some((route) => pathname.startsWith(route))) {

@@ -13,7 +13,7 @@ import { toast } from "sonner";
 const UpcomingAppointments = () => {
   const [appointmentsData, setAppointmentsData] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const { data: session } = useSession();
+  const { data: session } = useSession({ required: true });
 
   const parentId = session?.user?.refId as string;
 

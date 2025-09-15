@@ -31,7 +31,8 @@ import {
   UserCircle,
   Video,
 } from "lucide-react";
-import { signOut, useSession } from "next-auth/react";
+import { signOut } from "next-auth/react";
+import { useSessionStable } from "@/hooks/useSessionStable";
 import Image from "next/image";
 import Link from "next/link";
 import React, { useEffect, useRef, useState } from "react";
@@ -67,8 +68,12 @@ const Header: React.FC = () => {
   const [isSLotAvailable, setIsSLotAvailable] = useState(false);
   const [showDebugBanner, setShowDebugBanner] = useState(false);
 
+<<<<<<< HEAD
   const { data: session, status } = useSession();
-console.log("session from navbar", session);
+=======
+  const { data: session, status, isInitialized, update } = useSessionStable();
+>>>>>>> e6fc7a3f41a20df0671c31bf091215f7599237a0
+  console.log("session from navbar", session);
   // const session = {
   //   user: {
   //     name: "Anik",
@@ -133,9 +138,10 @@ console.log("session from navbar", session);
   };
 
   useEffect(() => {
+    if (status !== "authenticated") return;
     const getBadgeName = async () => {
       try {
-        const res = await fetch("/api/check-category-badge");
+        const res = await fetch("/api/check-category-badge", { cache: "no-store" });
 
         if (!res.ok) {
           // Gracefully ignore not found/unauthorized without logging errors in console
@@ -153,6 +159,19 @@ console.log("session from navbar", session);
       }
     };
     getBadgeName();
+  }, [status]);
+
+  // After route mount, if we just came back from auth, force a one-time refresh
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    const justSignedIn = url.searchParams.get("signedin");
+    if (justSignedIn === "1") {
+      // Remove the flag from URL to avoid loops
+      url.searchParams.delete("signedin");
+      window.history.replaceState({}, "", url.pathname + url.search + url.hash);
+      // Refresh session so navbar re-renders immediately
+      try { update?.(); } catch {}
+    }
   }, []);
   // console.log("session emergency", session);
 
@@ -186,7 +205,7 @@ console.log("session from navbar", session);
   }, [session]);
 
   // Avoid UI flicker while session is loading
-  if (status === "loading") {
+  if (status === "loading" || !isInitialized) {
     return (
       <>
         {showDebugBanner && (
@@ -200,25 +219,21 @@ console.log("session from navbar", session);
 
   return (
     <>
-      {showDebugBanner && (
-        <div className="fixed top-0 left-0 right-0 z-[100000] text-xs text-white bg-emerald-700 px-3 py-1">
-          Session status: {status} | email: {(session as any)?.user?.email || "none"}
-        </div>
-      )}
-      {!session || session?.user?.role === "pet_parent" ? (
-        <TopToolbarPetParent visible={visible} setVisible={setVisible} />
-      ) : (
-        !isSLotAvailable && (
-          <TopToolbarVet visible={visible} setVisible={setVisible} />
-        )
-      )}
+      {!session ||
+        (session?.user?.role === "pet_parent" && (
+          <TopToolbarPetParent visible={visible} setVisible={setVisible} />
+        ))}
       <header
         style={{
           background:
             "linear-gradient(135deg, #0f0c29 0%, #24243e 25%, #302b63 50%, #0f3460 75%, #002366 100%)",
         }}
         className={`fixed ${
-          scrolled || !visible || isSLotAvailable
+          scrolled ||
+          !visible ||
+          isSLotAvailable ||
+          session?.user?.role === "admin" ||
+          session?.user?.role === "veterinarian"
             ? "top-0"
             : "top-[60px] md:top-[50px]"
         } transition-all duration-300 ease-in-out py-2 ${
@@ -513,10 +528,12 @@ console.log("session from navbar", session);
                       className="group hover:bg-red-50 focus:bg-red-50 data-[highlighted]:bg-red-50 text-blue-200 data-[highlighted]:text-[#211951]"
                     >
                       <Link
-                        href={`/dashboard/${
+                        href={`${
                           (session?.user as any).role === "veterinarian"
-                            ? "doctor"
-                            : "pet-parent"
+                            ? "/dashboard/doctor"
+                            : (session?.user as any).role === "pet_parent"
+                            ? "/dashboard/pet-parent"
+                            : "/admin"
                         }/overview`}
                         className="flex items-center px-3 py-2 rounded-lg cursor-pointer"
                       >

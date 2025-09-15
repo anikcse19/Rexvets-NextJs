@@ -175,7 +175,7 @@ export default function AppointmentConfirmation() {
         0,
         4
       )}${veterinarian?._id?.slice(0, 4)}${Date.now().toString(36)}`;
-      const meetingLink = `https://rexvets-nextjs.vercel.app/video-call/?${encodeURIComponent(
+      const meetingLink = `https://rexvet.org/video-call/?${encodeURIComponent(
         roomId
       )}`;
       if (!veterinarian?._id) {
@@ -194,7 +194,8 @@ export default function AppointmentConfirmation() {
         isFollowUp: false,
         concerns: allConcerns,
         meetingLink: meetingLink,
-        hasExistingSubscription: subscriptionStatus?.hasRemainingAppointments || false,
+        hasExistingSubscription:
+          subscriptionStatus?.hasRemainingAppointments || false,
         subscriptionId: subscriptionStatus?.subscriptionId,
       };
 
@@ -277,7 +278,7 @@ export default function AppointmentConfirmation() {
   }
 
   return (
-    <div className="min-h-screen relative overflow-hidden mt-12">
+    <div className="min-h-screen relative overflow-hidden xl:mt-5">
       {/* Animated Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
         <div className="absolute inset-0 opacity-20">

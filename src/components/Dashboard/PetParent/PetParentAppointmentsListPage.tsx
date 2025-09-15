@@ -109,9 +109,7 @@ export default function PetParentAppointmentsListPage() {
           <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">
             Appointments
           </h1>
-          <p className="text-gray-600 mt-1">
-            Manage your appointments.
-          </p>
+          <p className="text-gray-600 mt-1">Manage your appointments.</p>
         </div>
       </div>
 
@@ -188,10 +186,10 @@ export default function PetParentAppointmentsListPage() {
 
           return (
             <TabsContent key={tabKey} value={tabKey} className="mt-6">
-              <div className="flex flex-col items-center gap-4 sm:grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 sm:items-stretch">
+              <div className="flex flex-col items-center gap-4 md:grid md:grid-cols-2 xl:grid-cols-3  sm:items-stretch">
                 {loading ? (
                   Array.from({ length: 3 }).map((_, i) => (
-                    <div key={i} className="w-full max-w-[320px] sm:min-w-[280px]">
+                    <div key={i} className="w-full">
                       <AppointmentCardSkeleton />
                     </div>
                   ))

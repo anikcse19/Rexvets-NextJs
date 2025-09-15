@@ -59,7 +59,7 @@ const quickActions = [
 ];
 
 export default function PetParentOverviewPage() {
-  const { data: session } = useSession();
+  const { data: session } = useSession({ required: true });
   const [petParentData, setPetParentData] = useState<PetParent>();
 
   const fetchPetParent = async () => {
@@ -104,7 +104,10 @@ export default function PetParentOverviewPage() {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50">
       <div className="mx-auto space-y-8">
         {/* Welcome Section */}
-        <WelcomeSection petParentData={petParentData!} />
+        <WelcomeSection
+          petParentData={petParentData!}
+          name={session?.user?.name!}
+        />
 
         {/* Quick Actions */}
         <div>
