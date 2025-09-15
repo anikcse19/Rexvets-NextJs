@@ -19,6 +19,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { BsChatLeftTextFill } from "react-icons/bs";
 import { FaFacebookF, FaInstagram, FaTiktok } from "react-icons/fa";
 
+import { useSessionStable } from "@/hooks/useSessionStable";
 import { toSlug } from "@/lib/utils";
 import { DialogTitle } from "@radix-ui/react-dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
@@ -32,7 +33,6 @@ import {
   Video,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
-import { useSessionStable } from "@/hooks/useSessionStable";
 import Image from "next/image";
 import Link from "next/link";
 import React, { useEffect, useRef, useState } from "react";
@@ -68,11 +68,7 @@ const Header: React.FC = () => {
   const [isSLotAvailable, setIsSLotAvailable] = useState(false);
   const [showDebugBanner, setShowDebugBanner] = useState(false);
 
-<<<<<<< HEAD
-  const { data: session, status } = useSession();
-=======
   const { data: session, status, isInitialized, update } = useSessionStable();
->>>>>>> e6fc7a3f41a20df0671c31bf091215f7599237a0
   console.log("session from navbar", session);
   // const session = {
   //   user: {
@@ -141,7 +137,9 @@ const Header: React.FC = () => {
     if (status !== "authenticated") return;
     const getBadgeName = async () => {
       try {
-        const res = await fetch("/api/check-category-badge", { cache: "no-store" });
+        const res = await fetch("/api/check-category-badge", {
+          cache: "no-store",
+        });
 
         if (!res.ok) {
           // Gracefully ignore not found/unauthorized without logging errors in console
@@ -170,7 +168,9 @@ const Header: React.FC = () => {
       url.searchParams.delete("signedin");
       window.history.replaceState({}, "", url.pathname + url.search + url.hash);
       // Refresh session so navbar re-renders immediately
-      try { update?.(); } catch {}
+      try {
+        update?.();
+      } catch {}
     }
   }, []);
   // console.log("session emergency", session);
