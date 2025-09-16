@@ -43,7 +43,7 @@ const itemVariants: Variants = {
 const FaqSection: React.FC<FaqSectionProps> = ({ title, items, index }) => {
   return (
     <section className=" bg-white">
-      <div className="max-w-[1200px] mx-auto px-4">
+      <div className="max-w-7xl mx-auto px-4">
         <motion.h2
           variants={sectionVariants}
           initial="hidden"

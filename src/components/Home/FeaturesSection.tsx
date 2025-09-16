@@ -98,7 +98,7 @@ const FeaturesSection: React.FC<FeaturesSectionProps> = ({ data = [] }) => {
                 whileHover="hover"
                 className="w-full   mb-2 rounded-2xl home-features-card max-w-md overflow-hidden mx-auto"
               >
-                <Card className="relative  w-full bg-white/95 backdrop-blur-xl rounded-2xl border border-white/20 overflow-hidden">
+                <Card className="relative w-full bg-white/95 backdrop-blur-xl rounded-2xl border border-white/20 overflow-hidden">
                   <motion.div
                     className="absolute top-0 left-0 right-0 h-1 overflow-hidden"
                     style={{ background: feature.gradient }}
@@ -106,8 +106,8 @@ const FeaturesSection: React.FC<FeaturesSectionProps> = ({ data = [] }) => {
                     initial="initial"
                     animate="initial"
                   />
-                  <CardContent className="p-6 text-right md:text-right">
-                    <div className="flex justify-end items-center mb-2">
+                  <CardContent className="p-6 text-center lg:text-left">
+                    <div className="flex justify-center lg:justify-start items-center mb-2">
                       <div
                         className="w-14 h-14 rounded-full flex items-center justify-center"
                         style={{
@@ -121,7 +121,7 @@ const FeaturesSection: React.FC<FeaturesSectionProps> = ({ data = [] }) => {
                     <h3 className="text-xl font-bold text-[#2c3e50] mb-2">
                       {feature.title}
                     </h3>
-                    <p className="text-base text-[#546e7a] leading-relaxed text-end  font-garet font-medium">
+                    <p className="text-base text-[#546e7a] leading-relaxed text-center lg:text-start  font-garet font-medium">
                       {feature.description}
                     </p>
                   </CardContent>
@@ -171,10 +171,10 @@ const FeaturesSection: React.FC<FeaturesSectionProps> = ({ data = [] }) => {
                     initial="initial"
                     animate="initial"
                   />
-                  <CardContent className="p-6 text-left md:text-left">
-                    <div className="flex justify-start items-center mb-2">
+                  <CardContent className="p-6 text-center lg:text-right">
+                    <div className="flex justify-center lg:justify-end items-center mb-2">
                       <div
-                        className="w-14 h-14 rounded-full flex items-center justify-center mr-2"
+                        className="w-14 h-14 rounded-full flex items-center justify-center"
                         style={{
                           background: feature.gradient,
                           boxShadow: `0 8px 25px ${feature.color}40`,
@@ -186,7 +186,7 @@ const FeaturesSection: React.FC<FeaturesSectionProps> = ({ data = [] }) => {
                     <h3 className="text-xl font-bold text-[#2c3e50] mb-2">
                       {feature.title}
                     </h3>
-                    <p className="text-base text-[#546e7a] leading-relaxed text-justify font-garet font-medium">
+                    <p className="text-base text-[#546e7a] leading-relaxed text-center lg:text-end  font-garet font-medium">
                       {feature.description}
                     </p>
                   </CardContent>

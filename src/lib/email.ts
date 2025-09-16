@@ -220,6 +220,7 @@ export async function sendEmailVerification(
   isDoctor: boolean = false
 ): Promise<void> {
   try {
+    console.log("process.env.NEXTAUTH_URL", process.env.NEXTAUTH_URL);
     // Check if email service is configured
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
       console.log("Email service not configured. Using development mode.");

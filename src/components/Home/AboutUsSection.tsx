@@ -139,7 +139,7 @@ const AboutUsSection: React.FC<AboutUsSectionProps> = ({
                   <h3 className="text-xl md:text-2xl font-bold text-[#1e293b] mb-2 leading-tight">
                     {feature.title}
                   </h3>
-                  <p className="text-base text-[#64748b] leading-relaxed text-justify">
+                  <p className="text-base text-[#64748b] leading-relaxed">
                     {feature.description}
                   </p>
                 </div>
