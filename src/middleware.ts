@@ -1,6 +1,6 @@
 import { withAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
-
+//for deploy
 const protectedRoutes = [
   "/dashboard",
   "/appointment-confirmation",

@@ -3,7 +3,6 @@
 import Topbar from "@/components/shared/Layouts/Topbar";
 import React, { useState } from "react";
 import Sidebar from "./PetParentDashboardSidebar";
-import { SessionProvider } from "next-auth/react";
 import { DashboardProvider } from "@/hooks/DashboardContext";
 
 interface DoctorDashboardLayoutProps {
@@ -18,8 +17,7 @@ export default function PetParentDashboardLayout({
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <SessionProvider>
-      <div className="flex h-screen bg-muted overflow-hidden">
+    <div className="flex h-screen bg-muted overflow-hidden">
         {/* Mobile sidebar overlay */}
         {sidebarOpen && (
           <div
@@ -50,6 +48,5 @@ export default function PetParentDashboardLayout({
           </main>
         </div>
       </div>
-    </SessionProvider>
   );
 }
