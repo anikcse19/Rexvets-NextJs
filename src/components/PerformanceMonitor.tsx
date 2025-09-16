@@ -1,18 +1,20 @@
 "use client";
 
 import performanceMonitor from "@/lib/performanceMonitor";
-import { signOut, useSession } from "next-auth/react";
+import { signOut } from "next-auth/react";
 import { useEffect, useState } from "react";
 import TimezoneUpdateModal from "./TimezoneUpdateModal";
+import type { Session } from "next-auth";
 
 interface PerformanceMonitorProps {
   children?: React.ReactNode;
+  session?: Session | null;
 }
 
 export default function PerformanceMonitor({
   children,
+  session,
 }: PerformanceMonitorProps) {
-  const { data: session } = useSession();
   const [showTimezoneModal, setShowTimezoneModal] = useState(false);
   const [detectedTimezone, setDetectedTimezone] = useState<string>("");
   const [isUpdating, setIsUpdating] = useState(false);

@@ -3,7 +3,6 @@
 import Sidebar from "@/components/shared/Layouts/DoctorDashboardSidebar";
 import Topbar from "@/components/shared/Layouts/Topbar";
 import { DashboardProvider } from "@/hooks/DashboardContext";
-import { SessionProvider } from "next-auth/react";
 import React, { useState } from "react";
 
 interface DoctorDashboardLayoutProps {
@@ -18,8 +17,7 @@ export default function DoctorDashboardLayout({
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <SessionProvider>
-      <DashboardProvider>
+    <DashboardProvider>
       <div className="flex h-screen bg-muted overflow-hidden">
         {/* Mobile sidebar overlay */}
         {sidebarOpen && (
@@ -53,6 +51,5 @@ export default function DoctorDashboardLayout({
         </div>
       </div>
       </DashboardProvider>
-    </SessionProvider>
   );
 }
