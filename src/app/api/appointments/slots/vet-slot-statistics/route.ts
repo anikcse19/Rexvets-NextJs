@@ -79,7 +79,7 @@ export const GET = async (req: NextRequest) => {
     const startDate = searchParams.get("startDate");
     const endDate = searchParams.get("endDate");
 
-    // Validation
+    // Validation check
     if (!vetId || !Types.ObjectId.isValid(vetId)) {
       const errResp: IErrorResponse = {
         success: false,
