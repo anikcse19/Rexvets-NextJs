@@ -69,7 +69,7 @@ const Footer = React.memo(() => {
   const socialLinks = useMemo(
     () => [
       {
-        href: "https://www.instagram.com/rexVet",
+        href: "https://www.instagram.com/rexvet",
         icon: Instagram,
         label: "Instagram",
       },
@@ -79,12 +79,12 @@ const Footer = React.memo(() => {
         label: "Facebook",
       },
       {
-        href: "https://www.tiktok.com/@rexVet",
+        href: "https://www.tiktok.com/@rexvet",
         icon: FaTiktok,
         label: "TikTok",
       },
       {
-        href: "mailto:support@rexVet.org",
+        href: "mailto:support@rexvet.org",
         icon: Mail,
         label: "Email",
       },

@@ -30,13 +30,13 @@ const FooterContactCard: React.FC = () => {
             to providing affordable veterinary care through telehealth.
           </p>
           <motion.a
-            href="mailto:support@rexVet.org"
+            href="mailto:support@rexvet.org"
             whileHover={{ scale: 1.05 }}
             transition={{ duration: 0.3 }}
             className="inline-flex items-center gap-1 rounded-full border border-amber-400/30 bg-amber-400/20 px-3 py-1 text-sm font-medium text-amber-400 backdrop-blur-md transition-colors hover:bg-amber-400 hover:text-gray-900"
           >
             <Mail size={16} />
-            support@rexVet.org
+            support@rexvet.org
           </motion.a>
         </CardContent>
       </Card>

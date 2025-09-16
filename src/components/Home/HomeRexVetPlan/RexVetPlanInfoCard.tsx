@@ -68,7 +68,7 @@ const RexVetPlanInfoCard: React.FC<IProps> = ({ sharedFeatures }) => {
               <div className="w-6 h-6 bg-gradient-to-br from-green-500 to-cyan-500 rounded-full flex items-center justify-center mt-0.5">
                 <IoCheckmarkCircle className="text-white text-xs" />
               </div>
-              <p className=" text-base md:text-lg font-garet text-gray-600 leading-relaxed text-justify flex-1">
+              <p className=" text-base md:text-lg font-garet text-gray-600 leading-relaxed flex-1">
                 {text}
               </p>
             </motion.div>
