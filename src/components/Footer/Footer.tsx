@@ -69,7 +69,7 @@ const Footer = React.memo(() => {
   const socialLinks = useMemo(
     () => [
       {
-        href: "https://www.instagram.com/rexvet",
+        href: "https://www.instagram.com/rexvets",
         icon: Instagram,
         label: "Instagram",
       },

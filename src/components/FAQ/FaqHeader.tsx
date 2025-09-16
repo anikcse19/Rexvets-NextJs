@@ -10,7 +10,7 @@ const headerVariants: Variants = {
 const FaqHeader = () => {
   return (
     <section className="py-12 md:py-20 bg-gradient-to-br from-gray-50 to-white">
-      <div className=" max-w-[1200px] mx-auto px-4 text-start">
+      <div className=" max-w-7xl mx-auto px-4 text-start">
         <motion.div
           variants={headerVariants}
           initial="hidden"
@@ -20,8 +20,8 @@ const FaqHeader = () => {
             Frequently Asked Questions
           </h1>
           <p className="text-lg md:text-xl text-gray-600 max-w-2xl mt-1">
-            Find answers to common questions about Rex Vets&apos; telehealth services
-            and how we can help you and your pet.
+            Find answers to common questions about Rex Vets&apos; telehealth
+            services and how we can help you and your pet.
           </p>
         </motion.div>
       </div>

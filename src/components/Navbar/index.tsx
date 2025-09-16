@@ -53,7 +53,7 @@ import {
 import TopToolbarVet from "./ToolbarVet";
 
 const menuItems = {
-  "Pet parents": ["Donate", "What we treat"],
+  "Pet parents": ["Donate", "What we treat", "FAQ"],
   "Vet & techs": ["Become a Rex Vet", "Rex Health Hub", "Support"],
   About: ["Our Mission", "Our Team", "How it Works"],
 };
@@ -611,7 +611,7 @@ const Header: React.FC = () => {
                   <ScrollArea className="flex-1 px-6">
                     <div className="flex flex-col gap-4 pb-24">
                       <div className="mt-8">
-                        <div className="pb-3 border-b border-[#3D456B] text-start">
+                        <div className="border-b border-[#3D456B] text-start py-2">
                           <Link
                             href="/"
                             className="text-white hover:text-emerald-400 font-semibold text-lg block"
@@ -637,7 +637,7 @@ const Header: React.FC = () => {
                           ) {
                             return (
                               <Collapsible key={label}>
-                                <div className="py-4 border-b border-[#3D456B]">
+                                <div className="py-2 border-b border-[#3D456B]">
                                   <CollapsibleTrigger className="flex justify-between items-start text-white hover:text-emerald-400 font-semibold text-lg w-full">
                                     {label}
                                     <ChevronDown className="w-4 h-4 ml-1" />
@@ -663,7 +663,7 @@ const Header: React.FC = () => {
                           if (label === "About") {
                             return (
                               <React.Fragment key="get-prescription-and-about">
-                                <div className="py-4 border-b border-[#3D456B] text-center">
+                                <div className="py-2 border-b border-[#3D456B] text-center">
                                   <Link
                                     href="/get-a-prescription"
                                     className="text-white text-start hover:text-emerald-400 font-semibold text-lg block"
@@ -673,7 +673,7 @@ const Header: React.FC = () => {
                                   </Link>
                                 </div>
                                 <Collapsible key={label}>
-                                  <div className="py-4 border-b border-[#3D456B]">
+                                  <div className="py-2 border-b border-[#3D456B]">
                                     <CollapsibleTrigger className="flex items-start justify-between text-white hover:text-emerald-400 font-semibold text-lg w-full">
                                       {label}
                                       <ChevronDown className="w-4 h-4 ml-1" />
@@ -698,7 +698,7 @@ const Header: React.FC = () => {
 
                           return null;
                         })}
-                        <div className="pb-3 border-b border-[#3D456B] text-start">
+                        <div className="py-2 border-b border-[#3D456B] text-start">
                           <Link
                             href="/support"
                             className="text-white hover:text-emerald-400 font-semibold text-lg block"
@@ -707,7 +707,7 @@ const Header: React.FC = () => {
                             Support
                           </Link>
                         </div>
-                        <div className="pb-3 border-b border-[#3D456B] text-start">
+                        <div className="py-2 border-b border-[#3D456B] text-start">
                           <Link
                             href="/donate"
                             className="text-white hover:text-emerald-400 font-semibold text-lg block"
