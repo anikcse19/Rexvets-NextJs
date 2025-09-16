@@ -30,21 +30,26 @@ export default function SignInPage() {
 
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirect = searchParams.get("redirect") || "/";
+  const redirect = searchParams.get("redirect") || searchParams.get("callbackUrl") || "/";
   const { data: session, status, update } = useSession();
 
   console.log("redirect to", redirect);
 
   // Redirect already authenticated users
   useEffect(() => {
+    console.log("Session status:", status, "Session:", session);
     if (status === "authenticated" && session?.user) {
       const userRole = session.user.role;
+      console.log("User role:", userRole, "Redirect:", redirect);
 
       if (userRole === "admin" || userRole === "moderator") {
+        console.log("Redirecting admin to overview");
         window.location.replace("/admin/overview");
-      } else if (redirect !== "/") {
+      } else if (redirect && redirect !== "/") {
+        console.log("Redirecting to:", redirect);
         router.push(redirect);
       } else {
+        console.log("Redirecting to home");
         router.push("/");
       }
     }
@@ -70,12 +75,19 @@ export default function SignInPage() {
       const result = await signIn("credentials", {
         email,
         password,
-        // redirect: false,
+        redirect: false,
       });
 
       if (result?.ok) {
         console.log("Sign-in successful, redirecting...", result);
-        router.push(redirect);
+        // Wait a moment for session to update, then redirect
+        await new Promise((r) => setTimeout(r, 100));
+        // Use window.location for more reliable redirect
+        if (redirect && redirect !== "/") {
+          window.location.href = redirect;
+        } else {
+          window.location.href = "/";
+        }
       } else {
         // Handle different error cases
         if (result?.error === "CredentialsSignin") {
@@ -151,7 +163,7 @@ export default function SignInPage() {
             : "/?signedin=1";
         console.log("Redirecting to:", targetUrl);
         await new Promise((r) => setTimeout(r, 50));
-        router.replace(targetUrl);
+        window.location.href = targetUrl;
       } else {
         setError("Google sign-in failed. Please try again.");
       }
