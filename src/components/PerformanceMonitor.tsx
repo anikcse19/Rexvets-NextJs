@@ -137,9 +137,10 @@ export default function PerformanceMonitor({
   return (
     <>
       {children}
+
       <TimezoneUpdateModal
         isOpen={showTimezoneModal}
-        onClose={() => setShowTimezoneModal(false)}
+        onClose={() => handleDismissTimezone()}
         onUpdate={handleUpdateTimezone}
         onDismiss={handleDismissTimezone}
         currentTimezone={session?.user?.timezone || ""}

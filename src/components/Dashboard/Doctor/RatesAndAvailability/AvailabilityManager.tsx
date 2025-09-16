@@ -1,9 +1,9 @@
 "use client";
 
 import AvailabilityScheduler from "@/components/Dashboard/Doctor/RatesAndAvailability/AvailabilityScheduler";
+import VetSlotStatistics from "@/components/Dashboard/Doctor/RatesAndAvailability/VetSlotStatistics";
 import AnimatedDateTabs from "@/components/shared/AnimatedDateTabs";
 import BookingNoticePeriod from "@/components/shared/BookingNoticePeriod";
-import TimezoneUpdateModal from "@/components/TimezoneUpdateModal";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -25,7 +25,6 @@ import {
   getTimezoneInfo,
   getTimezoneOffset,
   getUserTimezone,
-  getVeterinarianTimezoneWithFallback,
   updateTimezoneWithValidation,
 } from "@/lib/timezone";
 import { DateRange, SlotPeriod } from "@/lib/types";
@@ -34,7 +33,13 @@ import { AlertTriangle, Calendar, Clock, Globe } from "lucide-react";
 import moment from "moment";
 import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
-import React, { useCallback, useDeferredValue, useEffect, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useDeferredValue,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { toast } from "sonner";
 
 const TimeSlotCreator = dynamic(
@@ -87,6 +92,9 @@ const AvailabilityManager: React.FC = () => {
   const [showTimezoneUpdateModal, setShowTimezoneUpdateModal] = useState(false);
   const [timezoneModalDismissed, setTimezoneModalDismissed] = useState(false);
   const [isClient, setIsClient] = useState(false);
+  const [statisticsData, setStatisticsData] = useState<any>(null);
+  const [statisticsLoading, setStatisticsLoading] = useState(false);
+  const [statisticsError, setStatisticsError] = useState<string | null>(null);
   const userTimezone = user?.timezone || "";
   const currentTimeZone = isClient
     ? Intl.DateTimeFormat().resolvedOptions().timeZone
@@ -130,6 +138,42 @@ const AvailabilityManager: React.FC = () => {
       setTimezoneLoading(false);
     }
   };
+
+  // Function to fetch slot statistics
+  const fetchSlotStatistics = useCallback(async () => {
+    if (!selectedRange || !user?.refId) {
+      return;
+    }
+
+    setStatisticsLoading(true);
+    setStatisticsError(null);
+
+    try {
+      const startDate = format(selectedRange.start, "yyyy-MM-dd");
+      const endDate = format(selectedRange.end, "yyyy-MM-dd");
+      
+      const response = await fetch(
+        `/api/appointments/slots/vet-slot-statistics?vetId=${user.refId}&startDate=${startDate}&endDate=${endDate}`
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      
+      if (result.success) {
+        setStatisticsData(result.data);
+      } else {
+        throw new Error(result.message || "Failed to fetch statistics");
+      }
+    } catch (error: any) {
+      console.error("Error fetching slot statistics:", error);
+      setStatisticsError(error?.message || "Failed to fetch statistics");
+    } finally {
+      setStatisticsLoading(false);
+    }
+  }, [selectedRange, user?.refId]);
 
   // Handler for timezone update modal
   const handleTimezoneUpdate = async () => {
@@ -180,8 +224,9 @@ const AvailabilityManager: React.FC = () => {
     // Only fetch if we have both selectedRange and user refId
     if (selectedRange && user?.refId) {
       fetchSlots();
+      fetchSlotStatistics();
     }
-  }, [selectedRange, user?.refId, slotStatus, vetTimezone, fetchSlots]);
+  }, [selectedRange, user?.refId, slotStatus, vetTimezone, fetchSlots, fetchSlotStatistics]);
   useEffect(() => {
     if (availableSlotsApiResponse.data) {
       setHasExistingSlots(availableSlotsApiResponse.data.periods.length > 0);
@@ -304,6 +349,15 @@ const AvailabilityManager: React.FC = () => {
         <div>
           <BookingNoticePeriod vetId={user?.refId} autoSave />
         </div>
+      </div>
+
+      {/* Slot Statistics Section */}
+      <div className="mt-8">
+        <VetSlotStatistics
+          data={statisticsData}
+          loading={statisticsLoading}
+          error={statisticsError}
+        />
       </div>
 
       {/* Timezone Selection Modal */}
